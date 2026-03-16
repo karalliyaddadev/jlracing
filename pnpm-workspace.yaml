@@ -1,0 +1,14 @@
+packages:
+  - apps/*
+
+ignoredBuiltDependencies:
+  - '@firebase/util'
+  - '@nestjs/core'
+  - '@prisma/client'
+  - '@prisma/engines'
+  - '@swc/core'
+  - esbuild
+  - msgpackr-extract
+  - prisma
+  - protobufjs
+  - unrs-resolver

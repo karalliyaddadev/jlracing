@@ -1,0 +1,33 @@
+:root {
+  --bg: #fef8ef;
+  --card: #fff;
+  --text: #2d2618;
+  --accent: #c8553d;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Trebuchet MS", "Segoe UI", sans-serif;
+  background: linear-gradient(120deg, #ffe5d0 0%, #fef8ef 45%, #e5f6ee 100%);
+  color: var(--text);
+}
+
+main {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+}
+
+.card {
+  width: min(800px, 100%);
+  background: var(--card);
+  border-left: 8px solid var(--accent);
+  border-radius: 14px;
+  padding: 2rem;
+  box-shadow: 0 12px 30px rgba(56, 41, 16, 0.12);
+}

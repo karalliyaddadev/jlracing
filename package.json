@@ -1,0 +1,34 @@
+{
+  "name": "bike-project",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bike Project Monorepo",
+  "license": "UNLICENSED",
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev --parallel",
+    "dev:backend": "pnpm --filter @bike-project/backend dev",
+    "dev:pos": "pnpm --filter @bike-project/pos dev",
+    "dev:local": "pnpm --filter @bike-project/localfrontend dev",
+    "dev:foreign": "pnpm --filter @bike-project/foreignfrontend dev",
+    "dev:admin": "pnpm --filter @bike-project/admin-landing dev",
+    "start": "pnpm -r start",
+    "lint": "turbo run lint",
+    "type-check": "turbo run type-check",
+    "db:generate": "pnpm --filter @bike-project/backend db:generate",
+    "db:push": "pnpm --filter @bike-project/backend db:push",
+    "db:migrate": "pnpm --filter @bike-project/backend db:migrate",
+    "db:studio": "pnpm --filter @bike-project/backend db:studio",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down"
+  },
+  "devDependencies": {
+    "turbo": "^2.3.3",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=10.0.0"
+  },
+  "packageManager": "pnpm@10.19.0"
+}

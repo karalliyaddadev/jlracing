@@ -1,0 +1,51 @@
+:root {
+  --bg: #f4f2ea;
+  --card: #fff8e9;
+  --text: #1f2a25;
+  --accent: #005f73;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background: radial-gradient(circle at top right, #cde5d7 0%, var(--bg) 45%);
+  color: var(--text);
+}
+
+main {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+}
+
+.card {
+  width: min(820px, 100%);
+  background: var(--card);
+  border: 1px solid #d8d2bf;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 14px 40px rgba(8, 40, 32, 0.12);
+}
+
+h1 {
+  margin: 0 0 0.6rem;
+}
+
+small {
+  opacity: 0.8;
+}
+
+ul {
+  margin-top: 1rem;
+}
+
+code {
+  background: #ebf4ef;
+  padding: 0.1rem 0.4rem;
+  border-radius: 6px;
+}
