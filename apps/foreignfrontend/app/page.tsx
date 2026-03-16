@@ -13,7 +13,7 @@ export default function Page() {
 
   return (
     <main className="landing">
-      {/* ── Local / Colombo Side ── */}
+      {/* ── Local / Sri Lanka Side ── */}
       <a
         href={LOCAL_URL}
         className={`landing__side landing__side--local ${
@@ -25,24 +25,32 @@ export default function Page() {
         <div className="landing__bg" />
         <div className="landing__overlay" />
         <div className="landing__content">
-          <span className="landing__label">ローカル</span>
-          <h2 className="landing__title">Local Website</h2>
-          <p className="landing__subtitle">Colombo, Sri Lanka</p>
-          <div className="landing__cta">
-            <span className="landing__arrow">→</span>
-            <span>Enter</span>
-          </div>
+          <span className="landing__label">
+            <span className="landing__flag">🇱🇰</span> SRI LANKA
+          </span>
+          <h2 className="landing__title">
+            Browse<br />Local<br />Stock
+          </h2>
+          <p className="landing__subtitle">
+            In-house listings, spare parts,<br />
+            pre-orders and exclusive local<br />
+            deals.
+          </p>
         </div>
       </a>
 
       {/* ── Divider ── */}
       <div className="landing__divider">
         <div className="landing__divider-line" />
-        <div className="landing__divider-logo">JL</div>
+        <img
+          src="/landing/logo.jpg"
+          alt="JL Racing"
+          className="landing__divider-logo"
+        />
         <div className="landing__divider-line" />
       </div>
 
-      {/* ── International / Japan Side ── */}
+      {/* ── International Side ── */}
       <a
         href={INTERNATIONAL_URL}
         className={`landing__side landing__side--intl ${
@@ -54,15 +62,31 @@ export default function Page() {
         <div className="landing__bg" />
         <div className="landing__overlay" />
         <div className="landing__content">
-          <span className="landing__label">インターナショナル</span>
-          <h2 className="landing__title">International Website</h2>
-          <p className="landing__subtitle">Japan</p>
+          <span className="landing__label">INTERNATIONAL</span>
+          <h2 className="landing__title">
+            Explore<br />Export<br />Catalogue
+          </h2>
+          <p className="landing__subtitle">
+            Premium motorcycle exports,<br />
+            global shipping and sourcing<br />
+            services.
+          </p>
           <div className="landing__cta">
-            <span>Enter</span>
+            <span>ENTER INTERNATIONAL SITE</span>
             <span className="landing__arrow">→</span>
           </div>
         </div>
       </a>
+
+      {/* ── Bottom Geo Bar ── */}
+      <div className="landing__geobar">
+        <span>
+          We detected you&apos;re in Sri Lanka &mdash;{" "}
+          <a href={LOCAL_URL} className="landing__geobar-link">
+            Go to Local Site
+          </a>
+        </span>
+      </div>
     </main>
   );
 }
