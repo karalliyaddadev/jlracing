@@ -62,7 +62,11 @@ export default function Page() {
 
       <div className="admin__container">
         <header className="admin__header">
-          <img src="/img/logo.jpg" alt="JL Racing" className="admin__logo-img" />
+          <img
+            src="/img/logo.jpg"
+            alt="JL Racing"
+            className="admin__logo-img"
+          />
           <h1 className="admin__title">Admin Portal</h1>
           <p className="admin__subtitle">管理ポータル</p>
         </header>

@@ -29,11 +29,17 @@ export default function Page() {
             <span className="landing__flag">🇱🇰</span> SRI LANKA
           </span>
           <h2 className="landing__title">
-            Browse<br />Local<br />Stock
+            Browse
+            <br />
+            Local
+            <br />
+            Stock
           </h2>
           <p className="landing__subtitle">
-            In-house listings, spare parts,<br />
-            pre-orders and exclusive local<br />
+            In-house listings, spare parts,
+            <br />
+            pre-orders and exclusive local
+            <br />
             deals.
           </p>
         </div>
@@ -64,11 +70,17 @@ export default function Page() {
         <div className="landing__content">
           <span className="landing__label">INTERNATIONAL</span>
           <h2 className="landing__title">
-            Explore<br />Export<br />Catalogue
+            Explore
+            <br />
+            Export
+            <br />
+            Catalogue
           </h2>
           <p className="landing__subtitle">
-            Premium motorcycle exports,<br />
-            global shipping and sourcing<br />
+            Premium motorcycle exports,
+            <br />
+            global shipping and sourcing
+            <br />
             services.
           </p>
           <div className="landing__cta">
