@@ -2,11 +2,16 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Bike Foreign Frontend",
-  description: "Foreign market frontend for Bike Project"
+  title: "JL Racing — Choose Your Destination",
+  description:
+    "Select your regional experience — Local (Colombo) or International (Japan)",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
       <body>{children}</body>

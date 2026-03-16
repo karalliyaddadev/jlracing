@@ -1,32 +1,290 @@
-:root {
-  --bg: #f3f7ff;
-  --card: #ffffff;
-  --text: #16233b;
-  --accent: #006d77;
-}
+/* ═══════════════════════════════════════════════════════════
+   JL Racing — Landing Page (split-screen selector)
+   ═══════════════════════════════════════════════════════════ */
 
-* {
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;500;700&family=Inter:wght@300;400;600;700&display=swap");
+
+/* ── Reset ── */
+*,
+*::before,
+*::after {
   box-sizing: border-box;
-}
-
-body {
   margin: 0;
-  font-family: Georgia, Cambria, "Times New Roman", serif;
-  background: linear-gradient(160deg, #f3f7ff 0%, #d8eeff 60%, #fff9ee 100%);
-  color: var(--text);
+  padding: 0;
 }
 
-main {
-  min-height: 100vh;
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+  font-family: "Inter", "Noto Sans JP", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Layout ── */
+.landing {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  position: relative;
+  background: #0a0a0a;
+}
+
+/* ── Each Side ── */
+.landing__side {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  color: #fff;
+  cursor: pointer;
+  overflow: hidden;
+  transition: flex 0.7s cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+.landing__side.is-active {
+  flex: 1.35;
+}
+
+.landing__side.is-inactive {
+  flex: 0.65;
+}
+
+/* ── Background images ── */
+.landing__bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  transition: transform 0.8s cubic-bezier(0.33, 1, 0.68, 1),
+              filter 0.6s ease;
+  will-change: transform;
+}
+
+.landing__side--local .landing__bg {
+  background-image: url("/landing/colombo.avif");
+}
+
+.landing__side--intl .landing__bg {
+  background-image: url("/landing/japan.jpg");
+}
+
+/* Subtle zoom on hover */
+.landing__side.is-active .landing__bg {
+  transform: scale(1.08);
+}
+
+.landing__side.is-inactive .landing__bg {
+  filter: grayscale(0.6) brightness(0.4);
+}
+
+/* ── Overlay gradients ── */
+.landing__overlay {
+  position: absolute;
+  inset: 0;
+  transition: background 0.6s ease, opacity 0.6s ease;
+}
+
+/* Default overlays — slight dark wash */
+.landing__side--local .landing__overlay {
+  background: linear-gradient(
+    135deg,
+    rgba(10, 60, 40, 0.55) 0%,
+    rgba(0, 0, 0, 0.35) 100%
+  );
+}
+
+.landing__side--intl .landing__overlay {
+  background: linear-gradient(
+    225deg,
+    rgba(120, 20, 30, 0.50) 0%,
+    rgba(0, 0, 0, 0.35) 100%
+  );
+}
+
+/* Active state — clear the overlay to show vivid image */
+.landing__side.is-active .landing__overlay {
+  opacity: 0.3;
+}
+
+/* Inactive state — heavier overlay */
+.landing__side.is-inactive .landing__overlay {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+/* ── Content block ── */
+.landing__content {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  transition: transform 0.6s cubic-bezier(0.33, 1, 0.68, 1),
+              opacity 0.5s ease;
+}
+
+.landing__side.is-active .landing__content {
+  transform: translateY(-8px) scale(1.05);
+}
+
+.landing__side.is-inactive .landing__content {
+  opacity: 0.45;
+  transform: scale(0.92);
+}
+
+/* ── Japanese label ── */
+.landing__label {
+  font-family: "Noto Sans JP", sans-serif;
+  font-size: 0.85rem;
+  font-weight: 300;
+  letter-spacing: 0.35em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  transition: opacity 0.4s ease;
+}
+
+.landing__side.is-active .landing__label {
+  opacity: 1;
+}
+
+/* ── Title ── */
+.landing__title {
+  font-size: clamp(1.6rem, 3.5vw, 2.8rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  text-shadow: 0 2px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* ── Subtitle ── */
+.landing__subtitle {
+  font-size: 0.95rem;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+/* ── CTA ── */
+.landing__cta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  padding: 0.6rem 1.8rem;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  backdrop-filter: blur(6px);
+  background: rgba(255, 255, 255, 0.08);
+  transition: background 0.3s ease, border-color 0.3s ease,
+              transform 0.3s ease;
+}
+
+.landing__side.is-active .landing__cta {
+  border-color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-2px);
+}
+
+.landing__arrow {
+  display: inline-block;
+  transition: transform 0.3s ease;
+}
+
+.landing__side.is-active .landing__arrow {
+  transform: translateX(4px);
+}
+
+/* ── Center Divider ── */
+.landing__divider {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.landing__divider-line {
+  flex: 1;
+  width: 1px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(255, 255, 255, 0.25) 20%,
+    rgba(255, 255, 255, 0.25) 80%,
+    transparent 100%
+  );
+}
+
+.landing__divider-logo {
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 50%;
+  width: 52px;
+  height: 52px;
   display: grid;
   place-items: center;
-  padding: 2rem;
+  flex-shrink: 0;
 }
 
-.card {
-  width: min(820px, 100%);
-  background: var(--card);
-  border-radius: 14px;
-  padding: 2rem;
-  box-shadow: 0 14px 28px rgba(3, 26, 57, 0.15);
+/* ═══════════════════════════════════════════════════════════
+   Mobile: stack vertically
+   ═══════════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  .landing {
+    flex-direction: column;
+  }
+
+  .landing__side.is-active {
+    flex: 1.4;
+  }
+
+  .landing__side.is-inactive {
+    flex: 0.6;
+  }
+
+  .landing__title {
+    font-size: clamp(1.3rem, 6vw, 2rem);
+  }
+
+  .landing__divider {
+    left: 0;
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+    flex-direction: row;
+    width: 100%;
+    height: auto;
+  }
+
+  .landing__divider-line {
+    flex: 1;
+    height: 1px;
+    width: auto;
+    background: linear-gradient(
+      to right,
+      transparent 0%,
+      rgba(255, 255, 255, 0.25) 20%,
+      rgba(255, 255, 255, 0.25) 80%,
+      transparent 100%
+    );
+  }
 }
