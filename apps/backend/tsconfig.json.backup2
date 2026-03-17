@@ -12,29 +12,57 @@
     "composite": true,
     "incremental": true,
     "skipLibCheck": true,
+    "strict": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}
+
+    /* Interop */
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "resolveJsonModule": true,
+
+    /* Project References */
+    "composite": true,
+    "incremental": true,
+
+    /* Type Safety */
     "strict": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
     "strictBindCallApply": true,
     "strictPropertyInitialization": false,
+
+    /* Code Quality */
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
+
+    /* Performance */
+    "skipLibCheck": true,
+
+    /* TS 5 */
     "ignoreDeprecations": "5.0",
-    "baseUrl": "./",
+
+    /* Paths */
+    "baseUrl": "./src",
     "paths": {
-      "@/*": ["src/*"],
-      "@config/*": ["src/config/*"],
-      "@common/*": ["src/common/*"],
-      "@database/*": ["src/database/*"],
-      "@modules/*": ["src/modules/*"],
-      "@infrastructure/*": ["src/infrastructure/*"],
+      "@/*": ["*"],
+      "@config/*": ["config/*"],
+      "@common/*": ["common/*"],
+      "@database/*": ["database/*"],
+      "@modules/*": ["modules/*"],
+      "@infrastructure/*": ["infrastructure/*"],
+
       "@learnup/shared": ["../../packages/shared/src"],
       "@learnup/shared/*": ["../../packages/shared/src/*"]
     }
   },
+
   "include": ["src"],
+
   "exclude": [
     "node_modules",
     "dist",
@@ -44,4 +72,6 @@
     "**/*.test.ts",
     "coverage"
   ],
+
+  "references": [{ "path": "../../packages/shared" }]
 }
