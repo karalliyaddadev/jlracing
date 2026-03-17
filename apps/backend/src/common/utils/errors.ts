@@ -32,7 +32,10 @@ export class AppError extends Error {
 }
 
 // Zod validation helper: throws AppError on failure
-export function validate<T>(schema: z.ZodType<T>, data: unknown): T {
+export function validate<TSchema extends z.ZodTypeAny>(
+  schema: TSchema,
+  data: unknown
+): z.infer<TSchema> {
   const result = schema.safeParse(data);
   if (!result.success) {
     throw AppError.validation(result.error.flatten());

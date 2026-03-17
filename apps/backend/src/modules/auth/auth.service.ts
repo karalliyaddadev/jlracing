@@ -10,11 +10,11 @@ import type { Role } from "@prisma/client";
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 function generateAccessToken(payload: { sub: number; email: string; role: Role }) {
-  return jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN });
+  return jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN as unknown as number });
 }
 
 function generateRefreshToken(payload: { sub: number }) {
-  return jwt.sign(payload, env.JWT_REFRESH_SECRET, { expiresIn: env.JWT_REFRESH_EXPIRES_IN });
+  return jwt.sign(payload, env.JWT_REFRESH_SECRET, { expiresIn: env.JWT_REFRESH_EXPIRES_IN as unknown as number });
 }
 
 function stripSensitive(user: { passwordHash: string; refreshToken: string | null; [k: string]: unknown }) {
@@ -57,7 +57,7 @@ export async function loginUser(dto: LoginDto) {
 export async function refreshAccessToken(token: string) {
   let payload: { sub: number };
   try {
-    payload = jwt.verify(token, env.JWT_REFRESH_SECRET) as { sub: number };
+    payload = jwt.verify(token, env.JWT_REFRESH_SECRET) as unknown as { sub: number };
   } catch {
     throw AppError.unauthorized("Invalid or expired refresh token");
   }
