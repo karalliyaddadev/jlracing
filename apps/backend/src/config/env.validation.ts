@@ -286,7 +286,7 @@ export const envConfig = {
     port: parseInt(process.env.DB_PORT || "5432", 10),
     username: process.env.DB_USERNAME || "postgres",
     password: process.env.DB_PASSWORD!,
-    database: process.env.DB_NAME || "learnup_test_db",
+    database: process.env.DB_NAME || "jlracing_db",
   },
 
   jwt: {
