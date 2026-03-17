@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 
-const LOCAL_URL = process.env.NEXT_PUBLIC_LOCAL_URL ?? "http://localhost:3001";
+const LOCAL_URL = process.env.NEXT_PUBLIC_LOCAL_URL ?? "https://local.jlracingshop.karalliyaddaone.tech";
 const INTERNATIONAL_URL =
-  process.env.NEXT_PUBLIC_INTERNATIONAL_URL ?? "http://localhost:3002";
+  process.env.NEXT_PUBLIC_INTERNATIONAL_URL ?? "https://international.jlracingshop.karalliyaddaone.tech";
 
 type HoverSide = null | "local" | "international";
 
