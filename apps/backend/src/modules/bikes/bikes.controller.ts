@@ -1,56 +1,97 @@
 import type { Request, Response, NextFunction } from "express";
-import { validate } from "../../common/utils/errors";
-import { sendSuccess, sendCreated } from "../../common/utils/response";
-import { createBikeSchema, updateBikeSchema, bikeQuerySchema } from "./dto/bike.dto";
+import { z } from "zod";
 import * as bikesService from "./bikes.service";
 
-export async function getAll(req: Request, res: Response, next: NextFunction) {
+const listBikesSchema = z.object({
+  page: z.string().optional().default('1'),
+  limit: z.string().optional().default('10'),
+  brand: z.string().optional(),
+  inStock: z.enum(['true', 'false']).optional()
+});
+
+const createBikeSchema = z.object({
+  name: z.string().min(1),
+  brand: z.string().min(1),
+  price: z.number().positive(),
+  model: z.string().optional(),
+  year: z.number().int().min(1900).max(new Date().getFullYear() + 1).optional(),
+  inStock: z.boolean().default(true)
+});
+
+const updateBikeSchema = createBikeSchema.partial();
+
+export async function listBikes(req: Request, res: Response, next: NextFunction) {
   try {
-    const query = validate(bikeQuerySchema, req.query);
-    const result = await bikesService.listBikes(query);
-    return sendSuccess(res, result);
+    const query = listBikesSchema.parse(req.query);
+    
+    const page = parseInt(query.page);
+    const limit = parseInt(query.limit);
+    
+    const result = await bikesService.listBikes({
+      page: isNaN(page) ? 1 : page,
+      limit: isNaN(limit) ? 10 : limit,
+      brand: query.brand,
+      inStock: query.inStock
+    });
+    
+    res.status(200).json(result);
   } catch (err) {
-    return next(err);
+    next(err);
   }
 }
 
-export async function getOne(req: Request, res: Response, next: NextFunction) {
+export async function getBike(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = Number(req.params.id);
+    // FIX: Convert params.id to string
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) {
+      throw new Error('Invalid ID');
+    }
+    
     const bike = await bikesService.getBike(id);
-    return sendSuccess(res, bike);
+    res.status(200).json(bike);
   } catch (err) {
-    return next(err);
+    next(err);
   }
 }
 
-export async function create(req: Request, res: Response, next: NextFunction) {
+export async function createBike(req: Request, res: Response, next: NextFunction) {
   try {
-    const dto = validate(createBikeSchema, req.body);
+    const dto = createBikeSchema.parse(req.body);
     const bike = await bikesService.createBike(dto);
-    return sendCreated(res, bike);
+    res.status(201).json(bike);
   } catch (err) {
-    return next(err);
+    next(err);
   }
 }
 
-export async function update(req: Request, res: Response, next: NextFunction) {
+export async function updateBike(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = Number(req.params.id);
-    const dto = validate(updateBikeSchema, req.body);
+    // FIX: Convert params.id to string
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) {
+      throw new Error('Invalid ID');
+    }
+    
+    const dto = updateBikeSchema.parse(req.body);
     const bike = await bikesService.updateBike(id, dto);
-    return sendSuccess(res, bike);
+    res.status(200).json(bike);
   } catch (err) {
-    return next(err);
+    next(err);
   }
 }
 
-export async function remove(req: Request, res: Response, next: NextFunction) {
+export async function deleteBike(req: Request, res: Response, next: NextFunction) {
   try {
-    const id = Number(req.params.id);
+    // FIX: Convert params.id to string
+    const id = parseInt(req.params.id as string);
+    if (isNaN(id)) {
+      throw new Error('Invalid ID');
+    }
+    
     await bikesService.deleteBike(id);
-    return sendSuccess(res, { message: "Bike deleted" });
+    res.status(204).send();
   } catch (err) {
-    return next(err);
+    next(err);
   }
 }
