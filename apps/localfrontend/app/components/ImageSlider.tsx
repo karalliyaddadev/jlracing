@@ -5,8 +5,10 @@ import { useState } from "react";
 interface SliderItem {
   id: number;
   image: string;
-  title: string;
-  category: string;
+  brand: string;
+  model: string;
+  year: string;
+  meta: string;
   price: string;
 }
 
@@ -14,44 +16,56 @@ const ITEMS: SliderItem[] = [
   {
     id: 1,
     image: "/images/bike-1.jpg",
-    title: "Kawasaki Ninja ZX-10R",
-    category: "Sport",
-    price: "Contact Us",
+    brand: "Kawasaki",
+    model: "Ninja ZX-10R",
+    year: "2020",
+    meta: "998cc | Used | Japanese",
+    price: "LKR 4,850,000",
   },
   {
     id: 2,
     image: "/images/bike-2.jpg",
-    title: "Yamaha MT-09",
-    category: "Naked",
-    price: "Contact Us",
+    brand: "Yamaha",
+    model: "MT-09",
+    year: "2021",
+    meta: "889cc | Used | Japanese",
+    price: "LKR 4,200,000",
   },
   {
     id: 3,
     image: "/images/bike-3.jpg",
-    title: "Honda CBR 600RR",
-    category: "Sport",
-    price: "Contact Us",
+    brand: "Honda",
+    model: "CBR 600RR",
+    year: "2019",
+    meta: "600cc | Used | Japanese",
+    price: "LKR 3,600,000",
   },
   {
     id: 4,
     image: "/images/bike-4.jpg",
-    title: "Suzuki GSX-R1000",
-    category: "Sport",
-    price: "Contact Us",
+    brand: "Suzuki",
+    model: "GSX-R1000",
+    year: "2020",
+    meta: "999cc | Used | Japanese",
+    price: "LKR 4,700,000",
   },
   {
     id: 5,
     image: "/images/bike-5.jpg",
-    title: "Ducati Panigale V4",
-    category: "Superbike",
-    price: "Contact Us",
+    brand: "Ducati",
+    model: "Panigale V4",
+    year: "2021",
+    meta: "1103cc | Used | European",
+    price: "LKR 9,800,000",
   },
   {
     id: 6,
     image: "/images/bike-6.jpg",
-    title: "BMW S1000RR",
-    category: "Sport",
-    price: "Contact Us",
+    brand: "BMW",
+    model: "S1000RR",
+    year: "2022",
+    meta: "999cc | Used | European",
+    price: "LKR 8,900,000",
   },
 ];
 
@@ -127,10 +141,23 @@ export default function ImageSlider() {
                   className="slider-card__bg"
                   style={{ backgroundImage: `url(${item.image})` }}
                 />
-                <span className="slider-card__category">{item.category}</span>
               </div>
               <div className="slider-card__body">
-                <h3 className="slider-card__title">{item.title}</h3>
+                <div className="slider-card__info-row">
+                  <div className="slider-card__info-col">
+                    <span className="slider-card__label">Brand</span>
+                    <span className="slider-card__value">{item.brand}</span>
+                  </div>
+                  <div className="slider-card__info-col">
+                    <span className="slider-card__label">Model</span>
+                    <span className="slider-card__value">{item.model}</span>
+                  </div>
+                  <div className="slider-card__info-col">
+                    <span className="slider-card__label">Year</span>
+                    <span className="slider-card__value">{item.year}</span>
+                  </div>
+                </div>
+                <p className="slider-card__meta-text">{item.meta}</p>
                 <span className="slider-card__price">{item.price}</span>
               </div>
             </div>

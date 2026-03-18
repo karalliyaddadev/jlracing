@@ -23,17 +23,17 @@ export default function HomePage() {
       {/* ── What We Have ── */}
       <WhatWeHave />
 
-      {/* ── Testimonials ── */}
-      <Testimonials />
+      {/* ── Featured Slider ── */}
+      <ImageSlider />
 
       {/* ── Service Overview ── */}
       <ServiceOverview />
 
-      {/* ── Featured Slider ── */}
-      <ImageSlider />
+      {/* ── Testimonials ── */}
+      <Testimonials />
 
       {/* ── Listing Overview ── */}
-      <ListingOverview />
+      {/* <ListingOverview /> */}
 
       {/* ── CTA Banner ── */}
       <section className="cta-banner">

@@ -7,8 +7,8 @@ const CATEGORIES = [
     heading: "Available Bike Inventory",
     description:
       "Explore our current stock of imported bikes ready for sale today.",
-    image: "/landing/japan.jpg",
-    imageBg: "#1a1a2e",
+    image: "/images/product-bikes.png",
+    imageBg: "#ffffff",
   },
   {
     href: "/spare-parts",
@@ -16,8 +16,8 @@ const CATEGORIES = [
     heading: "Genuine Spare Parts",
     description:
       "Order original spare parts for bikes with trusted quality guarantee.",
-    image: null,
-    imageBg: "#0d1117",
+    image: "/images/product-spare-parts.jpg",
+    imageBg: "#ffffff",
   },
   {
     href: "/pre-orders",
@@ -25,8 +25,8 @@ const CATEGORIES = [
     heading: "Pre-Order Bikes",
     description:
       "Check available pre-order models and request imports from our latest listings.",
-    image: "/landing/colombo.avif",
-    imageBg: "#111827",
+    image: "/images/product-preorder.png",
+    imageBg: "#ffffff",
   },
 ];
 
@@ -55,7 +55,7 @@ export default function WhatWeHave() {
 
             {/* Image block */}
             <div
-              className="wwh-card__image"
+              className={`wwh-card__image${cat.href === "/pre-orders" || cat.href === "/spare-parts" ? " wwh-card__image--contain" : ""}`}
               style={{
                 backgroundImage: cat.image ? `url(${cat.image})` : "none",
                 backgroundColor: cat.imageBg,
@@ -68,8 +68,20 @@ export default function WhatWeHave() {
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <circle cx="15" cy="30" r="9" stroke="rgba(255,255,255,0.25)" strokeWidth="2.5" />
-                  <circle cx="65" cy="30" r="9" stroke="rgba(255,255,255,0.25)" strokeWidth="2.5" />
+                  <circle
+                    cx="15"
+                    cy="30"
+                    r="9"
+                    stroke="rgba(255,255,255,0.25)"
+                    strokeWidth="2.5"
+                  />
+                  <circle
+                    cx="65"
+                    cy="30"
+                    r="9"
+                    stroke="rgba(255,255,255,0.25)"
+                    strokeWidth="2.5"
+                  />
                   <path
                     d="M24 30h16l8-18h16l8 18"
                     stroke="rgba(255,255,255,0.25)"

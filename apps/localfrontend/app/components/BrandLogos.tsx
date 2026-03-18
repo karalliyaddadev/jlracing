@@ -1,14 +1,13 @@
 import Image from "next/image";
 
 const brands = [
-  { name: "Kawasaki", src: "/trusted/kawasaki.png" },
-  { name: "Yamaha", src: "/trusted/yamaha.png" },
   { name: "Honda", src: "/trusted/honda.png" },
-  { name: "Suzuki", src: "/trusted/suzuki.png" },
   { name: "Ducati", src: "/trusted/ducati.png" },
   { name: "BMW", src: "/trusted/bmw.png" },
-  { name: "KTM", src: "/trusted/ktm.png" },
+  { name: "Suzuki", src: "/trusted/suzuki.png" },
+  { name: "Yamaha", src: "/trusted/yamaha.png" },
   { name: "Triumph", src: "/trusted/triumph.png" },
+  { name: "Harley-Davidson", src: "/trusted/harley-davidson.png" },
 ];
 
 export default function BrandLogos() {

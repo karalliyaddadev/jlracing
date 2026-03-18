@@ -573,22 +573,13 @@ button {
 .slider-card {
   flex: 0 0 300px;
   scroll-snap-align: start;
-  border-radius: var(--radius-lg);
   overflow: hidden;
   background: #fff;
-  border: 1px solid var(--border-light);
-  transition: transform 0.3s, border-color 0.3s, box-shadow 0.3s;
-}
-
-.slider-card:hover {
-  transform: translateY(-6px);
-  border-color: rgba(0,0,0,0.12);
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
 }
 
 .slider-card__image {
   position: relative;
-  height: 220px;
+  aspect-ratio: 1 / 1;
   overflow: hidden;
 }
 
@@ -597,44 +588,53 @@ button {
   height: 100%;
   background-size: cover;
   background-position: center;
-  background-color: var(--bg-light);
+  background-color: #e0e0e0;
   transition: transform 0.4s;
 }
 
 .slider-card:hover .slider-card__bg {
-  transform: scale(1.08);
-}
-
-.slider-card__category {
-  position: absolute;
-  top: 0.75rem;
-  left: 0.75rem;
-  padding: 0.25rem 0.75rem;
-  font-size: 0.65rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  background: var(--accent);
-  color: #fff;
-  border-radius: 2px;
+  transform: scale(1.05);
 }
 
 .slider-card__body {
-  padding: 1.25rem;
+  padding: 1.25rem 0.25rem;
 }
 
-.slider-card__title {
-  font-size: 1rem;
-  font-weight: 700;
-  margin-bottom: 0.4rem;
-  letter-spacing: -0.01em;
+.slider-card__info-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.slider-card__info-col {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.slider-card__label {
+  font-size: 0.85rem;
+  color: #666;
+  font-weight: 400;
+}
+
+.slider-card__value {
+  font-size: 0.85rem;
+  font-weight: 500;
   color: var(--text-dark);
 }
 
-.slider-card__price {
+.slider-card__meta-text {
   font-size: 0.85rem;
-  color: var(--accent);
-  font-weight: 600;
+  color: #555;
+  margin-bottom: 0.75rem;
+}
+
+.slider-card__price {
+  font-size: 1.1rem;
+  color: #000;
+  font-weight: 700;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1071,14 +1071,20 @@ button {
   min-height: 240px;
   background-size: cover;
   background-position: center;
+  background-repeat: no-repeat;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background-size 0.4s ease;
 }
 
-.wwh-card:hover .wwh-card__image {
-  background-size: 110%;
+.wwh-card__image--contain {
+  background-size: 65%;
+  background-position: center;
+}
+
+.wwh-card:hover .wwh-card__image--contain {
+  background-size: 70%;
 }
 
 .wwh-card__placeholder-icon {
