@@ -584,6 +584,7 @@ export default function BikeInventoryPage() {
     year: "",
     fileNo: "",
     registerNo: "",
+    search: "",
   });
 
   const base = `${API_URL}/api/pos/bike-management`;
@@ -601,6 +602,7 @@ export default function BikeInventoryPage() {
       year: "",
       fileNo: "",
       registerNo: "",
+      search: "",
     });
   };
 
@@ -614,6 +616,7 @@ export default function BikeInventoryPage() {
       if (filters.year) params.set("year", filters.year);
       if (filters.fileNo) params.set("fileNo", filters.fileNo);
       if (filters.registerNo) params.set("registerNo", filters.registerNo);
+      if (filters.search) params.set("search", filters.search);
 
       const [vRes, bRes, mRes, cRes, fRes] = await Promise.all([
         fetch(`${base}/vehicles?${params.toString()}`, { headers: auth }),
@@ -751,6 +754,10 @@ export default function BikeInventoryPage() {
           <div className="bm-field-group">
             <label>Register No</label>
             <input className="bm-input" value={filters.registerNo} onChange={(e) => setFilter("registerNo")(e.target.value)} placeholder="Type register no" />
+          </div>
+          <div className="bm-field-group">
+            <label>Chassis / Engine</label>
+            <input className="bm-input" value={filters.search} onChange={(e) => setFilter("search")(e.target.value)} placeholder="Search chassis or engine no" />
           </div>
         </div>
         <div className="bm-filter-actions">
