@@ -1,15 +1,24 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import { ThemeProvider } from "./components/ThemeProvider";
 
 export const metadata: Metadata = {
-  title: "Bike POS",
-  description: "Point of sale frontend for Bike Project"
+  title: "JL Racing POS",
+  description: "POS admin portal for JL Racing operations",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
-      <body>{children}</body>
+    <html lang="en" suppressHydrationWarning>
+      {/* Inline script runs synchronously before first paint — eliminates dark-mode flash */}
+      <body>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{var t=localStorage.getItem('pos_theme');if(t==='dark'||t==='light')document.documentElement.dataset.theme=t;}catch(e){}`,
+          }}
+        />
+        <ThemeProvider>{children}</ThemeProvider>
+      </body>
     </html>
   );
 }
