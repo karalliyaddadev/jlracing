@@ -21,6 +21,9 @@ const BREADCRUMBS: Record<string, string> = {
   "/dashboard/invoices":  "Invoice Management",
   "/dashboard/inventory": "Inventory Management",
   "/dashboard/access":    "Access Management",
+  "/dashboard/bikes":     "Bike Management - Inventory",
+  "/dashboard/bikes/sold": "Bike Management - Sold Bikes",
+  "/dashboard/bikes/manage": "Bike Management - Manage Data",
 };
 
 export function Topbar() {
