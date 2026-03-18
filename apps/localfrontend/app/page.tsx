@@ -2,6 +2,7 @@ import HeroCarousel from "./components/HeroCarousel";
 import ImageSlider from "./components/ImageSlider";
 import VideoBanner from "./components/VideoBanner";
 import BrandLogos from "./components/BrandLogos";
+import WhatWeHave from "./components/WhatWeHave";
 import Testimonials from "./components/Testimonials";
 import ServiceOverview from "./components/ServiceOverview";
 import ListingOverview from "./components/ListingOverview";
@@ -18,6 +19,9 @@ export default function HomePage() {
 
       {/* ── Brand Logos ── */}
       <BrandLogos />
+
+      {/* ── What We Have ── */}
+      <WhatWeHave />
 
       {/* ── Testimonials ── */}
       <Testimonials />
