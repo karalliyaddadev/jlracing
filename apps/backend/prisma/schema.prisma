@@ -52,3 +52,61 @@ model PosAdmin {
 
   @@map("pos_admins")
 }
+
+// ── Bike Management ───────────────────────────────────────────────
+
+model BikeBrand {
+  id        Int           @id @default(autoincrement())
+  name      String        @unique
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  models    BikeModel[]
+  vehicles  BikeVehicle[]
+
+  @@map("bike_brands")
+}
+
+model BikeModel {
+  id        Int           @id @default(autoincrement())
+  name      String
+  brandId   Int
+  brand     BikeBrand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  vehicles  BikeVehicle[]
+
+  @@unique([name, brandId])
+  @@map("bike_models")
+}
+
+/// Reusable colour palette for bike inventory
+model BikeColor {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("bike_colors")
+}
+
+model BikeVehicle {
+  id              Int       @id @default(autoincrement())
+  displayId       String    @unique
+  brandId         Int
+  modelId         Int
+  brand           BikeBrand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  model           BikeModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  colour          String
+  year            Int?
+  fileNo          String?
+  manufactureDate String?
+  registerNo      String?   @unique
+  chassisNo       String?   @unique
+  engineNo        String?   @unique
+  status          String    @default("available")
+  soldAt          DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@map("bike_vehicles")
+}
