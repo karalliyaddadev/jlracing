@@ -1,18 +1,17 @@
 "use client";
 
-export default function ListingsPage() {
+export default function PreOrdersPage() {
   return (
     <section className="page-section">
       <div className="page-container">
-        <h1 className="page-heading">In-House Listings</h1>
+        <h1 className="page-heading">Pre Orders</h1>
         <p className="page-description">
-          Browse our curated collection of premium motorcycles currently
-          available in our showroom. Each bike is thoroughly inspected and ready
-          for the road.
+          Upcoming arrivals and pre-order opportunities. Reserve your dream bike
+          before it hits the showroom floor.
         </p>
         <div className="listings-grid">
-          {[1, 2, 3, 4, 5, 6].map((i) => (
-            <div key={i} className="listing-card">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="listing-card listing-card--preorder">
               <div className="listing-card__image">
                 <div className="listing-card__placeholder">
                   <svg
@@ -28,9 +27,13 @@ export default function ListingsPage() {
                 </div>
               </div>
               <div className="listing-card__body">
-                <span className="listing-card__badge">In Stock</span>
-                <h3 className="listing-card__title">Motorcycle #{i}</h3>
-                <p className="listing-card__price">Contact for Price</p>
+                <span className="listing-card__badge listing-card__badge--coming">
+                  Coming Soon
+                </span>
+                <h3 className="listing-card__title">
+                  Upcoming Motorcycle #{i}
+                </h3>
+                <p className="listing-card__price">Pre-order Available</p>
               </div>
             </div>
           ))}

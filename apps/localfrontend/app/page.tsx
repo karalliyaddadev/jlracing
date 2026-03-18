@@ -42,13 +42,13 @@ export default function HomePage() {
           </p>
           <div className="cta-banner__buttons">
             <Link
-              href="/listings"
+              href="/bikes"
               className="cta-banner__btn cta-banner__btn--primary"
             >
               View Listings
             </Link>
             <Link
-              href="/pre-listings"
+              href="/pre-orders"
               className="cta-banner__btn cta-banner__btn--secondary"
             >
               Pre-Order Now

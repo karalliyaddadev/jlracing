@@ -6,11 +6,12 @@ import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
   { href: "/", label: "Home" },
+  { href: "/bikes", label: "Bikes" },
+  { href: "/spare-parts", label: "Spare Parts" },
+  { href: "/pre-orders", label: "Pre Orders" },
   { href: "/about", label: "About" },
-  { href: "/listings", label: "In-House Listing" },
-  { href: "/pre-listings", label: "Pre-Listing" },
   { href: "/blog", label: "Blog" },
-  { href: "/gallery", label: "Gallery" },
+  { href: "/contact", label: "Contact" },
 ];
 
 export default function Header() {
@@ -19,14 +20,6 @@ export default function Header() {
 
   return (
     <header className="header">
-      {/* ── Announcement Bar ── */}
-      <div className="header__announcement">
-        <span>
-          🏍️ New Arrivals Every Week &mdash; Premium Japanese Imports Now
-          Available!
-        </span>
-      </div>
-
       {/* ── Main Nav ── */}
       <nav className="header__nav">
         <Link href="/" className="header__logo">
@@ -69,7 +62,7 @@ export default function Header() {
               <path d="m21 21-4.35-4.35" />
             </svg>
           </button>
-          <Link href="/listings" className="header__cta-btn">
+          <Link href="/bikes" className="header__cta-btn">
             View Stock
           </Link>
 
@@ -85,6 +78,13 @@ export default function Header() {
           </button>
         </div>
       </nav>
+      {/* ── Announcement Bar ── */}
+      <div className="header__announcement">
+        <span>
+          New Arrivals Every Week &mdash; Premium Japanese Imports Now
+          Available!
+        </span>
+      </div>
 
       {/* Mobile Menu */}
       <div className={`header__mobile-menu ${mobileOpen ? "is-open" : ""}`}>
