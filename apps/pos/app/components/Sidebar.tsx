@@ -78,60 +78,66 @@ export function Sidebar() {
         {NAV_ITEMS.map(({ key, label, href, Icon }) => {
           const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
           return (
-            <Link
-              key={key}
-              href={href}
-              className={`nav-item${isActive ? " active" : ""}`}
-              title={collapsed ? label : undefined}
-            >
-              <span className="nav-icon"><Icon /></span>
-              {!collapsed && <span className="nav-label">{label}</span>}
-              {!collapsed && isActive && <span className="nav-dot" />}
-            </Link>
+            <>
+              <Link
+                key={key}
+                href={href}
+                className={`nav-item${isActive ? " active" : ""}`}
+                title={collapsed ? label : undefined}
+              >
+                <span className="nav-icon"><Icon /></span>
+                {!collapsed && <span className="nav-label">{label}</span>}
+                {!collapsed && isActive && <span className="nav-dot" />}
+              </Link>
+
+              {key === "users" && (
+                <div key="bike-management-slot">
+                  {/* ── Bike Management dropdown ── */}
+                  {collapsed ? (
+                    <Link
+                      href="/dashboard/bikes"
+                      className={`nav-item${isBikeActive ? " active" : ""}`}
+                      title="Bike Management"
+                    >
+                      <span className="nav-icon"><IconBike /></span>
+                    </Link>
+                  ) : (
+                    <>
+                      <button
+                        type="button"
+                        className={`nav-item nav-group-toggle${isBikeActive ? " active" : ""}`}
+                        onClick={() => setBikeOpen((v) => !v)}
+                      >
+                        <span className="nav-icon"><IconBike /></span>
+                        <span className="nav-label">Bike Management</span>
+                        <span className="nav-chevron" style={{ transform: bikeOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+                          <IconChevronNav />
+                        </span>
+                      </button>
+                      {bikeOpen && (
+                        <div className="nav-sub-group">
+                          {BIKE_SUB_ITEMS.map(({ key: bikeKey, label: bikeLabel, href: bikeHref }) => {
+                            const bikeItemActive = isBikeSubItemActive(bikeHref);
+                            return (
+                              <Link
+                                key={bikeKey}
+                                href={bikeHref}
+                                className={`nav-sub-item${bikeItemActive ? " active" : ""}`}
+                              >
+                                <span className="nav-sub-dot" />
+                                <span>{bikeLabel}</span>
+                              </Link>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              )}
+            </>
           );
         })}
-
-        {/* ── Bike Management dropdown ── */}
-        {collapsed ? (
-          <Link
-            href="/dashboard/bikes"
-            className={`nav-item${isBikeActive ? " active" : ""}`}
-            title="Bike Management"
-          >
-            <span className="nav-icon"><IconBike /></span>
-          </Link>
-        ) : (
-          <>
-            <button
-              type="button"
-              className={`nav-item nav-group-toggle${isBikeActive ? " active" : ""}`}
-              onClick={() => setBikeOpen((v) => !v)}
-            >
-              <span className="nav-icon"><IconBike /></span>
-              <span className="nav-label">Bike Management</span>
-              <span className="nav-chevron" style={{ transform: bikeOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
-                <IconChevronNav />
-              </span>
-            </button>
-            {bikeOpen && (
-              <div className="nav-sub-group">
-                {BIKE_SUB_ITEMS.map(({ key, label, href }) => {
-                  const isActive = isBikeSubItemActive(href);
-                  return (
-                    <Link
-                      key={key}
-                      href={href}
-                      className={`nav-sub-item${isActive ? " active" : ""}`}
-                    >
-                      <span className="nav-sub-dot" />
-                      <span>{label}</span>
-                    </Link>
-                  );
-                })}
-              </div>
-            )}
-          </>
-        )}
       </nav>
 
       {!collapsed && (
