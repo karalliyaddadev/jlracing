@@ -29,7 +29,7 @@ export const JwtConfig = registerAs("jwt", () => {
     refreshSecret,
     refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || "7d",
     // Application-specific identifiers for token validation
-    issuer: process.env.JWT_ISSUER || "learnup-platform",
-    audience: process.env.JWT_AUDIENCE || "learnup-app",
+    issuer: process.env.JWT_ISSUER || "jlracing-platform",
+    audience: process.env.JWT_AUDIENCE || "jlracing-app",
   };
 });

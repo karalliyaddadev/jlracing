@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 
-const LOCAL_URL = process.env.NEXT_PUBLIC_LOCAL_URL ?? "http://localhost:3001";
+const LOCAL_URL = process.env.NEXT_PUBLIC_LOCAL_URL ?? "https://local.jlracingshop.karalliyaddaone.tech";
 const INTERNATIONAL_URL =
-  process.env.NEXT_PUBLIC_INTERNATIONAL_URL ?? "http://localhost:3002";
+  process.env.NEXT_PUBLIC_INTERNATIONAL_URL ?? "https://international.jlracingshop.karalliyaddaone.tech";
 
 type HoverSide = null | "local" | "international";
 
@@ -35,13 +35,14 @@ export default function Page() {
             <br />
             Stock
           </h2>
+          <h3 className="landing__heading">For Sri Lankan Riders</h3>
           <p className="landing__subtitle">
-            In-house listings, spare parts,
-            <br />
-            pre-orders and exclusive local
-            <br />
-            deals.
+            Shop bikes, spare parts, and pre-orders from our Sri Lanka showroom.
           </p>
+          <div className="landing__cta">
+            <span>Go to Bike Store</span>
+            <span className="landing__arrow">→</span>
+          </div>
         </div>
       </a>
 
@@ -76,15 +77,12 @@ export default function Page() {
             <br />
             Catalogue
           </h2>
+          <h3 className="landing__heading">For International Buyers</h3>
           <p className="landing__subtitle">
-            Premium motorcycle exports,
-            <br />
-            global shipping and sourcing
-            <br />
-            services.
+            Export motorcycles and vehicles worldwide through our professional export service.
           </p>
           <div className="landing__cta">
-            <span>ENTER INTERNATIONAL SITE</span>
+            <span>Go to Export Site</span>
             <span className="landing__arrow">→</span>
           </div>
         </div>

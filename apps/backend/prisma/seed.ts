@@ -7,6 +7,7 @@ async function main() {
   console.log("Seeding Bike Project data...");
 
   const passwordHash = await bcrypt.hash("Admin@123", 12);
+  const posAdminPasswordHash = await bcrypt.hash("jlracing@Admin", 12);
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@bikeproject.com" },
@@ -23,6 +24,21 @@ async function main() {
     },
   });
 
+  const posAdmin = await prisma.posAdmin.upsert({
+    where: { email: "jlracing@gmail.com" },
+    update: {
+      name: "JL Racing POS Admin",
+      passwordHash: posAdminPasswordHash,
+      isActive: true,
+    },
+    create: {
+      name: "JL Racing POS Admin",
+      email: "jlracing@gmail.com",
+      passwordHash: posAdminPasswordHash,
+      isActive: true,
+    },
+  });
+
   const bikes = [
     { name: "Commuter 100", brand: "ArmiGo Bikes", model: "C100", year: 2024, price: 1200.0, inStock: true },
     { name: "Trail Master", brand: "ArmiGo Bikes", model: "TMX", year: 2025, price: 1899.99, inStock: true },
@@ -33,7 +49,9 @@ async function main() {
   await prisma.bike.createMany({ data: bikes });
 
   const bikeCount = await prisma.bike.count();
-  console.log(`Seed complete. Admin: ${admin.email}, Bikes: ${bikeCount}`);
+  console.log(
+    `Seed complete. Admin: ${admin.email}, POS Admin: ${posAdmin.email}, Bikes: ${bikeCount}`
+  );
 }
 
 main()
