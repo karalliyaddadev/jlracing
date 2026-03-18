@@ -2,8 +2,8 @@ import "./globals.css";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Bike POS",
-  description: "Point of sale frontend for Bike Project"
+  title: "JL Racing POS",
+  description: "POS admin portal for JL Racing operations"
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

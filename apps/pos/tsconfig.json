@@ -2,6 +2,7 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "plugins": [{ "name": "next" }],
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
     "incremental": true,
     "jsx": "preserve",
     "allowJs": true,
