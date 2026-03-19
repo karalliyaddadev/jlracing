@@ -2,7 +2,7 @@
 
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { MOCK_BIKES } from "../page";
+import { MOCK_BIKES } from "../data";
 
 export default function BikeDetailPage() {
   const { id } = useParams();
