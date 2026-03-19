@@ -2,14 +2,14 @@
    JL Racing — Local Site  (Dark Header + Light Body)
    ═══════════════════════════════════════════════════════════ */
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap");
 
 /* ── CSS Custom Properties ── */
 :root {
-  --accent: #c8102e;
-  --accent-light: #e0243e;
-  --accent-dark: #a00d24;
-  --accent-muted: rgba(200, 16, 46, 0.1);
+  --accent: #b8860b;
+  --accent-light: #d4a017;
+  --accent-dark: #996f08;
+  --accent-muted: rgba(184, 134, 11, 0.1);
 
   /* Dark — only for header, hero, video, footer */
   --bg-dark: #0a0a0a;
@@ -30,7 +30,7 @@
   --text-dark-muted: #888888;
   --border-light: rgba(0, 0, 0, 0.08);
 
-  --font: "Inter", sans-serif;
+  --font: "Montserrat", sans-serif;
   --radius: 6px;
   --radius-lg: 12px;
   --header-h: 70px;
@@ -96,6 +96,7 @@ button {
 /* ── Announcement Bar ── */
 .header__announcement {
   height: var(--announce-h);
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -105,6 +106,13 @@ button {
   font-weight: 600;
   letter-spacing: 0.04em;
   text-transform: uppercase;
+  transition: height 0.35s ease, opacity 0.35s ease;
+  opacity: 1;
+}
+
+.header--scrolled .header__announcement {
+  height: 0;
+  opacity: 0;
 }
 
 /* ── Main Nav ── */
@@ -211,6 +219,16 @@ button {
 .header__cta-btn:hover {
   background: var(--accent-light);
   transform: translateY(-1px);
+}
+
+.header__link--contact {
+  color: var(--text-on-dark-secondary) !important;
+  transition: color 0.25s;
+}
+
+.header__link--contact:hover,
+.header__link--contact.header__link--active {
+  color: #fff !important;
 }
 
 /* Hamburger */
@@ -1588,7 +1606,7 @@ button {
 .cta-banner__btn--primary:hover {
   background: var(--accent-light);
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(200, 16, 46, 0.3);
+  box-shadow: 0 8px 30px rgba(184, 134, 11, 0.3);
 }
 
 .cta-banner__btn--secondary {
@@ -1900,6 +1918,242 @@ button {
   font-weight: 600;
 }
 
+/* ═══════════════════════════════════════════════════════════
+   BIKES PAGE
+   ═══════════════════════════════════════════════════════════ */
+
+.bikes-page {
+  padding-top: calc(var(--header-h) + var(--announce-h));
+  min-height: 100vh;
+  background: var(--bg-light);
+}
+
+.bikes-page__inner {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2.5rem 2rem 5rem;
+}
+
+.bikes-page__header {
+  margin-bottom: 1.5rem;
+}
+
+.bikes-page__title {
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 0.4rem;
+}
+
+.bikes-page__subtitle {
+  font-size: 0.88rem;
+  color: var(--text-dark-muted);
+}
+
+.bikes-page__divider {
+  border: none;
+  border-top: 1px solid var(--border-light);
+  margin-top: 1.25rem;
+}
+
+.bikes-page__body {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 2.5rem;
+  align-items: start;
+}
+
+/* ── Filter Sidebar ── */
+.bikes-filter {
+  position: sticky;
+  top: calc(var(--header-h) + 1.5rem);
+}
+
+.bikes-filter__group {
+  margin-bottom: 0.5rem;
+}
+
+.bikes-filter__group-title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 0.75rem;
+  letter-spacing: 0.01em;
+}
+
+.bikes-filter__checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-dark-secondary);
+  cursor: pointer;
+  padding: 0.2rem 0;
+}
+
+.bikes-filter__checkbox {
+  width: 14px;
+  height: 14px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.bikes-filter__range-track {
+  position: relative;
+  height: 20px;
+  margin-bottom: 0.4rem;
+}
+
+.bikes-filter__range {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+  height: 4px;
+  background: transparent;
+  pointer-events: none;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.bikes-filter__range::-webkit-slider-thumb {
+  pointer-events: all;
+}
+
+.bikes-filter__range::-moz-range-thumb {
+  pointer-events: all;
+}
+
+.bikes-filter__range--min {
+  z-index: 1;
+}
+
+.bikes-filter__range--max {
+  z-index: 2;
+}
+
+.bikes-filter__range-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text-dark-muted);
+  margin-bottom: 0.5rem;
+}
+
+.bikes-filter__divider {
+  border: none;
+  border-top: 1px solid var(--border-light);
+  margin: 0.75rem 0 1rem;
+}
+
+/* ── Bike Product Grid ── */
+.bikes-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1.25rem;
+}
+
+.bikes-grid__empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--text-dark-muted);
+  padding: 3rem 0;
+}
+
+/* ── Bike Card ── */
+.bike-card {
+  background: #fff;
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: transform 0.25s, box-shadow 0.25s;
+  cursor: pointer;
+  display: block;
+  text-decoration: none;
+  color: inherit;
+}
+
+.bike-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.bike-card__image {
+  height: 180px;
+  background: var(--bg-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.bike-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bike-card__placeholder {
+  color: var(--text-dark-muted);
+  opacity: 0.25;
+}
+
+.bike-card__body {
+  padding: 1rem 1.1rem 1.25rem;
+}
+
+.bike-card__title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 0.35rem;
+  line-height: 1.35;
+}
+
+.bike-card__meta {
+  font-size: 0.78rem;
+  color: var(--text-dark-muted);
+  margin-bottom: 0.6rem;
+}
+
+.bike-card__price {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+/* ── Blog Section ── */
+.blog-section {
+  padding: calc(var(--header-h) + var(--announce-h) + 3rem) 2rem 5rem;
+  min-height: 100vh;
+  background: #e8e8e8;
+}
+
+.blog-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.blog-heading {
+  font-size: clamp(2rem, 4vw, 2.8rem);
+  font-weight: 800;
+  text-align: center;
+  color: var(--text-dark);
+  margin-bottom: 0.75rem;
+}
+
+.blog-subheading {
+  font-size: 0.95rem;
+  color: var(--text-dark-secondary);
+  text-align: center;
+  max-width: 600px;
+  margin: 0 auto 3rem;
+  line-height: 1.7;
+}
+
 /* ── Blog Grid ── */
 .blog-grid {
   display: grid;
@@ -1911,48 +2165,100 @@ button {
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: #fff;
-  border: 1px solid var(--border-light);
-  transition: transform 0.3s, border-color 0.3s;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s, box-shadow 0.3s;
 }
 
 .blog-card:hover {
   transform: translateY(-4px);
-  border-color: rgba(0, 0, 0, 0.15);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
 }
 
 .blog-card__image {
-  height: 200px;
-  background: var(--bg-light);
+  height: 220px;
+  background: #ccc;
+  overflow: hidden;
+  position: relative;
+}
+
+.blog-card__image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.blog-card__image-placeholder {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, #2d3748, #4a5568);
+  color: rgba(255, 255, 255, 0.4);
 }
 
 .blog-card__body {
   padding: 1.5rem;
 }
 
-.blog-card__date {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 0.6rem;
-  display: block;
+.blog-card__title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #1a202c;
+  margin-bottom: 0.85rem;
+  line-height: 1.4;
 }
 
-.blog-card__title {
-  font-size: 1.15rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
+.blog-card__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 1rem;
+}
+
+.blog-card__author,
+.blog-card__date {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--text-dark-muted);
+}
+
+.blog-card__author svg,
+.blog-card__date svg {
+  flex-shrink: 0;
+  opacity: 0.6;
 }
 
 .blog-card__excerpt {
   font-size: 0.85rem;
   color: var(--text-dark-muted);
   line-height: 1.7;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  display: none;
+}
+
+.blog-card__readmore-btn {
+  display: block;
+  width: 100%;
+  padding: 0.7rem 1.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--text-dark-secondary);
+  background: transparent;
+  border: 1.5px solid #d1d5db;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.25s;
+  text-align: center;
+  font-family: inherit;
+}
+
+.blog-card__readmore-btn:hover {
+  border-color: #b0b0b0;
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .blog-card__readmore {
@@ -1964,6 +2270,620 @@ button {
 
 .blog-card:hover .blog-card__readmore {
   color: var(--accent-light);
+}
+
+/* ── Blog Post Detail ── */
+.blogpost-section {
+  padding: calc(var(--header-h) + var(--announce-h) + 2rem) 2rem 5rem;
+  min-height: 100vh;
+  background: var(--bg-light);
+}
+
+.blogpost-container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.blogpost-back {
+  display: inline-block;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-dark-secondary);
+  margin-bottom: 1.5rem;
+  transition: color 0.2s;
+}
+
+.blogpost-back:hover {
+  color: var(--text-dark);
+}
+
+.blogpost-title {
+  font-size: clamp(1.5rem, 3.5vw, 2rem);
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 2rem;
+  line-height: 1.35;
+}
+
+.blogpost-image {
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto 2.5rem;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+.blogpost-image img {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.blogpost-image__placeholder {
+  width: 100%;
+  height: 350px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #2d3748, #4a5568);
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.blogpost-content {
+  margin-bottom: 2.5rem;
+}
+
+.blogpost-content p {
+  font-size: 0.92rem;
+  color: var(--text-dark-secondary);
+  line-height: 1.8;
+  margin-bottom: 1.25rem;
+}
+
+.blogpost-author {
+  text-align: right;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border-light);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BIKE DETAIL PAGE
+   ═══════════════════════════════════════════════════════════ */
+
+.bikedetail-page {
+  padding: calc(var(--header-h) + var(--announce-h) + 3rem) 2rem 5rem;
+  min-height: 100vh;
+  background: #f4f4f4;
+}
+
+.bikedetail-container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.bikedetail__back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-dark-muted);
+  text-decoration: none;
+  margin-bottom: 2rem;
+  transition: color 0.2s;
+}
+
+.bikedetail__back:hover {
+  color: var(--accent);
+}
+
+.bikedetail__layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+  align-items: start;
+}
+
+/* ── Gallery ── */
+.bikedetail__gallery {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.bikedetail__main-img {
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  background: #ddd;
+}
+
+.bikedetail__main-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.bikedetail__thumbs {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.bikedetail__thumb {
+  border-radius: var(--radius);
+  overflow: hidden;
+  aspect-ratio: 4/3;
+  background: #ddd;
+  cursor: pointer;
+  opacity: 0.65;
+  transition: opacity 0.2s;
+}
+
+.bikedetail__thumb:first-child {
+  opacity: 1;
+  outline: 2px solid var(--accent);
+}
+
+.bikedetail__thumb:hover {
+  opacity: 1;
+}
+
+.bikedetail__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Info Panel ── */
+.bikedetail__info {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+}
+
+.bikedetail__badge {
+  display: inline-block;
+  padding: 0.3rem 0.85rem;
+  border-radius: 50px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--accent-muted);
+  color: var(--accent-dark);
+  margin-bottom: 0.75rem;
+}
+
+.bikedetail__title {
+  font-size: clamp(1.6rem, 3vw, 2.1rem);
+  font-weight: 900;
+  color: var(--text-dark);
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+}
+
+.bikedetail__year {
+  font-size: 0.9rem;
+  color: var(--text-dark-muted);
+  margin-bottom: 1.25rem;
+}
+
+.bikedetail__price {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--accent);
+  margin-bottom: 1.25rem;
+  letter-spacing: -0.02em;
+}
+
+.bikedetail__divider {
+  height: 1px;
+  background: var(--border-light);
+  margin: 1.25rem 0;
+}
+
+/* ── Specs Grid ── */
+.bikedetail__specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem 1.5rem;
+}
+
+.bikedetail__spec-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.bikedetail__spec-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-dark-muted);
+}
+
+.bikedetail__spec-value {
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+/* ── Description ── */
+.bikedetail__desc h3 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-bottom: 0.6rem;
+}
+
+.bikedetail__desc p {
+  font-size: 0.88rem;
+  color: var(--text-dark-secondary);
+  line-height: 1.75;
+}
+
+/* ── Actions ── */
+.bikedetail__actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.75rem;
+  flex-wrap: wrap;
+}
+
+.bikedetail__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.8rem 1.5rem;
+  border-radius: var(--radius);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: opacity 0.2s, transform 0.2s;
+  cursor: pointer;
+}
+
+.bikedetail__btn:hover {
+  opacity: 0.88;
+  transform: translateY(-1px);
+}
+
+.bikedetail__btn--primary {
+  background: var(--accent);
+  color: #fff;
+  flex: 1;
+  justify-content: center;
+}
+
+.bikedetail__btn--whatsapp {
+  background: #25d366;
+  color: #fff;
+  flex: 1;
+  justify-content: center;
+}
+
+.bikedetail-notfound {
+  min-height: 60vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: calc(var(--header-h) + var(--announce-h) + 3rem) 2rem 5rem;
+}
+
+/* ── Responsive ── */
+@media (max-width: 860px) {
+  .bikedetail__layout {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .bikedetail__specs {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .bikedetail__specs {
+    grid-template-columns: 1fr;
+  }
+
+  .bikedetail__actions {
+    flex-direction: column;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CONTACT PAGE
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Hero ── */
+.contact-hero {
+  position: relative;
+  height: 480px;
+  margin-top: calc(var(--header-h) + var(--announce-h));
+  background: url("/images/contact-bg.webp") center/cover no-repeat;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contact-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+}
+
+.contact-hero__content {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  color: #fff;
+  padding: 0 2rem;
+}
+
+.contact-hero__title {
+  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  font-weight: 800;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.contact-hero__subtitle {
+  font-size: 0.95rem;
+  opacity: 0.9;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+}
+
+/* ── Body (info + form) ── */
+.contact-body {
+  padding: 4rem 2rem;
+  background: var(--bg-light);
+}
+
+.contact-body__container {
+  max-width: 1100px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* ── Info Panel (dark) ── */
+.contact-info {
+  background: var(--bg-dark);
+  color: #fff;
+  padding: 3rem 2.5rem;
+}
+
+.contact-info__title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+}
+
+.contact-info__desc {
+  font-size: 0.85rem;
+  color: var(--text-on-dark-secondary);
+  line-height: 1.7;
+  margin-bottom: 2rem;
+}
+
+.contact-info__items {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 2.5rem;
+}
+
+.contact-info__item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.contact-info__icon {
+  flex-shrink: 0;
+  color: var(--accent);
+  margin-top: 2px;
+}
+
+.contact-info__item strong {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 700;
+  margin-bottom: 0.15rem;
+}
+
+.contact-info__item span {
+  font-size: 0.8rem;
+  color: var(--text-on-dark-secondary);
+}
+
+.contact-info__social {
+  display: flex;
+  gap: 1rem;
+}
+
+.contact-info__social a {
+  color: var(--accent);
+  transition: opacity 0.2s;
+}
+
+.contact-info__social a:hover {
+  opacity: 0.7;
+}
+
+/* ── Form Panel (white) ── */
+.contact-form {
+  background: #fff;
+  padding: 3rem 2.5rem;
+}
+
+.contact-form__title {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 0.4rem;
+}
+
+.contact-form__desc {
+  font-size: 0.85rem;
+  color: var(--text-dark-muted);
+  margin-bottom: 1.75rem;
+}
+
+.contact-form__row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.contact-form__group {
+  margin-bottom: 1rem;
+}
+
+.contact-form__label {
+  display: block;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 0.4rem;
+}
+
+.contact-form__input {
+  width: 100%;
+  padding: 0.65rem 0.9rem;
+  font-size: 0.82rem;
+  border: 1px solid #d1d5db;
+  border-radius: var(--radius);
+  background: #fff;
+  color: var(--text-dark);
+  font-family: inherit;
+  transition: border-color 0.2s;
+}
+
+.contact-form__input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.contact-form__input::placeholder {
+  color: #a0aec0;
+}
+
+.contact-form__chips {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.contact-form__chip {
+  padding: 0.45rem 1.1rem;
+  font-size: 0.78rem;
+  font-weight: 500;
+  border: 1px solid #d1d5db;
+  border-radius: 50px;
+  background: #fff;
+  color: var(--text-dark-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: inherit;
+}
+
+.contact-form__chip:hover {
+  border-color: var(--accent);
+}
+
+.contact-form__chip--active {
+  border-color: var(--accent);
+  background: var(--accent-muted);
+  color: var(--accent-dark);
+}
+
+.contact-form__textarea {
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.82rem;
+  border: 1px solid #d1d5db;
+  border-radius: var(--radius);
+  background: #f7f7f7;
+  color: var(--text-dark);
+  font-family: inherit;
+  resize: vertical;
+  transition: border-color 0.2s;
+}
+
+.contact-form__textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.contact-form__textarea::placeholder {
+  color: #a0aec0;
+}
+
+.contact-form__submit {
+  display: inline-block;
+  padding: 0.7rem 2rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: #fff;
+  background: var(--accent);
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  transition: background 0.25s, transform 0.2s;
+  font-family: inherit;
+}
+
+.contact-form__submit:hover {
+  background: var(--accent-dark);
+  transform: translateY(-1px);
+}
+
+/* ── Map ── */
+.contact-map {
+  padding: 4rem 2rem;
+  background: var(--bg-light);
+  text-align: center;
+}
+
+.contact-map__title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-dark);
+  margin-bottom: 0.5rem;
+}
+
+.contact-map__subtitle {
+  font-size: 0.9rem;
+  color: var(--text-dark-muted);
+  margin-bottom: 2rem;
+}
+
+.contact-map__embed {
+  max-width: 900px;
+  margin: 0 auto;
+  height: 350px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: #ddd;
+}
+
+.contact-map__embed iframe {
+  display: block;
 }
 
 /* ── Gallery Grid ── */
@@ -1992,7 +2912,7 @@ button {
 .gallery-item__overlay {
   position: absolute;
   inset: 0;
-  background: rgba(200, 16, 46, 0.1);
+  background: rgba(184, 134, 11, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2177,6 +3097,45 @@ button {
   .video-banner,
   .video-banner__inner {
     min-height: 70vh;
+  }
+
+  /* Bikes page responsive */
+  .bikes-page__body {
+    grid-template-columns: 1fr;
+  }
+
+  .bikes-filter {
+    position: static;
+  }
+
+  .bikes-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Contact responsive */
+  .contact-body__container {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-info {
+    padding: 2.5rem 2rem;
+  }
+
+  .contact-form {
+    padding: 2.5rem 2rem;
+  }
+
+  .contact-form__row {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-hero {
+    height: 360px;
+  }
+
+  /* Blog post responsive */
+  .blogpost-image__placeholder {
+    height: 250px;
   }
 }
 
