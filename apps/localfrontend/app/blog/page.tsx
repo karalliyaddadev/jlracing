@@ -1,19 +1,51 @@
 "use client";
 
+import Link from "next/link";
+
+const blogPosts = [
+  {
+    id: 1,
+    title: "Top 5 Motorcycle Maintenance Tips Every Rider Should Know",
+    author: "JL Racing Team",
+    date: "March 15, 2026",
+    excerpt:
+      "Keep your motorcycle running at peak performance with these essential maintenance tips from our expert mechanics.",
+    image: "/images/blog-1.jpg",
+  },
+  {
+    id: 2,
+    title: "Best Riding Routes in Sri Lanka: A Complete Guide",
+    author: "JL Racing Team",
+    date: "March 10, 2026",
+    excerpt:
+      "Discover the most scenic and thrilling motorcycle routes across Sri Lanka, from coastal roads to mountain passes.",
+    image: "/images/blog-2.jpg",
+  },
+  {
+    id: 3,
+    title: "How to Choose the Right Motorcycle for Your Riding Style",
+    author: "JL Racing Team",
+    date: "March 5, 2026",
+    excerpt:
+      "Whether you're a beginner or an experienced rider, finding the perfect motorcycle is key. Here's our buying guide.",
+    image: "/images/blog-3.jpg",
+  },
+];
+
 export default function BlogPage() {
   return (
-    <section className="page-section">
-      <div className="page-container">
-        <h1 className="page-heading">Blog</h1>
-        <p className="page-description">
-          Stay updated with the latest news, riding tips, bike reviews, and
-          stories from the JL Racing community.
+    <section className="blog-section">
+      <div className="blog-container">
+        <h1 className="blog-heading">Blog</h1>
+        <p className="blog-subheading">
+          Stay updated with the latest articles, riding tips, and news from JL
+          Racing — Sri Lanka&apos;s premier motorcycle destination.
         </p>
         <div className="blog-grid">
-          {[1, 2, 3].map((i) => (
-            <article key={i} className="blog-card">
+          {blogPosts.map((post) => (
+            <article key={post.id} className="blog-card">
               <div className="blog-card__image">
-                <div className="listing-card__placeholder">
+                <div className="blog-card__image-placeholder">
                   <svg
                     width="48"
                     height="48"
@@ -27,13 +59,46 @@ export default function BlogPage() {
                 </div>
               </div>
               <div className="blog-card__body">
-                <span className="blog-card__date">March {i * 5}, 2026</span>
-                <h3 className="blog-card__title">Blog Post Title #{i}</h3>
-                <p className="blog-card__excerpt">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-                  Discover insights about the motorcycle world...
-                </p>
-                <span className="blog-card__readmore">Read More →</span>
+                <h3 className="blog-card__title">{post.title}</h3>
+                <div className="blog-card__meta">
+                  <span className="blog-card__author">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+                      <circle cx="12" cy="7" r="4" />
+                    </svg>
+                    {post.author}
+                  </span>
+                  <span className="blog-card__date">
+                    <svg
+                      width="14"
+                      height="14"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    >
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                      <line x1="16" y1="2" x2="16" y2="6" />
+                      <line x1="8" y1="2" x2="8" y2="6" />
+                      <line x1="3" y1="10" x2="21" y2="10" />
+                    </svg>
+                    {post.date}
+                  </span>
+                </div>
+                <p className="blog-card__excerpt">{post.excerpt}</p>
+                <Link
+                  href={`/blog/${post.id}`}
+                  className="blog-card__readmore-btn"
+                >
+                  Read More
+                </Link>
               </div>
             </article>
           ))}

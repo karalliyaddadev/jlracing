@@ -1,25 +1,31 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const NAV_LINKS = [
-  { href: "/", label: "Home" },
   { href: "/bikes", label: "Bikes" },
   { href: "/spare-parts", label: "Spare Parts" },
   { href: "/pre-orders", label: "Pre Orders" },
   { href: "/about", label: "About" },
   { href: "/blog", label: "Blog" },
-  { href: "/contact", label: "Contact" },
+  { href: "/gallery", label: "Gallery" },
 ];
 
 export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const pathname = usePathname();
 
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <header className="header">
+    <header className={`header${scrolled ? " header--scrolled" : ""}`}>
       {/* ── Main Nav ── */}
       <nav className="header__nav">
         <Link href="/" className="header__logo">
@@ -28,7 +34,6 @@ export default function Header() {
             alt="JL Racing"
             className="header__logo-img"
           />
-          <span className="header__logo-text">JL RACING</span>
         </Link>
 
         {/* Desktop Links */}
@@ -49,21 +54,13 @@ export default function Header() {
 
         {/* Right Actions */}
         <div className="header__actions">
-          <button className="header__icon-btn" aria-label="Search">
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <circle cx="11" cy="11" r="8" />
-              <path d="m21 21-4.35-4.35" />
-            </svg>
-          </button>
-          <Link href="/bikes" className="header__cta-btn">
-            View Stock
+          <Link
+            href="/contact"
+            className={`header__link header__link--contact ${
+              pathname === "/contact" ? "header__link--active" : ""
+            }`}
+          >
+            Contact
           </Link>
 
           {/* Mobile Hamburger */}
@@ -78,6 +75,7 @@ export default function Header() {
           </button>
         </div>
       </nav>
+
       {/* ── Announcement Bar ── */}
       <div className="header__announcement">
         <span>
@@ -102,6 +100,17 @@ export default function Header() {
               </Link>
             </li>
           ))}
+          <li>
+            <Link
+              href="/contact"
+              className={`header__mobile-link ${
+                pathname === "/contact" ? "header__mobile-link--active" : ""
+              }`}
+              onClick={() => setMobileOpen(false)}
+            >
+              Contact
+            </Link>
+          </li>
         </ul>
       </div>
     </header>
