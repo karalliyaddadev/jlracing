@@ -25,7 +25,10 @@ export const env = {
   JWT_REFRESH_EXPIRES_IN: optional("JWT_REFRESH_EXPIRES_IN", "7d"),
 
   // CORS
-  CORS_ORIGIN: optional("CORS_ORIGIN", "http://localhost:3000,http://localhost:3001,http://localhost:3002"),
+  CORS_ORIGIN: optional(
+    "CORS_ORIGIN",
+    "http://localhost:3000,http://localhost:3001,http://localhost:3002,http://localhost:3003,http://localhost:3004"
+  ),
 
   // Bcrypt
   BCRYPT_ROUNDS: parseInt(optional("BCRYPT_ROUNDS", "12"), 10),

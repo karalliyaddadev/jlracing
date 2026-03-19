@@ -18,7 +18,7 @@ export function authenticate(req: Request, _res: Response, next: NextFunction) {
 
   const token = header.split(" ")[1];
   try {
-    const payload = jwt.verify(token, env.JWT_SECRET) as JwtPayload;
+    const payload = jwt.verify(token, env.JWT_SECRET) as unknown as JwtPayload;
     req.user = { id: payload.sub, email: payload.email, role: payload.role };
     return next();
   } catch {
