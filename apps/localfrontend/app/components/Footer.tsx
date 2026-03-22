@@ -8,11 +8,10 @@ export default function Footer() {
         <div className="footer__brand">
           <div className="footer__logo-row">
             <img
-              src="/landing/logo.jpg"
+              src="/landing/footer-img.PNG"
               alt="JL Racing"
               className="footer__logo-img"
             />
-            <span className="footer__logo-text">JL RACING</span>
           </div>
           <p className="footer__tagline">
             Sri Lanka&apos;s premium destination for high-performance
