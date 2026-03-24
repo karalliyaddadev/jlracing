@@ -3229,7 +3229,22 @@ button {
   }
 
   .bikes-filter {
-    position: static;
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 280px;
+    background: #fff;
+    z-index: 1100;
+    padding: 1.5rem;
+    overflow-y: auto;
+    transform: translateX(-100%);
+    transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .bikes-filter.is-open {
+    transform: translateX(0);
   }
 
   .bikes-grid {

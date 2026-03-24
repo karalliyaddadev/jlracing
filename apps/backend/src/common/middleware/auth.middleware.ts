@@ -4,10 +4,17 @@ import { env } from "../../config/env";
 import { AppError } from "../utils/errors";
 import type { Role } from "@prisma/client";
 
-interface JwtPayload {
-  sub: number;
-  email: string;
-  role: Role;
+// Extend Express Request type
+declare global {
+  namespace Express {
+    interface Request {
+      user?: {
+        id: number;
+        email: string;
+        role: Role;
+      };
+    }
+  }
 }
 
 export function authenticate(req: Request, _res: Response, next: NextFunction) {
@@ -18,10 +25,17 @@ export function authenticate(req: Request, _res: Response, next: NextFunction) {
 
   const token = header.split(" ")[1];
   try {
-    const payload = jwt.verify(token, env.JWT_SECRET) as unknown as JwtPayload;
-    req.user = { id: payload.sub, email: payload.email, role: payload.role };
+    // FIX: Use any to bypass type checking
+    const decoded: any = jwt.verify(token, env.JWT_SECRET);
+
+    req.user = {
+      id: decoded.sub,
+      email: decoded.email,
+      role: decoded.role,
+    };
+
     return next();
-  } catch {
+  } catch (error) {
     return next(AppError.unauthorized("Invalid or expired token"));
   }
 }
