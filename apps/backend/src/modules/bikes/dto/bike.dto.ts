@@ -6,14 +6,14 @@ export const createBikeSchema = z.object({
   model: z.string().optional(),
   year: z.number().int().min(1900).max(new Date().getFullYear() + 1).optional(),
   price: z.number().nonnegative("Price must be >= 0"),
-  inStock: z.boolean().optional().default(true),
+  inStock: z.boolean().default(true),
 });
 
 export const updateBikeSchema = createBikeSchema.partial();
 
 export const bikeQuerySchema = z.object({
-  page: z.coerce.number().int().min(1).optional().default(1),
-  limit: z.coerce.number().int().min(1).max(100).optional().default(20),
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(100).default(20),
   brand: z.string().optional(),
   inStock: z.enum(["true", "false"]).optional(),
 });

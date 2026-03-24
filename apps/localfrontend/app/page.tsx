@@ -1,13 +1,65 @@
-export default function Page() {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+import HeroCarousel from "./components/HeroCarousel";
+import ImageSlider from "./components/ImageSlider";
+import VideoBanner from "./components/VideoBanner";
+import BrandLogos from "./components/BrandLogos";
+import WhatWeHave from "./components/WhatWeHave";
+import Testimonials from "./components/Testimonials";
+import ServiceOverview from "./components/ServiceOverview";
+import ListingOverview from "./components/ListingOverview";
+import Link from "next/link";
 
+export default function HomePage() {
   return (
-    <main>
-      <section className="card">
-        <h1>Bike Local Frontend</h1>
-        <p>Focused on local inventory, pricing and nearby distribution flows.</p>
-        <p>Connected API: {apiUrl}</p>
+    <>
+      {/* ── Hero Carousel ── */}
+      <HeroCarousel />
+
+      {/* ── Video / Credibility Banner ── */}
+      <VideoBanner />
+
+      {/* ── Brand Logos ── */}
+      <BrandLogos />
+
+      {/* ── What We Have ── */}
+      <WhatWeHave />
+
+      {/* ── Featured Slider ── */}
+      <ImageSlider />
+
+      {/* ── Service Overview ── */}
+      <ServiceOverview />
+
+      {/* ── Testimonials ── */}
+      <Testimonials />
+
+      {/* ── Listing Overview ── */}
+      {/* <ListingOverview /> */}
+
+      {/* ── CTA Banner ── */}
+      <section className="cta-banner">
+        <div className="cta-banner__content">
+          <h2 className="cta-banner__title">
+            Ready to Find Your Perfect Ride?
+          </h2>
+          <p className="cta-banner__text">
+            Browse our in-house stock or pre-order your dream motorcycle today.
+          </p>
+          <div className="cta-banner__buttons">
+            <Link
+              href="/bikes"
+              className="cta-banner__btn cta-banner__btn--primary"
+            >
+              View Listings
+            </Link>
+            <Link
+              href="/pre-orders"
+              className="cta-banner__btn cta-banner__btn--secondary"
+            >
+              Pre-Order Now
+            </Link>
+          </div>
+        </div>
       </section>
-    </main>
+    </>
   );
 }

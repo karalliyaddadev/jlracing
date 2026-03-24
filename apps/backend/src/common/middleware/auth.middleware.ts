@@ -27,13 +27,13 @@ export function authenticate(req: Request, _res: Response, next: NextFunction) {
   try {
     // FIX: Use any to bypass type checking
     const decoded: any = jwt.verify(token, env.JWT_SECRET);
-    
+
     req.user = {
       id: decoded.sub,
       email: decoded.email,
-      role: decoded.role
+      role: decoded.role,
     };
-    
+
     return next();
   } catch (error) {
     return next(AppError.unauthorized("Invalid or expired token"));
