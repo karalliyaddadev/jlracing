@@ -103,6 +103,9 @@ model BikeVehicle {
   registerNo      String?   @unique
   chassisNo       String?   @unique
   engineNo        String?   @unique
+  condition       String    @default("brandnew")
+  mileage         Int       @default(0)
+  description     String?
   status          String    @default("available")
   soldAt          DateTime?
   createdAt       DateTime  @default(now())

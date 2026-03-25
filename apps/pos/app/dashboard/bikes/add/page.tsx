@@ -12,6 +12,9 @@ const EMPTY_FORM = {
   brandId: "",
   modelId: "",
   colour: "",
+  condition: "brandnew",
+  mileage: "0",
+  description: "",
   registerNo: "",
   chassisNo: "",
   engineNo: "",
@@ -55,7 +58,7 @@ export default function AddBikePage() {
     })();
   }, [form.brandId]);
 
-  const set = (field: keyof typeof EMPTY_FORM) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+  const set = (field: keyof typeof EMPTY_FORM) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setForm((f) => ({ ...f, [field]: e.target.value }));
 
   const handleAddBrand = async () => {
@@ -115,6 +118,9 @@ export default function AddBikePage() {
         brandId:         Number(form.brandId),
         modelId:         Number(form.modelId),
         colour:          form.colour,
+        condition:       form.condition,
+        mileage:         form.mileage ? Number(form.mileage) : 0,
+        description:     form.description || undefined,
         registerNo:      form.registerNo,
         chassisNo:       form.chassisNo,
         engineNo:        form.engineNo,
@@ -223,12 +229,30 @@ export default function AddBikePage() {
               <input className="bm-input" value={form.colour} onChange={set("colour")} required placeholder="e.g. Red" />
             </div>
             <div className="bm-field-group">
+              <label>Condition *</label>
+              <select className="bm-select" value={form.condition} onChange={set("condition")} required>
+                <option value="brandnew">Brand New</option>
+                <option value="used">Used</option>
+              </select>
+            </div>
+            <div className="bm-field-group">
+              <label>Mileage</label>
+              <div className="bm-quick-add-row">
+                <input className="bm-input" type="number" min={0} value={form.mileage} onChange={set("mileage")} />
+                <button type="button" className="btn-outline" onClick={() => setForm((f) => ({ ...f, mileage: "0" }))}>Set 0</button>
+              </div>
+            </div>
+            <div className="bm-field-group">
               <label>File No</label>
               <input className="bm-input" value={form.fileNo} onChange={set("fileNo")} placeholder="Optional" />
             </div>
             <div className="bm-field-group">
               <label>Manufacture Date</label>
               <input className="bm-input" type="date" value={form.manufactureDate} onChange={set("manufactureDate")} />
+            </div>
+            <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
+              <label>Description</label>
+              <textarea className="bm-input" rows={3} value={form.description} onChange={set("description")} placeholder="Add vehicle description" />
             </div>
           </div>
         </div>

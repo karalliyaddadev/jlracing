@@ -14,6 +14,9 @@ type Vehicle = {
   brand: { id: number; name: string }; model: { id: number; name: string };
   colour: string; year?: number; fileNo?: string; manufactureDate?: string;
   registerNo?: string; chassisNo?: string; engineNo?: string;
+  condition: "brandnew" | "used";
+  mileage: number;
+  description?: string;
   status: "available" | "sold"; soldAt?: string;
   createdAt: string;
 };
@@ -103,6 +106,7 @@ function AddBikeModal({
   const [form, setForm] = useState({
     brandId: "", modelId: "", colour: "", year: "", fileNo: "",
     chassisNo: "", engineNo: "", registerNo: "", count: "1",
+    condition: "brandnew", mileage: "0", description: "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState<string | null>(null);
@@ -118,6 +122,7 @@ function AddBikeModal({
 
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
   const setE = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => set(k)(e.target.value);
+  const setMileageZero = () => set("mileage")("0");
 
   useEffect(() => {
     if (!form.brandId) { setModels([]); return; }
@@ -160,13 +165,33 @@ function AddBikeModal({
       if (mode === "bulk") {
         const r = await fetch(`${base}/vehicles/bulk`, {
           method: "POST", headers: { ...auth, "Content-Type": "application/json" },
-          body: JSON.stringify({ brandId: +form.brandId, modelId: +form.modelId, colour: form.colour, year: form.year ? +form.year : undefined, count: +form.count }),
+          body: JSON.stringify({
+            brandId: +form.brandId,
+            modelId: +form.modelId,
+            colour: form.colour,
+            condition: form.condition,
+            mileage: form.mileage ? +form.mileage : 0,
+            year: form.year ? +form.year : undefined,
+            count: +form.count,
+          }),
         });
         if (!r.ok) { const j = await r.json() as { message: string }; setError(j.message); return; }
       } else {
         const r = await fetch(`${base}/vehicles`, {
           method: "POST", headers: { ...auth, "Content-Type": "application/json" },
-          body: JSON.stringify({ brandId: +form.brandId, modelId: +form.modelId, colour: form.colour, year: form.year ? +form.year : undefined, fileNo: form.fileNo || undefined, chassisNo: form.chassisNo || undefined, engineNo: form.engineNo || undefined, registerNo: form.registerNo || undefined }),
+          body: JSON.stringify({
+            brandId: +form.brandId,
+            modelId: +form.modelId,
+            colour: form.colour,
+            condition: form.condition,
+            mileage: form.mileage ? +form.mileage : 0,
+            description: form.description.trim() || undefined,
+            year: form.year ? +form.year : undefined,
+            fileNo: form.fileNo || undefined,
+            chassisNo: form.chassisNo || undefined,
+            engineNo: form.engineNo || undefined,
+            registerNo: form.registerNo || undefined,
+          }),
         });
         if (!r.ok) { const j = await r.json() as { message: string }; setError(j.message); return; }
       }
@@ -242,6 +267,22 @@ function AddBikeModal({
             <input className="bm-input" type="number" min={1990} max={2030} value={form.year} onChange={setE("year")} placeholder="e.g. 2024" />
           </div>
 
+          <div className="bm-field-group">
+            <label>Condition *</label>
+            <select className="bm-select" value={form.condition} onChange={setE("condition")} required>
+              <option value="brandnew">Brand New</option>
+              <option value="used">Used</option>
+            </select>
+          </div>
+
+          <div className="bm-field-group">
+            <label>Mileage</label>
+            <div className="bm-quick-add-row">
+              <input className="bm-input" type="number" min={0} value={form.mileage} onChange={setE("mileage")} placeholder="e.g. 0" />
+              <button type="button" className="btn-outline" onClick={setMileageZero}>Set 0</button>
+            </div>
+          </div>
+
           {mode === "bulk" && (
             <div className="bm-field-group">
               <label>Quantity *</label>
@@ -266,6 +307,16 @@ function AddBikeModal({
               <div className="bm-field-group">
                 <label>File No</label>
                 <Combobox value={form.fileNo} onChange={set("fileNo")} options={fileNos} placeholder="Select or type file no" onAdd={(v) => { set("fileNo")(v); return Promise.resolve(); }} addLabel="file no" />
+              </div>
+              <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
+                <label>Description</label>
+                <textarea
+                  className="bm-input"
+                  rows={3}
+                  value={form.description}
+                  onChange={(e) => set("description")(e.target.value)}
+                  placeholder="Add vehicle description"
+                />
               </div>
             </>
           )}
@@ -296,6 +347,9 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
     fileNo:     vehicle.fileNo     ?? "",
     colour:     vehicle.colour,
     year:       vehicle.year ? String(vehicle.year) : "",
+    condition:  vehicle.condition ?? "brandnew",
+    mileage:    String(vehicle.mileage ?? 0),
+    description: vehicle.description ?? "",
   });
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState<string | null>(null);
@@ -373,6 +427,9 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
           fileNo: form.fileNo || undefined,
           colour: form.colour,
           year: form.year ? +form.year : undefined,
+          condition: form.condition,
+          mileage: form.mileage ? +form.mileage : 0,
+          description: form.description.trim() || undefined,
         }),
       });
       const j = await r.json() as { data: Vehicle; message?: string };
@@ -421,6 +478,30 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
               />
             </div>
             <div className="bm-field-group"><label>Year</label><input className="bm-input" type="number" value={form.year} onChange={set("year")} /></div>
+            <div className="bm-field-group">
+              <label>Condition</label>
+              <select className="bm-select" value={form.condition} onChange={set("condition")}>
+                <option value="brandnew">Brand New</option>
+                <option value="used">Used</option>
+              </select>
+            </div>
+            <div className="bm-field-group">
+              <label>Mileage</label>
+              <div className="bm-quick-add-row">
+                <input className="bm-input" type="number" min={0} value={form.mileage} onChange={set("mileage")} />
+                <button type="button" className="btn-outline" onClick={() => setForm((f) => ({ ...f, mileage: "0" }))}>Set 0</button>
+              </div>
+            </div>
+            <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
+              <label>Description</label>
+              <textarea
+                className="bm-input"
+                rows={3}
+                value={form.description}
+                onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+                placeholder="Add vehicle description"
+              />
+            </div>
           </div>
           <div className="bm-modal-actions">
             <button type="button" className="btn-outline" onClick={onClose}>Cancel</button>
@@ -447,6 +528,9 @@ function ViewVehicleModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: () 
           <div className="bm-field-group"><label>Register No</label><input className="bm-input" value={vehicle.registerNo ?? "-"} disabled /></div>
           <div className="bm-field-group"><label>Chassis No</label><input className="bm-input" value={vehicle.chassisNo ?? "-"} disabled /></div>
           <div className="bm-field-group"><label>Engine No</label><input className="bm-input" value={vehicle.engineNo ?? "-"} disabled /></div>
+          <div className="bm-field-group"><label>Condition</label><input className="bm-input" value={vehicle.condition === "used" ? "Used" : "Brand New"} disabled /></div>
+          <div className="bm-field-group"><label>Mileage</label><input className="bm-input" value={vehicle.mileage ?? 0} disabled /></div>
+          <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}><label>Description</label><textarea className="bm-input" rows={3} value={vehicle.description ?? "-"} disabled /></div>
           <div className="bm-field-group"><label>Status</label><input className="bm-input" value={vehicle.status} disabled /></div>
         </div>
         <div className="bm-modal-actions">
@@ -504,6 +588,9 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
           <td><span className="bm-display-id">{v.displayId}</span></td>
           <td>
             <span className="bm-vehicle-detail">{v.colour}{v.year ? ` · ${v.year}` : ""}</span>
+            <span className="bm-vehicle-meta">
+              {(v.condition === "used" ? "Used" : "Brand New") + ` · ${v.mileage ?? 0} km`}
+            </span>
             <span className="bm-vehicle-meta">
               {v.chassisNo ? `CH: ${v.chassisNo}` : <em className="bm-missing">No chassis</em>}
             </span>

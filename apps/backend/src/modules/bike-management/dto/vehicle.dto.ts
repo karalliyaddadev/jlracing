@@ -1,11 +1,15 @@
 import { z } from "zod";
 
 const STATUSES = ["available", "sold"] as const;
+const CONDITIONS = ["brandnew", "used"] as const;
 
 export const createVehicleSchema = z.object({
   brandId:         z.number().int().positive("Brand is required"),
   modelId:         z.number().int().positive("Model is required"),
   colour:          z.string().min(1, "Colour is required"),
+  condition:       z.enum(CONDITIONS).default("brandnew"),
+  mileage:         z.number().int().min(0).default(0),
+  description:     z.string().trim().max(2000).optional(),
   year:            z.number().int().min(1900).max(new Date().getFullYear() + 2).optional(),
   fileNo:          z.string().optional(),
   manufactureDate: z.string().optional(),
@@ -19,6 +23,8 @@ export const bulkCreateVehicleSchema = z.object({
   brandId:         z.number().int().positive(),
   modelId:         z.number().int().positive(),
   colour:          z.string().min(1),
+  condition:       z.enum(CONDITIONS).default("brandnew"),
+  mileage:         z.number().int().min(0).default(0),
   year:            z.number().int().min(1900).max(new Date().getFullYear() + 2).optional(),
   count:           z.number().int().min(1).max(500),
 });
