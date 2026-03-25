@@ -210,8 +210,16 @@ export async function createVehicle(dto: CreateVehicleDto) {
   if (model.brandId !== dto.brandId) throw AppError.validation("Model does not belong to the selected brand");
 
   const displayId = await generateDisplayId();
+  const createData = {
+    ...dto,
+    displayId,
+    status: dto.status ?? "available",
+    condition: dto.condition ?? "brandnew",
+    mileage: dto.mileage ?? 0,
+  } as Record<string, unknown>;
+
   return prisma.bikeVehicle.create({
-    data: { ...dto, displayId, status: dto.status ?? "available" },
+    data: createData as never,
     include: vehicleInclude,
   });
 }
@@ -224,15 +232,19 @@ export async function bulkCreateVehicles(dto: BulkCreateVehicleDto) {
   const created = [];
   for (let i = 0; i < dto.count; i++) {
     const displayId = await generateDisplayId();
+    const createData = {
+      displayId,
+      brandId: dto.brandId,
+      modelId: dto.modelId,
+      colour: dto.colour,
+      condition: dto.condition ?? "brandnew",
+      mileage: dto.mileage ?? 0,
+      year: dto.year,
+      status: "available",
+    } as Record<string, unknown>;
+
     const v = await prisma.bikeVehicle.create({
-      data: {
-        displayId,
-        brandId: dto.brandId,
-        modelId: dto.modelId,
-        colour: dto.colour,
-        year: dto.year,
-        status: "available",
-      },
+      data: createData as never,
       include: vehicleInclude,
     });
     created.push(v);
