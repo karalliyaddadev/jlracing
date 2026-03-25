@@ -661,6 +661,7 @@ export default function BikeInventoryPage() {
   const [colors, setColors] = useState<Color[]>([]);
   const [fileNos, setFileNos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [statsSource, setStatsSource] = useState<Vehicle[]>([]);
 
@@ -695,6 +696,7 @@ export default function BikeInventoryPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const params = new URLSearchParams({ status: "available", page: "1", limit: "5000" });
       if (filters.brandId) params.set("brandId", filters.brandId);
@@ -705,29 +707,46 @@ export default function BikeInventoryPage() {
       if (filters.registerNo) params.set("registerNo", filters.registerNo);
       if (filters.search) params.set("search", filters.search);
 
-      const [vRes, bRes, mRes, cRes, fRes] = await Promise.all([
-        fetch(`${base}/vehicles?${params.toString()}`, { headers: auth }),
-        fetch(`${base}/brands`, { headers: auth }),
-        fetch(`${base}/models`, { headers: auth }),
-        fetch(`${base}/colors`, { headers: auth }),
-        fetch(`${base}/vehicles/filenos`, { headers: auth }),
-      ]);
-
-      const [vj, bj, mj, cj, fj] = await Promise.all([vRes.json(), bRes.json(), mRes.json(), cRes.json(), fRes.json()]) as [
-        { data: { vehicles: Vehicle[] } },
-        { data: Brand[] },
-        { data: Model[] },
-        { data: Color[] },
-        { data: string[] },
-      ];
+      const vRes = await fetch(`${base}/vehicles?${params.toString()}`, {
+        headers: auth,
+        cache: "no-store",
+      });
+      const vj = await vRes.json() as { data?: { vehicles?: Vehicle[] }; message?: string };
+      if (!vRes.ok) {
+        throw new Error(vj.message ?? "Failed to load bikes");
+      }
 
       const vehicles = vj.data?.vehicles ?? [];
       setStatsSource(vehicles);
       setGroups(groupByBrandModel(vehicles));
-      setBrands(bj.data ?? []);
-      setModels(mj.data ?? []);
-      setColors(cj.data ?? []);
-      setFileNos(fj.data ?? []);
+
+      const [bRes, mRes, cRes, fRes] = await Promise.allSettled([
+        fetch(`${base}/brands`, { headers: auth, cache: "no-store" }),
+        fetch(`${base}/models`, { headers: auth, cache: "no-store" }),
+        fetch(`${base}/colors`, { headers: auth, cache: "no-store" }),
+        fetch(`${base}/vehicles/filenos`, { headers: auth, cache: "no-store" }),
+      ]);
+
+      if (bRes.status === "fulfilled" && bRes.value.ok) {
+        const bj = await bRes.value.json() as { data?: Brand[] };
+        setBrands(bj.data ?? []);
+      }
+      if (mRes.status === "fulfilled" && mRes.value.ok) {
+        const mj = await mRes.value.json() as { data?: Model[] };
+        setModels(mj.data ?? []);
+      }
+      if (cRes.status === "fulfilled" && cRes.value.ok) {
+        const cj = await cRes.value.json() as { data?: Color[] };
+        setColors(cj.data ?? []);
+      }
+      if (fRes.status === "fulfilled" && fRes.value.ok) {
+        const fj = await fRes.value.json() as { data?: string[] };
+        setFileNos(fj.data ?? []);
+      }
+    } catch (err) {
+      setStatsSource([]);
+      setGroups([]);
+      setLoadError(err instanceof Error ? err.message : "Failed to load bikes");
     } finally { setLoading(false); }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, filters]);
@@ -853,6 +872,7 @@ export default function BikeInventoryPage() {
       </div>
 
       <div className="bm-table-card">
+        {loadError && <div className="bm-alert bm-alert-error">{loadError}</div>}
         <div className="data-table-wrap">
           <table className="data-table">
             <thead>
