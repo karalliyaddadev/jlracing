@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="footer__brand">
           <div className="footer__logo-row">
             <img
-              src="/landing/footer-img.PNG"
+              src="/landing/logo.png"
               alt="JL Racing"
               className="footer__logo-img"
             />
