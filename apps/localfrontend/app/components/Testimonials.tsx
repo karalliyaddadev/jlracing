@@ -1,49 +1,50 @@
-"use client";
-
-import { useState } from "react";
-
 interface Testimonial {
   id: number;
   name: string;
-  role: string;
+  image: string;
   text: string;
-  rating: number;
 }
 
 const TESTIMONIALS: Testimonial[] = [
   {
     id: 1,
-    name: "Kasun Perera",
-    role: "Motorcycle Enthusiast",
-    text: "JL Racing delivered my dream bike in perfect condition. The team was professional from start to finish. Highly recommend to anyone looking for genuine Japanese imports!",
-    rating: 5,
+    name: "Oshan Wasala",
+    image: "/testimonials/1.png",
+    text: "The ultimate spot in Sri Lanka to fulfill your Japanese bike dreams. JL Racing offers excellent services and support. Truly professional and reliable. Highly recommended for all bike enthusiasts!",
   },
   {
     id: 2,
-    name: "Dinesh Fernando",
-    role: "Professional Rider",
-    text: "As a professional rider, I need bikes I can trust. JL Racing's inspection process is top-notch. Every unit they sell is certified and road-ready. Outstanding service!",
-    rating: 5,
+    name: "Munchuthan Kunasingam",
+    image: "/testimonials/2.png",
+    text: "JL Racing is the best place in Sri Lanka to purchase bikes. Their service is excellent, the process is smooth, and they make buying your dream bike an easy experience.",
   },
   {
     id: 3,
-    name: "Amith Jayawardena",
-    role: "Collector",
-    text: "I've purchased three bikes through JL Racing and every experience has been exceptional. Their sourcing network gets access to rare models you won't find anywhere else in Sri Lanka.",
-    rating: 5,
+    name: "Hemal Rishitha",
+    image: "/testimonials/3.png",
+    text: "I wanted a Kawasaki Ninja H2R, and JL Racing made it happen! They managed the order flawlessly and handled the delivery with care. Truly professional and highly recommended for bike enthusiasts.",
   },
   {
     id: 4,
-    name: "Nuwan Silva",
-    role: "First-time Buyer",
-    text: "Best motorcycle buying experience I've ever had. The staff walked me through everything and helped me pick the perfect ride for my needs and budget. Great after-sales too!",
-    rating: 5,
+    name: "Johnny's Channel",
+    image: "/testimonials/4.png",
+    text: "I wanted a Honda Super Cub for relaxed city rides, and JL Racing had it in stock at the best price. Their service was excellent. I highly recommend it for leisure riders!",
+  },
+  {
+    id: 5,
+    name: "Janith Liyanage",
+    image: "/testimonials/5.png",
+    text: "I've been a JL Racing customer for years, and I keep coming back. Their bikes, service, and support are always excellent. Reliable, professional, and highly recommended time and time again!",
+  },
+  {
+    id: 6,
+    name: "Ranmal Godakumbura",
+    image: "/testimonials/6.png",
+    text: "I've purchased multiple bikes from JL Racing, and each experience has been flawless. Their stock, pricing, and service are unmatched. I keep choosing them because they truly deliver every time!",
   },
 ];
 
 export default function Testimonials() {
-  const [active, setActive] = useState(0);
-
   return (
     <section className="testimonials">
       <div className="testimonials__container">
@@ -53,34 +54,27 @@ export default function Testimonials() {
         </div>
 
         <div className="testimonials__grid">
-          {TESTIMONIALS.map((t, i) => (
-            <div
-              key={t.id}
-              className={`testimonial-card ${i === active ? "testimonial-card--active" : ""}`}
-              onMouseEnter={() => setActive(i)}
-            >
-              <div className="testimonial-card__stars">
-                {Array.from({ length: t.rating }).map((_, j) => (
-                  <svg
-                    key={j}
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="currentColor"
-                  >
-                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                  </svg>
-                ))}
+          {TESTIMONIALS.map((t) => (
+            <div key={t.id} className="testimonial-card">
+              <div className="testimonial-card__quote">
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M14.017 21v-7.391c0-5.057 3.374-9.435 8-10.609v3c-2.869.818-5 3.42-5 6.609h3v8.391h-6zm-12 0v-7.391c0-5.057 3.374-9.435 8-10.609v3c-2.869.818-5 3.42-5 6.609h3v8.391h-6z" />
+                </svg>
               </div>
-              <p className="testimonial-card__text">&ldquo;{t.text}&rdquo;</p>
+              <p className="testimonial-card__text">{t.text}</p>
+              <div className="testimonial-card__divider" />
               <div className="testimonial-card__author">
-                <div className="testimonial-card__avatar">
-                  {t.name.charAt(0)}
-                </div>
-                <div>
-                  <div className="testimonial-card__name">{t.name}</div>
-                  <div className="testimonial-card__role">{t.role}</div>
-                </div>
+                <img
+                  src={t.image}
+                  alt={t.name}
+                  className="testimonial-card__avatar"
+                />
+                <span className="testimonial-card__name">{t.name}</span>
               </div>
             </div>
           ))}
