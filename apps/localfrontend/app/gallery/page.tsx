@@ -23,60 +23,75 @@ export default function GalleryPage() {
   const visible = VIDEOS.slice((page - 1) * PER_PAGE, page * PER_PAGE);
 
   return (
-    <section className="page-section">
-      <div className="page-container">
-        <h1 className="page-heading">Gallery</h1>
-        <p className="page-description">
-          A look inside JL Racing — our bikes, events, and the passion that
-          drives us.
-        </p>
+    <>
+      {/* ── Hero ── */}
+      <section className="gallery-hero">
+        <div
+          className="gallery-hero__bg"
+          style={{ backgroundImage: "url('/images/about-hero.jpg')" }}
+        />
+        <div className="gallery-hero__overlay" />
+        <div className="gallery-hero__content">
+          <span className="gallery-hero__label">Gallery</span>
+          <h1 className="gallery-hero__title">
+            <em>Experience the ride</em> through
+            <br />
+            videos, highlights, and
+            <br />
+            powerful machine moments.
+          </h1>
+        </div>
+      </section>
 
-        <div className="video-grid">
-          {visible.map((v) => (
-            <div key={v.id} className="video-card">
-              <div className="video-card__thumb">
-                <video
-                  src={v.src}
-                  className="video-card__video"
-                  controls
-                  preload="metadata"
-                  playsInline
-                />
+      <section className="page-section">
+        <div className="page-container">
+          <div className="video-grid">
+            {visible.map((v) => (
+              <div key={v.id} className="video-card">
+                <div className="video-card__thumb">
+                  <video
+                    src={v.src}
+                    className="video-card__video"
+                    controls
+                    preload="metadata"
+                    playsInline
+                  />
+                </div>
+                <p className="video-card__title">{v.title}</p>
               </div>
-              <p className="video-card__title">{v.title}</p>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
 
-        {/* Pagination */}
-        <div className="gallery-pagination">
-          <button
-            className="gallery-pagination__btn"
-            onClick={() => setPage((p) => Math.max(p - 1, 1))}
-            disabled={page === 1}
-            aria-label="Previous page"
-          >
-            &#8249;
-          </button>
-          {Array.from({ length: TOTAL_PAGES }, (_, i) => i + 1).map((n) => (
+          {/* Pagination */}
+          <div className="gallery-pagination">
             <button
-              key={n}
-              className={`gallery-pagination__btn${n === page ? " gallery-pagination__btn--active" : ""}`}
-              onClick={() => setPage(n)}
+              className="gallery-pagination__btn"
+              onClick={() => setPage((p) => Math.max(p - 1, 1))}
+              disabled={page === 1}
+              aria-label="Previous page"
             >
-              {n}
+              &#8249;
             </button>
-          ))}
-          <button
-            className="gallery-pagination__btn"
-            onClick={() => setPage((p) => Math.min(p + 1, TOTAL_PAGES))}
-            disabled={page === TOTAL_PAGES}
-            aria-label="Next page"
-          >
-            &#8250;
-          </button>
+            {Array.from({ length: TOTAL_PAGES }, (_, i) => i + 1).map((n) => (
+              <button
+                key={n}
+                className={`gallery-pagination__btn${n === page ? " gallery-pagination__btn--active" : ""}`}
+                onClick={() => setPage(n)}
+              >
+                {n}
+              </button>
+            ))}
+            <button
+              className="gallery-pagination__btn"
+              onClick={() => setPage((p) => Math.min(p + 1, TOTAL_PAGES))}
+              disabled={page === TOTAL_PAGES}
+              aria-label="Next page"
+            >
+              &#8250;
+            </button>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+    </>
   );
 }
