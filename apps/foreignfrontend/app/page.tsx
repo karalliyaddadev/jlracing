@@ -1,102 +1,119 @@
-"use client";
+import Link from "next/link";
+import HeroCarousel from "./components/HeroCarousel";
+import TrustedBrands from "./components/TrustedBrands";
+import VehicleListings from "./components/VehicleListings";
 
-import { useState } from "react";
+const FEATURE_CARDS = [
+  {
+    title: "Wide Vehicle Selection",
+    desc: "From sedans to SUVs and motorcycles, we source the best vehicles worldwide.",
+    image: "/images/wide-vehicle.webp",
+  },
+  {
+    title: "Smooth Export Process",
+    desc: "We handle sourcing, shipping, and delivery with complete reliability.",
+    image: "/images/smooth-export.webp",
+  },
+  {
+    title: "Global Delivery",
+    desc: "Receive your vehicle anywhere with peace of mind and full support.",
+    image: "/images/global-delivery.webp",
+  },
+];
 
-const LOCAL_URL = process.env.NEXT_PUBLIC_LOCAL_URL ?? "https://local.jlracingshop.karalliyaddaone.tech";
-const INTERNATIONAL_URL =
-  process.env.NEXT_PUBLIC_INTERNATIONAL_URL ?? "https://international.jlracingshop.karalliyaddaone.tech";
-
-type HoverSide = null | "local" | "international";
-
-export default function Page() {
-  const [hovered, setHovered] = useState<HoverSide>(null);
-
+export default function HomePage() {
   return (
-    <main className="landing">
-      {/* ── Local / Sri Lanka Side ── */}
-      <a
-        href={LOCAL_URL}
-        className={`landing__side landing__side--local ${
-          hovered === "local" ? "is-active" : ""
-        } ${hovered === "international" ? "is-inactive" : ""}`}
-        onMouseEnter={() => setHovered("local")}
-        onMouseLeave={() => setHovered(null)}
-      >
-        <div className="landing__bg" />
-        <div className="landing__overlay" />
-        <div className="landing__content">
-          <span className="landing__label">
-            <span className="landing__flag">🇱🇰</span> SRI LANKA
+    <>
+      {/* ── Hero ── */}
+      <HeroCarousel />
+
+      {/* ── Export Description ── */}
+      <section className="int-export-desc">
+        <div className="int-export-desc__inner">
+          <span className="int-pill">
+            <span className="int-pill__plain">Export Vehicles</span>
+            <span className="int-pill__gold">Worldwide</span>
           </span>
-          <h2 className="landing__title">
-            Browse
-            <br />
-            Local
-            <br />
-            Stock
-          </h2>
-          <h3 className="landing__heading">For Sri Lankan Riders</h3>
-          <p className="landing__subtitle">
-            Shop bikes, spare parts, and pre-orders from our Sri Lanka showroom.
+          <p className="int-export-desc__text">
+            Pre-order your vehicle through our Japanese licensed direct auction
+            export service. We handle sourcing, bidding, and international
+            delivery, ensuring your vehicle reaches any country with complete
+            end-to-end support.
           </p>
-          <div className="landing__cta">
-            <span>Go to Bike Store</span>
-            <span className="landing__arrow">→</span>
+        </div>
+      </section>
+
+      {/* ── Video / Ship Banner ── */}
+      <section className="int-video">
+        <div className="int-video__bg" />
+      </section>
+
+      {/* ── Features Section ── */}
+      <section className="int-features">
+        <div className="int-features__inner">
+          {/* Left copy */}
+          <div className="int-features__copy">
+            <span className="int-pill">
+              <span className="int-pill__plain">Global Vehicle</span>
+              <span className="int-pill__gold">Export</span>
+            </span>
+            <h2 className="int-features__heading">
+              We help you find, order, and export vehicles to any country with a{" "}
+              <em>simple and reliable process.</em>
+            </h2>
+          </div>
+
+          {/* Right cards */}
+          <div className="int-features__cards">
+            {FEATURE_CARDS.map((card) => (
+              <div key={card.title} className="int-feat-card">
+                <div className="int-feat-card__img-wrap">
+                  <img
+                    src={card.image}
+                    alt={card.title}
+                    className="int-feat-card__img"
+                  />
+                  <div className="int-feat-card__overlay" />
+                  <div className="int-feat-card__text">
+                    <h3 className="int-feat-card__title">{card.title}</h3>
+                    <p className="int-feat-card__desc">{card.desc}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
-      </a>
+      </section>
 
-      {/* ── Divider ── */}
-      <div className="landing__divider">
-        <div className="landing__divider-line" />
-        <img
-          src="/landing/logo.jpg"
-          alt="JL Racing"
-          className="landing__divider-logo"
-        />
-        <div className="landing__divider-line" />
-      </div>
+      {/* ── Trusted Brands ── */}
+      <TrustedBrands />
 
-      {/* ── International Side ── */}
-      <a
-        href={INTERNATIONAL_URL}
-        className={`landing__side landing__side--intl ${
-          hovered === "international" ? "is-active" : ""
-        } ${hovered === "local" ? "is-inactive" : ""}`}
-        onMouseEnter={() => setHovered("international")}
-        onMouseLeave={() => setHovered(null)}
-      >
-        <div className="landing__bg" />
-        <div className="landing__overlay" />
-        <div className="landing__content">
-          <span className="landing__label">INTERNATIONAL</span>
-          <h2 className="landing__title">
-            Explore
-            <br />
-            Export
-            <br />
-            Catalogue
+      {/* ── Vehicle Listings ── */}
+      <VehicleListings />
+
+      {/* ── CTA Banner ── */}
+      <section className="int-cta">
+        <div className="int-cta__bg" />
+        <div className="int-cta__overlay" />
+        <div className="int-cta__content">
+          <span className="int-pill">
+            <span className="int-pill__plain">Start Your</span>
+            <span className="int-pill__gold">Order</span>
+          </span>
+          <h2 className="int-cta__heading">
+            Choose a vehicle from our listings or contact us to{" "}
+            <em>begin your export process.</em>
           </h2>
-          <h3 className="landing__heading">For International Buyers</h3>
-          <p className="landing__subtitle">
-            Export motorcycles and vehicles worldwide through our professional export service.
-          </p>
-          <div className="landing__cta">
-            <span>Go to Export Site</span>
-            <span className="landing__arrow">→</span>
+          <div className="int-cta__actions">
+            <Link href="/listings" className="int-btn int-btn--primary">
+              View All Listings
+            </Link>
+            <Link href="/contact" className="int-btn int-btn--outline">
+              Contact Us
+            </Link>
           </div>
         </div>
-      </a>
-
-      {/* ── Bottom Geo Bar ── */}
-      <div className="landing__geobar">
-        <span>
-          We detected you&apos;re in Sri Lanka &mdash;{" "}
-          <a href={LOCAL_URL} className="landing__geobar-link">
-            Go to Local Site
-          </a>
-        </span>
-      </div>
-    </main>
+      </section>
+    </>
   );
 }
