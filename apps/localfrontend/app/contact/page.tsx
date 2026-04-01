@@ -17,11 +17,12 @@ export default function ContactPage() {
       <section className="contact-hero">
         <div className="contact-hero__overlay" />
         <div className="contact-hero__content">
-          <h1 className="contact-hero__title">Get In Touch With Our Team</h1>
-          <p className="contact-hero__subtitle">
-            Have a question about bikes, parts, or imports? Contact our team
-            today.
-          </p>
+          <span className="contact-hero__label">Contact</span>
+          <h1 className="contact-hero__title">
+            Get in touch with <em>our team</em>
+            <br />
+            and find the machine you deserve.
+          </h1>
         </div>
       </section>
 
@@ -55,25 +56,6 @@ export default function ContactPage() {
                 <div>
                   <strong>Hotline</strong>
                   <span>0372 228 220</span>
-                </div>
-              </div>
-
-              {/* Phone */}
-              <div className="contact-info__item">
-                <svg
-                  className="contact-info__icon"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                >
-                  <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
-                </svg>
-                <div>
-                  <strong>Phone</strong>
-                  <span>+94 XX XXX XXXX</span>
                 </div>
               </div>
 

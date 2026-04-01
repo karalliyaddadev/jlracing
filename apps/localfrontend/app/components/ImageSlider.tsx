@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 
 interface SliderItem {
   id: number;
@@ -69,16 +69,50 @@ const ITEMS: SliderItem[] = [
   },
 ];
 
-// Card width (300px) + gap (24px = 1.5rem)
 const CARD_STEP = 324;
-const MAX_OFFSET = (ITEMS.length - 3) * CARD_STEP; // show ~3 at a time
+const MAX_OFFSET = (ITEMS.length - 3) * CARD_STEP;
 
 export default function ImageSlider() {
   const [offset, setOffset] = useState(0);
+  const touchStartX = useRef<number | null>(null);
+  const offsetRef = useRef(0);
 
-  const scrollLeft = () => setOffset((o) => Math.max(o - CARD_STEP, 0));
+  const scrollLeft = () =>
+    setOffset((o) => {
+      const next = Math.max(o - CARD_STEP, 0);
+      offsetRef.current = next;
+      return next;
+    });
   const scrollRight = () =>
-    setOffset((o) => Math.min(o + CARD_STEP, MAX_OFFSET));
+    setOffset((o) => {
+      const next = o >= MAX_OFFSET ? 0 : Math.min(o + CARD_STEP, MAX_OFFSET);
+      offsetRef.current = next;
+      return next;
+    });
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setOffset((o) => {
+        const next = o >= MAX_OFFSET ? 0 : o + CARD_STEP;
+        offsetRef.current = next;
+        return next;
+      });
+    }, 3000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return;
+    const diff = touchStartX.current - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 40) {
+      diff > 0 ? scrollRight() : scrollLeft();
+    }
+    touchStartX.current = null;
+  };
 
   return (
     <section className="slider-section">
@@ -87,49 +121,13 @@ export default function ImageSlider() {
           <span className="slider-section__label">FEATURED</span>
           <h2 className="slider-section__title">Latest Arrivals</h2>
         </div>
-        <div className="slider-section__arrows">
-          <button
-            type="button"
-            className="slider-section__arrow"
-            onClick={scrollLeft}
-            aria-label="Scroll left"
-            disabled={offset === 0}
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M15 18l-6-6 6-6" />
-            </svg>
-          </button>
-          <button
-            type="button"
-            className="slider-section__arrow"
-            onClick={scrollRight}
-            aria-label="Scroll right"
-            disabled={offset >= MAX_OFFSET}
-          >
-            <svg
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-            >
-              <path d="M9 18l6-6-6-6" />
-            </svg>
-          </button>
-        </div>
       </div>
 
-      {/* Viewport window — clips the sliding track */}
-      <div className="slider-section__viewport">
-        {/* Track slides via CSS transform — no scrollBy, no snap interference */}
+      <div
+        className="slider-section__viewport"
+        onTouchStart={onTouchStart}
+        onTouchEnd={onTouchEnd}
+      >
         <div
           className="slider-section__track"
           style={{ transform: `translateX(-${offset}px)` }}
@@ -143,20 +141,9 @@ export default function ImageSlider() {
                 />
               </div>
               <div className="slider-card__body">
-                <div className="slider-card__info-row">
-                  <div className="slider-card__info-col">
-                    <span className="slider-card__label">Brand</span>
-                    <span className="slider-card__value">{item.brand}</span>
-                  </div>
-                  <div className="slider-card__info-col">
-                    <span className="slider-card__label">Model</span>
-                    <span className="slider-card__value">{item.model}</span>
-                  </div>
-                  <div className="slider-card__info-col">
-                    <span className="slider-card__label">Year</span>
-                    <span className="slider-card__value">{item.year}</span>
-                  </div>
-                </div>
+                <p className="slider-card__title">
+                  {item.brand} {item.model} {item.year}
+                </p>
                 <p className="slider-card__meta-text">{item.meta}</p>
                 <span className="slider-card__price">{item.price}</span>
               </div>

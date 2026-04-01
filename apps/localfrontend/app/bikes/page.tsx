@@ -116,6 +116,7 @@ export default function BikesPage() {
   const [ccOptions, setCcOptions] = useState<string[]>([]);
   const [statuses, setStatuses] = useState<string[]>([]);
   const [search, setSearch] = useState("");
+  const [filtersOpen, setFiltersOpen] = useState(false);
 
   const q = search.toLowerCase();
   const filtered = MOCK_BIKES.filter((b) => {
@@ -129,6 +130,12 @@ export default function BikesPage() {
 
   return (
     <section className="bikes-page">
+      {filtersOpen && (
+        <div
+          className="po-filter-backdrop"
+          onClick={() => setFiltersOpen(false)}
+        />
+      )}
       <div className="bikes-page__inner">
         {/* ── Header ── */}
         <div className="bikes-page__header">
@@ -173,9 +180,47 @@ export default function BikesPage() {
           <hr className="bikes-page__divider" />
         </div>
 
+        {/* Mobile filter toggle */}
+        <button
+          className="po-filter-toggle"
+          onClick={() => setFiltersOpen(true)}
+        >
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+          >
+            <path d="M22 3H2l8 9.46V19l4 2V12.46L22 3z" />
+          </svg>
+          Filters
+        </button>
+
         <div className="bikes-page__body">
           {/* ── Sidebar Filters ── */}
-          <aside className="bikes-filter">
+          <aside className={`bikes-filter${filtersOpen ? " is-open" : ""}`}>
+            {/* Close button – mobile only */}
+            <div className="po-filter__mobile-header">
+              <span className="po-filter__mobile-title">Filters</span>
+              <button
+                className="po-filter__close"
+                onClick={() => setFiltersOpen(false)}
+                aria-label="Close filters"
+              >
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M18 6L6 18M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
             <RangeSlider
               label="Price"
               min={0}
