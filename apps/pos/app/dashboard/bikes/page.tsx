@@ -17,9 +17,15 @@ type Vehicle = {
   condition: "brandnew" | "used";
   mileage: number;
   description?: string;
+  registrationType: "registered" | "unregistered";
+  purchasePrice?: number;
+  taxAmount?: number;
+  sellingPrice?: number;
+  expenses?: Expense[];
   status: "available" | "sold"; soldAt?: string;
   createdAt: string;
 };
+type Expense = { id: number; description: string; amount: number; createdAt: string };
 type Group = { brandId: number; brandName: string; modelId: number; modelName: string; count: number; vehicles: Vehicle[] };
 
 // ── Combobox (type + suggestions + quick add) ─────────────────────────────
@@ -107,7 +113,10 @@ function AddBikeModal({
     brandId: "", modelId: "", colour: "", year: "", fileNo: "",
     chassisNo: "", engineNo: "", registerNo: "", count: "1",
     condition: "brandnew", mileage: "0", description: "",
+    registrationType: "unregistered",
+    purchasePrice: "", taxAmount: "", sellingPrice: "",
   });
+  const [expenses, setExpenses] = useState<{ description: string; amount: string }[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState<string | null>(null);
 
@@ -172,11 +181,14 @@ function AddBikeModal({
             condition: form.condition,
             mileage: form.mileage ? +form.mileage : 0,
             year: form.year ? +form.year : undefined,
+            registrationType: form.registrationType,
+            purchasePrice: form.purchasePrice ? +form.purchasePrice : undefined,
             count: +form.count,
           }),
         });
         if (!r.ok) { const j = await r.json() as { message: string }; setError(j.message); return; }
       } else {
+        const validExpenses = expenses.filter((ex) => ex.description.trim() && ex.amount);
         const r = await fetch(`${base}/vehicles`, {
           method: "POST", headers: { ...auth, "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -191,6 +203,13 @@ function AddBikeModal({
             chassisNo: form.chassisNo || undefined,
             engineNo: form.engineNo || undefined,
             registerNo: form.registerNo || undefined,
+            registrationType: form.registrationType,
+            purchasePrice: form.purchasePrice ? +form.purchasePrice : undefined,
+            taxAmount: form.taxAmount ? +form.taxAmount : undefined,
+            sellingPrice: form.sellingPrice ? +form.sellingPrice : undefined,
+            expenses: validExpenses.length > 0
+              ? validExpenses.map((ex) => ({ description: ex.description.trim(), amount: +ex.amount }))
+              : undefined,
           }),
         });
         if (!r.ok) { const j = await r.json() as { message: string }; setError(j.message); return; }
@@ -276,6 +295,14 @@ function AddBikeModal({
           </div>
 
           <div className="bm-field-group">
+            <label>Registration Type *</label>
+            <select className="bm-select" value={form.registrationType} onChange={setE("registrationType")} required>
+              <option value="unregistered">Unregistered</option>
+              <option value="registered">Registered</option>
+            </select>
+          </div>
+
+          <div className="bm-field-group">
             <label>Mileage</label>
             <div className="bm-quick-add-row">
               <input className="bm-input" type="number" min={0} value={form.mileage} onChange={setE("mileage")} placeholder="e.g. 0" />
@@ -284,10 +311,16 @@ function AddBikeModal({
           </div>
 
           {mode === "bulk" && (
-            <div className="bm-field-group">
-              <label>Quantity *</label>
-              <input className="bm-input" type="number" min={1} max={500} value={form.count} onChange={setE("count")} required />
-            </div>
+            <>
+              <div className="bm-field-group">
+                <label>Quantity *</label>
+                <input className="bm-input" type="number" min={1} max={500} value={form.count} onChange={setE("count")} required />
+              </div>
+              <div className="bm-field-group">
+                <label>Purchase Price</label>
+                <input className="bm-input" type="number" min={0} step="0.01" value={form.purchasePrice} onChange={setE("purchasePrice")} placeholder="e.g. 350000" />
+              </div>
+            </>
           )}
 
           {mode === "single" && (
@@ -317,6 +350,42 @@ function AddBikeModal({
                   onChange={(e) => set("description")(e.target.value)}
                   placeholder="Add vehicle description"
                 />
+              </div>
+
+              {/* Pricing */}
+              <div className="bm-field-group">
+                <label>Purchase Price</label>
+                <input className="bm-input" type="number" min={0} step="0.01" value={form.purchasePrice} onChange={setE("purchasePrice")} placeholder="e.g. 350000" />
+              </div>
+              <div className="bm-field-group">
+                <label>Tax Amount</label>
+                <input className="bm-input" type="number" min={0} step="0.01" value={form.taxAmount} onChange={setE("taxAmount")} placeholder="e.g. 25000" />
+              </div>
+              <div className="bm-field-group">
+                <label>Selling Price</label>
+                <input className="bm-input" type="number" min={0} step="0.01" value={form.sellingPrice} onChange={setE("sellingPrice")} placeholder="e.g. 450000" />
+              </div>
+
+              {/* Additional Expenses */}
+              <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <label>Additional Expenses</label>
+                  <button type="button" className="btn-accent bm-add-btn" onClick={() => setExpenses((prev) => [...prev, { description: "", amount: "" }])}>+</button>
+                </div>
+                {expenses.map((ex, i) => (
+                  <div key={i} className="bm-quick-add-row" style={{ marginBottom: 6 }}>
+                    <input className="bm-input bm-input-sm" placeholder="Cost description" value={ex.description}
+                      onChange={(e) => setExpenses((prev) => prev.map((p, j) => j === i ? { ...p, description: e.target.value } : p))} />
+                    <input className="bm-input bm-input-sm" type="number" min={0} step="0.01" placeholder="Amount" value={ex.amount}
+                      onChange={(e) => setExpenses((prev) => prev.map((p, j) => j === i ? { ...p, amount: e.target.value } : p))} style={{ maxWidth: 140 }} />
+                    <button type="button" className="bm-action-btn bm-del-btn" onClick={() => setExpenses((prev) => prev.filter((_, j) => j !== i))}>✕</button>
+                  </div>
+                ))}
+                {expenses.length > 0 && (
+                  <div style={{ textAlign: "right", fontSize: 13, fontWeight: 600, marginTop: 4, color: "var(--accent)" }}>
+                    Total Additional: {expenses.reduce((s, ex) => s + (Number(ex.amount) || 0), 0).toLocaleString()}
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -350,11 +419,26 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
     condition:  vehicle.condition ?? "brandnew",
     mileage:    String(vehicle.mileage ?? 0),
     description: vehicle.description ?? "",
+    registrationType: vehicle.registrationType ?? "unregistered",
+    purchasePrice:    vehicle.purchasePrice ? String(vehicle.purchasePrice) : "",
+    taxAmount:        vehicle.taxAmount ? String(vehicle.taxAmount) : "",
+    sellingPrice:     vehicle.sellingPrice ? String(vehicle.sellingPrice) : "",
   });
+  const [vehicleExpenses, setVehicleExpenses] = useState<Expense[]>(vehicle.expenses ?? []);
+  const [newExpenses, setNewExpenses] = useState<{ description: string; amount: string }[]>([]);
+  const [showExpenseDetails, setShowExpenseDetails] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState<string | null>(null);
   const base = `${API_URL}/api/pos/bike-management`;
   const auth = { Authorization: `Bearer ${token}` };
+
+  // Fetch fresh expenses on mount
+  useEffect(() => {
+    void fetch(`${base}/vehicles/${vehicle.id}/expenses`, { headers: auth })
+      .then((r) => r.json())
+      .then((j: { data: { expenses: Expense[]; total: number } }) => { if (j.data?.expenses) setVehicleExpenses(j.data.expenses); });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
@@ -430,10 +514,25 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
           condition: form.condition,
           mileage: form.mileage ? +form.mileage : 0,
           description: form.description.trim() || undefined,
+          registrationType: form.registrationType,
+          purchasePrice: form.purchasePrice ? +form.purchasePrice : undefined,
+          taxAmount: form.taxAmount ? +form.taxAmount : undefined,
+          sellingPrice: form.sellingPrice ? +form.sellingPrice : undefined,
         }),
       });
       const j = await r.json() as { data: Vehicle; message?: string };
       if (!r.ok) { setError((j as { message: string }).message); return; }
+
+      // Save new expenses
+      for (const ex of newExpenses) {
+        if (ex.description.trim() && ex.amount) {
+          await fetch(`${base}/vehicles/${vehicle.id}/expenses`, {
+            method: "POST", headers: { ...auth, "Content-Type": "application/json" },
+            body: JSON.stringify({ description: ex.description.trim(), amount: +ex.amount }),
+          });
+        }
+      }
+
       onSaved(j.data); onClose();
     } catch (err) {
       setError(err instanceof Error ? err.message : "Update failed");
@@ -502,6 +601,112 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
                 placeholder="Add vehicle description"
               />
             </div>
+
+            {/* Registration Type */}
+            <div className="bm-field-group">
+              <label>Registration Type</label>
+              <select className="bm-select" value={form.registrationType} onChange={set("registrationType")}>
+                <option value="unregistered">Unregistered</option>
+                <option value="registered">Registered</option>
+              </select>
+            </div>
+
+            {/* Pricing */}
+            <div className="bm-field-group">
+              <label>Purchase Price</label>
+              <input className="bm-input" type="number" min={0} step="0.01" value={form.purchasePrice} onChange={set("purchasePrice")} placeholder="e.g. 350000" />
+            </div>
+            <div className="bm-field-group">
+              <label>Tax Amount</label>
+              <input className="bm-input" type="number" min={0} step="0.01" value={form.taxAmount} onChange={set("taxAmount")} placeholder="e.g. 25000" />
+            </div>
+            <div className="bm-field-group">
+              <label>Selling Price</label>
+              <input className="bm-input" type="number" min={0} step="0.01" value={form.sellingPrice} onChange={set("sellingPrice")} placeholder="e.g. 450000" />
+            </div>
+
+            {/* Existing Expenses */}
+            <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                <label>Additional Expenses {vehicleExpenses.length > 0 && <span style={{ fontWeight: 400, fontSize: 12, color: "var(--muted)" }}>(Total: Rs. {vehicleExpenses.reduce((s, ex) => s + ex.amount, 0).toLocaleString()})</span>}</label>
+                <div style={{ display: "flex", gap: 6 }}>
+                  {vehicleExpenses.length > 0 && (
+                    <button type="button" className="btn-outline" style={{ padding: "4px 12px", fontSize: 12 }} onClick={() => setShowExpenseDetails((v) => !v)}>
+                      {showExpenseDetails ? "Hide Details" : "View Details"}
+                    </button>
+                  )}
+                  <button type="button" className="btn-accent bm-add-btn" onClick={() => setNewExpenses((prev) => [...prev, { description: "", amount: "" }])}>+</button>
+                </div>
+              </div>
+
+              {/* Expense details table (toggled) */}
+              {showExpenseDetails && vehicleExpenses.length > 0 && (
+                <div style={{ border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden", marginBottom: 10 }}>
+                  <table className="data-table" style={{ margin: 0, width: "100%" }}>
+                    <thead>
+                      <tr>
+                        <th style={{ textAlign: "left", padding: "6px 10px", fontSize: 12 }}>#</th>
+                        <th style={{ textAlign: "left", padding: "6px 10px", fontSize: 12 }}>Description / Reason</th>
+                        <th style={{ textAlign: "right", padding: "6px 10px", fontSize: 12 }}>Amount</th>
+                        <th style={{ textAlign: "left", padding: "6px 10px", fontSize: 12 }}>Date</th>
+                        <th style={{ padding: "6px 10px", fontSize: 12 }}>Action</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {vehicleExpenses.map((ex, i) => (
+                        <tr key={ex.id}>
+                          <td style={{ padding: "5px 10px", fontSize: 13 }}>{i + 1}</td>
+                          <td style={{ padding: "5px 10px", fontSize: 13 }}>{ex.description}</td>
+                          <td style={{ textAlign: "right", padding: "5px 10px", fontSize: 13 }}>Rs. {ex.amount.toLocaleString()}</td>
+                          <td style={{ padding: "5px 10px", fontSize: 11, color: "var(--muted)" }}>{new Date(ex.createdAt).toLocaleDateString()}</td>
+                          <td style={{ padding: "5px 10px", textAlign: "center" }}>
+                            <button type="button" className="bm-action-btn bm-del-btn" title="Remove" onClick={async () => {
+                              await fetch(`${base}/vehicles/${vehicle.id}/expenses/${ex.id}`, { method: "DELETE", headers: auth });
+                              setVehicleExpenses((prev) => prev.filter((e) => e.id !== ex.id));
+                            }}>✕</button>
+                          </td>
+                        </tr>
+                      ))}
+                      <tr style={{ fontWeight: 700, borderTop: "2px solid var(--border)" }}>
+                        <td style={{ padding: "6px 10px" }} />
+                        <td style={{ padding: "6px 10px" }}>Total</td>
+                        <td style={{ textAlign: "right", padding: "6px 10px" }}>Rs. {vehicleExpenses.reduce((s, ex) => s + ex.amount, 0).toLocaleString()}</td>
+                        <td colSpan={2} />
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Inline list for non-details mode */}
+              {!showExpenseDetails && vehicleExpenses.map((ex) => (
+                <div key={ex.id} className="bm-quick-add-row" style={{ marginBottom: 6, opacity: 0.85 }}>
+                  <input className="bm-input bm-input-sm" value={ex.description} disabled />
+                  <input className="bm-input bm-input-sm" value={`Rs. ${ex.amount.toLocaleString()}`} disabled style={{ maxWidth: 140 }} />
+                  <button type="button" className="bm-action-btn bm-del-btn" title="Remove" onClick={async () => {
+                    await fetch(`${base}/vehicles/${vehicle.id}/expenses/${ex.id}`, { method: "DELETE", headers: auth });
+                    setVehicleExpenses((prev) => prev.filter((e) => e.id !== ex.id));
+                  }}>✕</button>
+                </div>
+              ))}
+              {newExpenses.map((ex, i) => (
+                <div key={`new-${i}`} className="bm-quick-add-row" style={{ marginBottom: 6 }}>
+                  <input className="bm-input bm-input-sm" placeholder="Cost description" value={ex.description}
+                    onChange={(e) => setNewExpenses((prev) => prev.map((p, j) => j === i ? { ...p, description: e.target.value } : p))} />
+                  <input className="bm-input bm-input-sm" type="number" min={0} step="0.01" placeholder="Amount" value={ex.amount}
+                    onChange={(e) => setNewExpenses((prev) => prev.map((p, j) => j === i ? { ...p, amount: e.target.value } : p))} style={{ maxWidth: 140 }} />
+                  <button type="button" className="bm-action-btn bm-del-btn" onClick={() => setNewExpenses((prev) => prev.filter((_, j) => j !== i))}>✕</button>
+                </div>
+              ))}
+              {(vehicleExpenses.length > 0 || newExpenses.length > 0) && (
+                <div style={{ textAlign: "right", fontSize: 13, fontWeight: 600, marginTop: 4, color: "var(--accent)" }}>
+                  Total Additional: {(
+                    vehicleExpenses.reduce((s, ex) => s + ex.amount, 0) +
+                    newExpenses.reduce((s, ex) => s + (Number(ex.amount) || 0), 0)
+                  ).toLocaleString()}
+                </div>
+              )}
+            </div>
           </div>
           <div className="bm-modal-actions">
             <button type="button" className="btn-outline" onClick={onClose}>Cancel</button>
@@ -513,12 +718,36 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
   );
 }
 
-function ViewVehicleModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: () => void }) {
+function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle: Vehicle; token: string; onClose: () => void }) {
+  const [vehicle, setVehicle] = useState<Vehicle>(initialVehicle);
+  const [showExpenses, setShowExpenses] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const base = `${API_URL}/api/pos/bike-management`;
+  const auth = { Authorization: `Bearer ${token}` };
+
+  // Fetch fresh vehicle data with expenses on mount
+  useEffect(() => {
+    void (async () => {
+      try {
+        const r = await fetch(`${base}/vehicles/${initialVehicle.id}`, { headers: auth });
+        if (r.ok) {
+          const j = await r.json() as { data: Vehicle };
+          setVehicle(j.data);
+        }
+      } finally { setLoading(false); }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const expenses = vehicle.expenses ?? [];
+  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+
   return (
     <div className="bm-modal-backdrop" onClick={onClose}>
       <div className="bm-modal bm-modal-lg" onClick={(e) => e.stopPropagation()}>
         <button className="bm-modal-close" onClick={onClose}>✕</button>
         <h3 className="bm-modal-title">Bike Details — {vehicle.displayId}</h3>
+        {loading && <div style={{ textAlign: "center", padding: 12, color: "var(--muted)" }}>Loading details…</div>}
         <div className="bm-fields-grid">
           <div className="bm-field-group"><label>Brand</label><input className="bm-input" value={vehicle.brand.name} disabled /></div>
           <div className="bm-field-group"><label>Model</label><input className="bm-input" value={vehicle.model.name} disabled /></div>
@@ -530,8 +759,76 @@ function ViewVehicleModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: () 
           <div className="bm-field-group"><label>Engine No</label><input className="bm-input" value={vehicle.engineNo ?? "-"} disabled /></div>
           <div className="bm-field-group"><label>Condition</label><input className="bm-input" value={vehicle.condition === "used" ? "Used" : "Brand New"} disabled /></div>
           <div className="bm-field-group"><label>Mileage</label><input className="bm-input" value={vehicle.mileage ?? 0} disabled /></div>
-          <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}><label>Description</label><textarea className="bm-input" rows={3} value={vehicle.description ?? "-"} disabled /></div>
+          <div className="bm-field-group"><label>Registration</label><input className="bm-input" value={vehicle.registrationType === "registered" ? "Registered" : "Unregistered"} disabled /></div>
           <div className="bm-field-group"><label>Status</label><input className="bm-input" value={vehicle.status} disabled /></div>
+          <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}><label>Description</label><textarea className="bm-input" rows={3} value={vehicle.description ?? "-"} disabled /></div>
+
+          {/* Pricing */}
+          <div className="bm-field-group">
+            <label>Purchase Price</label>
+            <input className="bm-input" value={vehicle.purchasePrice != null ? `Rs. ${vehicle.purchasePrice.toLocaleString()}` : "Not set"} disabled />
+          </div>
+          <div className="bm-field-group">
+            <label>Tax Amount</label>
+            <input className="bm-input" value={vehicle.taxAmount != null ? `Rs. ${vehicle.taxAmount.toLocaleString()}` : "Not set"} disabled />
+          </div>
+          <div className="bm-field-group">
+            <label>Selling Price</label>
+            <input className="bm-input" value={vehicle.sellingPrice != null ? `Rs. ${vehicle.sellingPrice.toLocaleString()}` : "Not set"} disabled />
+          </div>
+
+          {/* Additional Expenses with View button */}
+          <div className="bm-field-group">
+            <label>Additional Expenses Total</label>
+            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+              <input className="bm-input" value={totalExpenses > 0 ? `Rs. ${totalExpenses.toLocaleString()}` : "No expenses"} disabled style={{ flex: 1 }} />
+              {expenses.length > 0 && (
+                <button
+                  type="button"
+                  className="btn-accent"
+                  style={{ whiteSpace: "nowrap", padding: "6px 14px", fontSize: 13 }}
+                  onClick={() => setShowExpenses((v) => !v)}
+                >
+                  {showExpenses ? "Hide" : "View"}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Expense breakdown table — toggled by View button */}
+          {showExpenses && expenses.length > 0 && (
+            <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
+              <label>Expense Breakdown</label>
+              <div style={{ border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
+                <table className="data-table" style={{ margin: 0, width: "100%" }}>
+                  <thead>
+                    <tr>
+                      <th style={{ textAlign: "left", padding: "8px 12px" }}>#</th>
+                      <th style={{ textAlign: "left", padding: "8px 12px" }}>Description / Reason</th>
+                      <th style={{ textAlign: "right", padding: "8px 12px" }}>Amount</th>
+                      <th style={{ textAlign: "left", padding: "8px 12px" }}>Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {expenses.map((ex, i) => (
+                      <tr key={ex.id}>
+                        <td style={{ padding: "6px 12px" }}>{i + 1}</td>
+                        <td style={{ padding: "6px 12px" }}>{ex.description}</td>
+                        <td style={{ textAlign: "right", padding: "6px 12px" }}>Rs. {ex.amount.toLocaleString()}</td>
+                        <td style={{ padding: "6px 12px", fontSize: 12, color: "var(--muted)" }}>{new Date(ex.createdAt).toLocaleDateString()}</td>
+                      </tr>
+                    ))}
+                    <tr style={{ fontWeight: 700, borderTop: "2px solid var(--border)" }}>
+                      <td style={{ padding: "8px 12px" }} />
+                      <td style={{ padding: "8px 12px" }}>Total</td>
+                      <td style={{ textAlign: "right", padding: "8px 12px" }}>Rs. {totalExpenses.toLocaleString()}</td>
+                      <td />
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
         </div>
         <div className="bm-modal-actions">
           <button type="button" className="btn-outline" onClick={onClose}>Close</button>
@@ -609,7 +906,7 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
           </td>
         </tr>
       ))}
-      {viewV && <ViewVehicleModal vehicle={viewV} onClose={() => setViewV(null)} />}
+      {viewV && <ViewVehicleModal vehicle={viewV} token={token} onClose={() => setViewV(null)} />}
       {editV && <EditVehicleModal vehicle={editV} token={token} onClose={() => setEditV(null)} onSaved={() => { setEditV(null); onRefresh(); }} />}
       {delConfirm !== null && (
         <tr><td colSpan={6}>

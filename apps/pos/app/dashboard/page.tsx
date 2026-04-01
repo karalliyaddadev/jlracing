@@ -38,7 +38,7 @@ export default function DashboardPage() {
           <button type="button" className="btn-outline" onClick={() => router.push("/dashboard/invoices")}>
             <IconInvoice /> New Invoice
           </button>
-          <button type="button" className="btn-accent" onClick={() => router.push("/dashboard/inventory")}>
+          <button type="button" className="btn-accent" onClick={() => router.push("/dashboard/bikes")}>
             <IconBike /> Check Stock
           </button>
         </div>

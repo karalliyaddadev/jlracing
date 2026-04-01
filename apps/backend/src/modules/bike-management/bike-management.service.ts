@@ -8,6 +8,7 @@ import type {
   VehicleQueryDto,
   RenameFileNoDto,
   DeleteFileNoDto,
+  AddExpenseDto,
 } from "./dto/vehicle.dto";
 
 // ── Utility: generate unique display ID ───────────────────────────────────────
@@ -136,6 +137,7 @@ export async function deleteColor(id: number) {
 const vehicleInclude = {
   brand: { select: { id: true, name: true } },
   model: { select: { id: true, name: true } },
+  expenses: { orderBy: { createdAt: "desc" as const } },
 } as const;
 
 /** Grouped summary: one row per brand+model combination with stock count */
@@ -210,12 +212,17 @@ export async function createVehicle(dto: CreateVehicleDto) {
   if (model.brandId !== dto.brandId) throw AppError.validation("Model does not belong to the selected brand");
 
   const displayId = await generateDisplayId();
+  const { expenses, ...rest } = dto;
   const createData = {
-    ...dto,
+    ...rest,
     displayId,
     status: dto.status ?? "available",
     condition: dto.condition ?? "brandnew",
     mileage: dto.mileage ?? 0,
+    registrationType: dto.registrationType ?? "unregistered",
+    ...(expenses && expenses.length > 0
+      ? { expenses: { create: expenses } }
+      : {}),
   } as Record<string, unknown>;
 
   return prisma.bikeVehicle.create({
@@ -240,6 +247,8 @@ export async function bulkCreateVehicles(dto: BulkCreateVehicleDto) {
       condition: dto.condition ?? "brandnew",
       mileage: dto.mileage ?? 0,
       year: dto.year,
+      registrationType: dto.registrationType ?? "unregistered",
+      purchasePrice: dto.purchasePrice,
       status: "available",
     } as Record<string, unknown>;
 
@@ -313,4 +322,31 @@ export async function deleteFileNo(dto: DeleteFileNoDto) {
   });
 
   return { updated: result.count };
+}
+
+// ── Vehicle Expenses ──────────────────────────────────────────────────────────
+
+export async function addExpense(vehicleId: number, dto: AddExpenseDto) {
+  await getVehicle(vehicleId);
+  return prisma.bikeVehicleExpense.create({
+    data: { vehicleId, description: dto.description, amount: dto.amount },
+  });
+}
+
+export async function listExpenses(vehicleId: number) {
+  await getVehicle(vehicleId);
+  const expenses = await prisma.bikeVehicleExpense.findMany({
+    where: { vehicleId },
+    orderBy: { createdAt: "desc" },
+  });
+  const total = expenses.reduce((s, e) => s + e.amount, 0);
+  return { expenses, total };
+}
+
+export async function deleteExpense(vehicleId: number, expenseId: number) {
+  const expense = await prisma.bikeVehicleExpense.findFirst({
+    where: { id: expenseId, vehicleId },
+  });
+  if (!expense) throw AppError.notFound("Expense not found");
+  await prisma.bikeVehicleExpense.delete({ where: { id: expenseId } });
 }
