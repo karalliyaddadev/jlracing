@@ -13,6 +13,7 @@ import {
   vehicleQuerySchema,
   renameFileNoSchema,
   deleteFileNoSchema,
+  addExpenseSchema,
 } from "./dto/vehicle.dto";
 import * as service from "./bike-management.service";
 
@@ -94,4 +95,15 @@ export async function renameFileNo(req: Request, res: Response, next: NextFuncti
 }
 export async function deleteFileNo(req: Request, res: Response, next: NextFunction) {
   try { return sendSuccess(res, await service.deleteFileNo(validate(deleteFileNoSchema, req.body))); } catch (err) { return next(err); }
+}
+
+// ── Expenses ───────────────────────────────────────────────────────────────
+export async function getExpenses(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.listExpenses(Number(req.params.vehicleId))); } catch (err) { return next(err); }
+}
+export async function addExpense(req: Request, res: Response, next: NextFunction) {
+  try { return sendCreated(res, await service.addExpense(Number(req.params.vehicleId), validate(addExpenseSchema, req.body))); } catch (err) { return next(err); }
+}
+export async function deleteExpense(req: Request, res: Response, next: NextFunction) {
+  try { await service.deleteExpense(Number(req.params.vehicleId), Number(req.params.expenseId)); return sendSuccess(res, { message: "Expense deleted" }); } catch (err) { return next(err); }
 }

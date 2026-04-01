@@ -36,4 +36,9 @@ router.post(  "/vehicles/bulk",          ctrl.bulkCreateVehicles);
 router.patch( "/vehicles/:id",           ctrl.updateVehicle);
 router.delete("/vehicles/:id",           ctrl.deleteVehicle);
 
+// ── Vehicle Expenses ────────────────────────────────────────────────────────
+router.get(   "/vehicles/:vehicleId/expenses",              ctrl.getExpenses);
+router.post(  "/vehicles/:vehicleId/expenses",              ctrl.addExpense);
+router.delete("/vehicles/:vehicleId/expenses/:expenseId",   ctrl.deleteExpense);
+
 export default router;
