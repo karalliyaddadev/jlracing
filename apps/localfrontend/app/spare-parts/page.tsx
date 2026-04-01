@@ -264,6 +264,8 @@ export default function SparePartsPage() {
                       alt={part.name}
                       className="po-card__img"
                     />
+                  </div>
+                  <div className="po-card__body">
                     <span
                       className={`po-card__badge${
                         part.status === "Pre Order"
@@ -275,9 +277,6 @@ export default function SparePartsPage() {
                     >
                       {part.status}
                     </span>
-                  </div>
-                  <div className="po-card__body">
-                    <span className="sp-card__category">{part.category}</span>
                     <h3 className="po-card__title">{part.name}</h3>
                     <p className="sp-card__brand">{part.brand}</p>
                     <div className="po-card__footer">

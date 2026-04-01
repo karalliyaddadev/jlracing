@@ -4490,8 +4490,7 @@ button {
 .po-card__image img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  padding: 1rem;
+  object-fit: cover;
 }
 
 .po-card__placeholder {
@@ -4499,11 +4498,8 @@ button {
   opacity: 0.28;
 }
 
-/* Badge – overlaid bottom-right of image area */
+/* Badge – sits at top of card body, below image */
 .po-card__badge {
-  position: absolute;
-  bottom: 0.6rem;
-  right: 0.6rem;
   display: inline-flex;
   align-items: center;
   padding: 0.22rem 0.75rem;
@@ -4514,6 +4510,7 @@ button {
   background: rgba(34, 197, 94, 0.14);
   color: #22c55e;
   border: 1px solid rgba(34, 197, 94, 0.25);
+  margin-bottom: 0.5rem;
 }
 
 .po-card__badge--preorder {
