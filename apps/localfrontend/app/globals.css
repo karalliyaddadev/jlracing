@@ -3411,39 +3411,54 @@ button {
 /* ── Hero ── */
 .contact-hero {
   position: relative;
-  height: 480px;
+  height: clamp(480px, 68vh, 700px);
   margin-top: calc(var(--header-h) + var(--announce-h));
   background: url("/images/contact-bg.webp") center/cover no-repeat;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
 }
 
 .contact-hero__overlay {
   position: absolute;
   inset: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: linear-gradient(
+    to right,
+    rgba(5, 5, 5, 0.78) 0%,
+    rgba(5, 5, 5, 0.45) 45%,
+    rgba(5, 5, 5, 0.08) 100%
+  );
 }
 
 .contact-hero__content {
-  position: relative;
-  z-index: 1;
-  text-align: center;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: clamp(1.5rem, 5vw, 5rem);
+  z-index: 2;
+  max-width: 580px;
   color: #fff;
-  padding: 0 2rem;
+}
+
+.contact-hero__label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1rem;
 }
 
 .contact-hero__title {
-  font-size: clamp(1.6rem, 3.5vw, 2.4rem);
+  font-size: clamp(1.8rem, 4vw, 3rem);
   font-weight: 800;
-  margin-bottom: 0.5rem;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  line-height: 1.2;
+  color: #fff;
+  letter-spacing: -0.02em;
 }
 
-.contact-hero__subtitle {
-  font-size: 0.95rem;
-  opacity: 0.9;
-  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+.contact-hero__title em {
+  font-style: italic;
+  font-weight: 800;
 }
 
 /* ── Body (info + form) ── */
@@ -4475,8 +4490,7 @@ button {
 .po-card__image img {
   width: 100%;
   height: 100%;
-  object-fit: contain;
-  padding: 1rem;
+  object-fit: cover;
 }
 
 .po-card__placeholder {
@@ -4484,11 +4498,8 @@ button {
   opacity: 0.28;
 }
 
-/* Badge – overlaid bottom-right of image area */
+/* Badge – sits at top of card body, below image */
 .po-card__badge {
-  position: absolute;
-  bottom: 0.6rem;
-  right: 0.6rem;
   display: inline-flex;
   align-items: center;
   padding: 0.22rem 0.75rem;
@@ -4499,6 +4510,7 @@ button {
   background: rgba(34, 197, 94, 0.14);
   color: #22c55e;
   border: 1px solid rgba(34, 197, 94, 0.25);
+  margin-bottom: 0.5rem;
 }
 
 .po-card__badge--preorder {

@@ -17,11 +17,12 @@ export default function ContactPage() {
       <section className="contact-hero">
         <div className="contact-hero__overlay" />
         <div className="contact-hero__content">
-          <h1 className="contact-hero__title">Get In Touch With Our Team</h1>
-          <p className="contact-hero__subtitle">
-            Have a question about bikes, parts, or imports? Contact our team
-            today.
-          </p>
+          <span className="contact-hero__label">Contact</span>
+          <h1 className="contact-hero__title">
+            Get in touch with <em>our team</em>
+            <br />
+            and find the machine you deserve.
+          </h1>
         </div>
       </section>
 
