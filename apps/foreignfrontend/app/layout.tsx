@@ -1,10 +1,13 @@
 import "./globals.css";
 import type { Metadata } from "next";
+import Header from "./components/Header";
+import Footer from "./components/Footer";
+import NewsLetter from "./components/NewsLetter";
 
 export const metadata: Metadata = {
-  title: "JL Racing — Choose Your Destination",
+  title: "JL Racing International — Global Vehicle Export",
   description:
-    "Select your regional experience — Local (Colombo) or International (Japan)",
+    "Japanese licensed direct auction export service. We source, bid, and deliver vehicles to any country worldwide.",
 };
 
 export default function RootLayout({
@@ -14,7 +17,12 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <Header />
+        <main>{children}</main>
+        <NewsLetter />
+        <Footer />
+      </body>
     </html>
   );
 }
