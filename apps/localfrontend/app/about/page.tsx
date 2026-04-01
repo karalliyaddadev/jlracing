@@ -1,42 +1,246 @@
 "use client";
 
+import Image from "next/image";
+
 export default function AboutPage() {
   return (
-    <section className="page-section">
-      <div className="page-container">
-        <h1 className="page-heading">About JL Racing</h1>
-        <div className="about-grid">
-          <div className="about-text">
-            <p className="about-intro">
-              JL Racing is Sri Lanka&apos;s premier destination for
-              high-performance motorcycles, genuine spare parts, and expert
-              services. With years of passion and expertise in the motorcycle
-              industry, we bring riders the finest machines from around the
-              world.
+    <>
+      {/* ── Hero ── */}
+      <section className="about-hero">
+        <div
+          className="about-hero__bg"
+          style={{ backgroundImage: "url('/images/about-hero.jpg')" }}
+        />
+        <div className="about-hero__overlay" />
+        <div className="about-hero__content">
+          <span className="about-hero__label">About J L Racing</span>
+          <h1 className="about-hero__title">
+            Bringing World-Class Bikes to
+            <br />
+            <em>Sri Lankan Riders</em>
+          </h1>
+        </div>
+      </section>
+
+      {/* ── Stats Bar ── */}
+      <div className="about-hero__stats-bar">
+        <div className="about-hero__stat">
+          <span className="about-hero__stat-num">30+</span>
+          <span className="about-hero__stat-label">Years of Experience</span>
+        </div>
+        <div className="about-hero__stat-divider" />
+        <div className="about-hero__stat">
+          <span className="about-hero__stat-num">1st</span>
+          <span className="about-hero__stat-label">Choice of Riders</span>
+        </div>
+        <div className="about-hero__stat-divider" />
+        <div className="about-hero__stat">
+          <span className="about-hero__stat-num">1,000+</span>
+          <span className="about-hero__stat-label">Bikes Imported</span>
+        </div>
+        <div className="about-hero__stat-divider" />
+        <div className="about-hero__stat">
+          <span className="about-hero__stat-num">500+</span>
+          <span className="about-hero__stat-label">Happy Riders</span>
+        </div>
+      </div>
+
+      {/* ── Story Section ── */}
+      <section className="about-story">
+        <div className="about-story__container">
+          <div className="about-story__text">
+            <span className="about-section-label">
+              Where Passion Meets Performance
+            </span>
+            <h2 className="about-story__heading">
+              <em>For over 30 years</em>, we&apos;ve been bringing riders the
+              bikes of their dreams
+            </h2>
+            <p>
+              At JL Racing, we live and breathe motorcycles. For over three
+              decades, we&apos;ve been importing the bikes riders dream about —
+              fast, sleek, and built to thrill.
             </p>
             <p>
-              Our commitment to quality, authenticity, and customer satisfaction
-              sets us apart. Whether you&apos;re a seasoned rider or just
-              starting your journey, JL Racing is your trusted partner on the
-              road.
+              From high-performance Japanese sports bikes to dependable everyday
+              rides, we make sure every machine meets our standards of quality,
+              authenticity, and excitement.
             </p>
-            <div className="about-stats">
-              <div className="stat-card">
-                <span className="stat-number">500+</span>
-                <span className="stat-label">Bikes Sold</span>
-              </div>
-              <div className="stat-card">
-                <span className="stat-number">10+</span>
-                <span className="stat-label">Years Experience</span>
-              </div>
-              <div className="stat-card">
-                <span className="stat-number">1000+</span>
-                <span className="stat-label">Happy Customers</span>
-              </div>
+            <p>
+              Whether you&apos;re browsing our showroom, pre-ordering a new
+              model, or picking up genuine spare parts, we&apos;re here to fuel
+              your passion for riding.
+            </p>
+          </div>
+          <div className="about-story__image-wrap">
+            <Image
+              src="https://images.pexels.com/photos/2611690/pexels-photo-2611690.jpeg?auto=compress&cs=tinysrgb&w=900"
+              alt="Motorcycles at JL Racing showroom"
+              fill
+              className="about-story__image"
+              sizes="(max-width: 768px) 100vw, 55vw"
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ── Founder Section ── */}
+      <section className="about-founder">
+        <div className="about-founder__container">
+          <div className="about-founder__text">
+            <span className="about-section-label about-section-label--light">
+              Driven by Passion
+            </span>
+            <h2 className="about-founder__heading">
+              Meet Jin Liyanage: <em>A Lifelong Rider and Racing Enthusiast</em>
+            </h2>
+            <p>
+              Mr. Jin Liyanage isn&apos;t just a businessman, he&apos;s a
+              lifelong rider. His passion for motorcycles drives everything at
+              JL Racing.
+            </p>
+            <p>
+              With decades of experience in imports and sales, he ensures every
+              bike we bring in is genuine, fully checked, and ready to thrill.
+              Under his guidance, JL Racing has grown from a small family
+              business into one of Sri Lanka&apos;s most trusted names for
+              bikes, parts, and worldwide exports.
+            </p>
+          </div>
+          <div className="about-founder__gallery">
+            <div className="about-founder__img-wrap">
+              <Image
+                src="https://images.pexels.com/photos/1715193/pexels-photo-1715193.jpeg?auto=compress&cs=tinysrgb&w=500"
+                alt="Motorcycle rider"
+                fill
+                className="about-founder__img"
+                sizes="(max-width: 768px) 100vw, 30vw"
+              />
+            </div>
+            <div className="about-founder__img-wrap">
+              <Image
+                src="https://images.pexels.com/photos/2519374/pexels-photo-2519374.jpeg?auto=compress&cs=tinysrgb&w=500"
+                alt="Racing motorcycle"
+                fill
+                className="about-founder__img"
+                sizes="(max-width: 768px) 100vw, 30vw"
+              />
+            </div>
+            <div className="about-founder__img-wrap">
+              <Image
+                src="https://images.pexels.com/photos/1119796/pexels-photo-1119796.jpeg?auto=compress&cs=tinysrgb&w=500"
+                alt="Motorcycle showroom"
+                fill
+                className="about-founder__img"
+                sizes="(max-width: 768px) 100vw, 30vw"
+              />
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* ── Vision & Mission ── */}
+      <section className="about-vm">
+        <div className="about-vm__container">
+          <div className="about-vm__card">
+            <h3 className="about-vm__title">Vision</h3>
+            <p className="about-vm__text">
+              To be Sri Lanka&apos;s most trusted bike importer and a hub for
+              motorcycle enthusiasts, bringing world-class machines and
+              experiences to every rider.
+            </p>
+            <span className="about-vm__tag">Leading Passion</span>
+          </div>
+          <div className="about-vm__card">
+            <h3 className="about-vm__title">Mission</h3>
+            <p className="about-vm__text">
+              To bring riders the bikes they&apos;ve always dreamed of. Genuine,
+              high-performance machines delivered with trust, excitement, and
+              passion for the ride.
+            </p>
+            <span className="about-vm__tag">Ride Inspired</span>
+          </div>
+        </div>
+      </section>
+
+      {/* ── Milestones / Our Journey ── */}
+      <section className="about-journey">
+        <div
+          className="about-journey__bg"
+          style={{ backgroundImage: "url('/images/about-journey-bg.webp')" }}
+        />
+        <div className="about-journey__overlay" />
+        <div className="about-journey__container">
+          <span className="about-section-label">Our Journey</span>
+          <h2 className="about-journey__heading">
+            Milestones That Shaped <em>JL Racing</em>
+          </h2>
+          <div className="about-journey__grid">
+            {[
+              {
+                year: "1995",
+                title: "Liyanage and Sons Founded",
+                desc: "What started as a small family business was fueled by a love for motorcycles and a vision to bring world-class bikes to Sri Lankan riders.",
+              },
+              {
+                year: "2000s",
+                title: "Expanding Imports",
+                desc: "Introduced high-performance Japanese motorcycles to the local market, making the bikes riders dreamed about finally accessible.",
+              },
+              {
+                year: "2018",
+                title: "Rebranding as JL Racing",
+                desc: "Modernized the brand and expanded services to include pre-orders, genuine spare parts, and a wider range of bikes.",
+              },
+              {
+                year: "2019–Present",
+                title: "Growth & Local Leadership",
+                desc: "Became one of Sri Lanka's most trusted names for bikes, parts, and accessories, driven by rider passion and customer trust.",
+              },
+            ].map((m) => (
+              <div key={m.year} className="about-milestone">
+                <div className="about-milestone__img-wrap">
+                  <Image
+                    src="/images/about-hero.jpg"
+                    alt={m.title}
+                    fill
+                    className="about-milestone__img"
+                    sizes="(max-width: 768px) 100vw, 25vw"
+                  />
+                  <span className="about-milestone__badge">{m.year}</span>
+                </div>
+                <div className="about-milestone__body">
+                  <h3 className="about-milestone__title">{m.title}</h3>
+                  <p className="about-milestone__desc">{m.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA ── */}
+      <section className="about-cta">
+        <div className="about-cta__container">
+          <h2 className="about-cta__heading">
+            Ready to Find Your Perfect Ride?
+          </h2>
+          <p className="about-cta__sub">
+            Browse our in-house stock or pre-order your dream motorcycle today.
+          </p>
+          <div className="about-cta__buttons">
+            <a href="/bikes" className="about-cta__btn about-cta__btn--primary">
+              View Listings
+            </a>
+            <a
+              href="/pre-orders"
+              className="about-cta__btn about-cta__btn--outline"
+            >
+              Pre-Order Now
+            </a>
+          </div>
+        </div>
+      </section>
+    </>
   );
 }
