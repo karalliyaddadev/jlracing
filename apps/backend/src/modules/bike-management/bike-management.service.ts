@@ -138,6 +138,7 @@ const vehicleInclude = {
   brand: { select: { id: true, name: true } },
   model: { select: { id: true, name: true } },
   expenses: { orderBy: { createdAt: "desc" as const } },
+  images: { orderBy: { sortOrder: "asc" as const } },
 } as const;
 
 /** Grouped summary: one row per brand+model combination with stock count */
@@ -349,4 +350,83 @@ export async function deleteExpense(vehicleId: number, expenseId: number) {
   });
   if (!expense) throw AppError.notFound("Expense not found");
   await prisma.bikeVehicleExpense.delete({ where: { id: expenseId } });
+}
+
+// ── Vehicle Images ────────────────────────────────────────────────────────────
+
+export async function addVehicleImages(vehicleId: number, files: { filename: string }[]) {
+  await getVehicle(vehicleId);
+
+  const existingCount = await prisma.bikeVehicleImage.count({ where: { vehicleId } });
+  if (existingCount + files.length > 6) {
+    throw AppError.validation(`Maximum 6 images allowed. This vehicle already has ${existingCount}.`);
+  }
+
+  const images = [];
+  for (let i = 0; i < files.length; i++) {
+    const sortOrder = existingCount + i;
+    const img = await prisma.bikeVehicleImage.create({
+      data: {
+        vehicleId,
+        url: `/uploads/bikes/${files[i].filename}`,
+        isPrimary: existingCount === 0 && i === 0,
+        sortOrder,
+      },
+    });
+    images.push(img);
+  }
+  return images;
+}
+
+export async function listVehicleImages(vehicleId: number) {
+  await getVehicle(vehicleId);
+  return prisma.bikeVehicleImage.findMany({
+    where: { vehicleId },
+    orderBy: { sortOrder: "asc" },
+  });
+}
+
+export async function deleteVehicleImage(vehicleId: number, imageId: number) {
+  const image = await prisma.bikeVehicleImage.findFirst({
+    where: { id: imageId, vehicleId },
+  });
+  if (!image) throw AppError.notFound("Image not found");
+
+  await prisma.bikeVehicleImage.delete({ where: { id: imageId } });
+
+  // If deleted image was primary, promote the next one
+  if (image.isPrimary) {
+    const next = await prisma.bikeVehicleImage.findFirst({
+      where: { vehicleId },
+      orderBy: { sortOrder: "asc" },
+    });
+    if (next) {
+      await prisma.bikeVehicleImage.update({
+        where: { id: next.id },
+        data: { isPrimary: true },
+      });
+    }
+  }
+
+  return image;
+}
+
+export async function setPrimaryImage(vehicleId: number, imageId: number) {
+  const image = await prisma.bikeVehicleImage.findFirst({
+    where: { id: imageId, vehicleId },
+  });
+  if (!image) throw AppError.notFound("Image not found");
+
+  await prisma.bikeVehicleImage.updateMany({
+    where: { vehicleId },
+    data: { isPrimary: false },
+  });
+  await prisma.bikeVehicleImage.update({
+    where: { id: imageId },
+    data: { isPrimary: true },
+  });
+  return prisma.bikeVehicleImage.findMany({
+    where: { vehicleId },
+    orderBy: { sortOrder: "asc" },
+  });
 }

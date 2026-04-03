@@ -115,8 +115,21 @@ model BikeVehicle {
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
   expenses         BikeVehicleExpense[]
+  images           BikeVehicleImage[]
 
   @@map("bike_vehicles")
+}
+
+model BikeVehicleImage {
+  id        Int         @id @default(autoincrement())
+  vehicleId Int
+  vehicle   BikeVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  url       String
+  isPrimary Boolean     @default(false)
+  sortOrder Int         @default(0)
+  createdAt DateTime    @default(now())
+
+  @@map("bike_vehicle_images")
 }
 
 model BikeVehicleExpense {
