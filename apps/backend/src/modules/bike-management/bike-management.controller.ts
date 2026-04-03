@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
-import { validate } from "../../common/utils/errors";
+import fs from "fs";
+import { AppError, validate } from "../../common/utils/errors";
 import { sendSuccess, sendCreated } from "../../common/utils/response";
 import {
   createBrandSchema, updateBrandSchema,
@@ -16,6 +17,8 @@ import {
   addExpenseSchema,
 } from "./dto/vehicle.dto";
 import * as service from "./bike-management.service";
+
+const MAX_TOTAL_IMAGE_BYTES = 60 * 1024 * 1024;
 
 // ── Brands ─────────────────────────────────────────────────────────────────
 export async function getBrands(req: Request, res: Response, next: NextFunction) {
@@ -117,6 +120,19 @@ export async function uploadVehicleImages(req: Request, res: Response, next: Nex
     const files = req.files as Express.Multer.File[];
     console.log(`[upload] vehicleId=${req.params.vehicleId}, files=${files?.length ?? 0}`, files?.map(f => ({ name: f.originalname, size: f.size, path: f.path })));
     if (!files || files.length === 0) return sendSuccess(res, { message: "No files uploaded" });
+
+    const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+    if (totalBytes > MAX_TOTAL_IMAGE_BYTES) {
+      for (const file of files) {
+        try {
+          fs.unlinkSync(file.path);
+        } catch {
+          // Best-effort cleanup only.
+        }
+      }
+      throw new AppError("Total upload size cannot exceed 60MB for one request", 413);
+    }
+
     const result = await service.addVehicleImages(Number(req.params.vehicleId), files);
     console.log(`[upload] Saved ${result.length} images to DB`);
     return sendCreated(res, result);

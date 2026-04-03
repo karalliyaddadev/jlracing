@@ -30,6 +30,10 @@ type Vehicle = {
 type Expense = { id: number; description: string; amount: number; createdAt: string };
 type Group = { brandId: number; brandName: string; modelId: number; modelName: string; count: number; vehicles: Vehicle[] };
 
+const MAX_IMAGE_COUNT = 6;
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
+const MAX_TOTAL_IMAGE_BYTES = 60 * 1024 * 1024;
+
 // ── Combobox (type + suggestions + quick add) ─────────────────────────────
 function Combobox({
   value, onChange, options, placeholder, onAdd, addLabel,
@@ -103,10 +107,10 @@ function SelectWithAdd<T extends { id: number; name: string }>({
 
 // ── Image Uploader (for adding new images) ─────────────────────────────────
 function ImageUploader({
-  images, onChange, maxImages = 6, required = false,
+  images, onChange, maxImages = MAX_IMAGE_COUNT, required = false, onError,
 }: {
   images: File[]; onChange: (files: File[]) => void;
-  maxImages?: number; required?: boolean;
+  maxImages?: number; required?: boolean; onError?: (message: string) => void;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const remaining = maxImages - images.length;
@@ -114,8 +118,25 @@ function ImageUploader({
   const handleFiles = (fileList: FileList | null) => {
     if (!fileList) return;
     const allowed = ["image/jpeg", "image/png", "image/webp", "image/avif"];
-    const newFiles = Array.from(fileList).filter((f) => allowed.includes(f.type)).slice(0, remaining);
-    if (newFiles.length > 0) onChange([...images, ...newFiles]);
+    const candidates = Array.from(fileList).slice(0, remaining);
+
+    if (candidates.some((f) => !allowed.includes(f.type))) {
+      onError?.("Only JPEG, PNG, WebP, and AVIF images are allowed");
+      return;
+    }
+
+    if (candidates.some((f) => f.size > MAX_IMAGE_SIZE_BYTES)) {
+      onError?.("Each image must be 10MB or smaller");
+      return;
+    }
+
+    const totalBytes = [...images, ...candidates].reduce((sum, file) => sum + file.size, 0);
+    if (totalBytes > MAX_TOTAL_IMAGE_BYTES) {
+      onError?.("Total selected image size cannot exceed 60MB");
+      return;
+    }
+
+    if (candidates.length > 0) onChange([...images, ...candidates]);
   };
 
   const remove = (idx: number) => onChange(images.filter((_, i) => i !== idx));
@@ -148,6 +169,7 @@ function ImageUploader({
       {images.length > 0 && (
         <p className="bm-img-hint">{images.length} image{images.length > 1 ? "s" : ""} selected — first image is the primary</p>
       )}
+      <p className="bm-img-hint">Max 10MB per image, 60MB total, up to 6 images</p>
     </div>
   );
 }
@@ -161,6 +183,7 @@ function ServerImageManager({
 }) {
   const [images, setImages] = useState<VehicleImage[]>(existingImages);
   const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const base = `${API_URL}/api/pos/bike-management`;
   const auth = { Authorization: `Bearer ${token}` };
@@ -171,7 +194,24 @@ function ServerImageManager({
   const uploadFiles = async (fileList: FileList | null) => {
     if (!fileList || fileList.length === 0) return;
     const allowed = ["image/jpeg", "image/png", "image/webp", "image/avif"];
-    const validFiles = Array.from(fileList).filter((f) => allowed.includes(f.type)).slice(0, remaining);
+    const candidates = Array.from(fileList).slice(0, remaining);
+    setUploadError(null);
+
+    if (candidates.some((f) => !allowed.includes(f.type))) {
+      setUploadError("Only JPEG, PNG, WebP, and AVIF images are allowed");
+      return;
+    }
+    if (candidates.some((f) => f.size > MAX_IMAGE_SIZE_BYTES)) {
+      setUploadError("Each image must be 10MB or smaller");
+      return;
+    }
+    const batchTotal = candidates.reduce((sum, file) => sum + file.size, 0);
+    if (batchTotal > MAX_TOTAL_IMAGE_BYTES) {
+      setUploadError("Total selected image size cannot exceed 60MB");
+      return;
+    }
+
+    const validFiles = candidates.filter((f) => allowed.includes(f.type));
     if (validFiles.length === 0) return;
 
     setUploading(true);
@@ -187,7 +227,12 @@ function ServerImageManager({
         const updated = j.data ?? [];
         setImages(updated);
         onImagesChanged(updated);
+      } else {
+        const ej = await r.json().catch(() => null) as { message?: string } | null;
+        setUploadError(ej?.message ?? "Image upload failed");
       }
+    } catch {
+      setUploadError("Image upload failed due to network error");
     } finally { setUploading(false); }
   };
 
@@ -239,6 +284,8 @@ function ServerImageManager({
         multiple={remaining > 1} style={{ display: "none" }}
         onChange={(e) => { void uploadFiles(e.target.files); e.target.value = ""; }}
       />
+      {uploadError && <p className="bm-img-hint" style={{ color: "var(--danger)" }}>{uploadError}</p>}
+      <p className="bm-img-hint">Max 10MB per image, 60MB total, up to 6 images</p>
     </div>
   );
 }
@@ -246,7 +293,28 @@ function ServerImageManager({
 // ── Image Gallery (professional viewing) ───────────────────────────────────
 function ImageGallery({ images }: { images: VehicleImage[] }) {
   const [selectedIdx, setSelectedIdx] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
   const sorted = [...images].sort((a, b) => (a.isPrimary ? -1 : b.isPrimary ? 1 : a.sortOrder - b.sortOrder));
+
+  const openLightbox = (idx: number) => {
+    setSelectedIdx(idx);
+    setLightboxOpen(true);
+  };
+
+  const goPrev = () => setSelectedIdx((idx) => (idx - 1 + sorted.length) % sorted.length);
+  const goNext = () => setSelectedIdx((idx) => (idx + 1) % sorted.length);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setLightboxOpen(false);
+      if (e.key === "ArrowLeft") goPrev();
+      if (e.key === "ArrowRight") goNext();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lightboxOpen, sorted.length]);
 
   if (sorted.length === 0) {
     return (
@@ -260,7 +328,9 @@ function ImageGallery({ images }: { images: VehicleImage[] }) {
   return (
     <div className="bm-gallery">
       <div className="bm-gallery-main">
-        <img src={`${API_URL}${sorted[selectedIdx]?.url}`} alt="Bike" className="bm-gallery-main-img" />
+        <button type="button" className="bm-gallery-main-btn" onClick={() => openLightbox(selectedIdx)} title="Click to view larger image">
+          <img src={`${API_URL}${sorted[selectedIdx]?.url}`} alt="Bike" className="bm-gallery-main-img" />
+        </button>
         {sorted[selectedIdx]?.isPrimary && <span className="bm-gallery-primary-tag">Primary</span>}
       </div>
       {sorted.length > 1 && (
@@ -270,11 +340,26 @@ function ImageGallery({ images }: { images: VehicleImage[] }) {
               key={img.id}
               type="button"
               className={`bm-gallery-thumb${i === selectedIdx ? " active" : ""}`}
-              onClick={() => setSelectedIdx(i)}
+              onClick={() => openLightbox(i)}
             >
               <img src={`${API_URL}${img.url}`} alt={`Thumb ${i + 1}`} />
             </button>
           ))}
+        </div>
+      )}
+
+      {lightboxOpen && (
+        <div className="bm-lightbox" onClick={() => setLightboxOpen(false)}>
+          <button type="button" className="bm-lightbox-close" onClick={() => setLightboxOpen(false)} aria-label="Close image">✕</button>
+          {sorted.length > 1 && (
+            <>
+              <button type="button" className="bm-lightbox-nav bm-lightbox-prev" onClick={(e) => { e.stopPropagation(); goPrev(); }} aria-label="Previous image">‹</button>
+              <button type="button" className="bm-lightbox-nav bm-lightbox-next" onClick={(e) => { e.stopPropagation(); goNext(); }} aria-label="Next image">›</button>
+            </>
+          )}
+          <div className="bm-lightbox-content" onClick={(e) => e.stopPropagation()}>
+            <img src={`${API_URL}${sorted[selectedIdx]?.url}`} alt="Bike large preview" className="bm-lightbox-img" />
+          </div>
         </div>
       )}
     </div>
@@ -353,6 +438,8 @@ function AddBikeModal({
     setError(null);
     if (!form.brandId || !form.modelId || !form.colour) { setError("Brand, model and colour are required."); return; }
     if (mode === "single" && imageFiles.length === 0) { setError("At least one image is required (primary image)."); return; }
+    if (imageFiles.some((f) => f.size > MAX_IMAGE_SIZE_BYTES)) { setError("Each image must be 10MB or smaller"); return; }
+    if (imageFiles.reduce((sum, file) => sum + file.size, 0) > MAX_TOTAL_IMAGE_BYTES) { setError("Total selected image size cannot exceed 60MB"); return; }
     setSaving(true);
     try {
       if (mode === "bulk") {
@@ -427,6 +514,8 @@ function AddBikeModal({
         }
       }
       onRefresh(); onClose();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to upload images");
     } finally { setSaving(false); }
   };
 
@@ -461,7 +550,7 @@ function AddBikeModal({
           {/* Images */}
           <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
             <label>Bike Images {mode === "single" ? "*" : "(optional)"}</label>
-            <ImageUploader images={imageFiles} onChange={setImageFiles} maxImages={6} required={mode === "single"} />
+            <ImageUploader images={imageFiles} onChange={setImageFiles} maxImages={MAX_IMAGE_COUNT} required={mode === "single"} onError={setError} />
           </div>
 
           {/* Brand */}
