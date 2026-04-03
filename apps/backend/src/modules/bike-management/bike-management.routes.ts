@@ -21,6 +21,9 @@ if (!fs.existsSync(uploadDir)) {
 }
 console.log("[bike-management] Upload dir:", uploadDir, "exists:", fs.existsSync(uploadDir));
 
+const MAX_IMAGE_COUNT = 6;
+const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
+
 const storage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, uploadDir),
   filename: (_req, file, cb) => {
@@ -32,7 +35,10 @@ const storage = multer.diskStorage({
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/avif"];
 const upload = multer({
   storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+  limits: {
+    fileSize: MAX_IMAGE_SIZE_BYTES,
+    files: MAX_IMAGE_COUNT,
+  },
   fileFilter: (_req, file, cb) => {
     if (ALLOWED_TYPES.includes(file.mimetype)) cb(null, true);
     else cb(new Error("Only JPEG, PNG, WebP, and AVIF images are allowed"));
@@ -77,7 +83,7 @@ router.delete("/vehicles/:vehicleId/expenses/:expenseId",   ctrl.deleteExpense);
 
 // ── Vehicle Images ──────────────────────────────────────────────────────────
 router.get(   "/vehicles/:vehicleId/images",                ctrl.getVehicleImages);
-router.post(  "/vehicles/:vehicleId/images",  upload.array("images", 6), ctrl.uploadVehicleImages);
+router.post(  "/vehicles/:vehicleId/images",  upload.array("images", MAX_IMAGE_COUNT), ctrl.uploadVehicleImages);
 router.delete("/vehicles/:vehicleId/images/:imageId",       ctrl.deleteVehicleImage);
 router.patch( "/vehicles/:vehicleId/images/:imageId/primary", ctrl.setPrimaryImage);
 
