@@ -9,6 +9,7 @@ import { IconBike, IconInventory, IconActivity, IconInvoice } from "../../lib/ic
 type Brand = { id: number; name: string };
 type Model = { id: number; name: string; brandId: number };
 type Color = { id: number; name: string };
+type VehicleImage = { id: number; vehicleId: number; url: string; isPrimary: boolean; sortOrder: number; createdAt: string };
 type Vehicle = {
   id: number; displayId: string; brandId: number; modelId: number;
   brand: { id: number; name: string }; model: { id: number; name: string };
@@ -22,6 +23,7 @@ type Vehicle = {
   taxAmount?: number;
   sellingPrice?: number;
   expenses?: Expense[];
+  images?: VehicleImage[];
   status: "available" | "sold"; soldAt?: string;
   createdAt: string;
 };
@@ -99,6 +101,186 @@ function SelectWithAdd<T extends { id: number; name: string }>({
   );
 }
 
+// ── Image Uploader (for adding new images) ─────────────────────────────────
+function ImageUploader({
+  images, onChange, maxImages = 6, required = false,
+}: {
+  images: File[]; onChange: (files: File[]) => void;
+  maxImages?: number; required?: boolean;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const remaining = maxImages - images.length;
+
+  const handleFiles = (fileList: FileList | null) => {
+    if (!fileList) return;
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+    const newFiles = Array.from(fileList).filter((f) => allowed.includes(f.type)).slice(0, remaining);
+    if (newFiles.length > 0) onChange([...images, ...newFiles]);
+  };
+
+  const remove = (idx: number) => onChange(images.filter((_, i) => i !== idx));
+
+  return (
+    <div className="bm-img-uploader">
+      <div className="bm-img-grid">
+        {images.map((file, i) => (
+          <div key={i} className={`bm-img-thumb${i === 0 ? " bm-img-primary" : ""}`}>
+            <img src={URL.createObjectURL(file)} alt={`Upload ${i + 1}`} />
+            {i === 0 && <span className="bm-img-badge">Primary</span>}
+            <button type="button" className="bm-img-remove" onClick={() => remove(i)} title="Remove">✕</button>
+          </div>
+        ))}
+        {remaining > 0 && (
+          <button type="button" className="bm-img-add-btn" onClick={() => inputRef.current?.click()}>
+            <span className="bm-img-add-icon">📷</span>
+            <span className="bm-img-add-text">{images.length === 0 ? (required ? "Add Primary Image *" : "Add Image") : `Add More (${remaining} left)`}</span>
+          </button>
+        )}
+      </div>
+      <input
+        ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif"
+        multiple={remaining > 1} style={{ display: "none" }}
+        onChange={(e) => { handleFiles(e.target.files); e.target.value = ""; }}
+      />
+      {required && images.length === 0 && (
+        <p className="bm-img-hint">At least one image is required (the first image will be the primary image)</p>
+      )}
+      {images.length > 0 && (
+        <p className="bm-img-hint">{images.length} image{images.length > 1 ? "s" : ""} selected — first image is the primary</p>
+      )}
+    </div>
+  );
+}
+
+// ── Server Image Manager (view/delete existing images, upload new) ──────────
+function ServerImageManager({
+  vehicleId, token, existingImages, onImagesChanged, maxImages = 6,
+}: {
+  vehicleId: number; token: string; existingImages: VehicleImage[];
+  onImagesChanged: (imgs: VehicleImage[]) => void; maxImages?: number;
+}) {
+  const [images, setImages] = useState<VehicleImage[]>(existingImages);
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const base = `${API_URL}/api/pos/bike-management`;
+  const auth = { Authorization: `Bearer ${token}` };
+  const remaining = maxImages - images.length;
+
+  useEffect(() => setImages(existingImages), [existingImages]);
+
+  const uploadFiles = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return;
+    const allowed = ["image/jpeg", "image/png", "image/webp", "image/avif"];
+    const validFiles = Array.from(fileList).filter((f) => allowed.includes(f.type)).slice(0, remaining);
+    if (validFiles.length === 0) return;
+
+    setUploading(true);
+    try {
+      const fd = new FormData();
+      validFiles.forEach((f) => fd.append("images", f));
+      const r = await fetch(`${base}/vehicles/${vehicleId}/images`, {
+        method: "POST", headers: auth, body: fd,
+      });
+      if (r.ok) {
+        const allR = await fetch(`${base}/vehicles/${vehicleId}/images`, { headers: auth });
+        const j = await allR.json() as { data: VehicleImage[] };
+        const updated = j.data ?? [];
+        setImages(updated);
+        onImagesChanged(updated);
+      }
+    } finally { setUploading(false); }
+  };
+
+  const deleteImage = async (imageId: number) => {
+    await fetch(`${base}/vehicles/${vehicleId}/images/${imageId}`, { method: "DELETE", headers: auth });
+    const allR = await fetch(`${base}/vehicles/${vehicleId}/images`, { headers: auth });
+    const j = await allR.json() as { data: VehicleImage[] };
+    const updated = j.data ?? [];
+    setImages(updated);
+    onImagesChanged(updated);
+  };
+
+  const makePrimary = async (imageId: number) => {
+    const r = await fetch(`${base}/vehicles/${vehicleId}/images/${imageId}/primary`, {
+      method: "PATCH", headers: auth,
+    });
+    if (r.ok) {
+      const j = await r.json() as { data: VehicleImage[] };
+      const updated = j.data ?? [];
+      setImages(updated);
+      onImagesChanged(updated);
+    }
+  };
+
+  return (
+    <div className="bm-img-uploader">
+      <div className="bm-img-grid">
+        {images.map((img) => (
+          <div key={img.id} className={`bm-img-thumb${img.isPrimary ? " bm-img-primary" : ""}`}>
+            <img src={`${API_URL}${img.url}`} alt="Bike" />
+            {img.isPrimary && <span className="bm-img-badge">Primary</span>}
+            <div className="bm-img-actions">
+              {!img.isPrimary && (
+                <button type="button" className="bm-img-action-btn" onClick={() => makePrimary(img.id)} title="Set as primary">⭐</button>
+              )}
+              <button type="button" className="bm-img-action-btn bm-img-action-del" onClick={() => deleteImage(img.id)} title="Remove">✕</button>
+            </div>
+          </div>
+        ))}
+        {remaining > 0 && (
+          <button type="button" className="bm-img-add-btn" onClick={() => inputRef.current?.click()} disabled={uploading}>
+            <span className="bm-img-add-icon">{uploading ? "⏳" : "📷"}</span>
+            <span className="bm-img-add-text">{uploading ? "Uploading…" : `Add Image (${remaining} left)`}</span>
+          </button>
+        )}
+      </div>
+      <input
+        ref={inputRef} type="file" accept="image/jpeg,image/png,image/webp,image/avif"
+        multiple={remaining > 1} style={{ display: "none" }}
+        onChange={(e) => { void uploadFiles(e.target.files); e.target.value = ""; }}
+      />
+    </div>
+  );
+}
+
+// ── Image Gallery (professional viewing) ───────────────────────────────────
+function ImageGallery({ images }: { images: VehicleImage[] }) {
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const sorted = [...images].sort((a, b) => (a.isPrimary ? -1 : b.isPrimary ? 1 : a.sortOrder - b.sortOrder));
+
+  if (sorted.length === 0) {
+    return (
+      <div className="bm-gallery-empty">
+        <span className="bm-gallery-empty-icon">🖼️</span>
+        <span>No images available</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bm-gallery">
+      <div className="bm-gallery-main">
+        <img src={`${API_URL}${sorted[selectedIdx]?.url}`} alt="Bike" className="bm-gallery-main-img" />
+        {sorted[selectedIdx]?.isPrimary && <span className="bm-gallery-primary-tag">Primary</span>}
+      </div>
+      {sorted.length > 1 && (
+        <div className="bm-gallery-thumbs">
+          {sorted.map((img, i) => (
+            <button
+              key={img.id}
+              type="button"
+              className={`bm-gallery-thumb${i === selectedIdx ? " active" : ""}`}
+              onClick={() => setSelectedIdx(i)}
+            >
+              <img src={`${API_URL}${img.url}`} alt={`Thumb ${i + 1}`} />
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── Add Bike Modal ─────────────────────────────────────────────────────────
 function AddBikeModal({
   token, brands, colors, fileNos, onClose, onRefresh, onBrandAdded, onColorAdded,
@@ -116,6 +298,7 @@ function AddBikeModal({
     registrationType: "unregistered",
     purchasePrice: "", taxAmount: "", sellingPrice: "",
   });
+  const [imageFiles, setImageFiles] = useState<File[]>([]);
   const [expenses, setExpenses] = useState<{ description: string; amount: string }[]>([]);
   const [saving, setSaving] = useState(false);
   const [error, setError]   = useState<string | null>(null);
@@ -169,6 +352,7 @@ function AddBikeModal({
     e.preventDefault();
     setError(null);
     if (!form.brandId || !form.modelId || !form.colour) { setError("Brand, model and colour are required."); return; }
+    if (mode === "single" && imageFiles.length === 0) { setError("At least one image is required (primary image)."); return; }
     setSaving(true);
     try {
       if (mode === "bulk") {
@@ -186,7 +370,21 @@ function AddBikeModal({
             count: +form.count,
           }),
         });
-        if (!r.ok) { const j = await r.json() as { message: string }; setError(j.message); return; }
+        const j = await r.json() as { data?: Vehicle[]; message?: string };
+        if (!r.ok) { setError(j.message ?? "Failed"); return; }
+        // If images were added in bulk mode, upload them to each created vehicle
+        if (imageFiles.length > 0 && j.data) {
+          for (const vehicle of j.data) {
+            const fd = new FormData();
+            imageFiles.forEach((f) => fd.append("images", f));
+            const imgRes = await fetch(`${base}/vehicles/${vehicle.id}/images`, { method: "POST", headers: auth, body: fd });
+            if (!imgRes.ok) {
+              const imgErr = await imgRes.json().catch(() => null) as { message?: string } | null;
+              console.error("Image upload failed:", imgErr);
+              setError(`Vehicle created but image upload failed: ${imgErr?.message ?? "Unknown error"}`);
+            }
+          }
+        }
       } else {
         const validExpenses = expenses.filter((ex) => ex.description.trim() && ex.amount);
         const r = await fetch(`${base}/vehicles`, {
@@ -212,7 +410,21 @@ function AddBikeModal({
               : undefined,
           }),
         });
-        if (!r.ok) { const j = await r.json() as { message: string }; setError(j.message); return; }
+        const j = await r.json() as { data?: Vehicle; message?: string };
+        if (!r.ok) { setError(j.message ?? "Failed"); return; }
+        // Upload images after vehicle creation
+        if (imageFiles.length > 0 && j.data) {
+          const fd = new FormData();
+          imageFiles.forEach((f) => fd.append("images", f));
+          const imgRes = await fetch(`${base}/vehicles/${j.data.id}/images`, { method: "POST", headers: auth, body: fd });
+          if (!imgRes.ok) {
+            const imgErr = await imgRes.json().catch(() => null) as { message?: string } | null;
+            console.error("Image upload failed:", imgErr);
+            setError(`Vehicle created but image upload failed: ${imgErr?.message ?? "Unknown error"}`);
+            onRefresh();
+            return;
+          }
+        }
       }
       onRefresh(); onClose();
     } finally { setSaving(false); }
@@ -246,6 +458,12 @@ function AddBikeModal({
         <h3 className="bm-modal-title">{mode === "bulk" ? "Bulk Add Bikes" : "Add Single Bike"}</h3>
         {error && <div className="bm-alert bm-alert-error">{error}</div>}
         <form className="bm-modal-form" onSubmit={submit}>
+          {/* Images */}
+          <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
+            <label>Bike Images {mode === "single" ? "*" : "(optional)"}</label>
+            <ImageUploader images={imageFiles} onChange={setImageFiles} maxImages={6} required={mode === "single"} />
+          </div>
+
           {/* Brand */}
           <div className="bm-field-group">
             <label>Brand *</label>
@@ -425,6 +643,7 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
     sellingPrice:     vehicle.sellingPrice ? String(vehicle.sellingPrice) : "",
   });
   const [vehicleExpenses, setVehicleExpenses] = useState<Expense[]>(vehicle.expenses ?? []);
+  const [vehicleImages, setVehicleImages] = useState<VehicleImage[]>(vehicle.images ?? []);
   const [newExpenses, setNewExpenses] = useState<{ description: string; amount: string }[]>([]);
   const [showExpenseDetails, setShowExpenseDetails] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -546,6 +765,17 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
         <h3 className="bm-modal-title">Edit Vehicle — {vehicle.displayId}</h3>
         {error && <div className="bm-alert bm-alert-error">{error}</div>}
         <form className="bm-modal-form" onSubmit={submit}>
+          {/* Vehicle Images */}
+          <div style={{ gridColumn: "1 / -1", marginBottom: 12 }}>
+            <label style={{ display: "block", marginBottom: 6, fontWeight: 600 }}>Bike Images</label>
+            <ServerImageManager
+              vehicleId={vehicle.id}
+              token={token}
+              existingImages={vehicleImages}
+              onImagesChanged={setVehicleImages}
+              maxImages={6}
+            />
+          </div>
           <div className="bm-fields-grid">
             <div className="bm-field-group">
               <label>Brand</label>
@@ -720,19 +950,28 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
 
 function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle: Vehicle; token: string; onClose: () => void }) {
   const [vehicle, setVehicle] = useState<Vehicle>(initialVehicle);
+  const [images, setImages] = useState<VehicleImage[]>(initialVehicle.images ?? []);
   const [showExpenses, setShowExpenses] = useState(false);
   const [loading, setLoading] = useState(true);
   const base = `${API_URL}/api/pos/bike-management`;
   const auth = { Authorization: `Bearer ${token}` };
 
-  // Fetch fresh vehicle data with expenses on mount
+  // Fetch fresh vehicle data + images on mount
   useEffect(() => {
     void (async () => {
       try {
-        const r = await fetch(`${base}/vehicles/${initialVehicle.id}`, { headers: auth });
-        if (r.ok) {
-          const j = await r.json() as { data: Vehicle };
+        const [vRes, iRes] = await Promise.all([
+          fetch(`${base}/vehicles/${initialVehicle.id}`, { headers: auth }),
+          fetch(`${base}/vehicles/${initialVehicle.id}/images`, { headers: auth }),
+        ]);
+        if (vRes.ok) {
+          const j = await vRes.json() as { data: Vehicle };
           setVehicle(j.data);
+          if (j.data.images && j.data.images.length > 0) setImages(j.data.images);
+        }
+        if (iRes.ok) {
+          const ij = await iRes.json() as { data: VehicleImage[] };
+          if (ij.data && ij.data.length > 0) setImages(ij.data);
         }
       } finally { setLoading(false); }
     })();
@@ -744,92 +983,137 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle
 
   return (
     <div className="bm-modal-backdrop" onClick={onClose}>
-      <div className="bm-modal bm-modal-lg" onClick={(e) => e.stopPropagation()}>
+      <div className="bm-modal bm-view-modal" onClick={(e) => e.stopPropagation()}>
         <button className="bm-modal-close" onClick={onClose}>✕</button>
-        <h3 className="bm-modal-title">Bike Details — {vehicle.displayId}</h3>
+        <h3 className="bm-modal-title">
+          Bike Details — {vehicle.displayId}
+          <span className={`badge ${vehicle.status === "available" ? "badge-active" : "badge-pending"}`} style={{ marginLeft: 10, fontSize: 11, verticalAlign: "middle" }}>
+            {vehicle.status === "available" ? "Available" : "Sold"}
+          </span>
+        </h3>
         {loading && <div style={{ textAlign: "center", padding: 12, color: "var(--muted)" }}>Loading details…</div>}
-        <div className="bm-fields-grid">
-          <div className="bm-field-group"><label>Brand</label><input className="bm-input" value={vehicle.brand.name} disabled /></div>
-          <div className="bm-field-group"><label>Model</label><input className="bm-input" value={vehicle.model.name} disabled /></div>
-          <div className="bm-field-group"><label>Colour</label><input className="bm-input" value={vehicle.colour} disabled /></div>
-          <div className="bm-field-group"><label>Year</label><input className="bm-input" value={vehicle.year ?? "-"} disabled /></div>
-          <div className="bm-field-group"><label>File No</label><input className="bm-input" value={vehicle.fileNo ?? "-"} disabled /></div>
-          <div className="bm-field-group"><label>Register No</label><input className="bm-input" value={vehicle.registerNo ?? "-"} disabled /></div>
-          <div className="bm-field-group"><label>Chassis No</label><input className="bm-input" value={vehicle.chassisNo ?? "-"} disabled /></div>
-          <div className="bm-field-group"><label>Engine No</label><input className="bm-input" value={vehicle.engineNo ?? "-"} disabled /></div>
-          <div className="bm-field-group"><label>Condition</label><input className="bm-input" value={vehicle.condition === "used" ? "Used" : "Brand New"} disabled /></div>
-          <div className="bm-field-group"><label>Mileage</label><input className="bm-input" value={vehicle.mileage ?? 0} disabled /></div>
-          <div className="bm-field-group"><label>Registration</label><input className="bm-input" value={vehicle.registrationType === "registered" ? "Registered" : "Unregistered"} disabled /></div>
-          <div className="bm-field-group"><label>Status</label><input className="bm-input" value={vehicle.status} disabled /></div>
-          <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}><label>Description</label><textarea className="bm-input" rows={3} value={vehicle.description ?? "-"} disabled /></div>
 
-          {/* Pricing */}
-          <div className="bm-field-group">
-            <label>Purchase Price</label>
-            <input className="bm-input" value={vehicle.purchasePrice != null ? `Rs. ${vehicle.purchasePrice.toLocaleString()}` : "Not set"} disabled />
-          </div>
-          <div className="bm-field-group">
-            <label>Tax Amount</label>
-            <input className="bm-input" value={vehicle.taxAmount != null ? `Rs. ${vehicle.taxAmount.toLocaleString()}` : "Not set"} disabled />
-          </div>
-          <div className="bm-field-group">
-            <label>Selling Price</label>
-            <input className="bm-input" value={vehicle.sellingPrice != null ? `Rs. ${vehicle.sellingPrice.toLocaleString()}` : "Not set"} disabled />
-          </div>
-
-          {/* Additional Expenses with View button */}
-          <div className="bm-field-group">
-            <label>Additional Expenses Total</label>
-            <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-              <input className="bm-input" value={totalExpenses > 0 ? `Rs. ${totalExpenses.toLocaleString()}` : "No expenses"} disabled style={{ flex: 1 }} />
-              {expenses.length > 0 && (
-                <button
-                  type="button"
-                  className="btn-accent"
-                  style={{ whiteSpace: "nowrap", padding: "6px 14px", fontSize: 13 }}
-                  onClick={() => setShowExpenses((v) => !v)}
-                >
-                  {showExpenses ? "Hide" : "View"}
-                </button>
-              )}
-            </div>
-          </div>
-
-          {/* Expense breakdown table — toggled by View button */}
-          {showExpenses && expenses.length > 0 && (
-            <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
-              <label>Expense Breakdown</label>
-              <div style={{ border: "1px solid var(--border)", borderRadius: 8, overflow: "hidden" }}>
-                <table className="data-table" style={{ margin: 0, width: "100%" }}>
-                  <thead>
-                    <tr>
-                      <th style={{ textAlign: "left", padding: "8px 12px" }}>#</th>
-                      <th style={{ textAlign: "left", padding: "8px 12px" }}>Description / Reason</th>
-                      <th style={{ textAlign: "right", padding: "8px 12px" }}>Amount</th>
-                      <th style={{ textAlign: "left", padding: "8px 12px" }}>Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {expenses.map((ex, i) => (
-                      <tr key={ex.id}>
-                        <td style={{ padding: "6px 12px" }}>{i + 1}</td>
-                        <td style={{ padding: "6px 12px" }}>{ex.description}</td>
-                        <td style={{ textAlign: "right", padding: "6px 12px" }}>Rs. {ex.amount.toLocaleString()}</td>
-                        <td style={{ padding: "6px 12px", fontSize: 12, color: "var(--muted)" }}>{new Date(ex.createdAt).toLocaleDateString()}</td>
-                      </tr>
-                    ))}
-                    <tr style={{ fontWeight: 700, borderTop: "2px solid var(--border)" }}>
-                      <td style={{ padding: "8px 12px" }} />
-                      <td style={{ padding: "8px 12px" }}>Total</td>
-                      <td style={{ textAlign: "right", padding: "8px 12px" }}>Rs. {totalExpenses.toLocaleString()}</td>
-                      <td />
-                    </tr>
-                  </tbody>
-                </table>
+        <div className="bm-view-layout">
+          {/* Left: Image Gallery */}
+          <div className="bm-view-left">
+            <ImageGallery images={images} />
+            {/* Quick info below gallery */}
+            <div className="bm-view-quick-info">
+              <div className="bm-view-quick-item">
+                <span className="bm-view-quick-label">Brand</span>
+                <span className="bm-view-quick-value">{vehicle.brand.name}</span>
+              </div>
+              <div className="bm-view-quick-item">
+                <span className="bm-view-quick-label">Model</span>
+                <span className="bm-view-quick-value">{vehicle.model.name}</span>
+              </div>
+              <div className="bm-view-quick-item">
+                <span className="bm-view-quick-label">Colour</span>
+                <span className="bm-view-quick-value">{vehicle.colour}</span>
+              </div>
+              <div className="bm-view-quick-item">
+                <span className="bm-view-quick-label">Condition</span>
+                <span className="bm-view-quick-value">{vehicle.condition === "used" ? "Used" : "Brand New"}</span>
               </div>
             </div>
-          )}
+          </div>
+
+          {/* Right: Details */}
+          <div className="bm-view-right">
+            {/* Vehicle Info Section */}
+            <div className="bm-view-section">
+              <h4 className="bm-view-section-title">Vehicle Information</h4>
+              <div className="bm-view-detail-grid">
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Year</span><span className="bm-view-detail-value">{vehicle.year ?? "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Mileage</span><span className="bm-view-detail-value">{(vehicle.mileage ?? 0).toLocaleString()} km</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Registration</span><span className="bm-view-detail-value">{vehicle.registrationType === "registered" ? "Registered" : "Unregistered"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">File No</span><span className="bm-view-detail-value">{vehicle.fileNo ?? "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Register No</span><span className="bm-view-detail-value">{vehicle.registerNo ?? "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Chassis No</span><span className="bm-view-detail-value">{vehicle.chassisNo ?? "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Engine No</span><span className="bm-view-detail-value">{vehicle.engineNo ?? "—"}</span></div>
+              </div>
+              {vehicle.description && (
+                <div className="bm-view-desc">
+                  <span className="bm-view-detail-label">Description</span>
+                  <p className="bm-view-desc-text">{vehicle.description}</p>
+                </div>
+              )}
+            </div>
+
+            {/* Pricing Section */}
+            <div className="bm-view-section">
+              <h4 className="bm-view-section-title">Pricing</h4>
+              <div className="bm-view-detail-grid">
+                <div className="bm-view-detail">
+                  <span className="bm-view-detail-label">Purchase Price</span>
+                  <span className="bm-view-detail-value bm-view-price">{vehicle.purchasePrice != null ? `Rs. ${vehicle.purchasePrice.toLocaleString()}` : "—"}</span>
+                </div>
+                <div className="bm-view-detail">
+                  <span className="bm-view-detail-label">Tax Amount</span>
+                  <span className="bm-view-detail-value bm-view-price">{vehicle.taxAmount != null ? `Rs. ${vehicle.taxAmount.toLocaleString()}` : "—"}</span>
+                </div>
+                <div className="bm-view-detail">
+                  <span className="bm-view-detail-label">Selling Price</span>
+                  <span className="bm-view-detail-value bm-view-price bm-view-price-highlight">{vehicle.sellingPrice != null ? `Rs. ${vehicle.sellingPrice.toLocaleString()}` : "—"}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Expenses Section */}
+            {(expenses.length > 0 || totalExpenses > 0) && (
+              <div className="bm-view-section">
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <h4 className="bm-view-section-title" style={{ margin: 0 }}>
+                    Additional Expenses
+                    <span style={{ fontWeight: 400, fontSize: 12, color: "var(--text-soft)", marginLeft: 8 }}>
+                      Rs. {totalExpenses.toLocaleString()}
+                    </span>
+                  </h4>
+                  {expenses.length > 0 && (
+                    <button
+                      type="button"
+                      className="bm-view-toggle-btn"
+                      onClick={() => setShowExpenses((v) => !v)}
+                    >
+                      {showExpenses ? "Hide" : "View Details"}
+                    </button>
+                  )}
+                </div>
+                {showExpenses && (
+                  <div className="bm-view-expenses-table">
+                    <table className="data-table" style={{ margin: 0, width: "100%" }}>
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: "left", padding: "8px 10px" }}>#</th>
+                          <th style={{ textAlign: "left", padding: "8px 10px" }}>Description</th>
+                          <th style={{ textAlign: "right", padding: "8px 10px" }}>Amount</th>
+                          <th style={{ textAlign: "left", padding: "8px 10px" }}>Date</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {expenses.map((ex, i) => (
+                          <tr key={ex.id}>
+                            <td style={{ padding: "6px 10px" }}>{i + 1}</td>
+                            <td style={{ padding: "6px 10px" }}>{ex.description}</td>
+                            <td style={{ textAlign: "right", padding: "6px 10px" }}>Rs. {ex.amount.toLocaleString()}</td>
+                            <td style={{ padding: "6px 10px", fontSize: 12, color: "var(--text-soft)" }}>{new Date(ex.createdAt).toLocaleDateString()}</td>
+                          </tr>
+                        ))}
+                        <tr style={{ fontWeight: 700, borderTop: "2px solid var(--border)" }}>
+                          <td style={{ padding: "8px 10px" }} />
+                          <td style={{ padding: "8px 10px" }}>Total</td>
+                          <td style={{ textAlign: "right", padding: "8px 10px" }}>Rs. {totalExpenses.toLocaleString()}</td>
+                          <td />
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
+
         <div className="bm-modal-actions">
           <button type="button" className="btn-outline" onClick={onClose}>Close</button>
         </div>
@@ -879,9 +1163,17 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
         <td className="td-num">{group.count}</td>
         <td />
       </tr>
-      {open && vehicles.map((v) => (
+      {open && vehicles.map((v) => {
+        const primaryImg = (v.images ?? []).find((img) => img.isPrimary) ?? (v.images ?? [])[0];
+        return (
         <tr key={v.id} className="bm-vehicle-row">
-          <td />
+          <td>
+            {primaryImg ? (
+              <img src={`${API_URL}${primaryImg.url}`} alt="" className="bm-row-thumb" />
+            ) : (
+              <span className="bm-row-thumb-empty">🖼️</span>
+            )}
+          </td>
           <td><span className="bm-display-id">{v.displayId}</span></td>
           <td>
             <span className="bm-vehicle-detail">{v.colour}{v.year ? ` · ${v.year}` : ""}</span>
@@ -893,7 +1185,7 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
             </span>
           </td>
           <td><span className={`badge ${v.status === "available" ? "badge-active" : "badge-pending"}`}>{v.status}</span></td>
-          <td />
+          <td>{(v.images ?? []).length > 0 ? `${(v.images ?? []).length} 📷` : ""}</td>
           <td>
             <div className="bm-row-actions">
               <button type="button" className="bm-action-btn bm-view-btn" onClick={() => setViewV(v)} title="View details">View</button>
@@ -905,7 +1197,8 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
             </div>
           </td>
         </tr>
-      ))}
+        );
+      })}
       {viewV && <ViewVehicleModal vehicle={viewV} token={token} onClose={() => setViewV(null)} />}
       {editV && <EditVehicleModal vehicle={editV} token={token} onClose={() => setEditV(null)} onSaved={() => { setEditV(null); onRefresh(); }} />}
       {delConfirm !== null && (

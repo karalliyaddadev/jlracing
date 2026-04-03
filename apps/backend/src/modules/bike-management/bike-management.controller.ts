@@ -107,3 +107,27 @@ export async function addExpense(req: Request, res: Response, next: NextFunction
 export async function deleteExpense(req: Request, res: Response, next: NextFunction) {
   try { await service.deleteExpense(Number(req.params.vehicleId), Number(req.params.expenseId)); return sendSuccess(res, { message: "Expense deleted" }); } catch (err) { return next(err); }
 }
+
+// ── Vehicle Images ─────────────────────────────────────────────────────────
+export async function getVehicleImages(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.listVehicleImages(Number(req.params.vehicleId))); } catch (err) { return next(err); }
+}
+export async function uploadVehicleImages(req: Request, res: Response, next: NextFunction) {
+  try {
+    const files = req.files as Express.Multer.File[];
+    console.log(`[upload] vehicleId=${req.params.vehicleId}, files=${files?.length ?? 0}`, files?.map(f => ({ name: f.originalname, size: f.size, path: f.path })));
+    if (!files || files.length === 0) return sendSuccess(res, { message: "No files uploaded" });
+    const result = await service.addVehicleImages(Number(req.params.vehicleId), files);
+    console.log(`[upload] Saved ${result.length} images to DB`);
+    return sendCreated(res, result);
+  } catch (err) {
+    console.error("[upload] Error:", err);
+    return next(err);
+  }
+}
+export async function deleteVehicleImage(req: Request, res: Response, next: NextFunction) {
+  try { await service.deleteVehicleImage(Number(req.params.vehicleId), Number(req.params.imageId)); return sendSuccess(res, { message: "Image deleted" }); } catch (err) { return next(err); }
+}
+export async function setPrimaryImage(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.setPrimaryImage(Number(req.params.vehicleId), Number(req.params.imageId))); } catch (err) { return next(err); }
+}
