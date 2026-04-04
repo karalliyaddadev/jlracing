@@ -1,35 +1,230 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
-import { IconBike, IconInventory, IconActivity, IconInvoice } from "../../../lib/icons";
+import { IconActivity, IconBike, IconInventory, IconInvoice } from "../../../lib/icons";
 
+type VehicleImage = { id: number; vehicleId: number; url: string; isPrimary: boolean; sortOrder: number; createdAt: string };
+type Expense = { id: number; description: string; amount: number; createdAt: string };
 type Vehicle = {
-  id: number; displayId: string;
-  brand: { name: string }; model: { name: string };
-  colour: string; year?: number; fileNo?: string;
-  chassisNo?: string; engineNo?: string; registerNo?: string;
+  id: number;
+  displayId: string;
+  brand: { id?: number; name: string };
+  model: { id?: number; name: string };
+  supplier?: { id: number; name: string; code: string } | null;
+  colour: string;
+  year?: number;
+  fileNo?: string;
+  registerNo?: string;
+  chassisNo?: string;
+  engineNo?: string;
+  engineCapacityCc?: number;
+  condition?: "brandnew" | "used";
+  mileage?: number;
+  description?: string;
+  registrationType?: "registered" | "unregistered";
+  purchasePrice?: number;
+  taxAmount?: number;
+  sellingPrice?: number;
   soldAt?: string;
+  expenses?: Expense[];
+  images?: VehicleImage[];
 };
 
-function ViewVehicleModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: () => void }) {
+function ImageGallery({ images }: { images: VehicleImage[] }) {
+  const [selectedIdx, setSelectedIdx] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const sorted = [...images].sort((a, b) => (a.isPrimary ? -1 : b.isPrimary ? 1 : a.sortOrder - b.sortOrder));
+
+  const openLightbox = (idx: number) => {
+    setSelectedIdx(idx);
+    setLightboxOpen(true);
+  };
+
+  const goPrev = () => setSelectedIdx((idx) => (idx - 1 + sorted.length) % sorted.length);
+  const goNext = () => setSelectedIdx((idx) => (idx + 1) % sorted.length);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setLightboxOpen(false);
+      if (event.key === "ArrowLeft") goPrev();
+      if (event.key === "ArrowRight") goNext();
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lightboxOpen, sorted.length]);
+
+  if (sorted.length === 0) {
+    return (
+      <div className="bm-gallery-empty">
+        <span className="bm-gallery-empty-icon">🖼️</span>
+        <span>No images available</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bm-gallery">
+      <div className="bm-gallery-main">
+        <button type="button" className="bm-gallery-main-btn" onClick={() => openLightbox(selectedIdx)} title="Click to view larger image">
+          <img src={`${API_URL}${sorted[selectedIdx]?.url}`} alt="Bike" className="bm-gallery-main-img" />
+        </button>
+        {sorted[selectedIdx]?.isPrimary && <span className="bm-gallery-primary-tag">Primary</span>}
+      </div>
+      {sorted.length > 1 && (
+        <div className="bm-gallery-thumbs">
+          {sorted.map((img, index) => (
+            <button key={img.id} type="button" className={`bm-gallery-thumb${index === selectedIdx ? " active" : ""}`} onClick={() => openLightbox(index)}>
+              <img src={`${API_URL}${img.url}`} alt={`Thumb ${index + 1}`} />
+            </button>
+          ))}
+        </div>
+      )}
+
+      {lightboxOpen && (
+        <div className="bm-lightbox" onClick={() => setLightboxOpen(false)}>
+          <button type="button" className="bm-lightbox-close" onClick={() => setLightboxOpen(false)} aria-label="Close image">✕</button>
+          {sorted.length > 1 && (
+            <>
+              <button type="button" className="bm-lightbox-nav bm-lightbox-prev" onClick={(event) => { event.stopPropagation(); goPrev(); }} aria-label="Previous image">‹</button>
+              <button type="button" className="bm-lightbox-nav bm-lightbox-next" onClick={(event) => { event.stopPropagation(); goNext(); }} aria-label="Next image">›</button>
+            </>
+          )}
+          <div className="bm-lightbox-content" onClick={(event) => event.stopPropagation()}>
+            <img src={`${API_URL}${sorted[selectedIdx]?.url}`} alt="Bike large preview" className="bm-lightbox-img" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle: Vehicle; token: string; onClose: () => void }) {
+  const [vehicle, setVehicle] = useState<Vehicle>(initialVehicle);
+  const [images, setImages] = useState<VehicleImage[]>(initialVehicle.images ?? []);
+  const [showExpenses, setShowExpenses] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const base = `${API_URL}/api/pos/bike-management`;
+  const auth = { Authorization: `Bearer ${token}` };
+
+  useEffect(() => {
+    void (async () => {
+      try {
+        const [vehicleResponse, imagesResponse] = await Promise.all([
+          fetch(`${base}/vehicles/${initialVehicle.id}`, { headers: auth }),
+          fetch(`${base}/vehicles/${initialVehicle.id}/images`, { headers: auth }),
+        ]);
+
+        if (vehicleResponse.ok) {
+          const payload = await vehicleResponse.json() as { data: Vehicle };
+          setVehicle(payload.data);
+          if (payload.data.images?.length) {
+            setImages(payload.data.images);
+          }
+        }
+        if (imagesResponse.ok) {
+          const payload = await imagesResponse.json() as { data: VehicleImage[] };
+          if (payload.data?.length) {
+            setImages(payload.data);
+          }
+        }
+      } finally {
+        setLoading(false);
+      }
+    })();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const expenses = vehicle.expenses ?? [];
+  const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+
   return (
     <div className="bm-modal-backdrop" onClick={onClose}>
-      <div className="bm-modal bm-modal-lg" onClick={(e) => e.stopPropagation()}>
+      <div className="bm-modal bm-view-modal" onClick={(event) => event.stopPropagation()}>
         <button className="bm-modal-close" onClick={onClose}>✕</button>
         <h3 className="bm-modal-title">Sold Bike Details — {vehicle.displayId}</h3>
-        <div className="bm-fields-grid">
-          <div className="bm-field-group"><label>Brand</label><input className="bm-input" value={vehicle.brand.name} disabled /></div>
-          <div className="bm-field-group"><label>Model</label><input className="bm-input" value={vehicle.model.name} disabled /></div>
-          <div className="bm-field-group"><label>Colour</label><input className="bm-input" value={vehicle.colour} disabled /></div>
-          <div className="bm-field-group"><label>Year</label><input className="bm-input" value={vehicle.year ?? "-"} disabled /></div>
-          <div className="bm-field-group"><label>File No</label><input className="bm-input" value={vehicle.fileNo ?? "-"} disabled /></div>
-          <div className="bm-field-group"><label>Register No</label><input className="bm-input" value={vehicle.registerNo ?? "-"} disabled /></div>
-          <div className="bm-field-group"><label>Chassis No</label><input className="bm-input" value={vehicle.chassisNo ?? "-"} disabled /></div>
-          <div className="bm-field-group"><label>Engine No</label><input className="bm-input" value={vehicle.engineNo ?? "-"} disabled /></div>
-          <div className="bm-field-group"><label>Sold At</label><input className="bm-input" value={vehicle.soldAt ? new Date(vehicle.soldAt).toLocaleString() : "-"} disabled /></div>
+        {loading && <div style={{ textAlign: "center", padding: 12, color: "var(--muted)" }}>Loading details…</div>}
+
+        <div className="bm-view-layout">
+          <div className="bm-view-left">
+            <ImageGallery images={images} />
+            <div className="bm-view-quick-info">
+              <div className="bm-view-quick-item"><span className="bm-view-quick-label">Brand</span><span className="bm-view-quick-value">{vehicle.brand.name}</span></div>
+              <div className="bm-view-quick-item"><span className="bm-view-quick-label">Model</span><span className="bm-view-quick-value">{vehicle.model.name}</span></div>
+              <div className="bm-view-quick-item"><span className="bm-view-quick-label">Supplier</span><span className="bm-view-quick-value">{vehicle.supplier ? `${vehicle.supplier.name} (${vehicle.supplier.code})` : "—"}</span></div>
+              <div className="bm-view-quick-item"><span className="bm-view-quick-label">Condition</span><span className="bm-view-quick-value">{vehicle.condition === "used" ? "Used" : vehicle.condition === "brandnew" ? "Brand New" : "—"}</span></div>
+            </div>
+          </div>
+
+          <div className="bm-view-right">
+            <div className="bm-view-section">
+              <h4 className="bm-view-section-title">Vehicle Information</h4>
+              <div className="bm-view-detail-grid">
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Year</span><span className="bm-view-detail-value">{vehicle.year ?? "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Engine Capacity</span><span className="bm-view-detail-value">{vehicle.engineCapacityCc ? `${vehicle.engineCapacityCc} cc` : "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Mileage</span><span className="bm-view-detail-value">{vehicle.mileage != null ? `${vehicle.mileage.toLocaleString()} km` : "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Registration</span><span className="bm-view-detail-value">{vehicle.registrationType === "registered" ? "Registered" : vehicle.registrationType === "unregistered" ? "Unregistered" : "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">File No</span><span className="bm-view-detail-value">{vehicle.fileNo ?? "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Register No</span><span className="bm-view-detail-value">{vehicle.registerNo ?? "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Chassis No</span><span className="bm-view-detail-value">{vehicle.chassisNo ?? "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Engine No</span><span className="bm-view-detail-value">{vehicle.engineNo ?? "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Sold At</span><span className="bm-view-detail-value">{vehicle.soldAt ? new Date(vehicle.soldAt).toLocaleString() : "—"}</span></div>
+              </div>
+              {vehicle.description && (
+                <div className="bm-view-desc">
+                  <span className="bm-view-detail-label">Description</span>
+                  <p className="bm-view-desc-text">{vehicle.description}</p>
+                </div>
+              )}
+            </div>
+
+            <div className="bm-view-section">
+              <h4 className="bm-view-section-title">Pricing</h4>
+              <div className="bm-view-detail-grid">
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Purchase Price</span><span className="bm-view-detail-value bm-view-price">{vehicle.purchasePrice != null ? `Rs. ${vehicle.purchasePrice.toLocaleString()}` : "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Tax Amount</span><span className="bm-view-detail-value bm-view-price">{vehicle.taxAmount != null ? `Rs. ${vehicle.taxAmount.toLocaleString()}` : "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Selling Price</span><span className="bm-view-detail-value bm-view-price bm-view-price-highlight">{vehicle.sellingPrice != null ? `Rs. ${vehicle.sellingPrice.toLocaleString()}` : "—"}</span></div>
+              </div>
+            </div>
+
+            {(expenses.length > 0 || totalExpenses > 0) && (
+              <div className="bm-view-section">
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <h4 className="bm-view-section-title" style={{ margin: 0 }}>Additional Expenses <span style={{ fontWeight: 400, fontSize: 12, color: "var(--text-soft)", marginLeft: 8 }}>Rs. {totalExpenses.toLocaleString()}</span></h4>
+                  {expenses.length > 0 && <button type="button" className="bm-view-toggle-btn" onClick={() => setShowExpenses((value) => !value)}>{showExpenses ? "Hide" : "View Details"}</button>}
+                </div>
+                {showExpenses && (
+                  <div className="bm-view-expenses-table">
+                    <table className="data-table" style={{ margin: 0, width: "100%" }}>
+                      <thead>
+                        <tr>
+                          <th style={{ textAlign: "left", padding: "8px 10px" }}>#</th>
+                          <th style={{ textAlign: "left", padding: "8px 10px" }}>Description</th>
+                          <th style={{ textAlign: "right", padding: "8px 10px" }}>Amount</th>
+                          <th style={{ textAlign: "left", padding: "8px 10px" }}>Date</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {expenses.map((expense, index) => (
+                          <tr key={expense.id}>
+                            <td style={{ padding: "6px 10px" }}>{index + 1}</td>
+                            <td style={{ padding: "6px 10px" }}>{expense.description}</td>
+                            <td style={{ textAlign: "right", padding: "6px 10px" }}>Rs. {expense.amount.toLocaleString()}</td>
+                            <td style={{ padding: "6px 10px", fontSize: 12, color: "var(--text-soft)" }}>{new Date(expense.createdAt).toLocaleDateString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
+
         <div className="bm-modal-actions">
           <button type="button" className="btn-outline" onClick={onClose}>Close</button>
         </div>
@@ -39,9 +234,9 @@ function ViewVehicleModal({ vehicle, onClose }: { vehicle: Vehicle; onClose: () 
 }
 
 export default function SoldBikesPage() {
-  const { token }           = useAdmin();
+  const { token } = useAdmin();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [loading, setLoading]   = useState(true);
+  const [loading, setLoading] = useState(true);
   const [restoring, setRestoring] = useState<number | null>(null);
   const [delConfirm, setDelConfirm] = useState<number | null>(null);
   const [viewVehicle, setViewVehicle] = useState<Vehicle | null>(null);
@@ -52,10 +247,12 @@ export default function SoldBikesPage() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const r = await fetch(`${base}/vehicles?status=sold`, { headers: auth });
-      const j = await r.json() as { data: { vehicles: Vehicle[] } };
-      setVehicles(j.data?.vehicles ?? []);
-    } finally { setLoading(false); }
+      const response = await fetch(`${base}/vehicles?status=sold&limit=5000`, { headers: auth });
+      const payload = await response.json() as { data?: { vehicles?: Vehicle[] } };
+      setVehicles(payload.data?.vehicles ?? []);
+    } finally {
+      setLoading(false);
+    }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
@@ -78,13 +275,10 @@ export default function SoldBikesPage() {
     void load();
   };
 
-  const soldWithFileNo = vehicles.filter((v) => !!v.fileNo).length;
-  const soldWithRegister = vehicles.filter((v) => !!v.registerNo).length;
-  const uniqueModels = new Set(vehicles.map((v) => `${v.brand.name}_${v.model.name}`)).size;
-  const latestSold = vehicles
-    .map((v) => v.soldAt)
-    .filter((d): d is string => typeof d === "string")
-    .sort((a, b) => new Date(b).getTime() - new Date(a).getTime())[0];
+  const soldWithImages = vehicles.filter((vehicle) => (vehicle.images ?? []).length > 0).length;
+  const soldWithRegister = vehicles.filter((vehicle) => !!vehicle.registerNo).length;
+  const totalSoldValue = vehicles.reduce((sum, vehicle) => sum + (vehicle.sellingPrice ?? 0), 0);
+  const latestSold = vehicles.map((vehicle) => vehicle.soldAt).filter((value): value is string => typeof value === "string").sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0];
 
   return (
     <div className="bm-page">
@@ -100,36 +294,24 @@ export default function SoldBikesPage() {
 
       <div className="bm-stats-grid">
         <div className="bm-stat-card bm-stat-card-danger">
-          <div className="bm-stat-head">
-            <span className="bm-stat-icon"><IconBike /></span>
-            <span className="bm-stat-label">Total Sold</span>
-          </div>
+          <div className="bm-stat-head"><span className="bm-stat-icon"><IconBike /></span><span className="bm-stat-label">Total Sold</span></div>
           <strong className="bm-stat-value">{vehicles.length}</strong>
           <span className="bm-stat-sub">Sold inventory records</span>
         </div>
         <div className="bm-stat-card bm-stat-card-soft">
-          <div className="bm-stat-head">
-            <span className="bm-stat-icon"><IconInvoice /></span>
-            <span className="bm-stat-label">With File No</span>
-          </div>
-          <strong className="bm-stat-value">{soldWithFileNo}</strong>
-          <span className="bm-stat-sub">Ready documentation</span>
+          <div className="bm-stat-head"><span className="bm-stat-icon"><IconInvoice /></span><span className="bm-stat-label">Sold Value</span></div>
+          <strong className="bm-stat-value">Rs. {totalSoldValue.toLocaleString()}</strong>
+          <span className="bm-stat-sub">Based on selling price</span>
         </div>
         <div className="bm-stat-card bm-stat-card-soft">
-          <div className="bm-stat-head">
-            <span className="bm-stat-icon"><IconInventory /></span>
-            <span className="bm-stat-label">With Register No</span>
-          </div>
-          <strong className="bm-stat-value">{soldWithRegister}</strong>
-          <span className="bm-stat-sub">Registered units</span>
+          <div className="bm-stat-head"><span className="bm-stat-icon"><IconInventory /></span><span className="bm-stat-label">With Images</span></div>
+          <strong className="bm-stat-value">{soldWithImages}</strong>
+          <span className="bm-stat-sub">Visual sales records</span>
         </div>
         <div className="bm-stat-card">
-          <div className="bm-stat-head">
-            <span className="bm-stat-icon"><IconActivity /></span>
-            <span className="bm-stat-label">Model Coverage</span>
-          </div>
-          <strong className="bm-stat-value">{uniqueModels}</strong>
-          <span className="bm-stat-sub">Latest sale: {latestSold ? new Date(latestSold).toLocaleDateString() : "-"}</span>
+          <div className="bm-stat-head"><span className="bm-stat-icon"><IconActivity /></span><span className="bm-stat-label">Registered</span></div>
+          <strong className="bm-stat-value">{soldWithRegister}</strong>
+          <span className="bm-stat-sub">Latest sale: {latestSold ? new Date(latestSold).toLocaleDateString() : "—"}</span>
         </div>
       </div>
 
@@ -138,86 +320,61 @@ export default function SoldBikesPage() {
           <table className="data-table">
             <thead>
               <tr>
+                <th style={{ width: 72 }}>Image</th>
                 <th>ID</th>
-                <th>Brand</th>
-                <th>Model</th>
-                <th>Colour</th>
-                <th>Year</th>
-                <th>Chassis No</th>
-                <th>Engine No</th>
-                <th>File No</th>
+                <th>Bike</th>
+                <th>Supplier</th>
+                <th>Selling Price</th>
                 <th>Sold At</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {loading && (
-                <tr><td colSpan={10} className="bm-table-empty">Loading…</td></tr>
-              )}
-              {!loading && vehicles.length === 0 && (
-                <tr><td colSpan={10} className="bm-table-empty">No sold bikes.</td></tr>
-              )}
-              {!loading && vehicles.map((v) => (
-                <>
-                  <tr key={v.id} className="bm-vehicle-row">
-                    <td><span className="bm-display-id">{v.displayId}</span></td>
-                    <td>{v.brand.name}</td>
-                    <td>{v.model.name}</td>
-                    <td>{v.colour}</td>
-                    <td>{v.year ?? "—"}</td>
-                    <td>{v.chassisNo ?? <em className="bm-missing">—</em>}</td>
-                    <td>{v.engineNo ?? <em className="bm-missing">—</em>}</td>
-                    <td>{v.fileNo ?? <em className="bm-missing">—</em>}</td>
-                    <td>{v.soldAt ? new Date(v.soldAt).toLocaleDateString() : "—"}</td>
-                    <td>
-                      <div className="bm-row-actions">
-                        <button
-                          type="button"
-                          className="bm-action-btn bm-view-btn"
-                          onClick={() => setViewVehicle(v)}
-                          title="View details"
-                        >
-                          View
-                        </button>
-                        <button
-                          type="button"
-                          className="bm-action-btn bm-restore-btn"
-                          onClick={() => restore(v.id)}
-                          disabled={restoring === v.id}
-                          title="Mark as available"
-                        >
-                          {restoring === v.id ? "…" : "↩ Restore"}
-                        </button>
-                        <button
-                          type="button"
-                          className="bm-action-btn bm-del-btn"
-                          onClick={() => setDelConfirm(v.id)}
-                          title="Delete permanently"
-                        >
-                          🗑
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                  {delConfirm === v.id && (
-                    <tr key={`del-${v.id}`}>
-                      <td colSpan={10}>
-                        <div className="bm-inline-confirm">
-                          <span>Delete <strong>{v.displayId}</strong> permanently?</span>
-                          <button className="bm-btn-danger" onClick={() => deleteSold(v.id)}>Delete</button>
-                          <button className="btn-outline" onClick={() => setDelConfirm(null)}>Cancel</button>
+              {loading && <tr><td colSpan={7} className="bm-table-empty">Loading…</td></tr>}
+              {!loading && vehicles.length === 0 && <tr><td colSpan={7} className="bm-table-empty">No sold bikes.</td></tr>}
+              {!loading && vehicles.map((vehicle) => {
+                const primaryImg = (vehicle.images ?? []).find((img) => img.isPrimary) ?? (vehicle.images ?? [])[0];
+                return (
+                  <>
+                    <tr key={vehicle.id} className="bm-vehicle-row">
+                      <td>{primaryImg ? <img src={`${API_URL}${primaryImg.url}`} alt="" className="bm-row-thumb" /> : <span className="bm-row-thumb-empty">🖼️</span>}</td>
+                      <td><span className="bm-display-id">{vehicle.displayId}</span></td>
+                      <td>
+                        <span className="bm-vehicle-detail">{vehicle.brand.name} · {vehicle.model.name}</span>
+                        <span className="bm-vehicle-meta">{vehicle.colour}{vehicle.year ? ` · ${vehicle.year}` : ""}</span>
+                        <span className="bm-vehicle-meta">{vehicle.engineCapacityCc ? `${vehicle.engineCapacityCc} cc` : "No engine capacity"}</span>
+                      </td>
+                      <td>{vehicle.supplier ? `${vehicle.supplier.name} (${vehicle.supplier.code})` : <em className="bm-missing">—</em>}</td>
+                      <td>{vehicle.sellingPrice != null ? `Rs. ${vehicle.sellingPrice.toLocaleString()}` : <em className="bm-missing">—</em>}</td>
+                      <td>{vehicle.soldAt ? new Date(vehicle.soldAt).toLocaleDateString() : "—"}</td>
+                      <td>
+                        <div className="bm-row-actions">
+                          <button type="button" className="bm-action-btn bm-view-btn" onClick={() => setViewVehicle(vehicle)} title="View details">View</button>
+                          <button type="button" className="bm-action-btn bm-restore-btn" onClick={() => restore(vehicle.id)} disabled={restoring === vehicle.id} title="Mark as available">{restoring === vehicle.id ? "…" : "↩ Restore"}</button>
+                          <button type="button" className="bm-action-btn bm-del-btn" onClick={() => setDelConfirm(vehicle.id)} title="Delete permanently">🗑</button>
                         </div>
                       </td>
                     </tr>
-                  )}
-                </>
-              ))}
+                    {delConfirm === vehicle.id && (
+                      <tr key={`del-${vehicle.id}`}>
+                        <td colSpan={7}>
+                          <div className="bm-inline-confirm">
+                            <span>Delete <strong>{vehicle.displayId}</strong> permanently?</span>
+                            <button className="bm-btn-danger" onClick={() => deleteSold(vehicle.id)}>Delete</button>
+                            <button className="btn-outline" onClick={() => setDelConfirm(null)}>Cancel</button>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </>
+                );
+              })}
             </tbody>
           </table>
         </div>
       </div>
 
-      {viewVehicle && <ViewVehicleModal vehicle={viewVehicle} onClose={() => setViewVehicle(null)} />}
+      {viewVehicle && <ViewVehicleModal vehicle={viewVehicle} token={token} onClose={() => setViewVehicle(null)} />}
     </div>
   );
 }

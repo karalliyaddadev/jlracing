@@ -1,24 +1,44 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
 import { IconBike, IconInventory, IconActivity, IconInvoice } from "../../../lib/icons";
 
 type Brand = { id: number; name: string; _count?: { models: number; vehicles: number } };
-type Model = { id: number; name: string; brandId: number; _count?: { vehicles: number } };
+type Model = { id: number; name: string; brandId: number; lowStockThreshold?: number | null; _count?: { vehicles: number } };
 type Color = { id: number; name: string };
+type Supplier = {
+  id: number;
+  name: string;
+  code: string;
+  contactPerson?: string;
+  telephone?: string;
+  address?: string;
+  fax?: string;
+  email?: string;
+  vatRegistrationNo?: string;
+  _count?: { vehicles: number };
+};
 
-type ConfirmState = { type: "brand" | "model" | "color" | "fileNo"; id: number; name: string } | null;
+type ConfirmState = { type: "brand" | "model" | "color" | "fileNo" | "supplier"; id: number; name: string } | null;
 type Tab = "brands" | "colors" | "filenos";
 
 export default function ManageBikesPage() {
   const { token } = useAdmin();
-  const [tab, setTab]                     = useState<Tab>("brands");
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const getTabFromQuery = useCallback((): Tab => {
+    const raw = searchParams.get("tab");
+    return raw === "colors" || raw === "filenos" ? raw : "brands";
+  }, [searchParams]);
+  const [tab, setTab]                     = useState<Tab>(() => getTabFromQuery());
   const [brands, setBrands]               = useState<Brand[]>([]);
   const [selectedBrand, setSelectedBrand] = useState<Brand | null>(null);
   const [models, setModels]               = useState<Model[]>([]);
   const [colors, setColors]               = useState<Color[]>([]);
+  const [suppliers, setSuppliers]         = useState<Supplier[]>([]);
   const [fileNos, setFileNos]             = useState<string[]>([]);
   const [loading, setLoading]             = useState(false);
   const [error, setError]                 = useState<string | null>(null);
@@ -26,17 +46,30 @@ export default function ManageBikesPage() {
 
   // Inline edit state
   const [editingBrand, setEditingBrand] = useState<{ id: number; name: string } | null>(null);
-  const [editingModel, setEditingModel] = useState<{ id: number; name: string } | null>(null);
+  const [editingModel, setEditingModel] = useState<{ id: number; name: string; lowStockThreshold: string; lowStockEnabled: boolean } | null>(null);
   const [editingColor, setEditingColor] = useState<{ id: number; name: string } | null>(null);
   const [editingFileNo, setEditingFileNo] = useState<{ oldValue: string; value: string } | null>(null);
+  const [editingSupplierId, setEditingSupplierId] = useState<number | null>(null);
 
   // Add brand / model / color
   const [newBrandName, setNewBrandName] = useState("");
   const [newModelName, setNewModelName] = useState("");
+  const [newModelLowStockEnabled, setNewModelLowStockEnabled] = useState(false);
+  const [newModelLowStockThreshold, setNewModelLowStockThreshold] = useState("");
   const [newColorName, setNewColorName] = useState("");
   const [savingBrand, setSavingBrand]   = useState(false);
   const [savingModel, setSavingModel]   = useState(false);
   const [savingColor, setSavingColor]   = useState(false);
+  const [savingSupplier, setSavingSupplier] = useState(false);
+  const [supplierForm, setSupplierForm] = useState({
+    name: "",
+    contactPerson: "",
+    telephone: "",
+    address: "",
+    fax: "",
+    email: "",
+    vatRegistrationNo: "",
+  });
 
   const authHeader = { Authorization: `Bearer ${token}` };
   const base = `${API_URL}/api/pos/bike-management`;
@@ -67,6 +100,13 @@ export default function ManageBikesPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [base, token]);
 
+  const loadSuppliers = useCallback(async () => {
+    const res = await fetch(`${base}/suppliers`, { headers: authHeader });
+    const json = await res.json() as { data: Supplier[] };
+    setSuppliers(json.data ?? []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [base, token]);
+
   const loadFileNos = useCallback(async () => {
     const res = await fetch(`${base}/vehicles/filenos`, { headers: authHeader });
     const json = await res.json() as { data: string[] };
@@ -74,11 +114,20 @@ export default function ManageBikesPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [base, token]);
 
-  useEffect(() => { void loadBrands(); void loadColors(); void loadFileNos(); }, [loadBrands, loadColors, loadFileNos]);
+  useEffect(() => { void loadBrands(); void loadColors(); void loadSuppliers(); void loadFileNos(); }, [loadBrands, loadColors, loadSuppliers, loadFileNos]);
+  useEffect(() => {
+    setTab(getTabFromQuery());
+  }, [getTabFromQuery]);
   useEffect(() => {
     if (selectedBrand) void loadModels(selectedBrand);
     else setModels([]);
   }, [selectedBrand, loadModels]);
+
+  const changeTab = (nextTab: Tab) => {
+    setTab(nextTab);
+    const nextHref = nextTab === "brands" ? "/dashboard/bikes/manage" : `/dashboard/bikes/manage?tab=${nextTab}`;
+    router.replace(nextHref);
+  };
 
   // ── Brand CRUD ──────────────────────────────────────────────────────────────
   const handleAddBrand = async () => {
@@ -130,13 +179,20 @@ export default function ManageBikesPage() {
   // ── Model CRUD ──────────────────────────────────────────────────────────────
   const handleAddModel = async () => {
     if (!newModelName.trim() || !selectedBrand) return;
+    if (newModelLowStockEnabled && (!newModelLowStockThreshold.trim() || Number(newModelLowStockThreshold) <= 0)) {
+      setError("Enter a bike count greater than 0 for the low stock alert.");
+      return;
+    }
     setSavingModel(true);
     setError(null);
     try {
       const res = await fetch(`${base}/brands/${selectedBrand.id}/models`, {
         method: "POST",
         headers: { ...authHeader, "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newModelName.trim() }),
+        body: JSON.stringify({
+          name: newModelName.trim(),
+          lowStockThreshold: newModelLowStockEnabled && newModelLowStockThreshold.trim() !== "" ? Number(newModelLowStockThreshold) : 0,
+        }),
       });
       const json = await res.json() as { data: Model; message?: string };
       if (!res.ok) { setError((json as { message: string }).message); return; }
@@ -146,17 +202,26 @@ export default function ManageBikesPage() {
         ? { ...br, _count: { models: (br._count?.models ?? 0) + 1, vehicles: br._count?.vehicles ?? 0 } }
         : br));
       setNewModelName("");
+      setNewModelLowStockEnabled(false);
+      setNewModelLowStockThreshold("");
     } finally { setSavingModel(false); }
   };
 
   const handleUpdateModel = async () => {
     if (!editingModel) return;
+    if (editingModel.lowStockEnabled && (!editingModel.lowStockThreshold.trim() || Number(editingModel.lowStockThreshold) <= 0)) {
+      setError("Enter a bike count greater than 0 for the low stock alert.");
+      return;
+    }
     setError(null);
     try {
       const res = await fetch(`${base}/models/${editingModel.id}`, {
         method: "PATCH",
         headers: { ...authHeader, "Content-Type": "application/json" },
-        body: JSON.stringify({ name: editingModel.name.trim() }),
+        body: JSON.stringify({
+          name: editingModel.name.trim(),
+          lowStockThreshold: editingModel.lowStockEnabled && editingModel.lowStockThreshold.trim() !== "" ? Number(editingModel.lowStockThreshold) : 0,
+        }),
       });
       const json = await res.json() as { data: Model; message?: string };
       if (!res.ok) { setError((json as { message: string }).message); return; }
@@ -224,6 +289,93 @@ export default function ManageBikesPage() {
     finally { setConfirm(null); }
   };
 
+  // ── Supplier CRUD ───────────────────────────────────────────────────────────
+  const resetSupplierForm = () => {
+    setEditingSupplierId(null);
+    setSupplierForm({
+      name: "",
+      contactPerson: "",
+      telephone: "",
+      address: "",
+      fax: "",
+      email: "",
+      vatRegistrationNo: "",
+    });
+  };
+
+  const populateSupplierForm = (supplier: Supplier) => {
+    setEditingSupplierId(supplier.id);
+    setSupplierForm({
+      name: supplier.name ?? "",
+      contactPerson: supplier.contactPerson ?? "",
+      telephone: supplier.telephone ?? "",
+      address: supplier.address ?? "",
+      fax: supplier.fax ?? "",
+      email: supplier.email ?? "",
+      vatRegistrationNo: supplier.vatRegistrationNo ?? "",
+    });
+  };
+
+  const handleSaveSupplier = async () => {
+    if (!supplierForm.name.trim()) return;
+    setSavingSupplier(true);
+    setError(null);
+    try {
+      const method = editingSupplierId ? "PATCH" : "POST";
+      const url = editingSupplierId ? `${base}/suppliers/${editingSupplierId}` : `${base}/suppliers`;
+      const res = await fetch(url, {
+        method,
+        headers: { ...authHeader, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: supplierForm.name.trim(),
+          contactPerson: supplierForm.contactPerson,
+          telephone: supplierForm.telephone,
+          address: supplierForm.address,
+          fax: supplierForm.fax,
+          email: supplierForm.email,
+          vatRegistrationNo: supplierForm.vatRegistrationNo,
+        }),
+      });
+      const json = await res.json() as { data?: Supplier; message?: string };
+      if (!res.ok || !json.data) {
+        setError(json.message ?? "Supplier save failed");
+        return;
+      }
+
+      const savedSupplier = json.data;
+
+      setSuppliers((current) => {
+        const next = editingSupplierId
+          ? current.map((supplier) => supplier.id === savedSupplier.id ? savedSupplier : supplier)
+          : [...current, savedSupplier];
+        return next.sort((left, right) => left.name.localeCompare(right.name));
+      });
+      resetSupplierForm();
+    } catch {
+      setError("Supplier save failed");
+    } finally {
+      setSavingSupplier(false);
+    }
+  };
+
+  const handleDeleteSupplier = async (id: number) => {
+    setError(null);
+    try {
+      const res = await fetch(`${base}/suppliers/${id}`, { method: "DELETE", headers: authHeader });
+      if (!res.ok) {
+        const json = await res.json() as { message?: string };
+        setError(json.message ?? "Delete failed");
+        return;
+      }
+      setSuppliers((current) => current.filter((supplier) => supplier.id !== id));
+      if (editingSupplierId === id) resetSupplierForm();
+    } catch {
+      setError("Delete failed");
+    } finally {
+      setConfirm(null);
+    }
+  };
+
   // ── File No CRUD ───────────────────────────────────────────────────────────
   const handleUpdateFileNo = async () => {
     if (!editingFileNo) return;
@@ -265,7 +417,6 @@ export default function ManageBikesPage() {
 
   const totalModels = brands.reduce((sum, b) => sum + (b._count?.models ?? 0), 0);
   const totalVehicles = brands.reduce((sum, b) => sum + (b._count?.vehicles ?? 0), 0);
-
   return (
     <div className="bm-page">
       {/* Header */}
@@ -316,9 +467,9 @@ export default function ManageBikesPage() {
 
       {/* Tabs */}
       <div className="bm-manage-tabs">
-        <button type="button" className={`bm-tab-btn${tab === "brands" ? " active" : ""}`} onClick={() => setTab("brands")}>Brands &amp; Models</button>
-        <button type="button" className={`bm-tab-btn${tab === "colors" ? " active" : ""}`} onClick={() => setTab("colors")}>Colours</button>
-        <button type="button" className={`bm-tab-btn${tab === "filenos" ? " active" : ""}`} onClick={() => setTab("filenos")}>File Nos</button>
+        <button type="button" className={`bm-tab-btn${tab === "brands" ? " active" : ""}`} onClick={() => changeTab("brands")}>Brands &amp; Models</button>
+        <button type="button" className={`bm-tab-btn${tab === "colors" ? " active" : ""}`} onClick={() => changeTab("colors")}>Colours</button>
+        <button type="button" className={`bm-tab-btn${tab === "filenos" ? " active" : ""}`} onClick={() => changeTab("filenos")}>File Nos</button>
       </div>
 
       {/* ── Brands & Models tab ────────────────────────────────────────────── */}
@@ -406,6 +557,21 @@ export default function ManageBikesPage() {
                     onChange={(e) => setNewModelName(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleAddModel(); }}}
                   />
+                  <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-soft)" }}>
+                    <input type="checkbox" checked={newModelLowStockEnabled} onChange={(e) => { setNewModelLowStockEnabled(e.target.checked); if (!e.target.checked) setNewModelLowStockThreshold(""); }} />
+                    Enable alert
+                  </label>
+                  {newModelLowStockEnabled && (
+                    <input
+                      className="bm-input bm-input-sm"
+                      style={{ maxWidth: 140 }}
+                      type="number"
+                      min={1}
+                      placeholder="Alert when available ≤"
+                      value={newModelLowStockThreshold}
+                      onChange={(e) => setNewModelLowStockThreshold(e.target.value)}
+                    />
+                  )}
                   <button type="button" className="btn-accent bm-add-btn" onClick={handleAddModel} disabled={savingModel || !newModelName.trim()}>
                     {savingModel ? "…" : "+"}
                   </button>
@@ -427,6 +593,25 @@ export default function ManageBikesPage() {
                               onChange={(e) => setEditingModel({ ...editingModel, name: e.target.value })}
                               onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); void handleUpdateModel(); } if (e.key === "Escape") setEditingModel(null); }}
                             />
+                            <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 12, color: "var(--text-soft)" }}>
+                              <input
+                                type="checkbox"
+                                checked={editingModel.lowStockEnabled}
+                                onChange={(e) => setEditingModel({ ...editingModel, lowStockEnabled: e.target.checked, lowStockThreshold: e.target.checked ? editingModel.lowStockThreshold : "" })}
+                              />
+                              Alert
+                            </label>
+                            {editingModel.lowStockEnabled && (
+                              <input
+                                className="bm-input bm-input-sm"
+                                style={{ maxWidth: 140 }}
+                                type="number"
+                                min={1}
+                                placeholder="Alert when ≤"
+                                value={editingModel.lowStockThreshold}
+                                onChange={(e) => setEditingModel({ ...editingModel, lowStockThreshold: e.target.value })}
+                              />
+                            )}
                             <button type="button" className="bm-action-btn bm-save-btn" onClick={handleUpdateModel} title="Save">✓</button>
                             <button type="button" className="bm-action-btn bm-cancel-btn" onClick={() => setEditingModel(null)} title="Cancel">✕</button>
                           </div>
@@ -434,10 +619,10 @@ export default function ManageBikesPage() {
                           <>
                             <div className="bm-item-name-btn">
                               <span className="bm-item-name">{model.name}</span>
-                              <span className="bm-item-meta">{model._count?.vehicles ?? 0} vehicles</span>
+                              <span className="bm-item-meta">{model._count?.vehicles ?? 0} vehicles · {model.lowStockThreshold && model.lowStockThreshold > 0 ? `alert when ≤ ${model.lowStockThreshold}` : "alert disabled"}</span>
                             </div>
                             <div className="bm-actions">
-                              <button type="button" className="bm-action-btn bm-edit-btn" onClick={() => setEditingModel({ id: model.id, name: model.name })} title="Edit">✎</button>
+                              <button type="button" className="bm-action-btn bm-edit-btn" onClick={() => setEditingModel({ id: model.id, name: model.name, lowStockThreshold: model.lowStockThreshold != null && model.lowStockThreshold > 0 ? String(model.lowStockThreshold) : "", lowStockEnabled: (model.lowStockThreshold ?? 0) > 0 })} title="Edit">✎</button>
                               <button type="button" className="bm-action-btn bm-del-btn" onClick={() => setConfirm({ type: "model", id: model.id, name: model.name })} title="Delete">🗑</button>
                             </div>
                           </>
@@ -569,6 +754,8 @@ export default function ManageBikesPage() {
                 ? <>Delete model <strong>{confirm.name}</strong>? All related vehicles will also be permanently removed.</>
                 : confirm.type === "color"
                 ? <>Delete colour <strong>{confirm.name}</strong>?</>
+                : confirm.type === "supplier"
+                ? <>Delete supplier <strong>{confirm.name}</strong>? Linked bikes will keep their records and lose only the supplier reference.</>
                 : <>Delete file number <strong>{confirm.name}</strong>? This will clear that file number from all linked bikes.</>
               }
             </p>
@@ -577,7 +764,7 @@ export default function ManageBikesPage() {
               <button
                 type="button"
                 className="bm-btn-danger"
-                onClick={() => confirm.type === "brand" ? handleDeleteBrand(confirm.id) : confirm.type === "model" ? handleDeleteModel(confirm.id) : confirm.type === "color" ? handleDeleteColor(confirm.id) : handleDeleteFileNo(confirm.name)}
+                onClick={() => confirm.type === "brand" ? handleDeleteBrand(confirm.id) : confirm.type === "model" ? handleDeleteModel(confirm.id) : confirm.type === "color" ? handleDeleteColor(confirm.id) : confirm.type === "supplier" ? handleDeleteSupplier(confirm.id) : handleDeleteFileNo(confirm.name)}
               >
                 Delete
               </button>

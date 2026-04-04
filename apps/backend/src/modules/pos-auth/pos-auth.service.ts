@@ -12,7 +12,9 @@ type PosJwtPayload = {
 };
 
 function generatePosAccessToken(payload: PosJwtPayload) {
-  return jwt.sign(payload, env.JWT_SECRET, { expiresIn: env.JWT_EXPIRES_IN as unknown as number });
+  return jwt.sign(payload, env.JWT_SECRET, {
+    expiresIn: env.POS_JWT_EXPIRES_IN as jwt.SignOptions["expiresIn"],
+  });
 }
 
 function verifyPosAccessToken(token: string): PosJwtPayload {

@@ -8,6 +8,20 @@ import {
   createColorSchema, updateColorSchema,
 } from "./dto/brand.dto";
 import {
+  createSupplierSchema,
+  updateSupplierSchema,
+} from "./dto/supplier.dto";
+import {
+  createProductBrandSchema,
+  updateProductBrandSchema,
+  createProductCategorySchema,
+  updateProductCategorySchema,
+  createProductSchema,
+  updateProductSchema,
+  recordProductSaleSchema,
+  productQuerySchema,
+} from "./dto/product.dto";
+import {
   createVehicleSchema,
   bulkCreateVehicleSchema,
   updateVehicleSchema,
@@ -63,6 +77,66 @@ export async function updateColor(req: Request, res: Response, next: NextFunctio
 }
 export async function deleteColor(req: Request, res: Response, next: NextFunction) {
   try { await service.deleteColor(Number(req.params.id)); return sendSuccess(res, { message: "Color deleted" }); } catch (err) { return next(err); }
+}
+
+// ── Suppliers ──────────────────────────────────────────────────────────────
+export async function getSuppliers(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.listSuppliers()); } catch (err) { return next(err); }
+}
+export async function createSupplier(req: Request, res: Response, next: NextFunction) {
+  try { return sendCreated(res, await service.createSupplier(validate(createSupplierSchema, req.body))); } catch (err) { return next(err); }
+}
+export async function updateSupplier(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.updateSupplier(Number(req.params.id), validate(updateSupplierSchema, req.body))); } catch (err) { return next(err); }
+}
+export async function deleteSupplier(req: Request, res: Response, next: NextFunction) {
+  try { await service.deleteSupplier(Number(req.params.id)); return sendSuccess(res, { message: "Supplier deleted" }); } catch (err) { return next(err); }
+}
+
+// ── Inventory Products ─────────────────────────────────────────────────────
+export async function getProductBrands(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.listProductBrands()); } catch (err) { return next(err); }
+}
+export async function createProductBrand(req: Request, res: Response, next: NextFunction) {
+  try { return sendCreated(res, await service.createProductBrand(validate(createProductBrandSchema, req.body))); } catch (err) { return next(err); }
+}
+export async function updateProductBrand(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.updateProductBrand(Number(req.params.id), validate(updateProductBrandSchema, req.body))); } catch (err) { return next(err); }
+}
+export async function deleteProductBrand(req: Request, res: Response, next: NextFunction) {
+  try { await service.deleteProductBrand(Number(req.params.id)); return sendSuccess(res, { message: "Product brand deleted" }); } catch (err) { return next(err); }
+}
+
+export async function getProductCategories(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.listProductCategories()); } catch (err) { return next(err); }
+}
+export async function createProductCategory(req: Request, res: Response, next: NextFunction) {
+  try { return sendCreated(res, await service.createProductCategory(validate(createProductCategorySchema, req.body))); } catch (err) { return next(err); }
+}
+export async function updateProductCategory(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.updateProductCategory(Number(req.params.id), validate(updateProductCategorySchema, req.body))); } catch (err) { return next(err); }
+}
+export async function deleteProductCategory(req: Request, res: Response, next: NextFunction) {
+  try { await service.deleteProductCategory(Number(req.params.id)); return sendSuccess(res, { message: "Product category deleted" }); } catch (err) { return next(err); }
+}
+
+export async function getProducts(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.listProducts(validate(productQuerySchema, req.query))); } catch (err) { return next(err); }
+}
+export async function getProduct(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.getProduct(Number(req.params.id))); } catch (err) { return next(err); }
+}
+export async function createProduct(req: Request, res: Response, next: NextFunction) {
+  try { return sendCreated(res, await service.createProduct(validate(createProductSchema, req.body))); } catch (err) { return next(err); }
+}
+export async function updateProduct(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.updateProduct(Number(req.params.id), validate(updateProductSchema, req.body))); } catch (err) { return next(err); }
+}
+export async function recordProductSale(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.recordProductSale(Number(req.params.id), validate(recordProductSaleSchema, req.body))); } catch (err) { return next(err); }
+}
+export async function deleteProduct(req: Request, res: Response, next: NextFunction) {
+  try { await service.deleteProduct(Number(req.params.id)); return sendSuccess(res, { message: "Product deleted" }); } catch (err) { return next(err); }
 }
 
 // ── Vehicles ───────────────────────────────────────────────────────────────
@@ -146,4 +220,29 @@ export async function deleteVehicleImage(req: Request, res: Response, next: Next
 }
 export async function setPrimaryImage(req: Request, res: Response, next: NextFunction) {
   try { return sendSuccess(res, await service.setPrimaryImage(Number(req.params.vehicleId), Number(req.params.imageId))); } catch (err) { return next(err); }
+}
+
+// ── Product Images ─────────────────────────────────────────────────────────
+export async function getProductImages(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.listProductImages(Number(req.params.productId))); } catch (err) { return next(err); }
+}
+export async function uploadProductImages(req: Request, res: Response, next: NextFunction) {
+  try {
+    const files = req.files as Express.Multer.File[];
+    if (!files || files.length === 0) return sendSuccess(res, { message: "No files uploaded" });
+
+    const totalBytes = files.reduce((sum, file) => sum + file.size, 0);
+    if (totalBytes > MAX_TOTAL_IMAGE_BYTES) {
+      files.forEach((file) => { try { fs.unlinkSync(file.path); } catch {} });
+      throw AppError.validation(`Total upload size exceeds ${Math.round(MAX_TOTAL_IMAGE_BYTES / (1024 * 1024))}MB`);
+    }
+
+    return sendCreated(res, await service.addProductImages(Number(req.params.productId), files));
+  } catch (err) { return next(err); }
+}
+export async function deleteProductImage(req: Request, res: Response, next: NextFunction) {
+  try { await service.deleteProductImage(Number(req.params.productId), Number(req.params.imageId)); return sendSuccess(res, { message: "Image deleted" }); } catch (err) { return next(err); }
+}
+export async function setPrimaryProductImage(req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.setPrimaryProductImage(Number(req.params.productId), Number(req.params.imageId))); } catch (err) { return next(err); }
 }

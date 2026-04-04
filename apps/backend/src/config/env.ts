@@ -21,6 +21,7 @@ export const env = {
   // JWT
   JWT_SECRET: optional("JWT_SECRET", "change-me-in-production-please"),
   JWT_EXPIRES_IN: optional("JWT_EXPIRES_IN", "1h"),
+  POS_JWT_EXPIRES_IN: optional("POS_JWT_EXPIRES_IN", "7d"),
   JWT_REFRESH_SECRET: optional("JWT_REFRESH_SECRET", "refresh-change-me-in-production"),
   JWT_REFRESH_EXPIRES_IN: optional("JWT_REFRESH_EXPIRES_IN", "7d"),
 

@@ -1,5 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import multer from "multer";
+import { Prisma } from "@prisma/client";
 import { AppError } from "../utils/errors";
 import { env } from "../../config/env";
 
@@ -41,6 +42,29 @@ export function errorHandler(
       success: false,
       message: err.message,
     });
+  }
+
+  if (err instanceof Prisma.PrismaClientKnownRequestError) {
+    if (err.code === "P2002") {
+      const rawTargets = Array.isArray(err.meta?.target)
+        ? err.meta.target.map(String)
+        : [String(err.meta?.target ?? "")].filter(Boolean);
+
+      const labelMap: Record<string, string> = {
+        displayId: "Bike ID",
+        registerNo: "Register number",
+        chassisNo: "Chassis number",
+        engineNo: "Engine number",
+        code: "Code",
+        email: "Email",
+      };
+
+      const fields = rawTargets.map((target) => labelMap[target] ?? target).join(", ");
+      return res.status(409).json({
+        success: false,
+        message: fields ? `${fields} already exists` : "A record with the same details already exists",
+      });
+    }
   }
 
   // Unknown / unhandled error
