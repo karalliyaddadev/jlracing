@@ -7,14 +7,36 @@ import { IconBike, IconInventory, IconActivity, IconInvoice } from "../../lib/ic
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type Brand = { id: number; name: string };
-type Model = { id: number; name: string; brandId: number };
+type Model = { id: number; name: string; brandId: number; lowStockThreshold?: number | null };
 type Color = { id: number; name: string };
+type Supplier = {
+  id: number;
+  name: string;
+  code: string;
+  contactPerson?: string;
+  telephone?: string;
+  address?: string;
+  fax?: string;
+  email?: string;
+  vatRegistrationNo?: string;
+};
+type SupplierFormState = {
+  name: string;
+  contactPerson: string;
+  telephone: string;
+  address: string;
+  fax: string;
+  email: string;
+  vatRegistrationNo: string;
+};
 type VehicleImage = { id: number; vehicleId: number; url: string; isPrimary: boolean; sortOrder: number; createdAt: string };
 type Vehicle = {
   id: number; displayId: string; brandId: number; modelId: number;
-  brand: { id: number; name: string }; model: { id: number; name: string };
+  brand: { id: number; name: string }; model: { id: number; name: string; lowStockThreshold?: number | null };
+  supplier?: { id: number; name: string; code: string } | null;
   colour: string; year?: number; fileNo?: string; manufactureDate?: string;
   registerNo?: string; chassisNo?: string; engineNo?: string;
+  engineCapacityCc?: number;
   condition: "brandnew" | "used";
   mileage: number;
   description?: string;
@@ -28,7 +50,7 @@ type Vehicle = {
   createdAt: string;
 };
 type Expense = { id: number; description: string; amount: number; createdAt: string };
-type Group = { brandId: number; brandName: string; modelId: number; modelName: string; count: number; vehicles: Vehicle[] };
+type Group = { brandId: number; brandName: string; modelId: number; modelName: string; count: number; availableCount: number; lowStockThreshold: number; isLowStock: boolean; vehicles: Vehicle[] };
 
 const MAX_IMAGE_COUNT = 6;
 const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
@@ -101,6 +123,115 @@ function SelectWithAdd<T extends { id: number; name: string }>({
       {onAdd && (
         <button type="button" className="bm-plus-btn" onClick={onAdd} title="Add new">+</button>
       )}
+    </div>
+  );
+}
+
+function SupplierQuickAddModal({
+  token,
+  onClose,
+  onCreated,
+}: {
+  token: string;
+  onClose: () => void;
+  onCreated: (supplier: Supplier) => void;
+}) {
+  const [form, setForm] = useState<SupplierFormState>({
+    name: "",
+    contactPerson: "",
+    telephone: "",
+    address: "",
+    fax: "",
+    email: "",
+    vatRegistrationNo: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const base = `${API_URL}/api/pos/bike-management`;
+  const auth = { Authorization: `Bearer ${token}` };
+
+  const setField = (key: keyof SupplierFormState) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const value = event.target.value;
+    setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const submit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setError(null);
+    setSaving(true);
+    try {
+      const response = await fetch(`${base}/suppliers`, {
+        method: "POST",
+        headers: { ...auth, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name.trim(),
+          contactPerson: form.contactPerson,
+          telephone: form.telephone,
+          address: form.address,
+          fax: form.fax,
+          email: form.email,
+          vatRegistrationNo: form.vatRegistrationNo,
+        }),
+      });
+      const payload = await response.json() as { data?: Supplier; message?: string };
+      if (!response.ok || !payload.data) {
+        setError(payload.message ?? "Failed to save supplier");
+        return;
+      }
+      onCreated(payload.data);
+      onClose();
+    } catch {
+      setError("Failed to save supplier");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  return (
+    <div className="bm-modal-backdrop" onClick={onClose}>
+      <div className="bm-modal bm-modal-lg" onClick={(event) => event.stopPropagation()}>
+        <button className="bm-modal-close" onClick={onClose}>✕</button>
+        <h3 className="bm-modal-title">Add Supplier</h3>
+        {error && <div className="bm-alert bm-alert-error">{error}</div>}
+        <form className="bm-modal-form" onSubmit={submit}>
+          <div className="bm-field-group">
+            <label>Supplier Code</label>
+            <input className="bm-input" value="Auto generated on save" disabled />
+          </div>
+          <div className="bm-field-group">
+            <label>Supplier Name *</label>
+            <input className="bm-input" value={form.name} onChange={setField("name")} placeholder="Supplier name" required />
+          </div>
+          <div className="bm-field-group">
+            <label>Contact Person</label>
+            <input className="bm-input" value={form.contactPerson} onChange={setField("contactPerson")} placeholder="Contact person" />
+          </div>
+          <div className="bm-field-group">
+            <label>Telephone</label>
+            <input className="bm-input" value={form.telephone} onChange={setField("telephone")} placeholder="Telephone" />
+          </div>
+          <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
+            <label>Address</label>
+            <textarea className="bm-input" rows={3} value={form.address} onChange={setField("address")} placeholder="Address" />
+          </div>
+          <div className="bm-field-group">
+            <label>Fax</label>
+            <input className="bm-input" value={form.fax} onChange={setField("fax")} placeholder="Fax" />
+          </div>
+          <div className="bm-field-group">
+            <label>Email</label>
+            <input className="bm-input" type="email" value={form.email} onChange={setField("email")} placeholder="Email" />
+          </div>
+          <div className="bm-field-group">
+            <label>VAT Registration No</label>
+            <input className="bm-input" value={form.vatRegistrationNo} onChange={setField("vatRegistrationNo")} placeholder="VAT registration no" />
+          </div>
+          <div className="bm-modal-actions">
+            <button type="button" className="btn-outline" onClick={onClose}>Cancel</button>
+            <button type="submit" className="btn-accent" disabled={saving || !form.name.trim()}>{saving ? "Saving..." : "Save Supplier"}</button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
@@ -368,17 +499,20 @@ function ImageGallery({ images }: { images: VehicleImage[] }) {
 
 // ── Add Bike Modal ─────────────────────────────────────────────────────────
 function AddBikeModal({
-  token, brands, colors, fileNos, onClose, onRefresh, onBrandAdded, onColorAdded,
+  token, brands, suppliers, colors, fileNos, onClose, onRefresh, onBrandAdded, onColorAdded, onSupplierAdded,
 }: {
-  token: string; brands: Brand[]; colors: Color[]; fileNos: string[];
+  token: string; brands: Brand[]; suppliers: Supplier[]; colors: Color[]; fileNos: string[];
   onClose: () => void; onRefresh: () => void;
-  onBrandAdded: (b: Brand) => void; onColorAdded: (c: Color) => void;
+  onBrandAdded: (b: Brand) => void; onColorAdded: (c: Color) => void; onSupplierAdded: (supplier: Supplier) => void;
 }) {
   const [mode, setMode] = useState<"single" | "bulk" | null>(null);
   const [models, setModels] = useState<Model[]>([]);
+  const [supplierOptions, setSupplierOptions] = useState<Supplier[]>(suppliers);
+  const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [form, setForm] = useState({
-    brandId: "", modelId: "", colour: "", year: "", fileNo: "",
+    brandId: "", modelId: "", supplierId: "", colour: "", year: "", fileNo: "",
     chassisNo: "", engineNo: "", registerNo: "", count: "1",
+    engineCapacityCc: "",
     condition: "brandnew", mileage: "0", description: "",
     registrationType: "unregistered",
     purchasePrice: "", taxAmount: "", sellingPrice: "",
@@ -406,6 +540,10 @@ function AddBikeModal({
     void fetch(`${base}/brands/${form.brandId}/models`, { headers: auth }).then(r => r.json()).then((j: { data: Model[] }) => setModels(j.data ?? []));
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.brandId]);
+
+  useEffect(() => {
+    setSupplierOptions(suppliers);
+  }, [suppliers]);
 
   const addBrand = async () => {
     if (!newBrandName.trim()) return;
@@ -448,7 +586,9 @@ function AddBikeModal({
           body: JSON.stringify({
             brandId: +form.brandId,
             modelId: +form.modelId,
+            supplierId: form.supplierId ? +form.supplierId : undefined,
             colour: form.colour,
+            engineCapacityCc: form.engineCapacityCc ? +form.engineCapacityCc : undefined,
             condition: form.condition,
             mileage: form.mileage ? +form.mileage : 0,
             year: form.year ? +form.year : undefined,
@@ -479,11 +619,13 @@ function AddBikeModal({
           body: JSON.stringify({
             brandId: +form.brandId,
             modelId: +form.modelId,
+            supplierId: form.supplierId ? +form.supplierId : undefined,
             colour: form.colour,
             condition: form.condition,
             mileage: form.mileage ? +form.mileage : 0,
             description: form.description.trim() || undefined,
             year: form.year ? +form.year : undefined,
+            engineCapacityCc: form.engineCapacityCc ? +form.engineCapacityCc : undefined,
             fileNo: form.fileNo || undefined,
             chassisNo: form.chassisNo || undefined,
             engineNo: form.engineNo || undefined,
@@ -581,6 +723,11 @@ function AddBikeModal({
             )}
           </div>
 
+          <div className="bm-field-group">
+            <label>Supplier</label>
+            <SelectWithAdd value={form.supplierId} onChange={set("supplierId")} options={supplierOptions} placeholder="Select supplier" onAdd={() => setShowSupplierModal(true)} />
+          </div>
+
           {/* Colour */}
           <div className="bm-field-group">
             <label>Colour *</label>
@@ -591,6 +738,11 @@ function AddBikeModal({
           <div className="bm-field-group">
             <label>Year</label>
             <input className="bm-input" type="number" min={1990} max={2030} value={form.year} onChange={setE("year")} placeholder="e.g. 2024" />
+          </div>
+
+          <div className="bm-field-group">
+            <label>Engine Capacity (cc)</label>
+            <input className="bm-input" type="number" min={1} value={form.engineCapacityCc} onChange={setE("engineCapacityCc")} placeholder="e.g. 150" />
           </div>
 
           <div className="bm-field-group">
@@ -703,6 +855,17 @@ function AddBikeModal({
           </div>
         </form>
       </div>
+      {showSupplierModal && (
+        <SupplierQuickAddModal
+          token={token}
+          onClose={() => setShowSupplierModal(false)}
+          onCreated={(supplier) => {
+            setSupplierOptions((current) => [...current, supplier].sort((left, right) => left.name.localeCompare(right.name)));
+            onSupplierAdded(supplier);
+            setForm((current) => ({ ...current, supplierId: String(supplier.id) }));
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -713,16 +876,20 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
 }) {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [models, setModels] = useState<Model[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
+  const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [colors, setColors] = useState<string[]>([]);
   const [form, setForm] = useState({
     brandId: String(vehicle.brandId),
     modelId: String(vehicle.modelId),
+    supplierId: vehicle.supplier?.id ? String(vehicle.supplier.id) : "",
     chassisNo:  vehicle.chassisNo  ?? "",
     engineNo:   vehicle.engineNo   ?? "",
     registerNo: vehicle.registerNo ?? "",
     fileNo:     vehicle.fileNo     ?? "",
     colour:     vehicle.colour,
     year:       vehicle.year ? String(vehicle.year) : "",
+    engineCapacityCc: vehicle.engineCapacityCc ? String(vehicle.engineCapacityCc) : "",
     condition:  vehicle.condition ?? "brandnew",
     mileage:    String(vehicle.mileage ?? 0),
     description: vehicle.description ?? "",
@@ -754,6 +921,10 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
     void fetch(`${base}/brands`, { headers: auth })
       .then((r) => r.json())
       .then((j: { data: Brand[] }) => setBrands(j.data ?? []));
+
+    void fetch(`${base}/suppliers`, { headers: auth })
+      .then((r) => r.json())
+      .then((j: { data: Supplier[] }) => setSuppliers(j.data ?? []));
 
     void fetch(`${base}/colors`, { headers: auth })
       .then((r) => r.json())
@@ -813,12 +984,14 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
         body: JSON.stringify({
           brandId: +form.brandId,
           modelId: +form.modelId,
+          supplierId: form.supplierId ? +form.supplierId : null,
           chassisNo: form.chassisNo || undefined,
           engineNo: form.engineNo || undefined,
           registerNo: form.registerNo || undefined,
           fileNo: form.fileNo || undefined,
           colour: form.colour,
           year: form.year ? +form.year : undefined,
+          engineCapacityCc: form.engineCapacityCc ? +form.engineCapacityCc : undefined,
           condition: form.condition,
           mileage: form.mileage ? +form.mileage : 0,
           description: form.description.trim() || undefined,
@@ -880,6 +1053,10 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
                 {models.map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
               </select>
             </div>
+            <div className="bm-field-group">
+              <label>Supplier</label>
+              <SelectWithAdd value={form.supplierId} onChange={(value) => setForm((current) => ({ ...current, supplierId: value }))} options={suppliers} placeholder="Select supplier" onAdd={() => setShowSupplierModal(true)} />
+            </div>
             <div className="bm-field-group"><label>Chassis No</label><input className="bm-input" value={form.chassisNo} onChange={set("chassisNo")} placeholder="Chassis number" /></div>
             <div className="bm-field-group"><label>Engine No</label><input className="bm-input" value={form.engineNo} onChange={set("engineNo")} placeholder="Engine number" /></div>
             <div className="bm-field-group"><label>Register No</label><input className="bm-input" value={form.registerNo} onChange={set("registerNo")} placeholder="Register number" /></div>
@@ -896,6 +1073,7 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
               />
             </div>
             <div className="bm-field-group"><label>Year</label><input className="bm-input" type="number" value={form.year} onChange={set("year")} /></div>
+            <div className="bm-field-group"><label>Engine Capacity (cc)</label><input className="bm-input" type="number" min={1} value={form.engineCapacityCc} onChange={set("engineCapacityCc")} /></div>
             <div className="bm-field-group">
               <label>Condition</label>
               <select className="bm-select" value={form.condition} onChange={set("condition")}>
@@ -1032,6 +1210,16 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
             <button type="submit" className="btn-accent" disabled={saving}>{saving ? "Saving…" : "Save Changes"}</button>
           </div>
         </form>
+        {showSupplierModal && (
+          <SupplierQuickAddModal
+            token={token}
+            onClose={() => setShowSupplierModal(false)}
+            onCreated={(supplier) => {
+              setSuppliers((current) => [...current, supplier].sort((left, right) => left.name.localeCompare(right.name)));
+              setForm((current) => ({ ...current, supplierId: String(supplier.id) }));
+            }}
+          />
+        )}
       </div>
     </div>
   );
@@ -1114,6 +1302,8 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle
               <h4 className="bm-view-section-title">Vehicle Information</h4>
               <div className="bm-view-detail-grid">
                 <div className="bm-view-detail"><span className="bm-view-detail-label">Year</span><span className="bm-view-detail-value">{vehicle.year ?? "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Supplier</span><span className="bm-view-detail-value">{vehicle.supplier ? `${vehicle.supplier.name} (${vehicle.supplier.code})` : "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Engine Capacity</span><span className="bm-view-detail-value">{vehicle.engineCapacityCc ? `${vehicle.engineCapacityCc} cc` : "—"}</span></div>
                 <div className="bm-view-detail"><span className="bm-view-detail-label">Mileage</span><span className="bm-view-detail-value">{(vehicle.mileage ?? 0).toLocaleString()} km</span></div>
                 <div className="bm-view-detail"><span className="bm-view-detail-label">Registration</span><span className="bm-view-detail-value">{vehicle.registrationType === "registered" ? "Registered" : "Unregistered"}</span></div>
                 <div className="bm-view-detail"><span className="bm-view-detail-label">File No</span><span className="bm-view-detail-value">{vehicle.fileNo ?? "—"}</span></div>
@@ -1218,6 +1408,9 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
   const [editV, setEditV]       = useState<Vehicle | null>(null);
   const [delConfirm, setDelConfirm] = useState<number | null>(null);
   const [marking, setMarking]   = useState<number | null>(null);
+  const [editingAlert, setEditingAlert] = useState<{ enabled: boolean; threshold: string } | null>(null);
+  const [savingAlert, setSavingAlert] = useState(false);
+  const [alertError, setAlertError] = useState<string | null>(null);
   const base = `${API_URL}/api/pos/bike-management`;
   const auth = { Authorization: `Bearer ${token}` };
 
@@ -1236,7 +1429,39 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
     onRefresh(); setDelConfirm(null);
   };
 
-  const available = vehicles.filter((v) => v.status === "available").length;
+  const available = group.availableCount ?? vehicles.filter((v) => v.status === "available").length;
+
+  const saveAlertSettings = async () => {
+    if (!editingAlert) return;
+    if (editingAlert.enabled && (!editingAlert.threshold.trim() || Number(editingAlert.threshold) <= 0)) {
+      setAlertError("Enter a bike count greater than 0 for the low stock alert.");
+      return;
+    }
+
+    setSavingAlert(true);
+    setAlertError(null);
+    try {
+      const response = await fetch(`${base}/models/${group.modelId}`, {
+        method: "PATCH",
+        headers: { ...auth, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: group.modelName,
+          lowStockThreshold: editingAlert.enabled && editingAlert.threshold.trim() !== "" ? Number(editingAlert.threshold) : 0,
+        }),
+      });
+      const payload = await response.json().catch(() => null) as { message?: string } | null;
+      if (!response.ok) {
+        setAlertError(payload?.message ?? "Failed to save low stock alert.");
+        return;
+      }
+      setEditingAlert(null);
+      onRefresh();
+    } catch {
+      setAlertError("Failed to save low stock alert.");
+    } finally {
+      setSavingAlert(false);
+    }
+  };
 
   return (
     <>
@@ -1247,11 +1472,68 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
           </button>
         </td>
         <td><strong>{group.brandName}</strong></td>
-        <td>{group.modelName}</td>
-        <td className="td-num">{available}</td>
+        <td>
+          <div style={{ display: "grid", gap: 2 }}>
+            <span>{group.modelName}</span>
+          </div>
+        </td>
+        <td className="td-num"><span className={`badge ${group.isLowStock ? "badge-warning" : "badge-active"}`}>{available}</span></td>
         <td className="td-num">{group.count}</td>
-        <td />
+        <td>
+          <div className="bm-row-actions">
+            {group.isLowStock && <span className="badge badge-warning">Low Stock</span>}
+            <button
+              type="button"
+              className="bm-action-btn bm-edit-btn"
+              onClick={() => {
+                setAlertError(null);
+                setEditingAlert({
+                  enabled: group.lowStockThreshold > 0,
+                  threshold: group.lowStockThreshold > 0 ? String(group.lowStockThreshold) : "",
+                });
+              }}
+              title="Set low stock alert"
+            >
+              Alert
+            </button>
+          </div>
+        </td>
       </tr>
+      {editingAlert && (
+        <tr>
+          <td colSpan={6}>
+            <div className="bm-inline-confirm" style={{ display: "grid", gap: 10 }}>
+              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                <strong>{group.brandName} {group.modelName} low stock setting</strong>
+                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+                  <input
+                    type="checkbox"
+                    checked={editingAlert.enabled}
+                    onChange={(event) => setEditingAlert((current) => current ? { ...current, enabled: event.target.checked, threshold: event.target.checked ? current.threshold : "" } : current)}
+                  />
+                  Enable alert
+                </label>
+              </div>
+              {editingAlert.enabled && (
+                <input
+                  className="bm-input"
+                  style={{ maxWidth: 280 }}
+                  type="number"
+                  min={1}
+                  placeholder="Show alert when available bikes reach this number"
+                  value={editingAlert.threshold}
+                  onChange={(event) => setEditingAlert((current) => current ? { ...current, threshold: event.target.value } : current)}
+                />
+              )}
+              {alertError && <div className="bm-alert bm-alert-error">{alertError}</div>}
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button type="button" className="btn-accent" onClick={() => void saveAlertSettings()} disabled={savingAlert}>{savingAlert ? "Saving..." : "Save Alert"}</button>
+                <button type="button" className="btn-outline" onClick={() => setEditingAlert(null)}>Cancel</button>
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
       {open && vehicles.map((v) => {
         const primaryImg = (v.images ?? []).find((img) => img.isPrimary) ?? (v.images ?? [])[0];
         return (
@@ -1310,6 +1592,7 @@ function groupByBrandModel(vehicles: Vehicle[]): Group[] {
   for (const v of vehicles) {
     const key = `${v.brandId}_${v.modelId}`;
     const existing = map.get(key);
+    const threshold = v.model.lowStockThreshold ?? 0;
     if (!existing) {
       map.set(key, {
         brandId: v.brandId,
@@ -1317,12 +1600,17 @@ function groupByBrandModel(vehicles: Vehicle[]): Group[] {
         modelId: v.modelId,
         modelName: v.model.name,
         count: 1,
+        availableCount: v.status === "available" ? 1 : 0,
+        lowStockThreshold: threshold,
+        isLowStock: threshold > 0 && (v.status === "available" ? 1 : 0) <= threshold,
         vehicles: [v],
       });
       continue;
     }
     existing.count += 1;
+    existing.availableCount += v.status === "available" ? 1 : 0;
     existing.vehicles.push(v);
+    existing.isLowStock = existing.lowStockThreshold > 0 && existing.availableCount <= existing.lowStockThreshold;
   }
 
   return Array.from(map.values()).sort((a, b) => {
@@ -1337,6 +1625,7 @@ export default function BikeInventoryPage() {
   const [groups, setGroups] = useState<Group[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [models, setModels] = useState<Model[]>([]);
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [colors, setColors] = useState<Color[]>([]);
   const [fileNos, setFileNos] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -1399,9 +1688,10 @@ export default function BikeInventoryPage() {
       setStatsSource(vehicles);
       setGroups(groupByBrandModel(vehicles));
 
-      const [bRes, mRes, cRes, fRes] = await Promise.allSettled([
+      const [bRes, mRes, sRes, cRes, fRes] = await Promise.allSettled([
         fetch(`${base}/brands`, { headers: auth, cache: "no-store" }),
         fetch(`${base}/models`, { headers: auth, cache: "no-store" }),
+        fetch(`${base}/suppliers`, { headers: auth, cache: "no-store" }),
         fetch(`${base}/colors`, { headers: auth, cache: "no-store" }),
         fetch(`${base}/vehicles/filenos`, { headers: auth, cache: "no-store" }),
       ]);
@@ -1413,6 +1703,10 @@ export default function BikeInventoryPage() {
       if (mRes.status === "fulfilled" && mRes.value.ok) {
         const mj = await mRes.value.json() as { data?: Model[] };
         setModels(mj.data ?? []);
+      }
+      if (sRes.status === "fulfilled" && sRes.value.ok) {
+        const sj = await sRes.value.json() as { data?: Supplier[] };
+        setSuppliers(sj.data ?? []);
       }
       if (cRes.status === "fulfilled" && cRes.value.ok) {
         const cj = await cRes.value.json() as { data?: Color[] };
@@ -1436,6 +1730,7 @@ export default function BikeInventoryPage() {
   const brandCount = new Set(statsSource.map((v) => v.brandId)).size;
   const modelCount = new Set(statsSource.map((v) => v.modelId)).size;
   const incompleteCount = statsSource.filter((v) => !v.fileNo || !v.registerNo).length;
+  const lowStockGroups = groups.filter((group) => group.isLowStock);
 
   const filteredModels = filters.brandId
     ? models.filter((m) => String(m.brandId) === filters.brandId)
@@ -1492,10 +1787,10 @@ export default function BikeInventoryPage() {
         <div className="bm-stat-card bm-stat-card-warn">
           <div className="bm-stat-head">
             <span className="bm-stat-icon"><IconInvoice /></span>
-            <span className="bm-stat-label">Need Details</span>
+            <span className="bm-stat-label">Low Stock Alerts</span>
           </div>
-          <strong className="bm-stat-value">{incompleteCount}</strong>
-          <span className="bm-stat-sub">Missing file no or register no</span>
+          <strong className="bm-stat-value">{lowStockGroups.length}</strong>
+          <span className="bm-stat-sub">Need details: {incompleteCount}</span>
         </div>
       </div>
 
@@ -1581,10 +1876,11 @@ export default function BikeInventoryPage() {
 
       {showAdd && (
         <AddBikeModal
-          token={token} brands={brands} colors={colors} fileNos={fileNos}
+          token={token} brands={brands} suppliers={suppliers} colors={colors} fileNos={fileNos}
           onClose={() => setShowAdd(false)} onRefresh={load}
           onBrandAdded={(b) => setBrands((prev) => [...prev, b].sort((a, z) => a.name.localeCompare(z.name)))}
           onColorAdded={(c) => setColors((prev) => [...prev, c].sort((a, z) => a.name.localeCompare(z.name)))}
+          onSupplierAdded={(supplier) => setSuppliers((prev) => [...prev, supplier].sort((a, z) => a.name.localeCompare(z.name)))}
         />
       )}
     </div>

@@ -12,7 +12,9 @@ const expenseItemSchema = z.object({
 export const createVehicleSchema = z.object({
   brandId:          z.number().int().positive("Brand is required"),
   modelId:          z.number().int().positive("Model is required"),
+  supplierId:       z.number().int().positive().optional(),
   colour:           z.string().min(1, "Colour is required"),
+  engineCapacityCc: z.number().int().min(1, "Engine capacity must be at least 1cc").optional(),
   condition:        z.enum(CONDITIONS).default("brandnew"),
   mileage:          z.number().int().min(0).default(0),
   description:      z.string().trim().max(2000).optional(),
@@ -33,7 +35,9 @@ export const createVehicleSchema = z.object({
 export const bulkCreateVehicleSchema = z.object({
   brandId:          z.number().int().positive(),
   modelId:          z.number().int().positive(),
+  supplierId:       z.number().int().positive().optional(),
   colour:           z.string().min(1),
+  engineCapacityCc: z.number().int().min(1, "Engine capacity must be at least 1cc").optional(),
   condition:        z.enum(CONDITIONS).default("brandnew"),
   mileage:          z.number().int().min(0).default(0),
   year:             z.number().int().min(1900).max(new Date().getFullYear() + 2).optional(),
@@ -43,6 +47,7 @@ export const bulkCreateVehicleSchema = z.object({
 });
 
 export const updateVehicleSchema = createVehicleSchema.partial().extend({
+  supplierId: z.union([z.number().int().positive(), z.null()]).optional(),
   status: z.enum(STATUSES).optional(),
 });
 
