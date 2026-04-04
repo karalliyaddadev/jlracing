@@ -578,6 +578,7 @@ function AddBikeModal({
     if (mode === "single" && imageFiles.length === 0) { setError("At least one image is required (primary image)."); return; }
     if (imageFiles.some((f) => f.size > MAX_IMAGE_SIZE_BYTES)) { setError("Each image must be 10MB or smaller"); return; }
     if (imageFiles.reduce((sum, file) => sum + file.size, 0) > MAX_TOTAL_IMAGE_BYTES) { setError("Total selected image size cannot exceed 60MB"); return; }
+    const validExpenses = expenses.filter((ex) => ex.description.trim() && ex.amount);
     setSaving(true);
     try {
       if (mode === "bulk") {
@@ -594,6 +595,11 @@ function AddBikeModal({
             year: form.year ? +form.year : undefined,
             registrationType: form.registrationType,
             purchasePrice: form.purchasePrice ? +form.purchasePrice : undefined,
+            taxAmount: form.taxAmount ? +form.taxAmount : undefined,
+            sellingPrice: form.sellingPrice ? +form.sellingPrice : undefined,
+            expenses: validExpenses.length > 0
+              ? validExpenses.map((ex) => ({ description: ex.description.trim(), amount: +ex.amount }))
+              : undefined,
             count: +form.count,
           }),
         });
@@ -613,7 +619,6 @@ function AddBikeModal({
           }
         }
       } else {
-        const validExpenses = expenses.filter((ex) => ex.description.trim() && ex.amount);
         const r = await fetch(`${base}/vehicles`, {
           method: "POST", headers: { ...auth, "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -778,6 +783,34 @@ function AddBikeModal({
               <div className="bm-field-group">
                 <label>Purchase Price</label>
                 <input className="bm-input" type="number" min={0} step="0.01" value={form.purchasePrice} onChange={setE("purchasePrice")} placeholder="e.g. 350000" />
+              </div>
+              <div className="bm-field-group">
+                <label>Tax Amount</label>
+                <input className="bm-input" type="number" min={0} step="0.01" value={form.taxAmount} onChange={setE("taxAmount")} placeholder="e.g. 25000" />
+              </div>
+              <div className="bm-field-group">
+                <label>Selling Price</label>
+                <input className="bm-input" type="number" min={0} step="0.01" value={form.sellingPrice} onChange={setE("sellingPrice")} placeholder="e.g. 450000" />
+              </div>
+              <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
+                  <label>Additional Expenses <span style={{ fontWeight: 400, color: "var(--text-soft)" }}>(applies to every bike in this bulk add)</span></label>
+                  <button type="button" className="btn-accent bm-add-btn" onClick={() => setExpenses((prev) => [...prev, { description: "", amount: "" }])}>+</button>
+                </div>
+                {expenses.map((ex, i) => (
+                  <div key={i} className="bm-quick-add-row" style={{ marginBottom: 6 }}>
+                    <input className="bm-input bm-input-sm" placeholder="Cost description" value={ex.description}
+                      onChange={(e) => setExpenses((prev) => prev.map((p, j) => j === i ? { ...p, description: e.target.value } : p))} />
+                    <input className="bm-input bm-input-sm" type="number" min={0} step="0.01" placeholder="Amount" value={ex.amount}
+                      onChange={(e) => setExpenses((prev) => prev.map((p, j) => j === i ? { ...p, amount: e.target.value } : p))} style={{ maxWidth: 140 }} />
+                    <button type="button" className="bm-action-btn bm-del-btn" onClick={() => setExpenses((prev) => prev.filter((_, j) => j !== i))}>✕</button>
+                  </div>
+                ))}
+                {expenses.length > 0 && (
+                  <div style={{ textAlign: "right", fontSize: 13, fontWeight: 600, marginTop: 4, color: "var(--accent)" }}>
+                    Per-bike additional total: {expenses.reduce((s, ex) => s + (Number(ex.amount) || 0), 0).toLocaleString()}
+                  </div>
+                )}
               </div>
             </>
           )}
@@ -1502,10 +1535,10 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
       {editingAlert && (
         <tr>
           <td colSpan={6}>
-            <div className="bm-inline-confirm" style={{ display: "grid", gap: 10 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <div className="bm-inline-confirm bm-setting-panel">
+              <div className="bm-setting-panel-header">
                 <strong>{group.brandName} {group.modelName} low stock setting</strong>
-                <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+                <label className="bm-setting-toggle">
                   <input
                     type="checkbox"
                     checked={editingAlert.enabled}
@@ -1526,7 +1559,7 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
                 />
               )}
               {alertError && <div className="bm-alert bm-alert-error">{alertError}</div>}
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+              <div className="bm-setting-panel-actions">
                 <button type="button" className="btn-accent" onClick={() => void saveAlertSettings()} disabled={savingAlert}>{savingAlert ? "Saving..." : "Save Alert"}</button>
                 <button type="button" className="btn-outline" onClick={() => setEditingAlert(null)}>Cancel</button>
               </div>

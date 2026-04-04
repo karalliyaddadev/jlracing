@@ -43,6 +43,9 @@ export const bulkCreateVehicleSchema = z.object({
   year:             z.number().int().min(1900).max(new Date().getFullYear() + 2).optional(),
   registrationType: z.enum(REGISTRATION_TYPES).default("unregistered"),
   purchasePrice:    z.number().min(0).optional(),
+  taxAmount:        z.number().min(0).optional(),
+  sellingPrice:     z.number().min(0).optional(),
+  expenses:         z.array(expenseItemSchema).optional(),
   count:            z.number().int().min(1).max(500),
 });
 

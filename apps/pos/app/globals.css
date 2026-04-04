@@ -791,6 +791,137 @@ html[data-theme="dark"] .pw-wrap input {
   line-height: 1;
 }
 
+.topbar-notification-wrap {
+  position: relative;
+}
+
+.topbar-notification-panel {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 360px;
+  max-height: 430px;
+  overflow-y: auto;
+  padding: 12px;
+  z-index: 30;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 85%, var(--accent) 15%);
+  background: linear-gradient(160deg, color-mix(in srgb, var(--panel) 90%, var(--bg) 10%), var(--panel));
+  box-shadow: var(--shadow-lg);
+  color: var(--text);
+}
+
+.topbar-notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.topbar-notification-subtitle,
+.topbar-notification-empty,
+.topbar-notification-message {
+  color: var(--text-soft);
+  font-size: 12px;
+}
+
+.topbar-notification-toolbar,
+.topbar-notification-actions,
+.topbar-notification-footer {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.topbar-notification-toolbar {
+  justify-content: flex-end;
+}
+
+.topbar-notification-list {
+  display: grid;
+  gap: 8px;
+}
+
+.topbar-notification-item {
+  display: grid;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--panel-border) 88%, var(--accent) 12%);
+}
+
+.topbar-notification-item.is-unread {
+  background: color-mix(in srgb, var(--accent-bg) 75%, var(--panel) 25%);
+}
+
+.topbar-notification-item.is-read {
+  background: color-mix(in srgb, var(--panel) 82%, var(--bg) 18%);
+  opacity: 0.88;
+}
+
+.topbar-notification-item-head,
+.topbar-notification-footer {
+  justify-content: space-between;
+  align-items: center;
+}
+
+.topbar-notification-title {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.topbar-notification-link {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.topbar-notification-link:hover {
+  color: var(--accent-hover);
+}
+
+.bm-btn-ghost {
+  padding: 6px 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in srgb, var(--panel-border) 80%, var(--accent) 20%);
+  background: color-mix(in srgb, var(--panel) 85%, var(--bg) 15%);
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 600;
+  transition: all var(--transition);
+}
+
+.bm-btn-ghost:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-bg);
+}
+
+.bm-btn-ghost:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+html[data-theme="dark"] .topbar-notification-panel {
+  border-color: rgba(212,175,55,0.22);
+  background: linear-gradient(160deg, #12233a 0%, var(--panel) 100%);
+}
+
+html[data-theme="dark"] .topbar-notification-item.is-unread {
+  background: rgba(212,175,55,0.14);
+}
+
+html[data-theme="dark"] .topbar-notification-item.is-read {
+  background: rgba(255,255,255,0.03);
+}
+
+html[data-theme="dark"] .bm-btn-ghost {
+  background: rgba(255,255,255,0.03);
+  color: var(--text);
+}
+
 .logout-btn:hover { color: var(--danger); border-color: var(--danger); background: var(--danger-bg); }
 
 /* Labelled sign-out button in topbar */
@@ -1958,6 +2089,44 @@ html[data-theme="dark"] .pw-wrap input {
   background: var(--danger-bg);
   font-size: 0.84rem;
   color: var(--danger);
+}
+
+.bm-setting-panel {
+  display: grid;
+  gap: 10px;
+  padding: 0.9rem 1rem;
+  background: linear-gradient(145deg, color-mix(in srgb, var(--panel) 86%, var(--bg) 14%), var(--panel));
+  border: 1px solid color-mix(in srgb, var(--panel-border) 80%, var(--accent) 20%);
+  border-left: 4px solid var(--accent);
+  color: var(--text);
+}
+
+.bm-setting-panel-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.bm-setting-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-soft);
+}
+
+.bm-setting-panel-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+html[data-theme="dark"] .bm-setting-panel {
+  background: linear-gradient(145deg, #12233a 0%, var(--panel) 100%);
+  border-color: rgba(212,175,55,0.24);
+  box-shadow: inset 0 0 0 1px rgba(212,175,55,0.05);
 }
 
 /* Manage tabs */

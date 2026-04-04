@@ -1009,10 +1009,10 @@ export default function InventoryPage() {
                   {expanded[group.categoryId] && alertProduct && group.products.some((product) => product.id === alertProduct.id) && (
                     <tr>
                       <td colSpan={7}>
-                        <div className="bm-inline-confirm" style={{ display: "grid", gap: 10 }}>
-                          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+                        <div className="bm-inline-confirm bm-setting-panel">
+                          <div className="bm-setting-panel-header">
                             <strong>{alertProduct.name} low stock setting</strong>
-                            <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}>
+                            <label className="bm-setting-toggle">
                               <input
                                 type="checkbox"
                                 checked={alertEnabled}
@@ -1035,7 +1035,7 @@ export default function InventoryPage() {
                               onChange={(event) => setAlertThreshold(event.target.value)}
                             />
                           )}
-                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          <div className="bm-setting-panel-actions">
                             <button type="button" className="btn-accent" onClick={() => void saveAlertSettings()} disabled={savingAlert}>{savingAlert ? "Saving..." : "Save Alert"}</button>
                             <button type="button" className="btn-outline" onClick={() => setAlertProduct(null)}>Cancel</button>
                           </div>

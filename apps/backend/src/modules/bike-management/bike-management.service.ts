@@ -674,6 +674,13 @@ export async function bulkCreateVehicles(dto: BulkCreateVehicleDto) {
   if (model.brandId !== dto.brandId) throw AppError.validation("Model does not belong to the selected brand");
   await assertSupplierExists(dto.supplierId);
 
+  const normalizedExpenses = (dto.expenses ?? [])
+    .map((expense) => ({
+      description: expense.description.trim(),
+      amount: Number(expense.amount),
+    }))
+    .filter((expense) => expense.description && Number.isFinite(expense.amount) && expense.amount >= 0);
+
   const created = [];
   for (let i = 0; i < dto.count; i++) {
     const createData = {
@@ -687,7 +694,10 @@ export async function bulkCreateVehicles(dto: BulkCreateVehicleDto) {
       year: dto.year,
       registrationType: dto.registrationType ?? "unregistered",
       purchasePrice: dto.purchasePrice,
+      taxAmount: dto.taxAmount,
+      sellingPrice: dto.sellingPrice,
       status: "available",
+      ...(normalizedExpenses.length > 0 ? { expenses: { create: normalizedExpenses } } : {}),
     } as Record<string, unknown>;
 
     const vehicle = await createVehicleWithUniqueDisplayId(createData);
