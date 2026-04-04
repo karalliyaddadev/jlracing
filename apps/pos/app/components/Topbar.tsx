@@ -243,56 +243,55 @@ export function Topbar() {
         <button type="button" className="icon-btn theme-btn" onClick={toggleTheme} aria-label="Toggle theme">
           {theme === "light" ? <IconMoon /> : <IconSun />}
         </button>
-        <div ref={notificationPanelRef} style={{ position: "relative" }}>
+        <div ref={notificationPanelRef} className="topbar-notification-wrap">
           <button type="button" className="icon-btn notif-btn" aria-label="Notifications" onClick={() => setShowNotifications((value) => !value)}>
             <IconBell />
             {unreadCount > 0 && <span className="notif-badge">{unreadCount}</span>}
           </button>
           {showNotifications && (
-            <div style={{ position: "absolute", top: "calc(100% + 10px)", right: 0, width: 360, maxHeight: 430, overflowY: "auto", background: "var(--panel)", border: "1px solid var(--panel-border)", borderRadius: 14, boxShadow: "0 16px 40px rgba(15, 23, 42, 0.18)", padding: 12, zIndex: 30 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 8, marginBottom: 10 }}>
+            <div className="topbar-notification-panel">
+              <div className="topbar-notification-header">
                 <div>
                   <strong>Low stock notifications</strong>
-                  <div style={{ color: "var(--text-soft)", fontSize: 12 }}>{unreadCount} unread</div>
+                  <div className="topbar-notification-subtitle">{unreadCount} unread</div>
                 </div>
-                <div style={{ display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "flex-end" }}>
-                  <button type="button" className="bm-btn bm-btn-ghost" style={{ padding: "6px 8px", fontSize: 11 }} onClick={markAllNotificationsAsRead} disabled={visibleNotifications.length === 0 || unreadCount === 0}>Mark all read</button>
-                  <button type="button" className="bm-btn bm-btn-ghost" style={{ padding: "6px 8px", fontSize: 11 }} onClick={deleteAllNotifications} disabled={visibleNotifications.length === 0}>Delete all</button>
+                <div className="topbar-notification-toolbar">
+                  <button type="button" className="bm-btn-ghost topbar-notification-toolbar-btn" onClick={markAllNotificationsAsRead} disabled={visibleNotifications.length === 0 || unreadCount === 0}>Mark all read</button>
+                  <button type="button" className="bm-btn-ghost topbar-notification-toolbar-btn" onClick={deleteAllNotifications} disabled={visibleNotifications.length === 0}>Delete all</button>
                 </div>
               </div>
               {visibleNotifications.length === 0 ? (
-                <div style={{ color: "var(--text-soft)", fontSize: 13 }}>All stock levels are healthy.</div>
+                <div className="topbar-notification-empty">All stock levels are healthy.</div>
               ) : (
-                <div style={{ display: "grid", gap: 8 }}>
+                <div className="topbar-notification-list">
                   {visibleNotifications.map((notification) => {
                     const isRead = readNotificationIds.includes(notification.id);
                     return (
                       <div
                         key={notification.id}
-                        style={{ border: "1px solid var(--panel-border)", borderRadius: 12, padding: "10px 12px", display: "grid", gap: 6, opacity: isRead ? 0.72 : 1, background: isRead ? "transparent" : "rgba(245, 158, 11, 0.08)" }}
+                        className={`topbar-notification-item ${isRead ? "is-read" : "is-unread"}`}
                       >
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-                          <strong style={{ fontSize: 13 }}>{notification.title}</strong>
+                        <div className="topbar-notification-item-head">
+                          <strong className="topbar-notification-title">{notification.title}</strong>
                           <span className={`badge ${notification.type === "bike" ? "badge-pending" : "badge-warning"}`}>{notification.type === "bike" ? "Bike" : "Inventory"}</span>
                         </div>
-                        <span style={{ fontSize: 12, color: "var(--text-soft)" }}>{notification.message}</span>
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                        <span className="topbar-notification-message">{notification.message}</span>
+                        <div className="topbar-notification-footer">
                           <Link
                             href={notification.href}
                             onClick={() => {
                               markNotificationAsRead(notification.id);
                               setShowNotifications(false);
                             }}
-                            style={{ fontSize: 12, fontWeight: 700, color: "var(--accent-strong)", textDecoration: "none" }}
+                            className="topbar-notification-link"
                           >
                             Open
                           </Link>
-                          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          <div className="topbar-notification-actions">
                             {!isRead && (
                               <button
                                 type="button"
-                                className="bm-btn bm-btn-ghost"
-                                style={{ padding: "5px 8px", fontSize: 11 }}
+                                className="bm-btn-ghost topbar-notification-action-btn"
                                 onClick={() => markNotificationAsRead(notification.id)}
                               >
                                 Mark read
@@ -300,8 +299,7 @@ export function Topbar() {
                             )}
                             <button
                               type="button"
-                              className="bm-btn bm-btn-ghost"
-                              style={{ padding: "5px 8px", fontSize: 11 }}
+                              className="bm-btn-ghost topbar-notification-action-btn"
                               onClick={() => deleteNotification(notification.id)}
                             >
                               Delete
