@@ -77,7 +77,9 @@ export default function AboutPage() {
           {/* Top centered */}
           <div className="abt-company__top">
             <span className="abt-grad-pill">
-              <span className="abt-grad-pill__text">Our Company</span>
+              <span className="abt-grad-pill__text">
+                <span className="abt-grad-text">Our Company</span>
+              </span>
             </span>
             <h2 className="abt-company__heading">
               Connecting the world with trusted Japanese vehicles, motorcycles,
@@ -134,7 +136,11 @@ export default function AboutPage() {
       {/* ── Auctions ── */}
       <section className="abt-auctions">
         <div className="abt-auctions__inner">
-          <span className="abt-auctions__pill">Auctions</span>
+          <span className="abt-grad-pill">
+            <span className="abt-grad-pill__text">
+              <span className="abt-grad-text">Auctions</span>
+            </span>
+          </span>
           <h2 className="abt-auctions__heading">
             Licensed access to top Japanese auction houses
           </h2>
@@ -159,7 +165,9 @@ export default function AboutPage() {
           {/* Top centered */}
           <div className="abt-chairman__top">
             <span className="abt-grad-pill">
-              <span className="abt-grad-pill__text">Chairman</span>
+              <span className="abt-grad-pill__text">
+                <span className="abt-grad-text">Chairman</span>
+              </span>
             </span>
             <h2 className="abt-chairman__heading">
               Meet our chairman, Jin Liyanage, a lifelong rider and entrepreneur
@@ -220,7 +228,11 @@ export default function AboutPage() {
       <section className="abt-values">
         <div className="abt-values__inner">
           <div className="abt-values__top">
-            <span className="abt-auctions__pill">Values</span>
+            <span className="abt-grad-pill">
+              <span className="abt-grad-pill__text">
+                <span className="abt-grad-text">Values</span>
+              </span>
+            </span>
             <h2 className="abt-values__heading">
               Reliability, transparency, professionalism, and long-term trust
               guide every interaction, ensuring our clients receive world-class
