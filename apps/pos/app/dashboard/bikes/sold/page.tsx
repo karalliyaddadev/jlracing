@@ -148,19 +148,53 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, relatedVehicles = []
   const formatCurrency = (value: number) => `Rs. ${value.toLocaleString(undefined, { minimumFractionDigits: value % 1 === 0 ? 0 : 2, maximumFractionDigits: 2 })}`;
   const expenses = vehicle.expenses ?? [];
   const rawTotalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const createdAtMs = new Date(vehicle.createdAt).getTime();
   const peerVehicles = bulkPeerVehicles.length > 0 ? bulkPeerVehicles : relatedVehicles;
-  const likelyBulkCount = Math.max(1, peerVehicles.filter((candidate) => {
-    const candidateCreatedAtMs = new Date(candidate.createdAt).getTime();
-    if (!Number.isFinite(createdAtMs) || !Number.isFinite(candidateCreatedAtMs)) {
-      return candidate.id === vehicle.id;
-    }
+  const matchingVehicles = peerVehicles
+    .filter((candidate) => {
+      const matchesCore = (candidate.brand?.id ?? candidate.brand?.name) === (vehicle.brand?.id ?? vehicle.brand?.name)
+        && (candidate.model?.id ?? candidate.model?.name) === (vehicle.model?.id ?? vehicle.model?.name)
+        && candidate.colour === vehicle.colour
+        && (candidate.supplier?.id ?? null) === (vehicle.supplier?.id ?? null)
+        && (candidate.year ?? null) === (vehicle.year ?? null)
+        && (candidate.registrationType ?? null) === (vehicle.registrationType ?? null)
+        && (!vehicle.fileNo || !candidate.fileNo || candidate.fileNo === vehicle.fileNo);
 
-    return Math.abs(candidateCreatedAtMs - createdAtMs) <= 120_000
-      && (candidate.brand?.id ?? candidate.brand?.name) === (vehicle.brand?.id ?? vehicle.brand?.name)
-      && (candidate.model?.id ?? candidate.model?.name) === (vehicle.model?.id ?? vehicle.model?.name)
-      && (!vehicle.fileNo || !candidate.fileNo || candidate.fileNo === vehicle.fileNo);
-  }).length);
+      return candidate.id === vehicle.id || matchesCore;
+    })
+    .sort((left, right) => {
+      const leftTime = new Date(left.createdAt).getTime();
+      const rightTime = new Date(right.createdAt).getTime();
+      if (Number.isFinite(leftTime) && Number.isFinite(rightTime) && leftTime !== rightTime) {
+        return leftTime - rightTime;
+      }
+      return left.id - right.id;
+    });
+  const selectedIndex = matchingVehicles.findIndex((candidate) => candidate.id === vehicle.id);
+  const sameBulkVehicles = selectedIndex === -1 ? [vehicle] : (() => {
+    const isNeighborInSameBatch = (left: Vehicle, right: Vehicle) => {
+      const leftTime = new Date(left.createdAt).getTime();
+      const rightTime = new Date(right.createdAt).getTime();
+      const timeGap = Number.isFinite(leftTime) && Number.isFinite(rightTime)
+        ? Math.abs(rightTime - leftTime)
+        : Number.MAX_SAFE_INTEGER;
+
+      return timeGap <= 15_000 && Math.abs(right.id - left.id) <= 20;
+    };
+
+    const batch = [matchingVehicles[selectedIndex]];
+    for (let index = selectedIndex - 1; index >= 0; index -= 1) {
+      const candidate = matchingVehicles[index];
+      if (!isNeighborInSameBatch(candidate, batch[0])) break;
+      batch.unshift(candidate);
+    }
+    for (let index = selectedIndex + 1; index < matchingVehicles.length; index += 1) {
+      const candidate = matchingVehicles[index];
+      if (!isNeighborInSameBatch(batch[batch.length - 1], candidate)) break;
+      batch.push(candidate);
+    }
+    return batch;
+  })();
+  const likelyBulkCount = Math.max(1, sameBulkVehicles.length);
   const shouldDivideBulkValues = likelyBulkCount > 1 && (
     (vehicle.purchasePrice ?? 0) > 0
     || (vehicle.taxAmount ?? 0) > 0
