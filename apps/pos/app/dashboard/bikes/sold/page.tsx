@@ -195,7 +195,12 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, relatedVehicles = []
     return batch;
   })();
   const likelyBulkCount = Math.max(1, sameBulkVehicles.length);
-  const shouldDivideBulkValues = likelyBulkCount > 1 && (
+  const comparisonBase = vehicle.sellingPrice ?? 0;
+  const looksAlreadyPerBike = comparisonBase > 0
+    && (vehicle.purchasePrice ?? 0) <= comparisonBase
+    && (vehicle.taxAmount ?? 0) <= comparisonBase
+    && rawTotalExpenses <= comparisonBase;
+  const shouldDivideBulkValues = likelyBulkCount > 1 && !looksAlreadyPerBike && (
     (vehicle.purchasePrice ?? 0) > 0
     || (vehicle.taxAmount ?? 0) > 0
     || rawTotalExpenses > 0
