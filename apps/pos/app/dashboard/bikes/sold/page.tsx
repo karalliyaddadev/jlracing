@@ -15,6 +15,7 @@ type Vehicle = {
   supplier?: { id: number; name: string; code: string } | null;
   colour: string;
   year?: number;
+  createdAt: string;
   fileNo?: string;
   registerNo?: string;
   chassisNo?: string;
@@ -102,20 +103,22 @@ function ImageGallery({ images }: { images: VehicleImage[] }) {
   );
 }
 
-function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle: Vehicle; token: string; onClose: () => void }) {
+function ViewVehicleModal({ vehicle: initialVehicle, token, relatedVehicles = [], onClose }: { vehicle: Vehicle; token: string; relatedVehicles?: Vehicle[]; onClose: () => void }) {
   const [vehicle, setVehicle] = useState<Vehicle>(initialVehicle);
   const [images, setImages] = useState<VehicleImage[]>(initialVehicle.images ?? []);
   const [showExpenses, setShowExpenses] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [bulkPeerVehicles, setBulkPeerVehicles] = useState<Vehicle[]>(relatedVehicles);
   const base = `${API_URL}/api/pos/bike-management`;
   const auth = { Authorization: `Bearer ${token}` };
 
   useEffect(() => {
     void (async () => {
       try {
-        const [vehicleResponse, imagesResponse] = await Promise.all([
+        const [vehicleResponse, imagesResponse, peersResponse] = await Promise.all([
           fetch(`${base}/vehicles/${initialVehicle.id}`, { headers: auth }),
           fetch(`${base}/vehicles/${initialVehicle.id}/images`, { headers: auth }),
+          fetch(`${base}/vehicles?limit=5000`, { headers: auth }),
         ]);
 
         if (vehicleResponse.ok) {
@@ -131,6 +134,10 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle
             setImages(payload.data);
           }
         }
+        if (peersResponse.ok) {
+          const payload = await peersResponse.json() as { data?: { vehicles?: Vehicle[] } };
+          setBulkPeerVehicles(payload.data?.vehicles ?? relatedVehicles);
+        }
       } finally {
         setLoading(false);
       }
@@ -138,8 +145,40 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const formatCurrency = (value: number) => `Rs. ${value.toLocaleString(undefined, { minimumFractionDigits: value % 1 === 0 ? 0 : 2, maximumFractionDigits: 2 })}`;
   const expenses = vehicle.expenses ?? [];
-  const totalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const rawTotalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const createdAtMs = new Date(vehicle.createdAt).getTime();
+  const peerVehicles = bulkPeerVehicles.length > 0 ? bulkPeerVehicles : relatedVehicles;
+  const likelyBulkCount = Math.max(1, peerVehicles.filter((candidate) => {
+    const candidateCreatedAtMs = new Date(candidate.createdAt).getTime();
+    return Number.isFinite(createdAtMs)
+      && Number.isFinite(candidateCreatedAtMs)
+      && Math.abs(candidateCreatedAtMs - createdAtMs) <= 60_000
+      && (candidate.brand?.id ?? candidate.brand?.name) === (vehicle.brand?.id ?? vehicle.brand?.name)
+      && (candidate.model?.id ?? candidate.model?.name) === (vehicle.model?.id ?? vehicle.model?.name)
+      && candidate.colour === vehicle.colour
+      && (candidate.supplier?.id ?? null) === (vehicle.supplier?.id ?? null)
+      && (candidate.year ?? null) === (vehicle.year ?? null)
+      && (candidate.registrationType ?? null) === (vehicle.registrationType ?? null)
+      && (candidate.sellingPrice ?? null) === (vehicle.sellingPrice ?? null);
+  }).length);
+  const comparisonBase = vehicle.sellingPrice ?? Number.MAX_SAFE_INTEGER;
+  const shouldDivideBulkValues = likelyBulkCount > 1 && (
+    (vehicle.purchasePrice ?? 0) > comparisonBase
+    || (vehicle.taxAmount ?? 0) > comparisonBase
+    || rawTotalExpenses > comparisonBase
+  );
+  const divideBulkAmount = (amount?: number) => {
+    if (amount == null) return amount;
+    return Number((amount / likelyBulkCount).toFixed(2));
+  };
+  const displayPurchasePrice = shouldDivideBulkValues ? divideBulkAmount(vehicle.purchasePrice) : vehicle.purchasePrice;
+  const displayTaxAmount = shouldDivideBulkValues ? divideBulkAmount(vehicle.taxAmount) : vehicle.taxAmount;
+  const displayExpenses = shouldDivideBulkValues
+    ? expenses.map((expense) => ({ ...expense, amount: divideBulkAmount(expense.amount) ?? 0 }))
+    : expenses;
+  const displayTotalExpenses = displayExpenses.reduce((sum, expense) => sum + expense.amount, 0);
 
   return (
     <div className="bm-modal-backdrop" onClick={onClose}>
@@ -184,17 +223,22 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle
             <div className="bm-view-section">
               <h4 className="bm-view-section-title">Pricing</h4>
               <div className="bm-view-detail-grid">
-                <div className="bm-view-detail"><span className="bm-view-detail-label">Purchase Price</span><span className="bm-view-detail-value bm-view-price">{vehicle.purchasePrice != null ? `Rs. ${vehicle.purchasePrice.toLocaleString()}` : "—"}</span></div>
-                <div className="bm-view-detail"><span className="bm-view-detail-label">Tax Amount</span><span className="bm-view-detail-value bm-view-price">{vehicle.taxAmount != null ? `Rs. ${vehicle.taxAmount.toLocaleString()}` : "—"}</span></div>
-                <div className="bm-view-detail"><span className="bm-view-detail-label">Selling Price</span><span className="bm-view-detail-value bm-view-price bm-view-price-highlight">{vehicle.sellingPrice != null ? `Rs. ${vehicle.sellingPrice.toLocaleString()}` : "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Purchase Price</span><span className="bm-view-detail-value bm-view-price">{displayPurchasePrice != null ? formatCurrency(displayPurchasePrice) : "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Tax Amount</span><span className="bm-view-detail-value bm-view-price">{displayTaxAmount != null ? formatCurrency(displayTaxAmount) : "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Selling Price</span><span className="bm-view-detail-value bm-view-price bm-view-price-highlight">{vehicle.sellingPrice != null ? formatCurrency(vehicle.sellingPrice) : "—"}</span></div>
               </div>
+              {shouldDivideBulkValues && (
+                <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-soft)" }}>
+                  Showing the original per-bike values divided across {likelyBulkCount} bikes from the same bulk entry.
+                </div>
+              )}
             </div>
 
-            {(expenses.length > 0 || totalExpenses > 0) && (
+            {(displayExpenses.length > 0 || displayTotalExpenses > 0) && (
               <div className="bm-view-section">
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-                  <h4 className="bm-view-section-title" style={{ margin: 0 }}>Additional Expenses <span style={{ fontWeight: 400, fontSize: 12, color: "var(--text-soft)", marginLeft: 8 }}>Rs. {totalExpenses.toLocaleString()}</span></h4>
-                  {expenses.length > 0 && <button type="button" className="bm-view-toggle-btn" onClick={() => setShowExpenses((value) => !value)}>{showExpenses ? "Hide" : "View Details"}</button>}
+                  <h4 className="bm-view-section-title" style={{ margin: 0 }}>Additional Expenses <span style={{ fontWeight: 400, fontSize: 12, color: "var(--text-soft)", marginLeft: 8 }}>{formatCurrency(displayTotalExpenses)}</span></h4>
+                  {displayExpenses.length > 0 && <button type="button" className="bm-view-toggle-btn" onClick={() => setShowExpenses((value) => !value)}>{showExpenses ? "Hide" : "View Details"}</button>}
                 </div>
                 {showExpenses && (
                   <div className="bm-view-expenses-table">
@@ -208,11 +252,11 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle
                         </tr>
                       </thead>
                       <tbody>
-                        {expenses.map((expense, index) => (
+                        {displayExpenses.map((expense, index) => (
                           <tr key={expense.id}>
                             <td style={{ padding: "6px 10px" }}>{index + 1}</td>
                             <td style={{ padding: "6px 10px" }}>{expense.description}</td>
-                            <td style={{ textAlign: "right", padding: "6px 10px" }}>Rs. {expense.amount.toLocaleString()}</td>
+                            <td style={{ textAlign: "right", padding: "6px 10px" }}>{formatCurrency(expense.amount)}</td>
                             <td style={{ padding: "6px 10px", fontSize: 12, color: "var(--text-soft)" }}>{new Date(expense.createdAt).toLocaleDateString()}</td>
                           </tr>
                         ))}
@@ -374,7 +418,7 @@ export default function SoldBikesPage() {
         </div>
       </div>
 
-      {viewVehicle && <ViewVehicleModal vehicle={viewVehicle} token={token} onClose={() => setViewVehicle(null)} />}
+      {viewVehicle && <ViewVehicleModal vehicle={viewVehicle} relatedVehicles={vehicles} token={token} onClose={() => setViewVehicle(null)} />}
     </div>
   );
 }
