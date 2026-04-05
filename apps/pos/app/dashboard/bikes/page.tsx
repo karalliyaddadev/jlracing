@@ -925,26 +925,24 @@ function AddBikeModal({
 // ── Edit Vehicle Modal ─────────────────────────────────────────────────────
 function getBulkPricingPreview(vehicle: Vehicle, expenses: Expense[] = vehicle.expenses ?? [], relatedVehicles: Vehicle[] = []) {
   const createdAtMs = new Date(vehicle.createdAt).getTime();
-  const likelyBulkCount = Math.max(1, relatedVehicles.filter((candidate) => {
+  const peerSource = relatedVehicles.length > 0 ? relatedVehicles : [vehicle];
+  const likelyBulkCount = Math.max(1, peerSource.filter((candidate) => {
     const candidateCreatedAtMs = new Date(candidate.createdAt).getTime();
-    return Number.isFinite(createdAtMs)
-      && Number.isFinite(candidateCreatedAtMs)
-      && Math.abs(candidateCreatedAtMs - createdAtMs) <= 60_000
+    if (!Number.isFinite(createdAtMs) || !Number.isFinite(candidateCreatedAtMs)) {
+      return candidate.id === vehicle.id;
+    }
+
+    return Math.abs(candidateCreatedAtMs - createdAtMs) <= 120_000
       && candidate.brandId === vehicle.brandId
       && candidate.modelId === vehicle.modelId
-      && candidate.colour === vehicle.colour
-      && (candidate.supplier?.id ?? null) === (vehicle.supplier?.id ?? null)
-      && (candidate.year ?? null) === (vehicle.year ?? null)
-      && (candidate.registrationType ?? null) === (vehicle.registrationType ?? null)
-      && (candidate.sellingPrice ?? null) === (vehicle.sellingPrice ?? null);
+      && (!vehicle.fileNo || !candidate.fileNo || candidate.fileNo === vehicle.fileNo);
   }).length);
 
   const rawTotalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
-  const comparisonBase = vehicle.sellingPrice ?? Number.MAX_SAFE_INTEGER;
   const shouldDivideBulkValues = likelyBulkCount > 1 && (
-    (vehicle.purchasePrice ?? 0) > comparisonBase
-    || (vehicle.taxAmount ?? 0) > comparisonBase
-    || rawTotalExpenses > comparisonBase
+    (vehicle.purchasePrice ?? 0) > 0
+    || (vehicle.taxAmount ?? 0) > 0
+    || rawTotalExpenses > 0
   );
 
   const divideBulkAmount = (amount?: number) => {
@@ -968,17 +966,18 @@ function getBulkPricingPreview(vehicle: Vehicle, expenses: Expense[] = vehicle.e
   };
 }
 
-function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
-  vehicle: Vehicle; token: string; onClose: () => void; onSaved: (v: Vehicle) => void;
+function EditVehicleModal({ vehicle, relatedVehicles = [], token, onClose, onSaved }: {
+  vehicle: Vehicle; relatedVehicles?: Vehicle[]; token: string; onClose: () => void; onSaved: (v: Vehicle) => void;
 }) {
   const [brands, setBrands] = useState<Brand[]>([]);
   const [models, setModels] = useState<Model[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [colors, setColors] = useState<string[]>([]);
-  const initialPricingPreview = getBulkPricingPreview(vehicle, vehicle.expenses ?? [], [vehicle]);
+  const initialPeerVehicles = relatedVehicles.length > 0 ? relatedVehicles : [vehicle];
+  const initialPricingPreview = getBulkPricingPreview(vehicle, vehicle.expenses ?? [], initialPeerVehicles);
   const [vehicleDetail, setVehicleDetail] = useState<Vehicle>(vehicle);
-  const [bulkPeerVehicles, setBulkPeerVehicles] = useState<Vehicle[]>([vehicle]);
+  const [bulkPeerVehicles, setBulkPeerVehicles] = useState<Vehicle[]>(initialPeerVehicles);
   const [form, setForm] = useState({
     brandId: String(vehicle.brandId),
     modelId: String(vehicle.modelId),
@@ -1019,7 +1018,7 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
 
         let latestVehicle = vehicle;
         let latestExpenses = vehicle.expenses ?? [];
-        let latestPeers: Vehicle[] = [vehicle];
+        let latestPeers: Vehicle[] = initialPeerVehicles;
 
         if (vehicleResponse.ok) {
           const vehiclePayload = await vehicleResponse.json() as { data?: Vehicle };
@@ -1428,38 +1427,15 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, relatedVehicles = []
 
   const formatCurrency = (value: number) => `Rs. ${value.toLocaleString(undefined, { minimumFractionDigits: value % 1 === 0 ? 0 : 2, maximumFractionDigits: 2 })}`;
   const expenses = vehicle.expenses ?? [];
-  const rawTotalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
-  const createdAtMs = new Date(vehicle.createdAt).getTime();
   const peerVehicles = bulkPeerVehicles.length > 0 ? bulkPeerVehicles : relatedVehicles;
-  const likelyBulkCount = Math.max(1, peerVehicles.filter((candidate) => {
-    const candidateCreatedAtMs = new Date(candidate.createdAt).getTime();
-    return Number.isFinite(createdAtMs)
-      && Number.isFinite(candidateCreatedAtMs)
-      && Math.abs(candidateCreatedAtMs - createdAtMs) <= 60_000
-      && candidate.brandId === vehicle.brandId
-      && candidate.modelId === vehicle.modelId
-      && candidate.colour === vehicle.colour
-      && (candidate.supplier?.id ?? null) === (vehicle.supplier?.id ?? null)
-      && (candidate.year ?? null) === (vehicle.year ?? null)
-      && (candidate.registrationType ?? null) === (vehicle.registrationType ?? null)
-      && (candidate.sellingPrice ?? null) === (vehicle.sellingPrice ?? null);
-  }).length);
-  const comparisonBase = vehicle.sellingPrice ?? Number.MAX_SAFE_INTEGER;
-  const shouldDivideBulkValues = likelyBulkCount > 1 && (
-    (vehicle.purchasePrice ?? 0) > comparisonBase
-    || (vehicle.taxAmount ?? 0) > comparisonBase
-    || rawTotalExpenses > comparisonBase
-  );
-  const divideBulkAmount = (amount?: number) => {
-    if (amount == null) return amount;
-    return Number((amount / likelyBulkCount).toFixed(2));
-  };
-  const displayPurchasePrice = shouldDivideBulkValues ? divideBulkAmount(vehicle.purchasePrice) : vehicle.purchasePrice;
-  const displayTaxAmount = shouldDivideBulkValues ? divideBulkAmount(vehicle.taxAmount) : vehicle.taxAmount;
-  const displayExpenses = shouldDivideBulkValues
-    ? expenses.map((expense) => ({ ...expense, amount: divideBulkAmount(expense.amount) ?? 0 }))
-    : expenses;
-  const displayTotalExpenses = displayExpenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const {
+    likelyBulkCount,
+    shouldDivideBulkValues,
+    displayPurchasePrice,
+    displayTaxAmount,
+    displayExpenses,
+    displayTotalExpenses,
+  } = getBulkPricingPreview(vehicle, expenses, peerVehicles);
 
   return (
     <div className="bm-modal-backdrop" onClick={onClose}>
@@ -1779,7 +1755,7 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
         );
       })}
       {viewV && <ViewVehicleModal vehicle={viewV} relatedVehicles={vehicles} token={token} onClose={() => setViewV(null)} />}
-      {editV && <EditVehicleModal vehicle={editV} token={token} onClose={() => setEditV(null)} onSaved={() => { setEditV(null); onRefresh(); }} />}
+      {editV && <EditVehicleModal vehicle={editV} relatedVehicles={vehicles} token={token} onClose={() => setEditV(null)} onSaved={() => { setEditV(null); onRefresh(); }} />}
       {delConfirm !== null && (
         <tr><td colSpan={6}>
           <div className="bm-inline-confirm">
