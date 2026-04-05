@@ -923,21 +923,62 @@ function AddBikeModal({
 }
 
 // ── Edit Vehicle Modal ─────────────────────────────────────────────────────
-function getBulkPricingPreview(vehicle: Vehicle, expenses: Expense[] = vehicle.expenses ?? [], relatedVehicles: Vehicle[] = []) {
-  const createdAtMs = new Date(vehicle.createdAt).getTime();
+function getSameBulkVehicles(vehicle: Vehicle, relatedVehicles: Vehicle[] = []) {
   const peerSource = relatedVehicles.length > 0 ? relatedVehicles : [vehicle];
-  const likelyBulkCount = Math.max(1, peerSource.filter((candidate) => {
-    const candidateCreatedAtMs = new Date(candidate.createdAt).getTime();
-    if (!Number.isFinite(createdAtMs) || !Number.isFinite(candidateCreatedAtMs)) {
-      return candidate.id === vehicle.id;
-    }
+  const matchingVehicles = peerSource
+    .filter((candidate) => {
+      const matchesCore = candidate.brandId === vehicle.brandId
+        && candidate.modelId === vehicle.modelId
+        && candidate.colour === vehicle.colour
+        && (candidate.supplier?.id ?? null) === (vehicle.supplier?.id ?? null)
+        && (candidate.year ?? null) === (vehicle.year ?? null)
+        && (candidate.registrationType ?? null) === (vehicle.registrationType ?? null)
+        && (!vehicle.fileNo || !candidate.fileNo || candidate.fileNo === vehicle.fileNo);
 
-    return Math.abs(candidateCreatedAtMs - createdAtMs) <= 120_000
-      && candidate.brandId === vehicle.brandId
-      && candidate.modelId === vehicle.modelId
-      && (!vehicle.fileNo || !candidate.fileNo || candidate.fileNo === vehicle.fileNo);
-  }).length);
+      return candidate.id === vehicle.id || matchesCore;
+    })
+    .sort((left, right) => {
+      const leftTime = new Date(left.createdAt).getTime();
+      const rightTime = new Date(right.createdAt).getTime();
+      if (Number.isFinite(leftTime) && Number.isFinite(rightTime) && leftTime !== rightTime) {
+        return leftTime - rightTime;
+      }
+      return left.id - right.id;
+    });
 
+  const selectedIndex = matchingVehicles.findIndex((candidate) => candidate.id === vehicle.id);
+  if (selectedIndex === -1) return [vehicle];
+
+  const isNeighborInSameBatch = (left: Vehicle, right: Vehicle) => {
+    const leftTime = new Date(left.createdAt).getTime();
+    const rightTime = new Date(right.createdAt).getTime();
+    const timeGap = Number.isFinite(leftTime) && Number.isFinite(rightTime)
+      ? Math.abs(rightTime - leftTime)
+      : Number.MAX_SAFE_INTEGER;
+
+    return timeGap <= 15_000 && Math.abs(right.id - left.id) <= 20;
+  };
+
+  const batch = [matchingVehicles[selectedIndex]];
+
+  for (let index = selectedIndex - 1; index >= 0; index -= 1) {
+    const candidate = matchingVehicles[index];
+    if (!isNeighborInSameBatch(candidate, batch[0])) break;
+    batch.unshift(candidate);
+  }
+
+  for (let index = selectedIndex + 1; index < matchingVehicles.length; index += 1) {
+    const candidate = matchingVehicles[index];
+    if (!isNeighborInSameBatch(batch[batch.length - 1], candidate)) break;
+    batch.push(candidate);
+  }
+
+  return batch;
+}
+
+function getBulkPricingPreview(vehicle: Vehicle, expenses: Expense[] = vehicle.expenses ?? [], relatedVehicles: Vehicle[] = []) {
+  const sameBulkVehicles = getSameBulkVehicles(vehicle, relatedVehicles);
+  const likelyBulkCount = Math.max(1, sameBulkVehicles.length);
   const rawTotalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
   const shouldDivideBulkValues = likelyBulkCount > 1 && (
     (vehicle.purchasePrice ?? 0) > 0
