@@ -152,22 +152,19 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, relatedVehicles = []
   const peerVehicles = bulkPeerVehicles.length > 0 ? bulkPeerVehicles : relatedVehicles;
   const likelyBulkCount = Math.max(1, peerVehicles.filter((candidate) => {
     const candidateCreatedAtMs = new Date(candidate.createdAt).getTime();
-    return Number.isFinite(createdAtMs)
-      && Number.isFinite(candidateCreatedAtMs)
-      && Math.abs(candidateCreatedAtMs - createdAtMs) <= 60_000
+    if (!Number.isFinite(createdAtMs) || !Number.isFinite(candidateCreatedAtMs)) {
+      return candidate.id === vehicle.id;
+    }
+
+    return Math.abs(candidateCreatedAtMs - createdAtMs) <= 120_000
       && (candidate.brand?.id ?? candidate.brand?.name) === (vehicle.brand?.id ?? vehicle.brand?.name)
       && (candidate.model?.id ?? candidate.model?.name) === (vehicle.model?.id ?? vehicle.model?.name)
-      && candidate.colour === vehicle.colour
-      && (candidate.supplier?.id ?? null) === (vehicle.supplier?.id ?? null)
-      && (candidate.year ?? null) === (vehicle.year ?? null)
-      && (candidate.registrationType ?? null) === (vehicle.registrationType ?? null)
-      && (candidate.sellingPrice ?? null) === (vehicle.sellingPrice ?? null);
+      && (!vehicle.fileNo || !candidate.fileNo || candidate.fileNo === vehicle.fileNo);
   }).length);
-  const comparisonBase = vehicle.sellingPrice ?? Number.MAX_SAFE_INTEGER;
   const shouldDivideBulkValues = likelyBulkCount > 1 && (
-    (vehicle.purchasePrice ?? 0) > comparisonBase
-    || (vehicle.taxAmount ?? 0) > comparisonBase
-    || rawTotalExpenses > comparisonBase
+    (vehicle.purchasePrice ?? 0) > 0
+    || (vehicle.taxAmount ?? 0) > 0
+    || rawTotalExpenses > 0
   );
   const divideBulkAmount = (amount?: number) => {
     if (amount == null) return amount;
