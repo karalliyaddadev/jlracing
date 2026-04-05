@@ -534,6 +534,15 @@ function AddBikeModal({
   const set = (k: keyof typeof form) => (v: string) => setForm((f) => ({ ...f, [k]: v }));
   const setE = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => set(k)(e.target.value);
   const setMileageZero = () => set("mileage")("0");
+  const bulkCount = Math.max(1, Number.parseInt(form.count || "1", 10) || 1);
+  const formatMoney = (value: number) => `Rs. ${value.toLocaleString(undefined, { minimumFractionDigits: value % 1 === 0 ? 0 : 2, maximumFractionDigits: 2 })}`;
+  const getBulkPerBikeValue = (value: string) => {
+    const total = Number(value);
+    if (!Number.isFinite(total) || total < 0) return null;
+    return total / bulkCount;
+  };
+  const totalBulkExpenses = expenses.reduce((sum, ex) => sum + (Number(ex.amount) || 0), 0);
+  const perBikeBulkExpenses = totalBulkExpenses / bulkCount;
 
   useEffect(() => {
     if (!form.brandId) { setModels([]); return; }
@@ -781,20 +790,30 @@ function AddBikeModal({
                 <input className="bm-input" type="number" min={1} max={500} value={form.count} onChange={setE("count")} required />
               </div>
               <div className="bm-field-group">
-                <label>Purchase Price</label>
+                <label>Purchase Price <span style={{ fontWeight: 400, color: "var(--text-soft)" }}>(total for this bulk add)</span></label>
                 <input className="bm-input" type="number" min={0} step="0.01" value={form.purchasePrice} onChange={setE("purchasePrice")} placeholder="e.g. 350000" />
+                {form.purchasePrice && (
+                  <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-soft)" }}>
+                    Saved as {formatMoney(getBulkPerBikeValue(form.purchasePrice) ?? 0)} per bike across {bulkCount} bike{bulkCount === 1 ? "" : "s"}.
+                  </div>
+                )}
               </div>
               <div className="bm-field-group">
-                <label>Tax Amount</label>
+                <label>Tax Amount <span style={{ fontWeight: 400, color: "var(--text-soft)" }}>(total for this bulk add)</span></label>
                 <input className="bm-input" type="number" min={0} step="0.01" value={form.taxAmount} onChange={setE("taxAmount")} placeholder="e.g. 25000" />
+                {form.taxAmount && (
+                  <div style={{ marginTop: 6, fontSize: 12, color: "var(--text-soft)" }}>
+                    Saved as {formatMoney(getBulkPerBikeValue(form.taxAmount) ?? 0)} per bike across {bulkCount} bike{bulkCount === 1 ? "" : "s"}.
+                  </div>
+                )}
               </div>
               <div className="bm-field-group">
-                <label>Selling Price</label>
+                <label>Selling Price <span style={{ fontWeight: 400, color: "var(--text-soft)" }}>(kept per bike)</span></label>
                 <input className="bm-input" type="number" min={0} step="0.01" value={form.sellingPrice} onChange={setE("sellingPrice")} placeholder="e.g. 450000" />
               </div>
               <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                  <label>Additional Expenses <span style={{ fontWeight: 400, color: "var(--text-soft)" }}>(applies to every bike in this bulk add)</span></label>
+                  <label>Additional Expenses <span style={{ fontWeight: 400, color: "var(--text-soft)" }}>(enter bulk total; automatically divided per bike)</span></label>
                   <button type="button" className="btn-accent bm-add-btn" onClick={() => setExpenses((prev) => [...prev, { description: "", amount: "" }])}>+</button>
                 </div>
                 {expenses.map((ex, i) => (
@@ -808,7 +827,7 @@ function AddBikeModal({
                 ))}
                 {expenses.length > 0 && (
                   <div style={{ textAlign: "right", fontSize: 13, fontWeight: 600, marginTop: 4, color: "var(--accent)" }}>
-                    Per-bike additional total: {expenses.reduce((s, ex) => s + (Number(ex.amount) || 0), 0).toLocaleString()}
+                    Bulk additional total: {formatMoney(totalBulkExpenses)} • Per-bike additional total: {formatMoney(perBikeBulkExpenses)}
                   </div>
                 )}
               </div>
@@ -904,6 +923,51 @@ function AddBikeModal({
 }
 
 // ── Edit Vehicle Modal ─────────────────────────────────────────────────────
+function getBulkPricingPreview(vehicle: Vehicle, expenses: Expense[] = vehicle.expenses ?? [], relatedVehicles: Vehicle[] = []) {
+  const createdAtMs = new Date(vehicle.createdAt).getTime();
+  const likelyBulkCount = Math.max(1, relatedVehicles.filter((candidate) => {
+    const candidateCreatedAtMs = new Date(candidate.createdAt).getTime();
+    return Number.isFinite(createdAtMs)
+      && Number.isFinite(candidateCreatedAtMs)
+      && Math.abs(candidateCreatedAtMs - createdAtMs) <= 60_000
+      && candidate.brandId === vehicle.brandId
+      && candidate.modelId === vehicle.modelId
+      && candidate.colour === vehicle.colour
+      && (candidate.supplier?.id ?? null) === (vehicle.supplier?.id ?? null)
+      && (candidate.year ?? null) === (vehicle.year ?? null)
+      && (candidate.registrationType ?? null) === (vehicle.registrationType ?? null)
+      && (candidate.sellingPrice ?? null) === (vehicle.sellingPrice ?? null);
+  }).length);
+
+  const rawTotalExpenses = expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  const comparisonBase = vehicle.sellingPrice ?? Number.MAX_SAFE_INTEGER;
+  const shouldDivideBulkValues = likelyBulkCount > 1 && (
+    (vehicle.purchasePrice ?? 0) > comparisonBase
+    || (vehicle.taxAmount ?? 0) > comparisonBase
+    || rawTotalExpenses > comparisonBase
+  );
+
+  const divideBulkAmount = (amount?: number) => {
+    if (amount == null) return amount;
+    return Number((amount / likelyBulkCount).toFixed(2));
+  };
+
+  const displayPurchasePrice = shouldDivideBulkValues ? divideBulkAmount(vehicle.purchasePrice) : vehicle.purchasePrice;
+  const displayTaxAmount = shouldDivideBulkValues ? divideBulkAmount(vehicle.taxAmount) : vehicle.taxAmount;
+  const displayExpenses = shouldDivideBulkValues
+    ? expenses.map((expense) => ({ ...expense, amount: divideBulkAmount(expense.amount) ?? 0 }))
+    : expenses;
+
+  return {
+    likelyBulkCount,
+    shouldDivideBulkValues,
+    displayPurchasePrice,
+    displayTaxAmount,
+    displayExpenses,
+    displayTotalExpenses: displayExpenses.reduce((sum, expense) => sum + expense.amount, 0),
+  };
+}
+
 function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
   vehicle: Vehicle; token: string; onClose: () => void; onSaved: (v: Vehicle) => void;
 }) {
@@ -912,6 +976,9 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [colors, setColors] = useState<string[]>([]);
+  const initialPricingPreview = getBulkPricingPreview(vehicle, vehicle.expenses ?? [], [vehicle]);
+  const [vehicleDetail, setVehicleDetail] = useState<Vehicle>(vehicle);
+  const [bulkPeerVehicles, setBulkPeerVehicles] = useState<Vehicle[]>([vehicle]);
   const [form, setForm] = useState({
     brandId: String(vehicle.brandId),
     modelId: String(vehicle.modelId),
@@ -927,11 +994,11 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
     mileage:    String(vehicle.mileage ?? 0),
     description: vehicle.description ?? "",
     registrationType: vehicle.registrationType ?? "unregistered",
-    purchasePrice:    vehicle.purchasePrice ? String(vehicle.purchasePrice) : "",
-    taxAmount:        vehicle.taxAmount ? String(vehicle.taxAmount) : "",
-    sellingPrice:     vehicle.sellingPrice ? String(vehicle.sellingPrice) : "",
+    purchasePrice: initialPricingPreview.displayPurchasePrice != null ? String(initialPricingPreview.displayPurchasePrice) : "",
+    taxAmount: initialPricingPreview.displayTaxAmount != null ? String(initialPricingPreview.displayTaxAmount) : "",
+    sellingPrice: vehicle.sellingPrice != null ? String(vehicle.sellingPrice) : "",
   });
-  const [vehicleExpenses, setVehicleExpenses] = useState<Expense[]>(vehicle.expenses ?? []);
+  const [vehicleExpenses, setVehicleExpenses] = useState<Expense[]>(initialPricingPreview.displayExpenses);
   const [vehicleImages, setVehicleImages] = useState<VehicleImage[]>(vehicle.images ?? []);
   const [newExpenses, setNewExpenses] = useState<{ description: string; amount: string }[]>([]);
   const [showExpenseDetails, setShowExpenseDetails] = useState(false);
@@ -940,15 +1007,73 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
   const base = `${API_URL}/api/pos/bike-management`;
   const auth = { Authorization: `Bearer ${token}` };
 
-  // Fetch fresh expenses on mount
+  // Fetch fresh vehicle data, expenses, and peer bikes on mount
   useEffect(() => {
-    void fetch(`${base}/vehicles/${vehicle.id}/expenses`, { headers: auth })
-      .then((r) => r.json())
-      .then((j: { data: { expenses: Expense[]; total: number } }) => { if (j.data?.expenses) setVehicleExpenses(j.data.expenses); });
+    void (async () => {
+      try {
+        const [vehicleResponse, expenseResponse, peersResponse] = await Promise.all([
+          fetch(`${base}/vehicles/${vehicle.id}`, { headers: auth }),
+          fetch(`${base}/vehicles/${vehicle.id}/expenses`, { headers: auth }),
+          fetch(`${base}/vehicles?limit=5000`, { headers: auth }),
+        ]);
+
+        let latestVehicle = vehicle;
+        let latestExpenses = vehicle.expenses ?? [];
+        let latestPeers: Vehicle[] = [vehicle];
+
+        if (vehicleResponse.ok) {
+          const vehiclePayload = await vehicleResponse.json() as { data?: Vehicle };
+          if (vehiclePayload.data) {
+            latestVehicle = vehiclePayload.data;
+            setVehicleDetail(vehiclePayload.data);
+            if (vehiclePayload.data.images?.length) {
+              setVehicleImages(vehiclePayload.data.images);
+            }
+          }
+        }
+
+        if (expenseResponse.ok) {
+          const expensePayload = await expenseResponse.json() as { data?: { expenses?: Expense[] } };
+          latestExpenses = expensePayload.data?.expenses ?? latestExpenses;
+        }
+
+        if (peersResponse.ok) {
+          const peersPayload = await peersResponse.json() as { data?: { vehicles?: Vehicle[] } };
+          latestPeers = peersPayload.data?.vehicles ?? latestPeers;
+          setBulkPeerVehicles(latestPeers);
+        }
+
+        const pricingPreview = getBulkPricingPreview(latestVehicle, latestExpenses, latestPeers);
+        setVehicleExpenses(pricingPreview.displayExpenses);
+        setForm((current) => ({
+          ...current,
+          brandId: String(latestVehicle.brandId),
+          modelId: String(latestVehicle.modelId),
+          supplierId: latestVehicle.supplier?.id ? String(latestVehicle.supplier.id) : "",
+          chassisNo: latestVehicle.chassisNo ?? "",
+          engineNo: latestVehicle.engineNo ?? "",
+          registerNo: latestVehicle.registerNo ?? "",
+          fileNo: latestVehicle.fileNo ?? "",
+          colour: latestVehicle.colour,
+          year: latestVehicle.year ? String(latestVehicle.year) : "",
+          engineCapacityCc: latestVehicle.engineCapacityCc ? String(latestVehicle.engineCapacityCc) : "",
+          condition: latestVehicle.condition ?? "brandnew",
+          mileage: String(latestVehicle.mileage ?? 0),
+          description: latestVehicle.description ?? "",
+          registrationType: latestVehicle.registrationType ?? "unregistered",
+          purchasePrice: pricingPreview.displayPurchasePrice != null ? String(pricingPreview.displayPurchasePrice) : "",
+          taxAmount: pricingPreview.displayTaxAmount != null ? String(pricingPreview.displayTaxAmount) : "",
+          sellingPrice: latestVehicle.sellingPrice != null ? String(latestVehicle.sellingPrice) : "",
+        }));
+      } catch {
+        // Keep the current bike values if the refresh fails.
+      }
+    })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => setForm((f) => ({ ...f, [k]: e.target.value }));
+  const editPricingPreview = getBulkPricingPreview(vehicleDetail, vehicleDetail.expenses ?? vehicleExpenses, bulkPeerVehicles);
 
   useEffect(() => {
     void fetch(`${base}/brands`, { headers: auth })
@@ -1141,24 +1266,31 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
               </select>
             </div>
 
+            <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
+              <span style={{ fontSize: 12, color: "var(--muted)" }}>
+                Changes here update only this selected bike. Other bikes from the same bulk add stay unchanged.
+                {editPricingPreview.shouldDivideBulkValues ? ` Showing the per-bike amounts divided from the original bulk of ${editPricingPreview.likelyBulkCount} bikes.` : ""}
+              </span>
+            </div>
+
             {/* Pricing */}
             <div className="bm-field-group">
-              <label>Purchase Price</label>
+              <label>Purchase Price (this bike only)</label>
               <input className="bm-input" type="number" min={0} step="0.01" value={form.purchasePrice} onChange={set("purchasePrice")} placeholder="e.g. 350000" />
             </div>
             <div className="bm-field-group">
-              <label>Tax Amount</label>
+              <label>Tax Amount (this bike only)</label>
               <input className="bm-input" type="number" min={0} step="0.01" value={form.taxAmount} onChange={set("taxAmount")} placeholder="e.g. 25000" />
             </div>
             <div className="bm-field-group">
-              <label>Selling Price</label>
+              <label>Selling Price (this bike only)</label>
               <input className="bm-input" type="number" min={0} step="0.01" value={form.sellingPrice} onChange={set("sellingPrice")} placeholder="e.g. 450000" />
             </div>
 
             {/* Existing Expenses */}
             <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-                <label>Additional Expenses {vehicleExpenses.length > 0 && <span style={{ fontWeight: 400, fontSize: 12, color: "var(--muted)" }}>(Total: Rs. {vehicleExpenses.reduce((s, ex) => s + ex.amount, 0).toLocaleString()})</span>}</label>
+                <label>Additional Expenses (this bike only) {vehicleExpenses.length > 0 && <span style={{ fontWeight: 400, fontSize: 12, color: "var(--muted)" }}>(Total: Rs. {vehicleExpenses.reduce((s, ex) => s + ex.amount, 0).toLocaleString()})</span>}</label>
                 <div style={{ display: "flex", gap: 6 }}>
                   {vehicleExpenses.length > 0 && (
                     <button type="button" className="btn-outline" style={{ padding: "4px 12px", fontSize: 12 }} onClick={() => setShowExpenseDetails((v) => !v)}>
@@ -1223,7 +1355,7 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
                 <div key={`new-${i}`} className="bm-quick-add-row" style={{ marginBottom: 6 }}>
                   <input className="bm-input bm-input-sm" placeholder="Cost description" value={ex.description}
                     onChange={(e) => setNewExpenses((prev) => prev.map((p, j) => j === i ? { ...p, description: e.target.value } : p))} />
-                  <input className="bm-input bm-input-sm" type="number" min={0} step="0.01" placeholder="Amount" value={ex.amount}
+                  <input className="bm-input bm-input-sm" type="number" min={0} step="0.01" placeholder="Amount for this bike" value={ex.amount}
                     onChange={(e) => setNewExpenses((prev) => prev.map((p, j) => j === i ? { ...p, amount: e.target.value } : p))} style={{ maxWidth: 140 }} />
                   <button type="button" className="bm-action-btn bm-del-btn" onClick={() => setNewExpenses((prev) => prev.filter((_, j) => j !== i))}>✕</button>
                 </div>
@@ -1258,11 +1390,12 @@ function EditVehicleModal({ vehicle, token, onClose, onSaved }: {
   );
 }
 
-function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle: Vehicle; token: string; onClose: () => void }) {
+function ViewVehicleModal({ vehicle: initialVehicle, token, relatedVehicles = [], onClose }: { vehicle: Vehicle; token: string; relatedVehicles?: Vehicle[]; onClose: () => void }) {
   const [vehicle, setVehicle] = useState<Vehicle>(initialVehicle);
   const [images, setImages] = useState<VehicleImage[]>(initialVehicle.images ?? []);
   const [showExpenses, setShowExpenses] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [bulkPeerVehicles, setBulkPeerVehicles] = useState<Vehicle[]>(relatedVehicles);
   const base = `${API_URL}/api/pos/bike-management`;
   const auth = { Authorization: `Bearer ${token}` };
 
@@ -1270,9 +1403,10 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle
   useEffect(() => {
     void (async () => {
       try {
-        const [vRes, iRes] = await Promise.all([
+        const [vRes, iRes, peersRes] = await Promise.all([
           fetch(`${base}/vehicles/${initialVehicle.id}`, { headers: auth }),
           fetch(`${base}/vehicles/${initialVehicle.id}/images`, { headers: auth }),
+          fetch(`${base}/vehicles?limit=5000`, { headers: auth }),
         ]);
         if (vRes.ok) {
           const j = await vRes.json() as { data: Vehicle };
@@ -1283,13 +1417,49 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle
           const ij = await iRes.json() as { data: VehicleImage[] };
           if (ij.data && ij.data.length > 0) setImages(ij.data);
         }
+        if (peersRes.ok) {
+          const peersPayload = await peersRes.json() as { data?: { vehicles?: Vehicle[] } };
+          setBulkPeerVehicles(peersPayload.data?.vehicles ?? relatedVehicles);
+        }
       } finally { setLoading(false); }
     })();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const formatCurrency = (value: number) => `Rs. ${value.toLocaleString(undefined, { minimumFractionDigits: value % 1 === 0 ? 0 : 2, maximumFractionDigits: 2 })}`;
   const expenses = vehicle.expenses ?? [];
-  const totalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+  const rawTotalExpenses = expenses.reduce((s, e) => s + e.amount, 0);
+  const createdAtMs = new Date(vehicle.createdAt).getTime();
+  const peerVehicles = bulkPeerVehicles.length > 0 ? bulkPeerVehicles : relatedVehicles;
+  const likelyBulkCount = Math.max(1, peerVehicles.filter((candidate) => {
+    const candidateCreatedAtMs = new Date(candidate.createdAt).getTime();
+    return Number.isFinite(createdAtMs)
+      && Number.isFinite(candidateCreatedAtMs)
+      && Math.abs(candidateCreatedAtMs - createdAtMs) <= 60_000
+      && candidate.brandId === vehicle.brandId
+      && candidate.modelId === vehicle.modelId
+      && candidate.colour === vehicle.colour
+      && (candidate.supplier?.id ?? null) === (vehicle.supplier?.id ?? null)
+      && (candidate.year ?? null) === (vehicle.year ?? null)
+      && (candidate.registrationType ?? null) === (vehicle.registrationType ?? null)
+      && (candidate.sellingPrice ?? null) === (vehicle.sellingPrice ?? null);
+  }).length);
+  const comparisonBase = vehicle.sellingPrice ?? Number.MAX_SAFE_INTEGER;
+  const shouldDivideBulkValues = likelyBulkCount > 1 && (
+    (vehicle.purchasePrice ?? 0) > comparisonBase
+    || (vehicle.taxAmount ?? 0) > comparisonBase
+    || rawTotalExpenses > comparisonBase
+  );
+  const divideBulkAmount = (amount?: number) => {
+    if (amount == null) return amount;
+    return Number((amount / likelyBulkCount).toFixed(2));
+  };
+  const displayPurchasePrice = shouldDivideBulkValues ? divideBulkAmount(vehicle.purchasePrice) : vehicle.purchasePrice;
+  const displayTaxAmount = shouldDivideBulkValues ? divideBulkAmount(vehicle.taxAmount) : vehicle.taxAmount;
+  const displayExpenses = shouldDivideBulkValues
+    ? expenses.map((expense) => ({ ...expense, amount: divideBulkAmount(expense.amount) ?? 0 }))
+    : expenses;
+  const displayTotalExpenses = displayExpenses.reduce((sum, expense) => sum + expense.amount, 0);
 
   return (
     <div className="bm-modal-backdrop" onClick={onClose}>
@@ -1358,30 +1528,35 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle
               <div className="bm-view-detail-grid">
                 <div className="bm-view-detail">
                   <span className="bm-view-detail-label">Purchase Price</span>
-                  <span className="bm-view-detail-value bm-view-price">{vehicle.purchasePrice != null ? `Rs. ${vehicle.purchasePrice.toLocaleString()}` : "—"}</span>
+                  <span className="bm-view-detail-value bm-view-price">{displayPurchasePrice != null ? formatCurrency(displayPurchasePrice) : "—"}</span>
                 </div>
                 <div className="bm-view-detail">
                   <span className="bm-view-detail-label">Tax Amount</span>
-                  <span className="bm-view-detail-value bm-view-price">{vehicle.taxAmount != null ? `Rs. ${vehicle.taxAmount.toLocaleString()}` : "—"}</span>
+                  <span className="bm-view-detail-value bm-view-price">{displayTaxAmount != null ? formatCurrency(displayTaxAmount) : "—"}</span>
                 </div>
                 <div className="bm-view-detail">
                   <span className="bm-view-detail-label">Selling Price</span>
-                  <span className="bm-view-detail-value bm-view-price bm-view-price-highlight">{vehicle.sellingPrice != null ? `Rs. ${vehicle.sellingPrice.toLocaleString()}` : "—"}</span>
+                  <span className="bm-view-detail-value bm-view-price bm-view-price-highlight">{vehicle.sellingPrice != null ? formatCurrency(vehicle.sellingPrice) : "—"}</span>
                 </div>
               </div>
+              {shouldDivideBulkValues && (
+                <div style={{ marginTop: 8, fontSize: 12, color: "var(--text-soft)" }}>
+                  Showing per-bike values divided across {likelyBulkCount} bikes from the same bulk entry.
+                </div>
+              )}
             </div>
 
             {/* Expenses Section */}
-            {(expenses.length > 0 || totalExpenses > 0) && (
+            {(displayExpenses.length > 0 || displayTotalExpenses > 0) && (
               <div className="bm-view-section">
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
                   <h4 className="bm-view-section-title" style={{ margin: 0 }}>
                     Additional Expenses
                     <span style={{ fontWeight: 400, fontSize: 12, color: "var(--text-soft)", marginLeft: 8 }}>
-                      Rs. {totalExpenses.toLocaleString()}
+                      {formatCurrency(displayTotalExpenses)}
                     </span>
                   </h4>
-                  {expenses.length > 0 && (
+                  {displayExpenses.length > 0 && (
                     <button
                       type="button"
                       className="bm-view-toggle-btn"
@@ -1403,18 +1578,18 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, onClose }: { vehicle
                         </tr>
                       </thead>
                       <tbody>
-                        {expenses.map((ex, i) => (
+                        {displayExpenses.map((ex, i) => (
                           <tr key={ex.id}>
                             <td style={{ padding: "6px 10px" }}>{i + 1}</td>
                             <td style={{ padding: "6px 10px" }}>{ex.description}</td>
-                            <td style={{ textAlign: "right", padding: "6px 10px" }}>Rs. {ex.amount.toLocaleString()}</td>
+                            <td style={{ textAlign: "right", padding: "6px 10px" }}>{formatCurrency(ex.amount)}</td>
                             <td style={{ padding: "6px 10px", fontSize: 12, color: "var(--text-soft)" }}>{new Date(ex.createdAt).toLocaleDateString()}</td>
                           </tr>
                         ))}
                         <tr style={{ fontWeight: 700, borderTop: "2px solid var(--border)" }}>
                           <td style={{ padding: "8px 10px" }} />
                           <td style={{ padding: "8px 10px" }}>Total</td>
-                          <td style={{ textAlign: "right", padding: "8px 10px" }}>Rs. {totalExpenses.toLocaleString()}</td>
+                          <td style={{ textAlign: "right", padding: "8px 10px" }}>{formatCurrency(displayTotalExpenses)}</td>
                           <td />
                         </tr>
                       </tbody>
@@ -1603,7 +1778,7 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
         </tr>
         );
       })}
-      {viewV && <ViewVehicleModal vehicle={viewV} token={token} onClose={() => setViewV(null)} />}
+      {viewV && <ViewVehicleModal vehicle={viewV} relatedVehicles={vehicles} token={token} onClose={() => setViewV(null)} />}
       {editV && <EditVehicleModal vehicle={editV} token={token} onClose={() => setEditV(null)} onSaved={() => { setEditV(null); onRefresh(); }} />}
       {delConfirm !== null && (
         <tr><td colSpan={6}>

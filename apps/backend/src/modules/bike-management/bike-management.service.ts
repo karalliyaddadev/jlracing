@@ -292,6 +292,29 @@ function normalizeProductExpenses(expenses?: { description: string; amount: numb
     .filter((expense) => expense.description && Number.isFinite(expense.amount) && expense.amount >= 0);
 }
 
+function getSafePerItemCount(count: number | undefined) {
+  if (typeof count !== "number" || !Number.isFinite(count) || count <= 0) {
+    return 1;
+  }
+  return Math.max(Math.floor(count), 1);
+}
+
+function divideTotalAmountPerItem(amount: number | undefined, count: number | undefined) {
+  if (amount === undefined || !Number.isFinite(amount)) {
+    return undefined;
+  }
+
+  const safeCount = getSafePerItemCount(count);
+  return Math.round((amount / safeCount) * 100) / 100;
+}
+
+function normalizeProductExpensesForCount(expenses: { description: string; amount: number }[] | undefined, count: number | undefined) {
+  return normalizeProductExpenses(expenses).map((expense) => ({
+    ...expense,
+    amount: divideTotalAmountPerItem(expense.amount, count) ?? 0,
+  }));
+}
+
 async function createProductWithUniqueDisplayId(data: Record<string, unknown>) {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const displayId = await generateProductDisplayId();
@@ -445,7 +468,8 @@ export async function createProduct(dto: CreateProductDto) {
   if (!category) throw AppError.notFound("Product category not found");
   await assertSupplierExists(dto.supplierId);
 
-  const expenses = normalizeProductExpenses(dto.expenses);
+  const pricingUnitCount = getSafePerItemCount(dto.quantity);
+  const expenses = normalizeProductExpensesForCount(dto.expenses, pricingUnitCount);
   const description = normalizeProductDescription(dto.description, dto.descriptionPoints);
 
   return createProductWithUniqueDisplayId({
@@ -455,13 +479,13 @@ export async function createProduct(dto: CreateProductDto) {
     name: dto.name.trim(),
     quantity: dto.quantity ?? 0,
     lowStockThreshold: dto.lowStockThreshold ?? 0,
-    purchasePrice: dto.purchasePrice,
-    taxPaid: dto.taxPaid,
+    purchasePrice: divideTotalAmountPerItem(dto.purchasePrice, pricingUnitCount),
+    taxPaid: divideTotalAmountPerItem(dto.taxPaid, pricingUnitCount),
     sellingPrice: dto.sellingPrice,
     description,
     additionalExpenses: expenses.length > 0
       ? expenses.reduce((sum, expense) => sum + expense.amount, 0)
-      : dto.additionalExpenses,
+      : divideTotalAmountPerItem(dto.additionalExpenses, pricingUnitCount),
     ...(expenses.length > 0
       ? {
           expenses: {
@@ -473,7 +497,7 @@ export async function createProduct(dto: CreateProductDto) {
 }
 
 export async function updateProduct(id: number, dto: UpdateProductDto) {
-  await getProduct(id);
+  const existingProduct = await getProduct(id);
   if (dto.brandId) {
     const brand = await prisma.inventoryBrand.findUnique({ where: { id: dto.brandId } });
     if (!brand) throw AppError.notFound("Product brand not found");
@@ -485,7 +509,8 @@ export async function updateProduct(id: number, dto: UpdateProductDto) {
   const supplierId = dto.supplierId === null ? undefined : dto.supplierId;
   await assertSupplierExists(supplierId);
 
-  const expenses = dto.expenses !== undefined ? normalizeProductExpenses(dto.expenses) : undefined;
+  const pricingUnitCount = getSafePerItemCount((dto.quantity ?? existingProduct.quantity) + (existingProduct.soldQuantity ?? 0));
+  const expenses = dto.expenses !== undefined ? normalizeProductExpensesForCount(dto.expenses, pricingUnitCount) : undefined;
   const description = dto.description !== undefined || dto.descriptionPoints !== undefined
     ? normalizeProductDescription(dto.description, dto.descriptionPoints)
     : undefined;
@@ -498,8 +523,8 @@ export async function updateProduct(id: number, dto: UpdateProductDto) {
       ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
       ...(dto.quantity !== undefined ? { quantity: dto.quantity } : {}),
       ...(dto.lowStockThreshold !== undefined ? { lowStockThreshold: dto.lowStockThreshold ?? 0 } : {}),
-      ...(dto.purchasePrice !== undefined ? { purchasePrice: dto.purchasePrice } : {}),
-      ...(dto.taxPaid !== undefined ? { taxPaid: dto.taxPaid } : {}),
+      ...(dto.purchasePrice !== undefined ? { purchasePrice: divideTotalAmountPerItem(dto.purchasePrice, pricingUnitCount) } : {}),
+      ...(dto.taxPaid !== undefined ? { taxPaid: divideTotalAmountPerItem(dto.taxPaid, pricingUnitCount) } : {}),
       ...(dto.sellingPrice !== undefined ? { sellingPrice: dto.sellingPrice } : {}),
       ...(description !== undefined ? { description: description || null } : {}),
       ...(dto.supplierId === null ? { supplierId: null } : dto.supplierId !== undefined ? { supplierId: dto.supplierId } : {}),
@@ -512,7 +537,7 @@ export async function updateProduct(id: number, dto: UpdateProductDto) {
             },
           }
         : dto.additionalExpenses !== undefined
-          ? { additionalExpenses: dto.additionalExpenses }
+          ? { additionalExpenses: divideTotalAmountPerItem(dto.additionalExpenses, pricingUnitCount) }
           : {}),
     },
     include: productInclude,
@@ -647,6 +672,18 @@ export async function getVehicle(id: number) {
   return vehicle;
 }
 
+function splitAmountAcrossCount(amount: number | undefined, count: number) {
+  if (amount === undefined || !Number.isFinite(amount)) {
+    return Array.from({ length: count }, () => undefined as number | undefined);
+  }
+
+  const totalCents = Math.round(amount * 100);
+  const baseCents = Math.floor(totalCents / count);
+  const remainder = totalCents % count;
+
+  return Array.from({ length: count }, (_, index) => (baseCents + (index < remainder ? 1 : 0)) / 100);
+}
+
 export async function createVehicle(dto: CreateVehicleDto) {
   const model = await prisma.bikeModel.findUnique({ where: { id: dto.modelId } });
   if (!model) throw AppError.notFound("Model not found");
@@ -674,15 +711,22 @@ export async function bulkCreateVehicles(dto: BulkCreateVehicleDto) {
   if (model.brandId !== dto.brandId) throw AppError.validation("Model does not belong to the selected brand");
   await assertSupplierExists(dto.supplierId);
 
+  const perBikePurchasePrices = splitAmountAcrossCount(dto.purchasePrice, dto.count);
+  const perBikeTaxAmounts = splitAmountAcrossCount(dto.taxAmount, dto.count);
   const normalizedExpenses = (dto.expenses ?? [])
     .map((expense) => ({
       description: expense.description.trim(),
-      amount: Number(expense.amount),
+      perBikeAmounts: splitAmountAcrossCount(Number(expense.amount), dto.count),
     }))
-    .filter((expense) => expense.description && Number.isFinite(expense.amount) && expense.amount >= 0);
+    .filter((expense) => expense.description);
 
   const created = [];
   for (let i = 0; i < dto.count; i++) {
+    const perBikeExpenses = normalizedExpenses.map((expense) => ({
+      description: expense.description,
+      amount: expense.perBikeAmounts[i] ?? 0,
+    }));
+
     const createData = {
       brandId: dto.brandId,
       modelId: dto.modelId,
@@ -693,11 +737,11 @@ export async function bulkCreateVehicles(dto: BulkCreateVehicleDto) {
       mileage: dto.mileage ?? 0,
       year: dto.year,
       registrationType: dto.registrationType ?? "unregistered",
-      purchasePrice: dto.purchasePrice,
-      taxAmount: dto.taxAmount,
+      purchasePrice: perBikePurchasePrices[i],
+      taxAmount: perBikeTaxAmounts[i],
       sellingPrice: dto.sellingPrice,
       status: "available",
-      ...(normalizedExpenses.length > 0 ? { expenses: { create: normalizedExpenses } } : {}),
+      ...(perBikeExpenses.length > 0 ? { expenses: { create: perBikeExpenses } } : {}),
     } as Record<string, unknown>;
 
     const vehicle = await createVehicleWithUniqueDisplayId(createData);

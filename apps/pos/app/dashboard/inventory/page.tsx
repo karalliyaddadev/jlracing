@@ -75,6 +75,30 @@ function parseDescriptionPoints(value?: string) {
   return points.length > 0 ? points : [""];
 }
 
+function getProductPricingUnitCount(product?: Pick<Product, "quantity" | "soldQuantity"> | null) {
+  const totalUnits = (product?.quantity ?? 0) + (product?.soldQuantity ?? 0);
+  return totalUnits > 0 ? totalUnits : 1;
+}
+
+function formatCurrency(value: number | undefined) {
+  if (typeof value !== "number" || Number.isNaN(value)) {
+    return "Rs. 0.00";
+  }
+
+  return `Rs. ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+}
+
+function getDisplayDescriptionPoints(value?: string) {
+  const normalized = (value ?? "")
+    .replace(/\r/g, "")
+    .replace(/\s*•\s*/g, "\n• ");
+
+  return normalized
+    .split("\n")
+    .map((line) => line.replace(/^[•\-*]\s*/, "").trim())
+    .filter(Boolean);
+}
+
 function SelectWithAdd<T extends { id: number; name: string }>({
   value, onChange, options, placeholder, onAdd, disabled,
 }: {
@@ -240,6 +264,7 @@ function ProductModal({
   onAuthExpired: () => void;
 }) {
   const isEdit = !!product;
+  const initialPricingUnitCount = getProductPricingUnitCount(product);
   const [form, setForm] = useState({
     brandId: product?.brandId ? String(product.brandId) : "",
     categoryId: product?.categoryId ? String(product.categoryId) : "",
@@ -247,18 +272,18 @@ function ProductModal({
     name: product?.name ?? "",
     quantity: String(product?.quantity ?? 0),
     lowStockThreshold: product?.lowStockThreshold != null ? String(product.lowStockThreshold) : "",
-    purchasePrice: product?.purchasePrice != null ? String(product.purchasePrice) : "",
-    taxPaid: product?.taxPaid != null ? String(product.taxPaid) : "",
+    purchasePrice: product?.purchasePrice != null ? String(product.purchasePrice * initialPricingUnitCount) : "",
+    taxPaid: product?.taxPaid != null ? String(product.taxPaid * initialPricingUnitCount) : "",
     sellingPrice: product?.sellingPrice != null ? String(product.sellingPrice) : "",
   });
   const [descriptionPoints, setDescriptionPoints] = useState<string[]>(() => parseDescriptionPoints(product?.description));
   const [lowStockEnabled, setLowStockEnabled] = useState((product?.lowStockThreshold ?? 0) > 0);
   const [expenses, setExpenses] = useState<{ description: string; amount: string }[]>(() => {
     if (product?.expenses?.length) {
-      return product.expenses.map((expense) => ({ description: expense.description, amount: String(expense.amount) }));
+      return product.expenses.map((expense) => ({ description: expense.description, amount: String(expense.amount * initialPricingUnitCount) }));
     }
     if (product?.additionalExpenses != null && product.additionalExpenses > 0) {
-      return [{ description: "", amount: String(product.additionalExpenses) }];
+      return [{ description: "", amount: String(product.additionalExpenses * initialPricingUnitCount) }];
     }
     return [];
   });
@@ -276,6 +301,19 @@ function ProductModal({
   const setField = (key: keyof typeof form) => (value: string) => setForm((current) => ({ ...current, [key]: value }));
   const setEvent = (key: keyof typeof form) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => setField(key)(event.target.value);
   const totalAdditionalExpenses = expenses.reduce((sum, expense) => sum + (Number(expense.amount) || 0), 0);
+  const enteredQuantity = Number(form.quantity || 0);
+  const pricingUnitCount = isEdit ? enteredQuantity + (product?.soldQuantity ?? 0) : enteredQuantity;
+  const getPerPieceValue = (value: string) => {
+    if (pricingUnitCount <= 0) return undefined;
+    const numericValue = Number(value);
+    if (!Number.isFinite(numericValue) || numericValue <= 0) return undefined;
+    return numericValue / pricingUnitCount;
+  };
+  const perPiecePurchasePrice = getPerPieceValue(form.purchasePrice);
+  const perPieceTaxPaid = getPerPieceValue(form.taxPaid);
+  const perPieceAdditionalExpenses = pricingUnitCount > 0 && totalAdditionalExpenses > 0
+    ? totalAdditionalExpenses / pricingUnitCount
+    : undefined;
 
   const saveBrand = async () => {
     if (!newBrand.trim()) return;
@@ -435,8 +473,11 @@ function ProductModal({
             </div>
 
             <div className="bm-field-group">
-              <label>Quantity *</label>
+              <label>Quantity / Pieces *</label>
               <input className="bm-input" type="number" min={0} value={form.quantity} onChange={setEvent("quantity")} placeholder="0" />
+              {pricingUnitCount <= 0 && (
+                <span style={{ fontSize: 12, color: "var(--text-soft)" }}>Enter the number of pieces to preview the per-piece cost.</span>
+              )}
             </div>
 
             <div className="bm-field-group">
@@ -460,19 +501,32 @@ function ProductModal({
               </div>
             </div>
 
+            <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
+              <span style={{ fontSize: 12, color: "var(--text-soft)" }}>
+                Enter purchase price, tax, and additional expenses as the total for the full stock set. The system will divide and save the per-piece cost automatically, while selling price stays per piece.
+                {pricingUnitCount > 0 ? ` Current pricing batch: ${pricingUnitCount} piece${pricingUnitCount > 1 ? "s" : ""}.` : ""}
+              </span>
+            </div>
+
             <div className="bm-field-group">
-              <label>Selling Price</label>
+              <label>Selling Price (per piece)</label>
               <input className="bm-input" type="number" min={0} step="0.01" value={form.sellingPrice} onChange={setEvent("sellingPrice")} placeholder="e.g. 4500" />
             </div>
 
             <div className="bm-field-group">
-              <label>Purchase Price</label>
-              <input className="bm-input" type="number" min={0} step="0.01" value={form.purchasePrice} onChange={setEvent("purchasePrice")} placeholder="e.g. 3000" />
+              <label>Purchase Price (total for all pieces)</label>
+              <input className="bm-input" type="number" min={0} step="0.01" value={form.purchasePrice} onChange={setEvent("purchasePrice")} placeholder="e.g. 3000 for the full stock set" />
+              {perPiecePurchasePrice !== undefined && (
+                <span style={{ fontSize: 12, color: "var(--text-soft)" }}>Per piece: {formatCurrency(perPiecePurchasePrice)}</span>
+              )}
             </div>
 
             <div className="bm-field-group">
-              <label>Tax Paid</label>
-              <input className="bm-input" type="number" min={0} step="0.01" value={form.taxPaid} onChange={setEvent("taxPaid")} placeholder="e.g. 250" />
+              <label>Tax Paid (total for all pieces)</label>
+              <input className="bm-input" type="number" min={0} step="0.01" value={form.taxPaid} onChange={setEvent("taxPaid")} placeholder="e.g. 250 for the full stock set" />
+              {perPieceTaxPaid !== undefined && (
+                <span style={{ fontSize: 12, color: "var(--text-soft)" }}>Per piece: {formatCurrency(perPieceTaxPaid)}</span>
+              )}
             </div>
 
             <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
@@ -503,7 +557,14 @@ function ProductModal({
 
             <div className="bm-field-group" style={{ gridColumn: "1 / -1" }}>
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 8 }}>
-                <label style={{ margin: 0 }}>Additional Expenses {expenses.length > 0 && <span style={{ fontWeight: 400, fontSize: 12, color: "var(--text-soft)" }}>(Total: Rs. {totalAdditionalExpenses.toLocaleString()})</span>}</label>
+                <label style={{ margin: 0 }}>
+                  Additional Expenses (total for all pieces)
+                  {expenses.length > 0 && (
+                    <span style={{ fontWeight: 400, fontSize: 12, color: "var(--text-soft)" }}>
+                      {` (Batch total: ${formatCurrency(totalAdditionalExpenses)}${perPieceAdditionalExpenses !== undefined ? ` · Per piece: ${formatCurrency(perPieceAdditionalExpenses)}` : ""})`}
+                    </span>
+                  )}
+                </label>
                 <button type="button" className="btn-accent bm-add-btn" onClick={() => setExpenses((prev) => [...prev, { description: "", amount: "" }])}>+</button>
               </div>
               <div style={{ display: "grid", gap: 8 }}>
@@ -522,7 +583,7 @@ function ProductModal({
                       step="0.01"
                       value={expense.amount}
                       onChange={(event) => setExpenses((prev) => prev.map((item, itemIndex) => itemIndex === index ? { ...item, amount: event.target.value } : item))}
-                      placeholder="Amount"
+                      placeholder="Total amount"
                       style={{ maxWidth: 160 }}
                     />
                     <button
@@ -534,7 +595,7 @@ function ProductModal({
                     </button>
                   </div>
                 ))}
-                {expenses.length === 0 && <span style={{ color: "var(--text-soft)", fontSize: 13 }}>Press + to add an expense row.</span>}
+                {expenses.length === 0 && <span style={{ color: "var(--text-soft)", fontSize: 13 }}>Press + to add an expense row. Enter each amount as the total for the full stock set.</span>}
               </div>
             </div>
           </div>
@@ -638,6 +699,17 @@ function ViewProductModal({ product, token, onClose }: { product: Product; token
   const [detail, setDetail] = useState<Product>(product);
   const [images, setImages] = useState<ProductImage[]>(product.images ?? []);
   const [loading, setLoading] = useState(true);
+  const pricingUnitCount = getProductPricingUnitCount(detail);
+  const descriptionPoints = getDisplayDescriptionPoints(detail.description);
+  const expenseBreakdown = ((detail.expenses ?? []).length > 0
+    ? detail.expenses ?? []
+    : detail.additionalExpenses != null && detail.additionalExpenses > 0
+      ? [{ description: "Additional expense", amount: detail.additionalExpenses }]
+      : []
+  ).map((expense) => ({
+    ...expense,
+    description: expense.description?.trim() || "Additional expense",
+  }));
   const base = `${API_URL}/api/pos/bike-management`;
   const auth = { Authorization: `Bearer ${token}` };
 
@@ -701,46 +773,51 @@ function ViewProductModal({ product, token, onClose }: { product: Product; token
                 <div className="bm-view-detail"><span className="bm-view-detail-label">Product Name</span><span className="bm-view-detail-value">{detail.name}</span></div>
                 <div className="bm-view-detail"><span className="bm-view-detail-label">Created At</span><span className="bm-view-detail-value">{new Date(detail.createdAt).toLocaleDateString()}</span></div>
               </div>
-              {detail.description && (
-                <div className="bm-view-desc">
-                  <span className="bm-view-detail-label">Description</span>
+              <div className="bm-view-desc">
+                <span className="bm-view-detail-label">Description Points</span>
+                {descriptionPoints.length > 0 ? (
                   <ul className="bm-view-desc-text" style={{ margin: "0.5rem 0 0 1rem" }}>
-                    {detail.description
-                      .split(/\r?\n/)
-                      .map((line) => line.replace(/^[•\-*]\s*/, "").trim())
-                      .filter(Boolean)
-                      .map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}
+                    {descriptionPoints.map((line, index) => <li key={`${line}-${index}`}>{line}</li>)}
                   </ul>
-                </div>
-              )}
+                ) : (
+                  <div style={{ marginTop: 8, color: "var(--text-soft)", fontSize: 13 }}>No description points added for this product.</div>
+                )}
+              </div>
             </div>
 
             <div className="bm-view-section">
               <h4 className="bm-view-section-title">Pricing</h4>
+              <p style={{ margin: "0 0 12px", fontSize: 12, color: "var(--text-soft)" }}>
+                Purchase price, tax, and extra expenses are shown as the per-piece cost for this stock batch ({pricingUnitCount} piece{pricingUnitCount > 1 ? "s" : ""}).
+              </p>
               <div className="bm-view-detail-grid">
-                <div className="bm-view-detail"><span className="bm-view-detail-label">Purchase Price</span><span className="bm-view-detail-value bm-view-price">{detail.purchasePrice != null ? `Rs. ${detail.purchasePrice.toLocaleString()}` : "—"}</span></div>
-                <div className="bm-view-detail"><span className="bm-view-detail-label">Tax Paid</span><span className="bm-view-detail-value bm-view-price">{detail.taxPaid != null ? `Rs. ${detail.taxPaid.toLocaleString()}` : "—"}</span></div>
-                <div className="bm-view-detail"><span className="bm-view-detail-label">Additional Expenses</span><span className="bm-view-detail-value bm-view-price">{detail.additionalExpenses != null ? `Rs. ${detail.additionalExpenses.toLocaleString()}` : "—"}</span></div>
-                <div className="bm-view-detail"><span className="bm-view-detail-label">Selling Price</span><span className="bm-view-detail-value bm-view-price bm-view-price-highlight">{detail.sellingPrice != null ? `Rs. ${detail.sellingPrice.toLocaleString()}` : "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Purchase Price </span><span className="bm-view-detail-value bm-view-price">{detail.purchasePrice != null ? formatCurrency(detail.purchasePrice) : "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Tax Paid</span><span className="bm-view-detail-value bm-view-price">{detail.taxPaid != null ? formatCurrency(detail.taxPaid) : "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Additional Expenses</span><span className="bm-view-detail-value bm-view-price">{detail.additionalExpenses != null ? formatCurrency(detail.additionalExpenses) : "—"}</span></div>
+                <div className="bm-view-detail"><span className="bm-view-detail-label">Selling Price / Piece</span><span className="bm-view-detail-value bm-view-price bm-view-price-highlight">{detail.sellingPrice != null ? formatCurrency(detail.sellingPrice) : "—"}</span></div>
               </div>
-              {(detail.expenses?.length ?? 0) > 0 && (
+              {expenseBreakdown.length > 0 && (
                 <div className="bm-view-desc">
-                  <span className="bm-view-detail-label">Expense Breakdown</span>
+                  <span className="bm-view-detail-label">Additional Expense Breakdown</span>
                   <div className="bm-view-expenses-table" style={{ marginTop: 10 }}>
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                       <thead>
                         <tr>
-                          <th style={{ textAlign: "left", padding: "6px 10px" }}>Description</th>
-                          <th style={{ textAlign: "right", padding: "6px 10px" }}>Amount</th>
+                          <th style={{ textAlign: "left", padding: "6px 10px" }}>Expense Description</th>
+                          <th style={{ textAlign: "right", padding: "6px 10px" }}>Price</th>
                         </tr>
                       </thead>
                       <tbody>
-                        {detail.expenses?.map((expense, index) => (
+                        {expenseBreakdown.map((expense, index) => (
                           <tr key={`${expense.description}-${index}`}>
                             <td style={{ padding: "6px 10px" }}>{expense.description}</td>
-                            <td style={{ textAlign: "right", padding: "6px 10px" }}>Rs. {expense.amount.toLocaleString()}</td>
+                            <td style={{ textAlign: "right", padding: "6px 10px" }}>{formatCurrency(expense.amount)}</td>
                           </tr>
                         ))}
+                        <tr style={{ fontWeight: 700, borderTop: "1px solid var(--panel-border)" }}>
+                          <td style={{ padding: "6px 10px" }}>Total</td>
+                          <td style={{ textAlign: "right", padding: "6px 10px" }}>{formatCurrency(expenseBreakdown.reduce((sum, expense) => sum + expense.amount, 0))}</td>
+                        </tr>
                       </tbody>
                     </table>
                   </div>
