@@ -1,11 +1,19 @@
 import Image from "next/image";
 
 const BRANDS = [
-  { name: "Toyota", src: "/trusted/toyota.png" },
-  { name: "Honda", src: "/trusted/honda-bg.png" },
-  { name: "Mazda", src: "/trusted/mazda.png" },
-  { name: "Nissan", src: "/trusted/nissan.png" },
-  { name: "Audi", src: "/trusted/audi.webp" },
+  { name: "Toyota", src: "/trusted-brands/Toyota.png" },
+  { name: "Honda", src: "/trusted-brands/Honda.png" },
+  { name: "Nissan", src: "/trusted-brands/Nissan.png" },
+  { name: "Mazda", src: "/trusted-brands/Mazda.png" },
+  { name: "Mitsubishi", src: "/trusted-brands/Mitsubishi.png" },
+  { name: "Subaru", src: "/trusted-brands/Subaru.png" },
+  { name: "Suzuki", src: "/trusted-brands/Suzuki.png" },
+  { name: "Lexus", src: "/trusted-brands/Lexus.png" },
+  { name: "Infiniti", src: "/trusted-brands/Infinit.png" },
+  { name: "Acura", src: "/trusted-brands/Acura.png" },
+  { name: "Daihatsu", src: "/trusted-brands/Daihatsu.png" },
+  { name: "Hino", src: "/trusted-brands/Hino.png" },
+  { name: "Mitsuoka", src: "/trusted-brands/Mitsuoka.png" },
 ];
 
 export default function TrustedBrands() {
@@ -41,7 +49,6 @@ export default function TrustedBrands() {
                     className="int-brands__logo"
                   />
                 </div>
-                <span className="int-brands__name">{brand.name}</span>
               </div>
             ))}
           </div>
