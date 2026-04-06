@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { MOCK_BIKES } from "./data";
+import Pagination from "../components/Pagination";
 
 const BRANDS = [
   "Yamaha",
@@ -14,6 +15,8 @@ const BRANDS = [
   "Harley Davidson",
   "KTM",
 ];
+const ITEMS_PER_PAGE = 6;
+
 const CC_OPTIONS = [
   "Under 150cc",
   "150–250cc",
@@ -117,6 +120,11 @@ export default function BikesPage() {
   const [statuses, setStatuses] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, brands, ccOptions, statuses]);
 
   const q = search.toLowerCase();
   const filtered = MOCK_BIKES.filter((b) => {
@@ -127,6 +135,12 @@ export default function BikesPage() {
       return false;
     return true;
   });
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginated = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   return (
     <section className="bikes-page">
@@ -267,7 +281,7 @@ export default function BikesPage() {
             {filtered.length === 0 ? (
               <p className="bikes-grid__empty">No bikes match your filters.</p>
             ) : (
-              filtered.map((bike) => (
+              paginated.map((bike) => (
                 <Link
                   key={bike.id}
                   href={`/bikes/${bike.id}`}
@@ -290,6 +304,11 @@ export default function BikesPage() {
             )}
           </div>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </section>
   );
