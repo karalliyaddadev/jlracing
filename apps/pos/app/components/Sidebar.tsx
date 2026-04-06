@@ -5,48 +5,72 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  IconDashboard,
-  IconUsers,
-  IconInvoice,
-  IconInventory,
   IconAccess,
-  IconChevronLeft,
-  IconChevronRight,
-  IconSearch,
   IconBike,
+  IconChevronLeft,
   IconChevronNav,
+  IconChevronRight,
+  IconDashboard,
+  IconInventory,
+  IconInvoice,
+  IconSearch,
+  IconSupplier,
+  IconUsers,
 } from "../lib/icons";
 
 const NAV_ITEMS = [
-  { key: "dashboard", label: "Dashboard",           href: "/dashboard",            Icon: IconDashboard  },
-  { key: "users",     label: "User Management",      href: "/dashboard/users",      Icon: IconUsers      },
-  { key: "invoices",  label: "Invoice Management",   href: "/dashboard/invoices",   Icon: IconInvoice    },
-  { key: "inventory", label: "Inventory Management", href: "/dashboard/inventory",  Icon: IconInventory  },
-  { key: "access",    label: "Access Management",    href: "/dashboard/access",     Icon: IconAccess     },
-];
+  { key: "dashboard", label: "Dashboard", href: "/dashboard", Icon: IconDashboard },
+  { key: "users", label: "User Management", href: "/dashboard/users", Icon: IconUsers },
+  { key: "suppliers", label: "Supplier Management", href: "/dashboard/suppliers", Icon: IconSupplier },
+  { key: "invoices", label: "Invoice Management", href: "/dashboard/invoices", Icon: IconInvoice },
+  { key: "inventory", label: "Inventory Management", href: "/dashboard/inventory", Icon: IconInventory },
+  { key: "access", label: "Access Management", href: "/dashboard/access", Icon: IconAccess },
+] as const;
 
 const BIKE_SUB_ITEMS = [
-  { key: "bikes-inventory", label: "Inventory",             href: "/dashboard/bikes"         },
-  { key: "bikes-sold",      label: "Sold Bikes",            href: "/dashboard/bikes/sold"    },
-  { key: "bikes-manage",    label: "Manage Data",           href: "/dashboard/bikes/manage"  },
-];
+  { key: "inventory", label: "Inventory", href: "/dashboard/bikes" },
+  { key: "sold", label: "Sold Bikes", href: "/dashboard/bikes/sold" },
+  { key: "manage", label: "Manage Data", href: "/dashboard/bikes/manage" },
+] as const;
+
+const INVENTORY_SUB_ITEMS = [
+  { key: "inventory", label: "Inventory", href: "/dashboard/inventory" },
+  { key: "sold", label: "Sold Items", href: "/dashboard/inventory/sold" },
+  { key: "manage", label: "Manage Data", href: "/dashboard/inventory/manage" },
+] as const;
+
+const SIDEBAR_COLLAPSED_KEY = "pos-sidebar-collapsed";
 
 export function Sidebar() {
-  const [collapsed, setCollapsed] = useState(false);
-  const [bikeOpen, setBikeOpen]   = useState(false);
   const pathname = usePathname();
+  const [collapsed, setCollapsed] = useState(false);
+  const [bikeOpen, setBikeOpen] = useState(pathname.startsWith("/dashboard/bikes"));
+  const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith("/dashboard/inventory"));
+
+  useEffect(() => {
+    const saved = window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
+    if (saved) {
+      setCollapsed(saved === "true");
+    }
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(SIDEBAR_COLLAPSED_KEY, String(collapsed));
+  }, [collapsed]);
+
+  useEffect(() => {
+    if (pathname.startsWith("/dashboard/bikes")) {
+      setBikeOpen(true);
+    }
+    if (pathname.startsWith("/dashboard/inventory")) {
+      setInventoryOpen(true);
+    }
+  }, [pathname]);
 
   const isBikeActive = pathname.startsWith("/dashboard/bikes");
+  const isInventoryActive = pathname.startsWith("/dashboard/inventory");
 
-  // Auto-open bike submenu when on a bike route
-  useEffect(() => {
-    if (isBikeActive) setBikeOpen(true);
-  }, [isBikeActive]);
-
-  const isBikeSubItemActive = (href: string) => {
-    if (href === "/dashboard/bikes") return pathname === "/dashboard/bikes";
-    return pathname.startsWith(href);
-  };
+  const isSubItemActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <aside className={`sidebar${collapsed ? " collapsed" : ""}`}>
@@ -54,7 +78,7 @@ export function Sidebar() {
         <button
           type="button"
           className="sidebar-collapse-btn"
-          onClick={() => setCollapsed((v) => !v)}
+          onClick={() => setCollapsed((value) => !value)}
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <IconChevronRight /> : <IconChevronLeft />}
@@ -70,29 +94,64 @@ export function Sidebar() {
       {!collapsed && (
         <div className="sidebar-search">
           <IconSearch />
-          <input type="text" placeholder="Quick search…" />
+          <input type="text" placeholder="Quick search..." />
         </div>
       )}
 
       <nav className="sidebar-nav">
         {NAV_ITEMS.map(({ key, label, href, Icon }) => {
           const isActive = pathname === href || (href !== "/dashboard" && pathname.startsWith(href));
+
           return (
-            <>
-              <Link
-                key={key}
-                href={href}
-                className={`nav-item${isActive ? " active" : ""}`}
-                title={collapsed ? label : undefined}
-              >
-                <span className="nav-icon"><Icon /></span>
-                {!collapsed && <span className="nav-label">{label}</span>}
-                {!collapsed && isActive && <span className="nav-dot" />}
-              </Link>
+            <div key={key}>
+              {key === "inventory" && !collapsed ? (
+                <>
+                  <button
+                    type="button"
+                    className={`nav-item nav-group-toggle${isInventoryActive ? " active" : ""}`}
+                    onClick={() => setInventoryOpen((value) => !value)}
+                  >
+                    <span className="nav-icon"><Icon /></span>
+                    <span className="nav-label">{label}</span>
+                    <span
+                      className="nav-chevron"
+                      style={{ transform: inventoryOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+                    >
+                      <IconChevronNav />
+                    </span>
+                  </button>
+                  {inventoryOpen && (
+                    <div className="nav-sub-group">
+                      {INVENTORY_SUB_ITEMS.map(({ key: itemKey, label: itemLabel, href: itemHref }) => {
+                        const itemActive = isSubItemActive(itemHref);
+                        return (
+                          <Link
+                            key={itemKey}
+                            href={itemHref}
+                            className={`nav-sub-item${itemActive ? " active" : ""}`}
+                          >
+                            <span className="nav-sub-dot" />
+                            <span>{itemLabel}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <Link
+                  href={href}
+                  className={`nav-item${isActive ? " active" : ""}`}
+                  title={collapsed ? label : undefined}
+                >
+                  <span className="nav-icon"><Icon /></span>
+                  {!collapsed && <span className="nav-label">{label}</span>}
+                  {!collapsed && isActive && <span className="nav-dot" />}
+                </Link>
+              )}
 
               {key === "users" && (
-                <div key="bike-management-slot">
-                  {/* ── Bike Management dropdown ── */}
+                <div>
                   {collapsed ? (
                     <Link
                       href="/dashboard/bikes"
@@ -106,18 +165,21 @@ export function Sidebar() {
                       <button
                         type="button"
                         className={`nav-item nav-group-toggle${isBikeActive ? " active" : ""}`}
-                        onClick={() => setBikeOpen((v) => !v)}
+                        onClick={() => setBikeOpen((value) => !value)}
                       >
                         <span className="nav-icon"><IconBike /></span>
                         <span className="nav-label">Bike Management</span>
-                        <span className="nav-chevron" style={{ transform: bikeOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}>
+                        <span
+                          className="nav-chevron"
+                          style={{ transform: bikeOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+                        >
                           <IconChevronNav />
                         </span>
                       </button>
                       {bikeOpen && (
                         <div className="nav-sub-group">
                           {BIKE_SUB_ITEMS.map(({ key: bikeKey, label: bikeLabel, href: bikeHref }) => {
-                            const bikeItemActive = isBikeSubItemActive(bikeHref);
+                            const bikeItemActive = isSubItemActive(bikeHref);
                             return (
                               <Link
                                 key={bikeKey}
@@ -135,7 +197,7 @@ export function Sidebar() {
                   )}
                 </div>
               )}
-            </>
+            </div>
           );
         })}
       </nav>

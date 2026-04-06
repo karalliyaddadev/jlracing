@@ -9,8 +9,11 @@ export const updateBrandSchema = createBrandSchema.partial();
 // ── Models ────────────────────────────────────────────────────────────────────
 export const createModelSchema = z.object({
   name: z.string().min(1, "Model name is required").max(100),
+  lowStockThreshold: z.number().int().min(0).max(999).optional(),
 });
-export const updateModelSchema = createModelSchema.partial();
+export const updateModelSchema = createModelSchema.partial().extend({
+  lowStockThreshold: z.union([z.number().int().min(0).max(999), z.null()]).optional(),
+});
 
 // ── Colors ────────────────────────────────────────────────────────────────────
 export const createColorSchema = z.object({

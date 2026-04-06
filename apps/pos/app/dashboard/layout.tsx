@@ -21,33 +21,42 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       router.replace("/signin");
       return;
     }
+
+    const clearSession = () => {
+      localStorage.removeItem(STORAGE_TOKEN);
+      localStorage.removeItem(STORAGE_ADMIN);
+      router.replace("/signin");
+    };
+
     try {
       setToken(savedToken);
       setAdmin(JSON.parse(savedAdmin) as PosAdmin);
     } catch {
-      localStorage.removeItem(STORAGE_TOKEN);
-      localStorage.removeItem(STORAGE_ADMIN);
-      router.replace("/signin");
+      clearSession();
       return;
     }
     setChecked(true);
 
-    // Verify token is still valid in background
-    void fetch(`${API_URL}/api/pos/auth/me`, {
-      headers: { Authorization: `Bearer ${savedToken}` },
-    }).then(async (res) => {
-      if (!res.ok) {
-        localStorage.removeItem(STORAGE_TOKEN);
-        localStorage.removeItem(STORAGE_ADMIN);
-        router.replace("/signin");
-        return;
+    const verifySession = async () => {
+      try {
+        const res = await fetch(`${API_URL}/api/pos/auth/me`, {
+          headers: { Authorization: `Bearer ${savedToken}` },
+        });
+        if (!res.ok) {
+          clearSession();
+          return;
+        }
+        const payload = (await res.json()) as { data: PosAdmin };
+        setAdmin(payload.data);
+        localStorage.setItem(STORAGE_ADMIN, JSON.stringify(payload.data));
+      } catch {
+        // network error — keep session until next verification
       }
-      const payload = (await res.json()) as { data: PosAdmin };
-      setAdmin(payload.data);
-      localStorage.setItem(STORAGE_ADMIN, JSON.stringify(payload.data));
-    }).catch(() => {
-      // network error — keep session until next page load
-    });
+    };
+
+    void verifySession();
+    const intervalId = window.setInterval(() => { void verifySession(); }, 5 * 60 * 1000);
+    return () => window.clearInterval(intervalId);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

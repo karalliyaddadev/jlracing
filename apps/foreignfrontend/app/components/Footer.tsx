@@ -117,7 +117,17 @@ export default function Footer() {
       {/* ── Bottom Bar ── */}
       <div className="footer__bottom">
         <span>All Rights Reserved J L R International</span>
-        <span>Designed &amp; Developed by K1</span>
+        <span>
+          Designed &amp; Developed by{" "}
+          <a
+            href="https://www.karalliyaddaone.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="footer__dev-link"
+          >
+            K1
+          </a>
+        </span>
       </div>
     </footer>
   );

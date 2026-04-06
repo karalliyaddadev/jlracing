@@ -40,7 +40,7 @@ export default function NewsLetter() {
           <button type="submit" className="int-nl__btn" aria-label="Subscribe">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
-              src="/images/button.png"
+              src="/images/Button.png"
               alt="Subscribe"
               className="int-nl__btn-img"
             />

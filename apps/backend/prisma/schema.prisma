@@ -67,13 +67,14 @@ model BikeBrand {
 }
 
 model BikeModel {
-  id        Int           @id @default(autoincrement())
-  name      String
-  brandId   Int
-  brand     BikeBrand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  vehicles  BikeVehicle[]
+  id                Int           @id @default(autoincrement())
+  name              String
+  brandId           Int
+  lowStockThreshold Int?
+  brand             BikeBrand     @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+  vehicles          BikeVehicle[]
 
   @@unique([name, brandId])
   @@map("bike_models")
@@ -89,24 +90,150 @@ model BikeColor {
   @@map("bike_colors")
 }
 
+model BikeSupplier {
+  id                Int                @id @default(autoincrement())
+  name              String
+  code              String             @unique
+  contactPerson     String?
+  telephone         String?
+  address           String?
+  fax               String?
+  email             String?
+  vatRegistrationNo String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  vehicles          BikeVehicle[]
+  products          InventoryProduct[]
+
+  @@map("bike_suppliers")
+}
+
 model BikeVehicle {
-  id              Int       @id @default(autoincrement())
-  displayId       String    @unique
-  brandId         Int
-  modelId         Int
-  brand           BikeBrand @relation(fields: [brandId], references: [id], onDelete: Cascade)
-  model           BikeModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
-  colour          String
-  year            Int?
-  fileNo          String?
-  manufactureDate String?
-  registerNo      String?   @unique
-  chassisNo       String?   @unique
-  engineNo        String?   @unique
-  status          String    @default("available")
-  soldAt          DateTime?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id               Int       @id @default(autoincrement())
+  displayId        String    @unique
+  brandId          Int
+  modelId          Int
+  supplierId       Int?
+  brand            BikeBrand @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  model            BikeModel @relation(fields: [modelId], references: [id], onDelete: Cascade)
+  supplier         BikeSupplier? @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  colour           String
+  engineCapacityCc Int?
+  year             Int?
+  fileNo           String?
+  manufactureDate  String?
+  registerNo       String?   @unique
+  chassisNo        String?   @unique
+  engineNo         String?   @unique
+  registrationType String    @default("unregistered")
+  condition        String    @default("brandnew")
+  mileage          Int       @default(0)
+  description      String?
+  purchasePrice    Float?
+  taxAmount        Float?
+  sellingPrice     Float?
+  status           String    @default("available")
+  soldAt           DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  expenses         BikeVehicleExpense[]
+  images           BikeVehicleImage[]
 
   @@map("bike_vehicles")
+}
+
+model BikeVehicleImage {
+  id        Int         @id @default(autoincrement())
+  vehicleId Int
+  vehicle   BikeVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  url       String
+  isPrimary Boolean     @default(false)
+  sortOrder Int         @default(0)
+  createdAt DateTime    @default(now())
+
+  @@map("bike_vehicle_images")
+}
+
+model BikeVehicleExpense {
+  id          Int         @id @default(autoincrement())
+  vehicleId   Int
+  vehicle     BikeVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  description String
+  amount      Float
+  createdAt   DateTime    @default(now())
+
+  @@map("bike_vehicle_expenses")
+}
+
+model InventoryBrand {
+  id        Int                @id @default(autoincrement())
+  name      String             @unique
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  products  InventoryProduct[]
+
+  @@map("inventory_brands")
+}
+
+model InventoryCategory {
+  id        Int                @id @default(autoincrement())
+  name      String             @unique
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  products  InventoryProduct[]
+
+  @@map("inventory_categories")
+}
+
+model InventoryProduct {
+  id                 Int                     @id @default(autoincrement())
+  displayId          String                  @unique
+  brandId            Int
+  categoryId         Int
+  supplierId         Int?
+  brand              InventoryBrand          @relation(fields: [brandId], references: [id], onDelete: Cascade)
+  category           InventoryCategory       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  supplier           BikeSupplier?           @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  name               String
+  quantity           Int                     @default(0)
+  soldQuantity       Int                     @default(0)
+  lowStockThreshold  Int?
+  purchasePrice      Float?
+  taxPaid            Float?
+  additionalExpenses Float?
+  sellingPrice       Float?
+  description        String?
+  lastSoldAt         DateTime?
+  createdAt          DateTime                @default(now())
+  updatedAt          DateTime                @updatedAt
+  expenses           InventoryProductExpense[]
+  images             InventoryProductImage[]
+
+  @@index([brandId])
+  @@index([categoryId])
+  @@index([supplierId])
+  @@map("inventory_products")
+}
+
+model InventoryProductExpense {
+  id          Int              @id @default(autoincrement())
+  productId   Int
+  product     InventoryProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  description String
+  amount      Float
+  createdAt   DateTime         @default(now())
+
+  @@map("inventory_product_expenses")
+}
+
+model InventoryProductImage {
+  id        Int              @id @default(autoincrement())
+  productId Int
+  product   InventoryProduct @relation(fields: [productId], references: [id], onDelete: Cascade)
+  url       String
+  isPrimary Boolean          @default(false)
+  sortOrder Int              @default(0)
+  createdAt DateTime         @default(now())
+
+  @@map("inventory_product_images")
 }
