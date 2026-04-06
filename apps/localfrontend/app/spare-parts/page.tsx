@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import {
   SPARE_PARTS,
@@ -8,6 +8,7 @@ import {
   PART_BRANDS,
   MAX_PART_PRICE,
 } from "./data";
+import Pagination from "../components/Pagination";
 
 function RangeSlider({
   min,
@@ -88,6 +89,8 @@ function CheckGroup({
 
 const STATUS_OPTIONS = ["In Stock", "Low Stock", "Pre Order"] as const;
 
+const ITEMS_PER_PAGE = 6;
+
 export default function SparePartsPage() {
   const [priceRange, setPriceRange] = useState<[number, number]>([
     0,
@@ -98,6 +101,11 @@ export default function SparePartsPage() {
   const [statuses, setStatuses] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, priceRange, categories, brands, statuses]);
 
   const q = search.toLowerCase();
   const filtered = SPARE_PARTS.filter((p) => {
@@ -114,6 +122,12 @@ export default function SparePartsPage() {
       return false;
     return true;
   });
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginated = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   return (
     <section className="po-page">
@@ -252,7 +266,7 @@ export default function SparePartsPage() {
             {filtered.length === 0 ? (
               <p className="po-grid__empty">No parts match your filters.</p>
             ) : (
-              filtered.map((part) => (
+              paginated.map((part) => (
                 <Link
                   key={part.id}
                   href={`/spare-parts/${part.id}`}
@@ -307,6 +321,11 @@ export default function SparePartsPage() {
             )}
           </div>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </section>
   );

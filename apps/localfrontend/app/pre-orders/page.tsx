@@ -1,10 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { PRE_ORDER_BIKES } from "./data";
+import Pagination from "../components/Pagination";
 
 const MAX_PRICE = 3_000_000;
+
+const ITEMS_PER_PAGE = 6;
 
 const AVAILABILITY_OPTIONS = ["In Stock", "Pre Order"] as const;
 
@@ -57,6 +60,11 @@ export default function PreOrdersPage() {
   const [availability, setAvailability] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, priceRange, availability]);
 
   const toggleAvailability = (opt: string) => {
     setAvailability((prev) =>
@@ -72,6 +80,12 @@ export default function PreOrdersPage() {
       return false;
     return true;
   });
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginated = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   return (
     <section className="po-page">
@@ -203,7 +217,7 @@ export default function PreOrdersPage() {
             {filtered.length === 0 ? (
               <p className="po-grid__empty">No bikes match your filters.</p>
             ) : (
-              filtered.map((bike) => (
+              paginated.map((bike) => (
                 <Link
                   key={bike.id}
                   href={`/pre-orders/${bike.id}`}
@@ -262,6 +276,11 @@ export default function PreOrdersPage() {
             )}
           </div>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </section>
   );
