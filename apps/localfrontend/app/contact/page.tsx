@@ -2,8 +2,143 @@
 
 import { useState } from "react";
 
+const FAQ_CATEGORIES = [
+  {
+    id: "inventory",
+    title: "Bike Inventory",
+    items: [
+      {
+        q: "What bikes are available?",
+        a: "We offer sports bikes, naked bikes, scooters, and commuter motorcycles.",
+      },
+      {
+        q: "Are bikes in stock ready to buy?",
+        a: "Most listed bikes are available, but availability may change based on demand.",
+      },
+      {
+        q: "Do you sell new and used bikes?",
+        a: "Yes, we offer brand-new, reconditioned, and carefully inspected used motorcycles.",
+      },
+      {
+        q: "Can I reserve a bike and do you handle registration?",
+        a: "Yes, you can reserve a bike, and we also handle the full registration process.",
+      },
+      {
+        q: "How often is inventory updated?",
+        a: "Our inventory is updated weekly with new arrivals and latest imports.",
+      },
+    ],
+  },
+  {
+    id: "spare-parts",
+    title: "Spare Parts",
+    items: [
+      {
+        q: "Do you sell genuine spare parts?",
+        a: "Yes, we supply original spare parts for most Japanese bikes.",
+      },
+      {
+        q: "Can you source parts for my bike?",
+        a: "We can source parts for most models, depending on availability.",
+      },
+      {
+        q: "How long does parts delivery take?",
+        a: "Delivery depends on stock availability or import timelines.",
+      },
+      {
+        q: "Can you help find the right parts?",
+        a: "Yes, our team will guide you to select the correct parts.",
+      },
+      {
+        q: "Do you deliver spare parts?",
+        a: "Yes, we arrange delivery across Sri Lanka.",
+      },
+    ],
+  },
+  {
+    id: "pre-orders",
+    title: "Pre-Order Services",
+    items: [
+      {
+        q: "What bikes can I pre-order?",
+        a: "You can pre-order Japanese bikes and selected European models.",
+      },
+      {
+        q: "How does the pre-order process work?",
+        a: "You choose a model, confirm details, and we handle the import.",
+      },
+      {
+        q: "How long does a pre-order take?",
+        a: "Pre-orders typically take at least three months, depending on the process.",
+      },
+      {
+        q: "Is a deposit required?",
+        a: "Yes, a deposit is required to confirm your order.",
+      },
+      {
+        q: "Will I receive updates?",
+        a: "Yes, we provide regular updates until delivery.",
+      },
+    ],
+  },
+  {
+    id: "pricing",
+    title: "Pricing & Payments",
+    items: [
+      {
+        q: "Are prices fixed?",
+        a: "Prices are competitive and may vary based on bike and condition.",
+      },
+      {
+        q: "What payment methods are accepted?",
+        a: "We accept bank transfers, cash, and other agreed methods.",
+      },
+      {
+        q: "Are there hidden charges?",
+        a: "No, we clearly explain all costs with full transparency.",
+      },
+      {
+        q: "Do you offer finance options?",
+        a: "Finance options may be available depending on the bike.",
+      },
+      {
+        q: "Can I request a quotation?",
+        a: "Yes, we provide detailed quotations upon request.",
+      },
+    ],
+  },
+  {
+    id: "shipping",
+    title: "Shipping & Delivery",
+    items: [
+      {
+        q: "Do you deliver across Sri Lanka?",
+        a: "Yes, we arrange safe delivery nationwide.",
+      },
+      {
+        q: "How long does delivery take?",
+        a: "Delivery depends on location and bike readiness.",
+      },
+      {
+        q: "How are bikes transported?",
+        a: "We ensure secure and careful handling during transport.",
+      },
+      {
+        q: "Do you handle import and clearance?",
+        a: "Yes, we manage sourcing, shipping, and clearance.",
+      },
+      {
+        q: "Can I track my order?",
+        a: "Yes, we provide updates until your bike is delivered.",
+      },
+    ],
+  },
+];
+
 export default function ContactPage() {
   const [interest, setInterest] = useState<string[]>([]);
+  const [activeFaqTab, setActiveFaqTab] = useState("inventory");
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
   const toggleInterest = (item: string) => {
     setInterest((prev) =>
@@ -290,6 +425,68 @@ export default function ContactPage() {
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
           />
+        </div>
+      </section>
+
+      {/* ── FAQ Section ── */}
+      <section className="contact-faq">
+        <div className="contact-faq__inner">
+          <div className="contact-faq__header">
+            <span className="contact-faq__label">FAQ</span>
+            <h2 className="contact-faq__title">Frequently Asked Questions</h2>
+            <p className="contact-faq__subtitle">
+              Find quick answers to the most common questions about our bikes,
+              spare parts, pre-orders, pricing, and delivery.
+            </p>
+          </div>
+
+          <div className="contact-faq__tabs">
+            {FAQ_CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                className={`contact-faq__tab ${activeFaqTab === cat.id ? "contact-faq__tab--active" : ""}`}
+                onClick={() => setActiveFaqTab(cat.id)}
+              >
+                {cat.title}
+              </button>
+            ))}
+          </div>
+
+          <div className="contact-faq__list">
+            {FAQ_CATEGORIES.find((c) => c.id === activeFaqTab)?.items.map(
+              (item, idx) => (
+                <div
+                  key={idx}
+                  className={`contact-faq__item ${openFaqIndex === idx ? "contact-faq__item--open" : ""}`}
+                >
+                  <button
+                    className="contact-faq__question"
+                    onClick={() =>
+                      setOpenFaqIndex(openFaqIndex === idx ? null : idx)
+                    }
+                  >
+                    <span>{item.q}</span>
+                    <svg
+                      className="contact-faq__chevron"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  {openFaqIndex === idx && (
+                    <div className="contact-faq__answer">
+                      <p>{item.a}</p>
+                    </div>
+                  )}
+                </div>
+              ),
+            )}
+          </div>
         </div>
       </section>
     </>

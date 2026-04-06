@@ -1,6 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
+import Pagination from "../components/Pagination";
 
 const blogPosts = [
   {
@@ -32,7 +34,16 @@ const blogPosts = [
   },
 ];
 
+const ITEMS_PER_PAGE = 6;
+
 export default function BlogPage() {
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const totalPages = Math.ceil(blogPosts.length / ITEMS_PER_PAGE);
+  const paginated = blogPosts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
   return (
     <>
       {/* ── Hero ── */}
@@ -56,7 +67,7 @@ export default function BlogPage() {
       <section className="blog-section">
         <div className="blog-container">
           <div className="blog-grid">
-            {blogPosts.map((post) => (
+            {paginated.map((post) => (
               <article key={post.id} className="blog-card">
                 <div className="blog-card__image">
                   <div className="blog-card__image-placeholder">
@@ -124,6 +135,11 @@ export default function BlogPage() {
               </article>
             ))}
           </div>
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </section>
     </>
