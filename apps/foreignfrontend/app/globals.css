@@ -663,7 +663,7 @@ button {
 .int-brands__scroll {
   display: flex;
   gap: 1.25rem;
-  animation: scrollBrandsInt 30s linear infinite;
+  animation: scrollBrandsInt 75s linear infinite;
   width: max-content;
   padding: 0.75rem 0;
   will-change: transform;
@@ -676,15 +676,13 @@ button {
 
 .int-brands__card {
   flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.6rem;
-  width: 120px;
-  padding: 1.1rem 1rem 0.9rem;
+  width: 140px;
+  height: 130px;
+  padding: 0;
   border: 1.5px solid rgba(0, 0, 0, 0.12);
   border-radius: var(--radius-lg);
   background: #fff;
+  overflow: hidden;
   transition: border-color 0.25s, box-shadow 0.25s;
 }
 
@@ -694,17 +692,14 @@ button {
 }
 
 .int-brands__logo-wrap {
-  width: 72px;
-  height: 52px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 100%;
+  height: 100%;
 }
 
 .int-brands__logo {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover;
   display: block;
 }
 
@@ -1165,6 +1160,18 @@ button {
   color: var(--text-on-dark-muted);
 }
 
+.footer__dev-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-weight: 600;
+  transition: opacity 0.2s;
+}
+
+.footer__dev-link:hover {
+  opacity: 0.8;
+  text-decoration: underline;
+}
+
 /* â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
    RESPONSIVE
    â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â• */
@@ -1182,6 +1189,10 @@ button {
 
 @media (max-width: 768px) {
   .header__links {
+    display: none;
+  }
+
+  .header__contact-btn {
     display: none;
   }
 
@@ -2922,9 +2933,9 @@ span.exp-feat__icon {
 .cnt-info-item__icon {
   width: 20px;
   height: 20px;
-  object-fit: contain;
   margin-top: 2px;
   flex-shrink: 0;
+  color: var(--accent);
 }
 
 .cnt-info-item__label {

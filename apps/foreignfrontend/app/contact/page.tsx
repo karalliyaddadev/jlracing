@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from "react-icons/fa";
 
 const FAQ_CATEGORIES = [
   {
@@ -137,20 +138,24 @@ const FAQ_CATEGORIES = [
 
 const CONTACT_INFO = [
   {
-    icon: "/images/Location%20(5).png",
+    Icon: FaMapMarkerAlt,
     label: "Visit Us",
-    value: "No. 1, xyz street, kurunegala, Sri Lanka",
+    value: "No.154 Katugastota - Kurunegala - Puttalam Hwy, Kurunegala 60000",
   },
-  { icon: "/images/Phone.png", label: "Hotline", value: "+94 XX XXX XXXXX" },
   {
-    icon: "/images/Email%20(1).png",
+    Icon: FaPhone,
+    label: "Hotline",
+    value: "0372 228 220 | WhatsApp: 071 791 0091",
+  },
+  {
+    Icon: FaEnvelope,
     label: "Talk to Us",
     value: "info@jlracingshop.com",
   },
   {
-    icon: "/images/Contact.png",
+    Icon: FaClock,
     label: "Business Hours",
-    value: "Mon-Fri : 9am - 6 pm",
+    value: "Mon–Sat: 8:30 AM–6 PM | Sun: Closed",
   },
 ];
 
@@ -314,9 +319,8 @@ export default function ContactPage() {
                 <label className="cnt-form__label">Inquiry Type</label>
                 <div className="cnt-form__select-wrap">
                   <select className="cnt-form__select">
-                    <option value="">
-                      Vehicle Import, Auction Inquiry, Shipping &amp; Pricing,
-                      Other
+                    <option value="" disabled selected>
+                      Select Inquiry Type
                     </option>
                     <option>Vehicle Import</option>
                     <option>Auction Inquiry</option>
@@ -344,7 +348,7 @@ export default function ContactPage() {
             <div className="cnt-map__frame-wrap">
               <iframe
                 className="cnt-map__iframe"
-                src="https://www.openstreetmap.org/export/embed.html?bbox=80.34%2C7.47%2C80.39%2C7.50&layer=mapnik&marker=7.4867%2C80.3647"
+                src="https://www.openstreetmap.org/export/embed.html?bbox=80.345%2C7.482%2C80.375%2C7.500&layer=mapnik&marker=7.4910%2C80.3600"
                 allowFullScreen
                 loading="lazy"
                 title="JLR International Office Location"
@@ -352,7 +356,7 @@ export default function ContactPage() {
               <div className="cnt-map__overlay-card">
                 <p className="cnt-map__overlay-title">Visit our Office</p>
                 <a
-                  href="https://www.google.com/maps/search/Kurunegala+Sri+Lanka"
+                  href="https://www.google.com/maps/dir/?api=1&destination=No.154+Puttalam+Road%2C+Kurunegala+60000%2C+Sri+Lanka"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="cnt-map__direction-btn"
@@ -364,12 +368,7 @@ export default function ContactPage() {
             <div className="cnt-info-grid">
               {CONTACT_INFO.map((info) => (
                 <div key={info.label} className="cnt-info-item">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={info.icon}
-                    alt={info.label}
-                    className="cnt-info-item__icon"
-                  />
+                  <info.Icon className="cnt-info-item__icon" />
                   <div>
                     <p className="cnt-info-item__label">{info.label}</p>
                     <p className="cnt-info-item__value">{info.value}</p>
