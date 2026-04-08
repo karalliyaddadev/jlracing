@@ -1,8 +1,6 @@
 import { Module } from "@nestjs/common";
 import { APP_GUARD } from "@nestjs/core";
 import { ConfigModule } from "@nestjs/config";
-import { ServeStaticModule } from "@nestjs/serve-static";
-import * as path from "path";
 import { PrismaModule } from "./common/database/prisma.module";
 import { JwtAuthGuard } from "./common/guards/jwt-auth.guard";
 import { AuthModule } from "./modules/auth/auth.module";
@@ -17,11 +15,6 @@ import { UploadModule } from "./modules/upload/upload.module";
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    // Serve uploaded files statically
-    ServeStaticModule.forRoot({
-      rootPath: path.join(process.cwd(), "uploads"),
-      serveRoot: "/uploads",
-    }),
     PrismaModule,
     AuthModule,
     HeroModule,
