@@ -8,7 +8,9 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Serve uploaded files — uses Express static middleware (no path-to-regexp routing)
-  app.useStaticAssets(path.join(process.cwd(), "uploads"), { prefix: "/uploads" });
+  app.useStaticAssets(path.join(process.cwd(), "uploads"), {
+    prefix: "/uploads",
+  });
 
   // Validation
   app.useGlobalPipes(
