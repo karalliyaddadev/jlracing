@@ -41,6 +41,7 @@ type InventoryProductAlert = {
 const BREADCRUMBS: Record<string, string> = {
   "/dashboard":            "Dashboard",
   "/dashboard/users":     "User Management",
+  "/dashboard/users/history": "User Management - User History",
   "/dashboard/invoices":  "Invoice Management",
   "/dashboard/inventory": "Inventory Management - Inventory",
   "/dashboard/inventory/sold": "Inventory Management - Sold Items",

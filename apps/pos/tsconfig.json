@@ -1,8 +1,16 @@
 {
   "extends": "../../tsconfig.json",
   "compilerOptions": {
-    "plugins": [{ "name": "next" }],
-    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "lib": [
+      "ES2020",
+      "DOM",
+      "DOM.Iterable"
+    ],
     "incremental": true,
     "jsx": "preserve",
     "allowJs": true,
@@ -12,6 +20,14 @@
     "noEmit": true,
     "composite": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"]
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next-pos/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

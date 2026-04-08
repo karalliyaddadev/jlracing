@@ -2537,6 +2537,290 @@ html[data-theme="dark"] .bm-setting-panel {
   .bm-filter-grid { grid-template-columns: 1fr; }
 }
 
+/* ── POS User Management ─────────────────────────────────────────────────── */
+
+.users-section-title {
+  margin: 0 0 0.75rem;
+  font-size: 1.02rem;
+  color: var(--text);
+}
+
+.users-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.users-span-2 {
+  grid-column: span 2;
+}
+
+.users-textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.users-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-soft);
+  margin-bottom: 0.35rem;
+  display: block;
+}
+
+.users-dream-bikes-wrap {
+  margin-top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.users-bike-list {
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--panel) 92%, var(--bg) 8%);
+  max-height: 260px;
+  overflow: auto;
+}
+
+.users-bike-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid var(--panel-border);
+  cursor: pointer;
+  font-size: 0.84rem;
+}
+
+.users-bike-option:last-child {
+  border-bottom: none;
+}
+
+.users-bike-option.checked {
+  background: var(--accent-bg);
+}
+
+.users-availability {
+  margin-left: 0.5rem;
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.users-availability.ok {
+  color: var(--success);
+}
+
+.users-availability.warn {
+  color: var(--danger);
+}
+
+.users-muted {
+  color: var(--text-soft);
+  font-size: 0.82rem;
+}
+
+.users-input-error {
+  border-color: rgba(220, 38, 38, 0.7) !important;
+  box-shadow: 0 0 0 2px rgba(220, 38, 38, 0.15);
+}
+
+.users-field-error {
+  color: var(--danger);
+  font-size: 0.76rem;
+  margin-top: 0.25rem;
+  display: block;
+}
+
+.users-row-actions {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.users-view-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+  font-size: 0.88rem;
+}
+
+.users-bike-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.users-bike-chip {
+  border: 1px solid var(--panel-border);
+  background: var(--panel-soft);
+  border-radius: 999px;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.78rem;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.users-bike-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.users-bike-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.88rem;
+}
+
+.users-history-toolbar {
+  padding: 1rem;
+  border-bottom: 1px solid var(--panel-border);
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.users-history-toolbar-actions {
+  display: flex;
+  gap: 0.55rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.users-orders-table th:nth-child(1),
+.users-orders-table td:nth-child(1) {
+  min-width: 90px;
+}
+
+.users-orders-table th:nth-child(2),
+.users-orders-table td:nth-child(2) {
+  min-width: 140px;
+}
+
+.users-orders-table th:nth-child(3),
+.users-orders-table td:nth-child(3) {
+  min-width: 180px;
+}
+
+.users-order-code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
+.users-order-date {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.users-order-time {
+  font-size: 0.76rem;
+  color: var(--text-soft);
+  line-height: 1.2;
+  margin-top: 2px;
+}
+
+.users-order-title {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.25;
+}
+
+.users-order-item-meta {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 0.76rem;
+  color: var(--text-soft);
+}
+
+.users-order-price {
+  font-weight: 700;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.users-orders-modal {
+  width: min(1020px, 97vw);
+}
+
+.users-orders-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+.users-orders-summary-card {
+  border: 1px solid var(--panel-border);
+  background: color-mix(in srgb, var(--panel) 85%, var(--bg) 15%);
+  border-radius: var(--radius-sm);
+  padding: 0.55rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.12rem;
+}
+
+.users-orders-summary-label {
+  font-size: 0.72rem;
+  color: var(--text-xsoft);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.users-orders-summary-card strong {
+  font-size: 0.93rem;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.users-bike-image {
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--panel-border);
+}
+
+@media (max-width: 900px) {
+  .users-form-grid,
+  .users-view-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .users-orders-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .users-span-2 {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .users-history-toolbar-actions {
+    width: 100%;
+  }
+
+  .users-history-toolbar-actions .bm-input {
+    min-width: 0 !important;
+    width: 100%;
+  }
+
+  .users-orders-summary {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── Bike Image Upload & Gallery ─────────────────────────────────────────── */
 
 /* Image Uploader Grid */
