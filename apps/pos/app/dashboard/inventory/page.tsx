@@ -5,6 +5,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "rea
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { IconActivity, IconInventory, IconInvoice, IconSupplier } from "../../lib/icons";
+import CustomerPurchaseModal from "../../components/CustomerPurchaseModal";
 
 type ProductBrand = { id: number; name: string; _count?: { products: number } };
 type ProductCategory = { id: number; name: string; _count?: { products: number } };
@@ -620,78 +621,17 @@ function ProductModal({
 }
 
 function RecordSaleModal({ product, token, onClose, onSaved }: { product: Product; token: string; onClose: () => void; onSaved: () => void }) {
-  const [quantity, setQuantity] = useState("1");
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const base = `${API_URL}/api/pos/bike-management`;
-  const auth = { Authorization: `Bearer ${token}` };
-
-  const submit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const soldQty = Number(quantity);
-    if (!Number.isInteger(soldQty) || soldQty < 1) {
-      setError("Enter a valid sold quantity.");
-      return;
-    }
-    if (soldQty > product.quantity) {
-      setError(`Only ${product.quantity} items are available in stock.`);
-      return;
-    }
-
-    setSaving(true);
-    setError(null);
-    try {
-      const response = await fetch(`${base}/products/${product.id}/sell`, {
-        method: "POST",
-        headers: { ...auth, "Content-Type": "application/json" },
-        body: JSON.stringify({ quantity: soldQty }),
-      });
-      const payload = await response.json().catch(() => null) as { message?: string } | null;
-      if (!response.ok) {
-        setError(payload?.message ?? "Failed to record sale");
-        return;
-      }
-      onSaved();
-      onClose();
-    } catch {
-      setError("Failed to record sale");
-    } finally {
-      setSaving(false);
-    }
-  };
-
   return (
-    <div className="bm-modal-backdrop" onClick={onClose}>
-      <div className="bm-modal" onClick={(event) => event.stopPropagation()}>
-        <button className="bm-modal-close" onClick={onClose}>✕</button>
-        <h3 className="bm-modal-title">Record Sale — {product.name}</h3>
-        {error && <div className="bm-alert bm-alert-error">{error}</div>}
-        <form className="bm-modal-form" onSubmit={submit}>
-          <div className="bm-fields-grid">
-            <div className="bm-field-group">
-              <label>Product</label>
-              <input className="bm-input" value={`${product.name} (${product.displayId})`} disabled />
-            </div>
-            <div className="bm-field-group">
-              <label>Available Stock</label>
-              <input className="bm-input" value={String(product.quantity)} disabled />
-            </div>
-            <div className="bm-field-group">
-              <label>Already Sold</label>
-              <input className="bm-input" value={String(product.soldQuantity ?? 0)} disabled />
-            </div>
-            <div className="bm-field-group">
-              <label>Sold Quantity *</label>
-              <input className="bm-input" type="number" min={1} max={product.quantity} value={quantity} onChange={(event) => setQuantity(event.target.value)} />
-            </div>
-          </div>
-          <div className="bm-modal-actions">
-            <button type="button" className="btn-outline" onClick={onClose}>Cancel</button>
-            <button type="submit" className="btn-accent" disabled={saving}>{saving ? "Saving..." : "Save Sale"}</button>
-          </div>
-        </form>
-      </div>
-    </div>
+    <CustomerPurchaseModal
+      token={token}
+      itemType="INVENTORY"
+      itemId={product.id}
+      itemLabel={`${product.displayId} | ${product.name} (${product.brand.name})`}
+      currentSellingPrice={product.sellingPrice}
+      maxQuantity={product.quantity}
+      onClose={onClose}
+      onSaved={onSaved}
+    />
   );
 }
 

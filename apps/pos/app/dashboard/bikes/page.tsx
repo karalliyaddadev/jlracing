@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { IconBike, IconInventory, IconActivity, IconInvoice } from "../../lib/icons";
+import CustomerPurchaseModal from "../../components/CustomerPurchaseModal";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type Brand = { id: number; name: string };
@@ -1636,8 +1637,8 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
   const [open, setOpen]         = useState(false);
   const [viewV, setViewV]       = useState<Vehicle | null>(null);
   const [editV, setEditV]       = useState<Vehicle | null>(null);
+  const [saleV, setSaleV]       = useState<Vehicle | null>(null);
   const [delConfirm, setDelConfirm] = useState<number | null>(null);
-  const [marking, setMarking]   = useState<number | null>(null);
   const [editingAlert, setEditingAlert] = useState<{ enabled: boolean; threshold: string } | null>(null);
   const [savingAlert, setSavingAlert] = useState(false);
   const [alertError, setAlertError] = useState<string | null>(null);
@@ -1646,13 +1647,6 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
 
   const [vehicles, setVehicles] = useState<Vehicle[]>(group.vehicles);
   useEffect(() => setVehicles(group.vehicles), [group.vehicles]);
-
-  const markSold = async (id: number) => {
-    setMarking(id);
-    await fetch(`${base}/vehicles/${id}`, { method: "PATCH", headers: { ...auth, "Content-Type": "application/json" }, body: JSON.stringify({ status: "sold" }) });
-    onRefresh();
-    setMarking(null);
-  };
 
   const deleteVehicle = async (id: number) => {
     await fetch(`${base}/vehicles/${id}`, { method: "DELETE", headers: auth });
@@ -1792,7 +1786,7 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
               <button type="button" className="bm-action-btn bm-view-btn" onClick={() => setViewV(v)} title="View details">View</button>
               <button type="button" className="bm-action-btn bm-edit-btn" onClick={() => setEditV(v)} title="Edit">✎</button>
               {v.status === "available" && (
-                <button type="button" className="bm-action-btn bm-sold-btn" onClick={() => markSold(v.id)} disabled={marking === v.id} title="Mark as sold">✅</button>
+                <button type="button" className="bm-action-btn bm-sold-btn" onClick={() => setSaleV(v)} title="Sell to customer">✅</button>
               )}
               <button type="button" className="bm-action-btn bm-del-btn" onClick={() => setDelConfirm(v.id)} title="Delete">🗑</button>
             </div>
@@ -1802,6 +1796,20 @@ function GroupRow({ group, token, onRefresh }: { group: Group; token: string; on
       })}
       {viewV && <ViewVehicleModal vehicle={viewV} relatedVehicles={vehicles} token={token} onClose={() => setViewV(null)} />}
       {editV && <EditVehicleModal vehicle={editV} relatedVehicles={vehicles} token={token} onClose={() => setEditV(null)} onSaved={() => { setEditV(null); onRefresh(); }} />}
+      {saleV && (
+        <CustomerPurchaseModal
+          token={token}
+          itemType="BIKE"
+          itemId={saleV.id}
+          itemLabel={`${saleV.displayId} | ${saleV.brand.name} ${saleV.model.name} (${saleV.colour})`}
+          currentSellingPrice={saleV.sellingPrice}
+          onClose={() => setSaleV(null)}
+          onSaved={() => {
+            setSaleV(null);
+            onRefresh();
+          }}
+        />
+      )}
       {delConfirm !== null && (
         <tr><td colSpan={6}>
           <div className="bm-inline-confirm">
