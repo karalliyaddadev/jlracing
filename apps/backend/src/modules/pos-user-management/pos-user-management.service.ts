@@ -6,6 +6,7 @@ import type {
   CreatePosUserDto,
   PurchaseQueryDto,
   PosUserQueryDto,
+  SettlePurchaseDto,
   UpdatePosUserDto,
 } from "./dto/pos-user.dto";
 
@@ -44,6 +45,35 @@ const customerInclude = {
 function normalizeSearch(search?: string) {
   const value = search?.trim();
   return value && value.length > 0 ? value : undefined;
+}
+
+function roundCurrency(value: number) {
+  return Math.round(value * 100) / 100;
+}
+
+function resolvePaymentDetails(finalSellingPrice: number, paymentType: "DIRECT" | "DOWNPAYMENT", downPaymentAmount?: number) {
+  if (paymentType === "DIRECT") {
+    return {
+      downPaymentAmount: roundCurrency(finalSellingPrice),
+      remainingAmount: 0,
+      settlementStatus: "SETTLED" as const,
+    };
+  }
+
+  const normalizedDownPayment = roundCurrency(downPaymentAmount ?? 0);
+  if (normalizedDownPayment <= 0) {
+    throw AppError.validation({ downPaymentAmount: ["Downpayment amount must be greater than 0"] });
+  }
+  if (normalizedDownPayment > finalSellingPrice) {
+    throw AppError.validation({ downPaymentAmount: ["Downpayment amount cannot exceed final selling price"] });
+  }
+
+  const remainingAmount = roundCurrency(finalSellingPrice - normalizedDownPayment);
+  return {
+    downPaymentAmount: normalizedDownPayment,
+    remainingAmount,
+    settlementStatus: remainingAmount > 0 ? ("TO_SETTLE" as const) : ("SETTLED" as const),
+  };
 }
 
 function getPurchaseModelClient(db: any) {
@@ -320,6 +350,18 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
   });
   if (!customer) throw AppError.notFound("User not found");
 
+  const requestedPaymentType = dto.paymentType ?? "DIRECT";
+  const inferredDownPayment = dto.downPaymentAmount != null
+    && Number.isFinite(dto.downPaymentAmount)
+    && dto.downPaymentAmount > 0
+    && dto.downPaymentAmount < dto.finalSellingPrice;
+  const paymentType: "DIRECT" | "DOWNPAYMENT" = (
+    requestedPaymentType === "DOWNPAYMENT" || inferredDownPayment
+  ) ? "DOWNPAYMENT" : "DIRECT";
+  const purchaseMode = dto.purchaseMode ?? "SINGLE";
+  const invoiceGroupCode = dto.invoiceGroupCode?.trim() || undefined;
+  const paymentDetails = resolvePaymentDetails(dto.finalSellingPrice, paymentType, dto.downPaymentAmount);
+
   if (dto.purchaseType === "BIKE") {
     const bikeId = dto.bikeVehicleId;
     if (!bikeId) throw AppError.validation({ bikeVehicleId: ["Bike is required"] });
@@ -355,10 +397,16 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
         data: {
           customerId,
           itemType: "BIKE",
+          purchaseMode,
+          invoiceGroupCode,
           bikeVehicleId: bikeId,
           quantity: 1,
           currentSellingPrice: bike.sellingPrice,
           finalSellingPrice: dto.finalSellingPrice,
+          paymentType,
+          downPaymentAmount: paymentDetails.downPaymentAmount,
+          remainingAmount: paymentDetails.remainingAmount,
+          settlementStatus: paymentDetails.settlementStatus,
         },
       });
 
@@ -379,6 +427,8 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
       itemType: "BIKE",
       customerId,
       quantity: 1,
+      purchaseMode: result.purchaseMode,
+      invoiceGroupCode: result.invoiceGroupCode,
       bikeVehicleId: bikeId,
       customer: {
         firstName: customer.firstName,
@@ -406,6 +456,10 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
       },
       currentSellingPrice: bike.sellingPrice,
       finalSellingPrice: dto.finalSellingPrice,
+      paymentType: result.paymentType,
+      downPaymentAmount: result.downPaymentAmount,
+      remainingAmount: result.remainingAmount,
+      settlementStatus: result.settlementStatus,
       purchasedAt: result.purchasedAt,
     };
   }
@@ -432,10 +486,16 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
       data: {
         customerId,
         itemType: "INVENTORY",
+        purchaseMode,
+        invoiceGroupCode,
         inventoryProductId: productId,
         quantity: dto.quantity ?? 1,
         currentSellingPrice: product.sellingPrice,
         finalSellingPrice: dto.finalSellingPrice,
+        paymentType,
+        downPaymentAmount: paymentDetails.downPaymentAmount,
+        remainingAmount: paymentDetails.remainingAmount,
+        settlementStatus: paymentDetails.settlementStatus,
       },
     });
 
@@ -457,6 +517,8 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
     itemType: "INVENTORY",
     customerId,
     quantity: dto.quantity ?? 1,
+    purchaseMode: result.purchaseMode,
+    invoiceGroupCode: result.invoiceGroupCode,
     inventoryProductId: productId,
     customer: {
       firstName: customer.firstName,
@@ -476,6 +538,10 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
     },
     currentSellingPrice: product.sellingPrice,
     finalSellingPrice: dto.finalSellingPrice,
+    paymentType: result.paymentType,
+    downPaymentAmount: result.downPaymentAmount,
+    remainingAmount: result.remainingAmount,
+    settlementStatus: result.settlementStatus,
     purchasedAt: result.purchasedAt,
   };
 }
@@ -559,9 +625,15 @@ export async function listPurchases(query: PurchaseQueryDto) {
       id: row.id,
       purchasedAt: row.purchasedAt,
       itemType: row.itemType,
+      purchaseMode: row.purchaseMode,
+      invoiceGroupCode: row.invoiceGroupCode,
       quantity: row.quantity,
       currentSellingPrice: row.currentSellingPrice,
       finalSellingPrice: row.finalSellingPrice,
+      paymentType: row.paymentType,
+      downPaymentAmount: row.downPaymentAmount,
+      remainingAmount: row.remainingAmount,
+      settlementStatus: row.settlementStatus,
       customer: row.customer,
       bike: row.bikeVehicle ? {
         id: row.bikeVehicle.id,
@@ -682,9 +754,15 @@ export async function listPurchasesByUser(customerId: number, query: PurchaseQue
       id: row.id,
       purchasedAt: row.purchasedAt,
       itemType: row.itemType,
+      purchaseMode: row.purchaseMode,
+      invoiceGroupCode: row.invoiceGroupCode,
       quantity: row.quantity,
       currentSellingPrice: row.currentSellingPrice,
       finalSellingPrice: row.finalSellingPrice,
+      paymentType: row.paymentType,
+      downPaymentAmount: row.downPaymentAmount,
+      remainingAmount: row.remainingAmount,
+      settlementStatus: row.settlementStatus,
       customer: row.customer,
       bike: row.bikeVehicle
         ? {
@@ -722,5 +800,133 @@ export async function listPurchasesByUser(customerId: number, query: PurchaseQue
     total,
     page,
     limit,
+  };
+}
+
+export async function settlePurchase(customerId: number, purchaseId: number, dto: SettlePurchaseDto) {
+  const customer = await prisma.posCustomer.findUnique({ where: { id: customerId }, select: { id: true } });
+  if (!customer) throw AppError.notFound("User not found");
+
+  const basePurchase = await getPurchaseModelClient(prisma as any).findFirst({
+    where: { id: purchaseId, customerId },
+    select: {
+      id: true,
+      customerId: true,
+      invoiceGroupCode: true,
+      remainingAmount: true,
+      downPaymentAmount: true,
+      finalSellingPrice: true,
+      paymentType: true,
+      settlementStatus: true,
+      purchasedAt: true,
+    },
+  });
+
+  if (!basePurchase) throw AppError.notFound("Purchase record not found for this user");
+
+  const targets = await getPurchaseModelClient(prisma as any).findMany({
+    where: {
+      customerId,
+      ...(basePurchase.invoiceGroupCode
+        ? { invoiceGroupCode: basePurchase.invoiceGroupCode }
+        : { id: basePurchase.id }),
+    },
+    orderBy: [{ purchasedAt: "asc" }, { id: "asc" }],
+    select: {
+      id: true,
+      remainingAmount: true,
+      downPaymentAmount: true,
+      finalSellingPrice: true,
+    },
+  });
+
+  const totalRemainingBefore = roundCurrency(
+    targets.reduce((sum: number, row: any) => sum + (row.remainingAmount ?? 0), 0)
+  );
+
+  if (totalRemainingBefore <= 0) {
+    throw AppError.validation({ amount: ["This invoice is already fully settled"] });
+  }
+
+  const settleAmount = roundCurrency(dto.amount);
+  if (settleAmount <= 0) {
+    throw AppError.validation({ amount: ["Settlement amount must be greater than 0"] });
+  }
+  if (settleAmount > totalRemainingBefore) {
+    throw AppError.validation({
+      amount: [`Settlement amount cannot exceed remaining amount (Rs. ${totalRemainingBefore.toLocaleString()})`],
+    });
+  }
+
+  let remainingToApply = settleAmount;
+
+  const updates = targets.map((row: any) => {
+    const rowRemaining = roundCurrency(row.remainingAmount ?? 0);
+    if (rowRemaining <= 0 || remainingToApply <= 0) {
+      return {
+        id: row.id,
+        appliedAmount: 0,
+        newDownPaymentAmount: roundCurrency(row.downPaymentAmount ?? row.finalSellingPrice),
+        newRemainingAmount: rowRemaining,
+      };
+    }
+
+    const appliedAmount = roundCurrency(Math.min(rowRemaining, remainingToApply));
+    remainingToApply = roundCurrency(remainingToApply - appliedAmount);
+    const newRemainingAmount = roundCurrency(rowRemaining - appliedAmount);
+    const newDownPaymentAmount = roundCurrency((row.downPaymentAmount ?? 0) + appliedAmount);
+
+    return {
+      id: row.id,
+      appliedAmount,
+      newDownPaymentAmount,
+      newRemainingAmount,
+    };
+  });
+
+  await prisma.$transaction(async (tx) => {
+    for (const update of updates) {
+      if (update.appliedAmount <= 0) continue;
+      await getPurchaseModelClient(tx as any).update({
+        where: { id: update.id },
+        data: {
+          paymentType: "DOWNPAYMENT",
+          downPaymentAmount: update.newDownPaymentAmount,
+          remainingAmount: update.newRemainingAmount,
+          settlementStatus: update.newRemainingAmount > 0 ? "TO_SETTLE" : "SETTLED",
+        },
+      });
+    }
+  });
+
+  const refreshed = await getPurchaseModelClient(prisma as any).findMany({
+    where: {
+      customerId,
+      ...(basePurchase.invoiceGroupCode
+        ? { invoiceGroupCode: basePurchase.invoiceGroupCode }
+        : { id: basePurchase.id }),
+    },
+    select: {
+      id: true,
+      remainingAmount: true,
+      downPaymentAmount: true,
+      settlementStatus: true,
+      paymentType: true,
+    },
+  });
+
+  const totalRemainingAfter = roundCurrency(
+    refreshed.reduce((sum: number, row: any) => sum + (row.remainingAmount ?? 0), 0)
+  );
+
+  return {
+    customerId,
+    invoiceGroupCode: basePurchase.invoiceGroupCode,
+    purchaseId: basePurchase.id,
+    appliedAmount: settleAmount,
+    totalRemainingBefore,
+    totalRemainingAfter,
+    settlementStatus: totalRemainingAfter > 0 ? "TO_SETTLE" : "SETTLED",
+    updatedEntries: refreshed,
   };
 }

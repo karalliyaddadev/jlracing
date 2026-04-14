@@ -50,10 +50,14 @@ export const posUserQuerySchema = z.object({
 
 export const createPurchaseSchema = z.object({
   purchaseType: z.enum(["BIKE", "INVENTORY"]).default("BIKE"),
+  purchaseMode: z.enum(["SINGLE", "BULK"]).default("SINGLE"),
+  invoiceGroupCode: z.string().trim().max(80).optional(),
   bikeVehicleId: z.number().int().positive("Bike is required").optional(),
   inventoryProductId: z.number().int().positive("Inventory product is required").optional(),
   quantity: z.number().int().min(1).default(1),
   finalSellingPrice: z.number().min(0, "Final selling price must be >= 0"),
+  paymentType: z.enum(["DIRECT", "DOWNPAYMENT"]).default("DIRECT"),
+  downPaymentAmount: z.number().min(0, "Downpayment amount must be >= 0").optional(),
 }).superRefine((data, ctx) => {
   if (data.purchaseType === "BIKE" && !data.bikeVehicleId) {
     ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Bike is required", path: ["bikeVehicleId"] });
@@ -69,8 +73,13 @@ export const purchaseQuerySchema = z.object({
   search: z.string().trim().optional(),
 });
 
+export const settlePurchaseSchema = z.object({
+  amount: z.number().min(0.01, "Settlement amount must be greater than 0"),
+});
+
 export type CreatePosUserDto = z.infer<typeof createPosUserSchema>;
 export type UpdatePosUserDto = z.infer<typeof updatePosUserSchema>;
 export type PosUserQueryDto = z.infer<typeof posUserQuerySchema>;
 export type CreatePurchaseDto = z.infer<typeof createPurchaseSchema>;
 export type PurchaseQueryDto = z.infer<typeof purchaseQuerySchema>;
+export type SettlePurchaseDto = z.infer<typeof settlePurchaseSchema>;

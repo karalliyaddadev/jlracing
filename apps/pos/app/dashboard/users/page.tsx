@@ -68,9 +68,15 @@ type PurchaseHistoryEntry = {
   id: number;
   purchasedAt: string;
   itemType: "BIKE" | "INVENTORY";
+  purchaseMode?: "SINGLE" | "BULK";
+  invoiceGroupCode?: string | null;
   quantity: number;
   currentSellingPrice?: number | null;
   finalSellingPrice: number;
+  paymentType?: "DIRECT" | "DOWNPAYMENT";
+  downPaymentAmount?: number;
+  remainingAmount?: number;
+  settlementStatus?: "SETTLED" | "TO_SETTLE";
   customer: {
     id: number;
     firstName: string;
@@ -109,12 +115,41 @@ type PurchaseHistoryEntry = {
   } | null;
 };
 
+type PurchaseInvoiceRow = {
+  key: string;
+  representative: PurchaseHistoryEntry;
+  purchasedAt: string;
+  invoiceLabel: string;
+  purchaseMode: "SINGLE" | "BULK";
+  quantity: number;
+  finalSellingPrice: number;
+  remainingAmount: number;
+  settlementStatus: "SETTLED" | "TO_SETTLE";
+  paymentTypeText: "Direct" | "Downpayment";
+  statusText: string;
+  itemTitle: string;
+  itemSubtitle: string;
+};
+
 type PurchaseFormState = {
   purchaseType: "BIKE" | "INVENTORY";
+  purchaseMode: "SINGLE" | "BULK";
   bikeVehicleId: number | "";
   inventoryProductId: number | "";
   quantity: string;
   finalSellingPrice: string;
+  paymentType: "DIRECT" | "DOWNPAYMENT";
+  downPaymentAmount: string;
+};
+
+type BulkBikeLine = {
+  key: string;
+  brandName: string;
+  modelName: string;
+  unitPrice: number;
+  quantity: number;
+  subtotal: number;
+  bikeIds: number[];
 };
 
 type InventoryProductOption = {
@@ -185,11 +220,18 @@ export default function UsersPage() {
   const [purchaseUser, setPurchaseUser] = useState<PosUser | null>(null);
   const [purchaseForm, setPurchaseForm] = useState<PurchaseFormState>({
     purchaseType: "BIKE",
+    purchaseMode: "SINGLE",
     bikeVehicleId: "",
     inventoryProductId: "",
     quantity: "1",
     finalSellingPrice: "",
+    paymentType: "DIRECT",
+    downPaymentAmount: "",
   });
+  const [bulkBrandModelKey, setBulkBrandModelKey] = useState("");
+  const [bulkCount, setBulkCount] = useState("1");
+  const [bulkUnitPrice, setBulkUnitPrice] = useState("");
+  const [bulkBikeLines, setBulkBikeLines] = useState<BulkBikeLine[]>([]);
   const [purchaseBikeDetail, setPurchaseBikeDetail] = useState<BikeDetail | null>(null);
   const [purchaseProductDetail, setPurchaseProductDetail] = useState<InventoryProductOption | null>(null);
   const [purchaseLoadingBike, setPurchaseLoadingBike] = useState(false);
@@ -200,11 +242,17 @@ export default function UsersPage() {
   const [historySearch, setHistorySearch] = useState("");
   const [purchaseHistory, setPurchaseHistory] = useState<PurchaseHistoryEntry[]>([]);
   const [selectedHistoryPurchase, setSelectedHistoryPurchase] = useState<PurchaseHistoryEntry | null>(null);
+  const [invoiceSourceEntries, setInvoiceSourceEntries] = useState<PurchaseHistoryEntry[] | null>(null);
   const [ordersUser, setOrdersUser] = useState<PosUser | null>(null);
   const [ordersLoading, setOrdersLoading] = useState(false);
   const [ordersError, setOrdersError] = useState<string | null>(null);
   const [ordersSearch, setOrdersSearch] = useState("");
   const [orders, setOrders] = useState<PurchaseHistoryEntry[]>([]);
+  const [settleTarget, setSettleTarget] = useState<PurchaseHistoryEntry | null>(null);
+  const [settleAmount, setSettleAmount] = useState("");
+  const [settleSaving, setSettleSaving] = useState(false);
+  const [settleError, setSettleError] = useState<string | null>(null);
+  const [showBulkBikeDetails, setShowBulkBikeDetails] = useState(false);
 
   const base = `${API_URL}/api/pos/user-management`;
   const bikeBase = `${API_URL}/api/pos/bike-management`;
@@ -236,6 +284,71 @@ export default function UsersPage() {
   const availableBikeOptions = useMemo(
     () => dreamBikeOptions.filter((bike) => bike.availability === "available"),
     [dreamBikeOptions]
+  );
+
+  const bikeGroupOptions = useMemo(() => {
+    const map = new Map<string, {
+      brandName: string;
+      modelName: string;
+      totalCount: number;
+      availableCount: number;
+      soldCount: number;
+      defaultPrice?: number | null;
+    }>();
+
+    dreamBikeOptions.forEach((bike) => {
+      const key = `${bike.brandName}__${bike.modelName}`;
+      const current = map.get(key);
+      const isAvailable = bike.availability === "available";
+      if (current) {
+        current.totalCount += 1;
+        if (isAvailable) current.availableCount += 1;
+        else current.soldCount += 1;
+        if ((current.defaultPrice == null || current.defaultPrice <= 0) && bike.sellingPrice != null) {
+          current.defaultPrice = bike.sellingPrice;
+        }
+      } else {
+        map.set(key, {
+          brandName: bike.brandName,
+          modelName: bike.modelName,
+          totalCount: 1,
+          availableCount: isAvailable ? 1 : 0,
+          soldCount: isAvailable ? 0 : 1,
+          defaultPrice: bike.sellingPrice,
+        });
+      }
+    });
+
+    return Array.from(map.entries())
+      .map(([key, value]) => ({ key, ...value }))
+      .sort((left, right) => `${left.brandName} ${left.modelName}`.localeCompare(`${right.brandName} ${right.modelName}`));
+  }, [dreamBikeOptions]);
+
+  const bulkBikeTotal = useMemo(
+    () => bulkBikeLines.reduce((sum, line) => sum + line.subtotal, 0),
+    [bulkBikeLines]
+  );
+
+  const bulkUsedByGroupKey = useMemo(() => {
+    const used = new Map<string, number>();
+    bulkBikeLines.forEach((line) => {
+      const key = `${line.brandName}__${line.modelName}`;
+      used.set(key, (used.get(key) ?? 0) + line.quantity);
+    });
+    return used;
+  }, [bulkBikeLines]);
+
+  const bikeGroupOptionsWithRemaining = useMemo(
+    () => bikeGroupOptions.map((group) => {
+      const usedCount = bulkUsedByGroupKey.get(group.key) ?? 0;
+      const remainingCount = Math.max(0, group.availableCount - usedCount);
+      return {
+        ...group,
+        usedCount,
+        remainingCount,
+      };
+    }),
+    [bikeGroupOptions, bulkUsedByGroupKey]
   );
 
   const loadInitialData = useCallback(async () => {
@@ -338,6 +451,29 @@ export default function UsersPage() {
     setOrders([]);
   };
 
+  const openInvoiceModal = useCallback(async (entry: PurchaseHistoryEntry) => {
+    setSelectedHistoryPurchase(entry);
+    setInvoiceSourceEntries(null);
+    setShowBulkBikeDetails(false);
+    try {
+      const response = await fetch(`${base}/${entry.customer.id}/purchases?page=1&limit=1000`, {
+        headers: authHeader,
+        cache: "no-store",
+      });
+      const payload = await response.json() as { data?: { purchases?: PurchaseHistoryEntry[] }; message?: string };
+      if (!response.ok) throw new Error(payload.message ?? "Failed to load invoice details");
+      setInvoiceSourceEntries(payload.data?.purchases ?? []);
+    } catch {
+      setInvoiceSourceEntries(null);
+    }
+  }, [authHeader, base]);
+
+  const closeInvoiceModal = () => {
+    setSelectedHistoryPurchase(null);
+    setInvoiceSourceEntries(null);
+    setShowBulkBikeDetails(false);
+  };
+
   const getPurchaseItemMeta = (entry: PurchaseHistoryEntry) => {
     if (entry.itemType === "BIKE" && entry.bike) {
       return {
@@ -354,6 +490,184 @@ export default function UsersPage() {
     return { title: "Unknown item", subtitle: "-" };
   };
 
+  const isDownPaymentEntry = (entry: PurchaseHistoryEntry) => {
+    if (entry.paymentType === "DOWNPAYMENT") return true;
+    const downPayment = entry.downPaymentAmount ?? 0;
+    const remaining = entry.remainingAmount ?? 0;
+    if (remaining > 0) return true;
+    if (downPayment > 0 && downPayment < entry.finalSellingPrice) return true;
+    const currentSellingPrice = entry.currentSellingPrice ?? 0;
+    if (currentSellingPrice > 0 && entry.finalSellingPrice > 0 && entry.finalSellingPrice < currentSellingPrice * 0.7) return true;
+    return false;
+  };
+
+  const getSettlementBadgeText = (entry: PurchaseHistoryEntry) => {
+    if (isDownPaymentEntry(entry)) {
+      return entry.settlementStatus === "TO_SETTLE"
+        ? `Downpay • Settle Rs. ${(entry.remainingAmount ?? 0).toLocaleString()}`
+        : "Downpay • Settled";
+    }
+    return "Direct • Settled";
+  };
+
+  const getPaymentTypeText = (entry: PurchaseHistoryEntry) => (isDownPaymentEntry(entry) ? "Downpayment" : "Direct");
+
+  const buildInvoiceRows = useCallback((entries: PurchaseHistoryEntry[]): PurchaseInvoiceRow[] => {
+    const bulkHeuristicCounts = new Map<string, number>();
+    for (const entry of entries) {
+      if (entry.invoiceGroupCode?.trim()) continue;
+      if (entry.itemType !== "BIKE") continue;
+      const secondBucket = Math.floor(new Date(entry.purchasedAt).getTime() / 1000);
+      const heuristicKey = `${entry.customer.id}:${secondBucket}`;
+      bulkHeuristicCounts.set(heuristicKey, (bulkHeuristicCounts.get(heuristicKey) ?? 0) + 1);
+    }
+
+    const grouped = new Map<string, PurchaseHistoryEntry[]>();
+
+    for (const entry of entries) {
+      const groupCode = entry.invoiceGroupCode?.trim();
+      const secondBucket = Math.floor(new Date(entry.purchasedAt).getTime() / 1000);
+      const heuristicKey = `${entry.customer.id}:${secondBucket}`;
+      const isHeuristicBulk = !groupCode && entry.itemType === "BIKE" && (bulkHeuristicCounts.get(heuristicKey) ?? 0) > 1;
+      const key = groupCode
+        ? `group:${entry.customer.id}:${groupCode}`
+        : isHeuristicBulk
+          ? `heuristic:${heuristicKey}`
+          : `single:${entry.id}`;
+      const bucket = grouped.get(key);
+      if (bucket) bucket.push(entry);
+      else grouped.set(key, [entry]);
+    }
+
+    const rows = Array.from(grouped.entries()).map(([key, bucket]) => {
+      const sorted = [...bucket].sort((a, b) => +new Date(b.purchasedAt) - +new Date(a.purchasedAt));
+      const representative = sorted[0];
+      const groupCode = representative.invoiceGroupCode?.trim();
+      const isHeuristicBulk = key.startsWith("heuristic:");
+      const isBulk = bucket.length > 1 || representative.purchaseMode === "BULK" || !!groupCode;
+      const purchaseMode: "SINGLE" | "BULK" = isBulk ? "BULK" : "SINGLE";
+
+      const quantity = bucket.reduce((sum, row) => sum + row.quantity, 0);
+      const finalSellingPrice = bucket.reduce((sum, row) => sum + row.finalSellingPrice, 0);
+      const remainingAmount = Math.max(0, Math.round(bucket.reduce((sum, row) => sum + (row.remainingAmount ?? 0), 0) * 100) / 100);
+      const hasDownPayment = bucket.some((row) => isDownPaymentEntry(row));
+      const settlementStatus: "SETTLED" | "TO_SETTLE" = remainingAmount > 0 || bucket.some((row) => row.settlementStatus === "TO_SETTLE")
+        ? "TO_SETTLE"
+        : "SETTLED";
+
+      const paymentTypeText: "Direct" | "Downpayment" = hasDownPayment ? "Downpayment" : "Direct";
+      const statusText = hasDownPayment
+        ? settlementStatus === "TO_SETTLE"
+          ? `Downpay • Settle Rs. ${remainingAmount.toLocaleString()}`
+          : "Downpay • Settled"
+        : "Direct • Settled";
+
+      const itemTitle = isBulk ? `Bulk Purchase (${bucket.length} bike entries)` : getPurchaseItemMeta(representative).title;
+      const itemSubtitle = isBulk
+        ? bucket.slice(0, 2).map((row) => getPurchaseItemMeta(row).title).join(" + ")
+        : getPurchaseItemMeta(representative).subtitle;
+
+      return {
+        key,
+        representative,
+        purchasedAt: representative.purchasedAt,
+        invoiceLabel: groupCode || (isHeuristicBulk ? `BULK-${String(representative.id).padStart(5, "0")}` : `INV-${String(representative.id).padStart(5, "0")}`),
+        purchaseMode,
+        quantity,
+        finalSellingPrice,
+        remainingAmount,
+        settlementStatus,
+        paymentTypeText,
+        statusText,
+        itemTitle,
+        itemSubtitle,
+      };
+    });
+
+    rows.sort((a, b) => +new Date(b.purchasedAt) - +new Date(a.purchasedAt));
+    return rows;
+  }, [getPurchaseItemMeta]);
+
+  const historyInvoiceRows = useMemo(() => buildInvoiceRows(purchaseHistory), [buildInvoiceRows, purchaseHistory]);
+  const orderInvoiceRows = useMemo(() => buildInvoiceRows(orders), [buildInvoiceRows, orders]);
+
+  const getInvoiceRemaining = (entry: PurchaseHistoryEntry) => {
+    const groupCode = entry.invoiceGroupCode?.trim();
+    if (!groupCode) {
+      return Math.max(0, Math.round(((entry.remainingAmount ?? 0)) * 100) / 100);
+    }
+
+    const merged = [...orders, ...purchaseHistory];
+    let hasMatch = false;
+    let total = 0;
+    merged.forEach((row) => {
+      if (row.customer.id === entry.customer.id && row.invoiceGroupCode === groupCode) {
+        total += row.remainingAmount ?? 0;
+        hasMatch = true;
+      }
+    });
+
+    if (!hasMatch) {
+      return Math.max(0, Math.round(((entry.remainingAmount ?? 0)) * 100) / 100);
+    }
+    return Math.max(0, Math.round(total * 100) / 100);
+  };
+
+  const openSettleModal = (entry: PurchaseHistoryEntry) => {
+    const remaining = getInvoiceRemaining(entry);
+    setSettleTarget(entry);
+    setSettleAmount(remaining > 0 ? String(remaining) : "");
+    setSettleError(null);
+  };
+
+  const closeSettleModal = () => {
+    setSettleTarget(null);
+    setSettleAmount("");
+    setSettleError(null);
+    setSettleSaving(false);
+  };
+
+  const submitSettlePayment = async (event: FormEvent) => {
+    event.preventDefault();
+    if (!settleTarget) return;
+
+    const remaining = getInvoiceRemaining(settleTarget);
+    const amount = Number(settleAmount);
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setSettleError("Please enter a valid settle amount");
+      return;
+    }
+    if (amount > remaining) {
+      setSettleError(`Settle amount cannot exceed remaining amount (Rs. ${remaining.toLocaleString()})`);
+      return;
+    }
+
+    setSettleSaving(true);
+    setSettleError(null);
+    try {
+      const response = await fetch(`${base}/${settleTarget.customer.id}/purchases/${settleTarget.id}/settle`, {
+        method: "POST",
+        headers: { ...authHeader, "Content-Type": "application/json" },
+        body: JSON.stringify({ amount }),
+      });
+      const payload = await response.json() as { message?: string };
+      if (!response.ok) throw new Error(payload.message ?? "Failed to settle amount");
+
+      setSuccess("Settlement payment added successfully");
+      if (ordersUser) {
+        await loadOrdersForUser(ordersUser.id, ordersSearch);
+      }
+      if (activeTab === "history") {
+        await loadPurchaseHistory();
+      }
+      closeSettleModal();
+    } catch (err) {
+      setSettleError(err instanceof Error ? err.message : "Failed to settle amount");
+    } finally {
+      setSettleSaving(false);
+    }
+  };
+
   const ordersTotalValue = useMemo(
     () => orders.reduce((sum, order) => sum + order.finalSellingPrice, 0),
     [orders]
@@ -366,6 +680,144 @@ export default function UsersPage() {
     () => orders.filter((order) => order.itemType === "INVENTORY").length,
     [orders]
   );
+
+  const purchaseInvoiceTotal = useMemo(() => {
+    if (purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseMode === "BULK") {
+      return bulkBikeTotal;
+    }
+    const value = Number(purchaseForm.finalSellingPrice);
+    return Number.isFinite(value) && value >= 0 ? value : 0;
+  }, [bulkBikeTotal, purchaseForm.finalSellingPrice, purchaseForm.purchaseMode, purchaseForm.purchaseType]);
+
+  const purchaseDownPaymentPreview = useMemo(() => {
+    if (purchaseForm.paymentType === "DIRECT") return purchaseInvoiceTotal;
+    const value = Number(purchaseForm.downPaymentAmount || "0");
+    return Number.isFinite(value) && value >= 0 ? value : 0;
+  }, [purchaseForm.downPaymentAmount, purchaseForm.paymentType, purchaseInvoiceTotal]);
+
+  const purchaseRemainingPreview = useMemo(
+    () => Math.max(0, Math.round((purchaseInvoiceTotal - purchaseDownPaymentPreview) * 100) / 100),
+    [purchaseDownPaymentPreview, purchaseInvoiceTotal]
+  );
+
+  const selectedBulkGroup = useMemo(
+    () => bikeGroupOptionsWithRemaining.find((group) => group.key === bulkBrandModelKey) ?? null,
+    [bikeGroupOptionsWithRemaining, bulkBrandModelKey]
+  );
+
+  const selectedBulkUsedCount = useMemo(() => {
+    if (!selectedBulkGroup) return 0;
+    return selectedBulkGroup.usedCount;
+  }, [selectedBulkGroup]);
+
+  const selectedBulkRemainingCount = useMemo(() => {
+    if (!selectedBulkGroup) return 0;
+    return selectedBulkGroup.remainingCount;
+  }, [selectedBulkGroup]);
+
+  const selectedBulkRequestedCount = useMemo(() => {
+    const parsed = Number(bulkCount);
+    return Number.isInteger(parsed) && parsed > 0 ? parsed : 0;
+  }, [bulkCount]);
+
+  const selectedBulkBikes = useMemo(() => {
+    const bikeIdSet = new Set(bulkBikeLines.flatMap((line) => line.bikeIds));
+    return availableBikeOptions.filter((bike) => bikeIdSet.has(bike.id));
+  }, [availableBikeOptions, bulkBikeLines]);
+
+  useEffect(() => {
+    if (!selectedBulkGroup) return;
+    if (bulkUnitPrice.trim().length > 0) return;
+    if (selectedBulkGroup.defaultPrice == null || selectedBulkGroup.defaultPrice <= 0) return;
+    setBulkUnitPrice(String(selectedBulkGroup.defaultPrice));
+  }, [bulkUnitPrice, selectedBulkGroup]);
+
+  const selectedInvoiceEntries = useMemo(() => {
+    if (!selectedHistoryPurchase) return [] as PurchaseHistoryEntry[];
+    const groupCode = selectedHistoryPurchase.invoiceGroupCode?.trim();
+    const merged = invoiceSourceEntries && invoiceSourceEntries.length > 0
+      ? invoiceSourceEntries
+      : [...purchaseHistory, ...orders];
+    const unique = new Map<number, PurchaseHistoryEntry>();
+
+    if (groupCode) {
+      merged.forEach((entry) => {
+        if (entry.id === selectedHistoryPurchase.id || entry.invoiceGroupCode === groupCode) {
+          unique.set(entry.id, entry);
+        }
+      });
+      return Array.from(unique.values()).sort((left, right) => left.id - right.id);
+    }
+
+    const selectedSecondBucket = Math.floor(new Date(selectedHistoryPurchase.purchasedAt).getTime() / 1000);
+    const selectedHeuristicKey = `${selectedHistoryPurchase.customer.id}:${selectedSecondBucket}`;
+    const heuristicMatches = merged.filter((entry) => {
+      if (entry.invoiceGroupCode?.trim()) return false;
+      if (entry.itemType !== "BIKE") return false;
+      const secondBucket = Math.floor(new Date(entry.purchasedAt).getTime() / 1000);
+      const heuristicKey = `${entry.customer.id}:${secondBucket}`;
+      return heuristicKey === selectedHeuristicKey;
+    });
+
+    if (heuristicMatches.length > 1) {
+      heuristicMatches.forEach((entry) => unique.set(entry.id, entry));
+      unique.set(selectedHistoryPurchase.id, selectedHistoryPurchase);
+      return Array.from(unique.values()).sort((left, right) => left.id - right.id);
+    }
+
+    return [selectedHistoryPurchase];
+  }, [invoiceSourceEntries, orders, purchaseHistory, selectedHistoryPurchase]);
+
+  const selectedInvoiceTotals = useMemo(() => {
+    const entries = selectedInvoiceEntries;
+    return {
+      quantity: entries.reduce((sum, entry) => sum + entry.quantity, 0),
+      finalSellingPrice: entries.reduce((sum, entry) => sum + entry.finalSellingPrice, 0),
+      downPaymentAmount: entries.reduce((sum, entry) => {
+        const explicitDownPayment = entry.downPaymentAmount ?? 0;
+        if (explicitDownPayment > 0) return sum + explicitDownPayment;
+        if (!isDownPaymentEntry(entry)) return sum;
+        const paidAmount = Math.max(0, entry.finalSellingPrice - (entry.remainingAmount ?? 0));
+        return sum + paidAmount;
+      }, 0),
+      remainingAmount: entries.reduce((sum, entry) => sum + (entry.remainingAmount ?? 0), 0),
+      settlementStatus: entries.some((entry) => entry.settlementStatus === "TO_SETTLE") ? "TO_SETTLE" : "SETTLED",
+    };
+  }, [selectedInvoiceEntries]);
+
+  const selectedInvoicePaymentType = useMemo(
+    () => (selectedInvoiceEntries.some((entry) => isDownPaymentEntry(entry)) ? "Downpayment" : "Direct"),
+    [selectedInvoiceEntries]
+  );
+
+  const selectedInvoicePurchaseMode = useMemo(
+    () => (selectedInvoiceEntries.length > 1 || selectedHistoryPurchase?.purchaseMode === "BULK" || !!selectedHistoryPurchase?.invoiceGroupCode ? "Bulk" : "Single"),
+    [selectedHistoryPurchase?.invoiceGroupCode, selectedHistoryPurchase?.purchaseMode, selectedInvoiceEntries.length]
+  );
+
+  const selectedInvoiceCurrentSellingTotal = useMemo(
+    () => selectedInvoiceEntries.reduce((sum, entry) => sum + (entry.currentSellingPrice ?? 0), 0),
+    [selectedInvoiceEntries]
+  );
+
+  const isBulkInvoiceView = useMemo(
+    () => {
+      if (!selectedHistoryPurchase) return false;
+      return selectedInvoiceEntries.length > 1 || selectedHistoryPurchase.purchaseMode === "BULK" || !!selectedHistoryPurchase.invoiceGroupCode;
+    },
+    [selectedHistoryPurchase, selectedInvoiceEntries.length]
+  );
+
+  const bulkBikeDetailEntries = useMemo(
+    () => selectedInvoiceEntries.filter(
+      (entry): entry is PurchaseHistoryEntry & { bike: NonNullable<PurchaseHistoryEntry["bike"]> } => entry.itemType === "BIKE" && !!entry.bike
+    ),
+    [selectedInvoiceEntries]
+  );
+
+  useEffect(() => {
+    setShowBulkBikeDetails(false);
+  }, [selectedHistoryPurchase?.id]);
 
   const resetForm = () => {
     setForm(EMPTY_FORM);
@@ -550,11 +1002,18 @@ export default function UsersPage() {
     setPurchaseUser(user);
     setPurchaseForm({
       purchaseType: "BIKE",
+      purchaseMode: "SINGLE",
       bikeVehicleId: "",
       inventoryProductId: "",
       quantity: "1",
       finalSellingPrice: "",
+      paymentType: "DIRECT",
+      downPaymentAmount: "",
     });
+    setBulkBrandModelKey("");
+    setBulkCount("1");
+    setBulkUnitPrice("");
+    setBulkBikeLines([]);
     setPurchaseBikeDetail(null);
     setPurchaseProductDetail(null);
     setPurchaseError(null);
@@ -564,11 +1023,18 @@ export default function UsersPage() {
     setPurchaseUser(null);
     setPurchaseForm({
       purchaseType: "BIKE",
+      purchaseMode: "SINGLE",
       bikeVehicleId: "",
       inventoryProductId: "",
       quantity: "1",
       finalSellingPrice: "",
+      paymentType: "DIRECT",
+      downPaymentAmount: "",
     });
+    setBulkBrandModelKey("");
+    setBulkCount("1");
+    setBulkUnitPrice("");
+    setBulkBikeLines([]);
     setPurchaseBikeDetail(null);
     setPurchaseProductDetail(null);
     setPurchaseError(null);
@@ -616,10 +1082,112 @@ export default function UsersPage() {
     }
   };
 
+  const addBulkBikeLine = () => {
+    if (!bulkBrandModelKey) {
+      setPurchaseError("Please select a brand and model");
+      return;
+    }
+
+    const requestedCount = Number(bulkCount);
+    const selectedGroup = bikeGroupOptions.find((group) => group.key === bulkBrandModelKey) ?? null;
+    let unitPrice = Number(bulkUnitPrice);
+    if ((!Number.isFinite(unitPrice) || unitPrice <= 0) && selectedGroup?.defaultPrice != null && selectedGroup.defaultPrice > 0) {
+      unitPrice = Number(selectedGroup.defaultPrice);
+      setBulkUnitPrice(String(selectedGroup.defaultPrice));
+    }
+    if (!Number.isInteger(requestedCount) || requestedCount <= 0) {
+      setPurchaseError("Please enter a valid bike count");
+      return;
+    }
+    if (!Number.isFinite(unitPrice) || unitPrice <= 0) {
+      setPurchaseError("Please enter a valid allocated price greater than 0");
+      return;
+    }
+
+    const [brandName, modelName] = bulkBrandModelKey.split("__");
+    const usedBikeIds = new Set(bulkBikeLines.flatMap((line) => line.bikeIds));
+    const matchingBikes = availableBikeOptions.filter((bike) => (
+      bike.brandName === brandName
+      && bike.modelName === modelName
+      && !usedBikeIds.has(bike.id)
+    ));
+
+    if (matchingBikes.length < requestedCount) {
+      setPurchaseError(`Not available for requested count. Available amount for ${brandName} ${modelName}: ${matchingBikes.length}`);
+      return;
+    }
+
+    const selected = matchingBikes.slice(0, requestedCount);
+    const subtotal = Math.round(unitPrice * requestedCount * 100) / 100;
+    const key = `${brandName}__${modelName}__${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    setBulkBikeLines((prev) => [
+      ...prev,
+      {
+        key,
+        brandName,
+        modelName,
+        unitPrice,
+        quantity: requestedCount,
+        subtotal,
+        bikeIds: selected.map((bike) => bike.id),
+      },
+    ]);
+    setBulkBrandModelKey("");
+    setBulkCount("1");
+    setPurchaseError(null);
+  };
+
+  const removeBulkBikeLine = (key: string) => {
+    setBulkBikeLines((prev) => prev.filter((line) => line.key !== key));
+  };
+
+  const allocateDownPayments = (lineItems: Array<{ bikeId: number; unitPrice: number }>, totalDownPayment: number) => {
+    if (lineItems.length === 0) {
+      return [] as Array<{ bikeId: number; unitPrice: number; downPayment: number }>;
+    }
+
+    const totalPrice = lineItems.reduce((sum, item) => sum + item.unitPrice, 0);
+    const targetCents = Math.round(totalDownPayment * 100);
+
+    if (totalPrice <= 0) {
+      const base = Math.floor(targetCents / lineItems.length);
+      const remainder = targetCents % lineItems.length;
+      return lineItems.map((item, index) => ({
+        ...item,
+        downPayment: (base + (index < remainder ? 1 : 0)) / 100,
+      }));
+    }
+
+    const provisional = lineItems.map((item, index) => {
+      const raw = (targetCents * item.unitPrice) / totalPrice;
+      const floor = Math.floor(raw);
+      return { index, floor, fraction: raw - floor };
+    });
+
+    let allocated = provisional.reduce((sum, item) => sum + item.floor, 0);
+    let remaining = targetCents - allocated;
+    provisional.sort((a, b) => b.fraction - a.fraction);
+    for (let i = 0; i < provisional.length && remaining > 0; i += 1) {
+      provisional[i].floor += 1;
+      remaining -= 1;
+    }
+
+    const centsByIndex = new Map<number, number>(provisional.map((item) => [item.index, item.floor]));
+    return lineItems.map((item, index) => ({
+      ...item,
+      downPayment: (centsByIndex.get(index) ?? 0) / 100,
+    }));
+  };
+
   const handlePurchaseSubmit = async (event: FormEvent) => {
     event.preventDefault();
     if (!purchaseUser) return;
-    if (purchaseForm.purchaseType === "BIKE" && purchaseForm.bikeVehicleId === "") {
+    if (
+      purchaseForm.purchaseType === "BIKE"
+      && purchaseForm.purchaseMode === "SINGLE"
+      && purchaseForm.bikeVehicleId === ""
+    ) {
       setPurchaseError("Please select a bike");
       return;
     }
@@ -634,24 +1202,82 @@ export default function UsersPage() {
       return;
     }
 
+    if (purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseMode === "BULK" && bulkBikeLines.length === 0) {
+      setPurchaseError("Please add at least one bulk bike line");
+      return;
+    }
+
     const finalPrice = Number(purchaseForm.finalSellingPrice);
-    if (!Number.isFinite(finalPrice) || finalPrice < 0) {
+    if (
+      !(purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseMode === "BULK")
+      && (!Number.isFinite(finalPrice) || finalPrice < 0)
+    ) {
       setPurchaseError("Please enter a valid final selling price");
       return;
+    }
+
+    const effectiveTotalPrice = (
+      purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseMode === "BULK"
+    ) ? bulkBikeTotal : finalPrice;
+
+    const downPayment = Number(purchaseForm.downPaymentAmount || "0");
+    if (purchaseForm.paymentType === "DOWNPAYMENT") {
+      if (!Number.isFinite(downPayment) || downPayment <= 0) {
+        setPurchaseError("Please enter a valid downpayment amount");
+        return;
+      }
+      if (downPayment > effectiveTotalPrice) {
+        setPurchaseError("Downpayment amount cannot exceed final selling price");
+        return;
+      }
     }
 
     setPurchaseSaving(true);
     setPurchaseError(null);
     try {
+      if (purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseMode === "BULK") {
+        const invoiceGroupCode = `BULK-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+        const lineItems = bulkBikeLines.flatMap((line) => line.bikeIds.map((bikeId) => ({ bikeId, unitPrice: line.unitPrice })));
+        const effectiveDownPayment = purchaseForm.paymentType === "DIRECT" ? bulkBikeTotal : downPayment;
+        const allocations = allocateDownPayments(lineItems, effectiveDownPayment);
+
+        for (const line of allocations) {
+          const response = await fetch(`${base}/${purchaseUser.id}/purchases`, {
+            method: "POST",
+            headers: { ...authHeader, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              purchaseType: "BIKE",
+              purchaseMode: "BULK",
+              invoiceGroupCode,
+              bikeVehicleId: line.bikeId,
+              finalSellingPrice: line.unitPrice,
+              paymentType: purchaseForm.paymentType,
+              downPaymentAmount: purchaseForm.paymentType === "DOWNPAYMENT" ? line.downPayment : undefined,
+            }),
+          });
+
+          const payload = await response.json() as { message?: string };
+          if (!response.ok) throw new Error(payload.message ?? "Failed to create bulk purchase");
+        }
+
+        setSuccess("Bulk purchase created successfully");
+        closePurchaseModal();
+        await loadInitialData();
+        return;
+      }
+
       const response = await fetch(`${base}/${purchaseUser.id}/purchases`, {
         method: "POST",
         headers: { ...authHeader, "Content-Type": "application/json" },
         body: JSON.stringify({
           purchaseType: purchaseForm.purchaseType,
+          purchaseMode: "SINGLE",
           bikeVehicleId: purchaseForm.purchaseType === "BIKE" ? purchaseForm.bikeVehicleId : undefined,
           inventoryProductId: purchaseForm.purchaseType === "INVENTORY" ? purchaseForm.inventoryProductId : undefined,
           quantity: purchaseForm.purchaseType === "INVENTORY" ? quantity : undefined,
           finalSellingPrice: finalPrice,
+          paymentType: purchaseForm.paymentType,
+          downPaymentAmount: purchaseForm.paymentType === "DOWNPAYMENT" ? downPayment : undefined,
         }),
       });
 
@@ -742,31 +1368,43 @@ export default function UsersPage() {
                   <th>Item</th>
                   <th>Qty</th>
                   <th>Final Price</th>
+                  <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {historyLoading && <tr><td colSpan={7} className="bm-table-empty">Loading purchase history...</td></tr>}
-                {!historyLoading && purchaseHistory.length === 0 && <tr><td colSpan={7} className="bm-table-empty">No purchase history records found.</td></tr>}
-                {!historyLoading && purchaseHistory.map((entry) => (
-                  <tr key={entry.id}>
-                    <td><span className="users-order-code">INV-{String(entry.id).padStart(5, "0")}</span></td>
+                {historyLoading && <tr><td colSpan={8} className="bm-table-empty">Loading purchase history...</td></tr>}
+                {!historyLoading && historyInvoiceRows.length === 0 && <tr><td colSpan={8} className="bm-table-empty">No purchase history records found.</td></tr>}
+                {!historyLoading && historyInvoiceRows.map((row) => (
+                  <tr key={row.key}>
+                    <td><span className="users-order-code">{row.invoiceLabel}</span></td>
                     <td>
-                      <div className="users-order-date">{new Date(entry.purchasedAt).toLocaleDateString()}</div>
-                      <div className="users-order-time">{new Date(entry.purchasedAt).toLocaleTimeString()}</div>
+                      <div className="users-order-date">{new Date(row.purchasedAt).toLocaleDateString()}</div>
+                      <div className="users-order-time">{new Date(row.purchasedAt).toLocaleTimeString()}</div>
                     </td>
                     <td>
-                      <div className="users-order-title">{entry.customer.firstName} {entry.customer.lastName}</div>
-                      <span className="users-muted">{entry.customer.mobileNumber}</span>
+                      <div className="users-order-title">{row.representative.customer.firstName} {row.representative.customer.lastName}</div>
+                      <span className="users-muted">{row.representative.customer.mobileNumber}</span>
                     </td>
                     <td>
-                      <div className="users-order-title">{getPurchaseItemMeta(entry).title}</div>
-                      <span className="users-order-item-meta">{getPurchaseItemMeta(entry).subtitle}</span>
+                      <div className="users-order-title">{row.itemTitle}</div>
+                      <span className="users-order-item-meta">{row.itemSubtitle}</span>
+                      <span className="users-muted" style={{ display: "block" }}>{row.purchaseMode === "BULK" ? "Bulk" : "Single"} • {row.paymentTypeText}</span>
                     </td>
-                    <td>{entry.quantity}</td>
-                    <td><span className="users-order-price">Rs. {entry.finalSellingPrice.toLocaleString()}</span></td>
+                    <td>{row.quantity}</td>
+                    <td><span className="users-order-price">Rs. {row.finalSellingPrice.toLocaleString()}</span></td>
                     <td>
-                      <button type="button" className="btn-outline" onClick={() => setSelectedHistoryPurchase(entry)}>View</button>
+                      <span className={`badge ${row.settlementStatus === "TO_SETTLE" ? "badge-pending" : "badge-active"}`}>
+                        {row.statusText}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                        <button type="button" className="btn-outline" onClick={() => void openInvoiceModal(row.representative)}>View</button>
+                        {row.remainingAmount > 0 && (
+                          <button type="button" className="btn-accent" onClick={() => openSettleModal(row.representative)}>Settle</button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -998,11 +1636,18 @@ export default function UsersPage() {
                     setPurchaseForm((prev) => ({
                       ...prev,
                       purchaseType: type,
+                      purchaseMode: "SINGLE",
                       bikeVehicleId: "",
                       inventoryProductId: "",
                       quantity: "1",
                       finalSellingPrice: "",
+                      paymentType: "DIRECT",
+                      downPaymentAmount: "",
                     }));
+                    setBulkBrandModelKey("");
+                    setBulkCount("1");
+                    setBulkUnitPrice("");
+                    setBulkBikeLines([]);
                     setPurchaseBikeDetail(null);
                     setPurchaseProductDetail(null);
                     setPurchaseError(null);
@@ -1014,6 +1659,36 @@ export default function UsersPage() {
               </div>
 
               {purchaseForm.purchaseType === "BIKE" && (
+                <div className="bm-field-group users-span-2">
+                  <label>Purchase Option</label>
+                  <select
+                    className="bm-input"
+                    value={purchaseForm.purchaseMode}
+                    onChange={(e) => {
+                      const mode = e.target.value as "SINGLE" | "BULK";
+                      setPurchaseForm((prev) => ({
+                        ...prev,
+                        purchaseMode: mode,
+                        bikeVehicleId: "",
+                        finalSellingPrice: "",
+                      }));
+                      setPurchaseBikeDetail(null);
+                      if (mode === "SINGLE") {
+                        setBulkBikeLines([]);
+                        setBulkBrandModelKey("");
+                        setBulkCount("1");
+                        setBulkUnitPrice("");
+                      }
+                      setPurchaseError(null);
+                    }}
+                  >
+                    <option value="SINGLE">Single Purchase</option>
+                    <option value="BULK">Bulk Purchase</option>
+                  </select>
+                </div>
+              )}
+
+              {purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseMode === "SINGLE" && (
                 <div className="bm-field-group users-span-2">
                   <label>Select Bike</label>
                   <select
@@ -1037,6 +1712,114 @@ export default function UsersPage() {
                     ))}
                   </select>
                 </div>
+              )}
+
+              {purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseMode === "BULK" && (
+                <>
+                  <div className="bm-field-group">
+                    <label>Brand + Model</label>
+                    <select className="bm-input" value={bulkBrandModelKey} onChange={(e) => setBulkBrandModelKey(e.target.value)}>
+                      <option value="">Select brand and model</option>
+                      {bikeGroupOptionsWithRemaining.map((group) => (
+                        <option key={group.key} value={group.key}>
+                          {group.brandName} {group.modelName} (Available now: {group.remainingCount}, Added: {group.usedCount}, Sold: {group.soldCount})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="bm-field-group">
+                    <label>Bike Count</label>
+                    <input className="bm-input" type="number" min={1} value={bulkCount} onChange={(e) => setBulkCount(e.target.value)} />
+                    {selectedBulkGroup && selectedBulkRequestedCount > selectedBulkRemainingCount && (
+                      <span className="users-field-error">Not available. Available amount: {selectedBulkRemainingCount}</span>
+                    )}
+                    {selectedBulkGroup && selectedBulkRequestedCount > 0 && selectedBulkRequestedCount <= selectedBulkRemainingCount && (
+                      <span className="users-muted">Available amount: {selectedBulkRemainingCount}</span>
+                    )}
+                  </div>
+                  <div className="bm-field-group">
+                    <label>Allocated Price (Per Bike)</label>
+                    <input className="bm-input" type="number" min={0} step="0.01" value={bulkUnitPrice} onChange={(e) => setBulkUnitPrice(e.target.value)} />
+                    {selectedBulkGroup?.defaultPrice != null && selectedBulkGroup.defaultPrice > 0 && (
+                      <span className="users-muted">Default selling price: Rs. {selectedBulkGroup.defaultPrice.toLocaleString()}</span>
+                    )}
+                  </div>
+                  <div className="bm-field-group" style={{ display: "flex", alignItems: "end" }}>
+                    <button type="button" className="btn-accent" onClick={addBulkBikeLine}>Apply</button>
+                  </div>
+
+                  <div className="bm-field-group users-span-2">
+                    <label>Added Bike List</label>
+                    <p className="users-muted" style={{ marginTop: 0 }}>You can add multiple lines with different brands and models in the same bulk invoice.</p>
+                    {bulkBikeLines.length === 0 && <p className="users-muted">No bulk items added yet.</p>}
+                    {bulkBikeLines.length > 0 && (
+                      <div className="data-table-wrap" style={{ marginTop: 8 }}>
+                        <table className="data-table users-orders-table">
+                          <thead>
+                            <tr>
+                              <th>Brand</th>
+                              <th>Model</th>
+                              <th>Count</th>
+                              <th>Allocated Price</th>
+                              <th>Subtotal</th>
+                              <th>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {bulkBikeLines.map((line) => (
+                              <tr key={line.key}>
+                                <td>{line.brandName}</td>
+                                <td>{line.modelName}</td>
+                                <td>{line.quantity}</td>
+                                <td>Rs. {line.unitPrice.toLocaleString()}</td>
+                                <td>Rs. {line.subtotal.toLocaleString()}</td>
+                                <td>
+                                  <button type="button" className="btn-outline" onClick={() => removeBulkBikeLine(line.key)}>Remove</button>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="bm-field-group users-span-2">
+                    <label>Bikes Assigned To This User</label>
+                    {selectedBulkBikes.length === 0 && <p className="users-muted">No bikes selected yet.</p>}
+                    {selectedBulkBikes.length > 0 && (
+                      <div className="data-table-wrap" style={{ marginTop: 8 }}>
+                        <table className="data-table users-orders-table">
+                          <thead>
+                            <tr>
+                              <th>Bike ID</th>
+                              <th>Brand</th>
+                              <th>Model</th>
+                              <th>Colour</th>
+                              <th>Selling Count</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {selectedBulkBikes.map((bike) => {
+                              const soldCountForModel = bikeGroupOptions.find((group) => (
+                                group.brandName === bike.brandName && group.modelName === bike.modelName
+                              ))?.soldCount ?? 0;
+                              return (
+                                <tr key={bike.id}>
+                                  <td>{bike.displayId}</td>
+                                  <td>{bike.brandName}</td>
+                                  <td>{bike.modelName}</td>
+                                  <td>{bike.colour}</td>
+                                  <td>{soldCountForModel}</td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </>
               )}
 
               {purchaseForm.purchaseType === "INVENTORY" && (
@@ -1084,7 +1867,7 @@ export default function UsersPage() {
 
               {purchaseLoadingBike && <p className="users-muted">Loading selected item details...</p>}
 
-              {purchaseForm.purchaseType === "BIKE" && purchaseBikeDetail && (
+              {purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseMode === "SINGLE" && purchaseBikeDetail && (
                 <>
                   <div className="bm-field-group"><label>Brand</label><input className="bm-input" value={purchaseBikeDetail.brand.name} readOnly /></div>
                   <div className="bm-field-group"><label>Model</label><input className="bm-input" value={purchaseBikeDetail.model.name} readOnly /></div>
@@ -1114,18 +1897,64 @@ export default function UsersPage() {
                 </>
               )}
 
-              <div className="bm-field-group users-span-2">
-                <label>Final Selling Price (Keep or Change)</label>
+              {!(purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseMode === "BULK") && (
+                <div className="bm-field-group users-span-2">
+                  <label>Final Selling Price (Keep or Change)</label>
+                  <input
+                    className="bm-input"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={purchaseForm.finalSellingPrice}
+                    onChange={(e) => setPurchaseForm((prev) => ({ ...prev, finalSellingPrice: e.target.value }))}
+                    placeholder="Enter final selling price"
+                    required
+                  />
+                </div>
+              )}
+
+              <div className="bm-field-group">
+                <label>Payment Type</label>
+                <select
+                  className="bm-input"
+                  value={purchaseForm.paymentType}
+                  onChange={(e) => {
+                    const paymentType = e.target.value as "DIRECT" | "DOWNPAYMENT";
+                    setPurchaseForm((prev) => ({
+                      ...prev,
+                      paymentType,
+                      downPaymentAmount: paymentType === "DIRECT" ? String(purchaseInvoiceTotal) : prev.downPaymentAmount,
+                    }));
+                  }}
+                >
+                  <option value="DIRECT">Direct Buy</option>
+                  <option value="DOWNPAYMENT">Downpayment</option>
+                </select>
+              </div>
+
+              <div className="bm-field-group">
+                <label>Downpayment Amount</label>
                 <input
                   className="bm-input"
                   type="number"
                   min={0}
                   step="0.01"
-                  value={purchaseForm.finalSellingPrice}
-                  onChange={(e) => setPurchaseForm((prev) => ({ ...prev, finalSellingPrice: e.target.value }))}
-                  placeholder="Enter final selling price"
-                  required
+                  value={purchaseForm.paymentType === "DIRECT" ? String(purchaseInvoiceTotal) : purchaseForm.downPaymentAmount}
+                  onChange={(e) => setPurchaseForm((prev) => ({ ...prev, downPaymentAmount: e.target.value }))}
+                  disabled={purchaseForm.paymentType === "DIRECT"}
+                  required={purchaseForm.paymentType === "DOWNPAYMENT"}
                 />
+              </div>
+
+              <div className="bm-field-group">
+                <label>Invoice Total</label>
+                <input className="bm-input" value={`Rs. ${purchaseInvoiceTotal.toLocaleString()}`} readOnly />
+              </div>
+
+              <div className="bm-field-group">
+                <label>Remaining To Settle</label>
+                <input className="bm-input" value={`Rs. ${purchaseRemainingPreview.toLocaleString()}`} readOnly />
+                <span className="users-muted">Auto-calculated as invoice total - downpayment.</span>
               </div>
             </div>
 
@@ -1200,27 +2029,39 @@ export default function UsersPage() {
                     <th>Item</th>
                     <th>Qty</th>
                     <th>Final Price</th>
+                    <th>Status</th>
                     <th>Action</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {ordersLoading && <tr><td colSpan={6} className="bm-table-empty">Loading orders...</td></tr>}
-                  {!ordersLoading && orders.length === 0 && <tr><td colSpan={6} className="bm-table-empty">No orders found for this user.</td></tr>}
-                  {!ordersLoading && orders.map((entry) => (
-                    <tr key={entry.id}>
-                      <td><span className="users-order-code">INV-{String(entry.id).padStart(5, "0")}</span></td>
+                  {ordersLoading && <tr><td colSpan={7} className="bm-table-empty">Loading orders...</td></tr>}
+                  {!ordersLoading && orderInvoiceRows.length === 0 && <tr><td colSpan={7} className="bm-table-empty">No orders found for this user.</td></tr>}
+                  {!ordersLoading && orderInvoiceRows.map((row) => (
+                    <tr key={row.key}>
+                      <td><span className="users-order-code">{row.invoiceLabel}</span></td>
                       <td>
-                        <div className="users-order-date">{new Date(entry.purchasedAt).toLocaleDateString()}</div>
-                        <div className="users-order-time">{new Date(entry.purchasedAt).toLocaleTimeString()}</div>
+                        <div className="users-order-date">{new Date(row.purchasedAt).toLocaleDateString()}</div>
+                        <div className="users-order-time">{new Date(row.purchasedAt).toLocaleTimeString()}</div>
                       </td>
                       <td>
-                        <div className="users-order-title">{getPurchaseItemMeta(entry).title}</div>
-                        <span className="users-order-item-meta">{getPurchaseItemMeta(entry).subtitle}</span>
+                        <div className="users-order-title">{row.itemTitle}</div>
+                        <span className="users-order-item-meta">{row.itemSubtitle}</span>
+                        <span className="users-muted" style={{ display: "block" }}>{row.purchaseMode === "BULK" ? "Bulk" : "Single"} • {row.paymentTypeText}</span>
                       </td>
-                      <td>{entry.quantity}</td>
-                      <td><span className="users-order-price">Rs. {entry.finalSellingPrice.toLocaleString()}</span></td>
+                      <td>{row.quantity}</td>
+                      <td><span className="users-order-price">Rs. {row.finalSellingPrice.toLocaleString()}</span></td>
                       <td>
-                        <button type="button" className="btn-outline" onClick={() => setSelectedHistoryPurchase(entry)}>View</button>
+                        <span className={`badge ${row.settlementStatus === "TO_SETTLE" ? "badge-pending" : "badge-active"}`}>
+                          {row.statusText}
+                        </span>
+                      </td>
+                      <td>
+                        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                          <button type="button" className="btn-outline" onClick={() => void openInvoiceModal(row.representative)}>View</button>
+                          {row.remainingAmount > 0 && (
+                            <button type="button" className="btn-accent" onClick={() => openSettleModal(row.representative)}>Settle</button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1236,10 +2077,12 @@ export default function UsersPage() {
       )}
 
       {selectedHistoryPurchase && (
-        <div className="bm-modal-backdrop" onClick={() => setSelectedHistoryPurchase(null)}>
+        <div className="bm-modal-backdrop" onClick={closeInvoiceModal}>
           <div className="bm-modal bm-modal-lg" onClick={(event) => event.stopPropagation()}>
-            <button type="button" className="bm-modal-close" onClick={() => setSelectedHistoryPurchase(null)}>x</button>
-            <h3 className="bm-modal-title">Invoice INV-{String(selectedHistoryPurchase.id).padStart(5, "0")}</h3>
+            <button type="button" className="bm-modal-close" onClick={closeInvoiceModal}>x</button>
+            <h3 className="bm-modal-title">
+              Invoice {selectedHistoryPurchase.invoiceGroupCode ? selectedHistoryPurchase.invoiceGroupCode : `INV-${String(selectedHistoryPurchase.id).padStart(5, "0")}`}
+            </h3>
 
             <div className="users-view-grid">
               <div><strong>Date:</strong> {new Date(selectedHistoryPurchase.purchasedAt).toLocaleString()}</div>
@@ -1249,7 +2092,124 @@ export default function UsersPage() {
               <div className="users-span-2"><strong>Address:</strong> {selectedHistoryPurchase.customer.address}, {selectedHistoryPurchase.customer.district}, {selectedHistoryPurchase.customer.province}</div>
             </div>
 
-            {selectedHistoryPurchase.itemType === "BIKE" && selectedHistoryPurchase.bike && (
+            {isBulkInvoiceView && (
+              <>
+                <h4 className="users-section-title" style={{ marginTop: "1rem" }}>Bulk Contains Bikes</h4>
+                <div className="data-table-wrap">
+                  <table className="data-table users-orders-table">
+                    <thead>
+                      <tr>
+                        <th>Item</th>
+                        <th>Qty</th>
+                        <th>Payment</th>
+                        <th>Final Price</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {selectedInvoiceEntries.map((entry) => (
+                        <tr key={entry.id}>
+                          <td>
+                            <div className="users-order-title">{getPurchaseItemMeta(entry).title}</div>
+                            <span className="users-order-item-meta">{getPurchaseItemMeta(entry).subtitle}</span>
+                          </td>
+                          <td>{entry.quantity}</td>
+                          <td>{getPaymentTypeText(entry)}</td>
+                          <td>Rs. {entry.finalSellingPrice.toLocaleString()}</td>
+                          <td>
+                            {getSettlementBadgeText(entry)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style={{ display: "grid", gap: "0.6rem", marginTop: "0.75rem" }}>
+                  {selectedInvoiceEntries.map((entry) => (
+                    <div key={`bulk-summary-card-${entry.id}`} className="bm-stat-card bm-stat-card-soft" style={{ padding: "0.7rem" }}>
+                      <div className="users-order-title">{getPurchaseItemMeta(entry).title}</div>
+                      <div className="users-order-item-meta">{getPurchaseItemMeta(entry).subtitle}</div>
+                      <div className="users-muted" style={{ marginTop: "0.2rem" }}>
+                        Qty: {entry.quantity} | Payment: {getPaymentTypeText(entry)} | Final: Rs. {entry.finalSellingPrice.toLocaleString()} | {getSettlementBadgeText(entry)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="bm-modal-actions" style={{ marginTop: "0.75rem", justifyContent: "flex-start" }}>
+                  <button
+                    type="button"
+                    className="btn-outline"
+                    onClick={() => setShowBulkBikeDetails((prev) => !prev)}
+                    disabled={bulkBikeDetailEntries.length === 0}
+                  >
+                    {showBulkBikeDetails ? "Hide All Bike Details" : "View All Bike Details"}
+                  </button>
+                </div>
+
+                {showBulkBikeDetails && bulkBikeDetailEntries.length > 0 && (
+                  <>
+                    <h4 className="users-section-title" style={{ marginTop: "0.75rem" }}>All Bikes In This Bulk Invoice</h4>
+                    <div className="data-table-wrap">
+                      <table className="data-table users-orders-table">
+                        <thead>
+                          <tr>
+                            <th>Bike</th>
+                            <th>Year</th>
+                            <th>Engine CC</th>
+                            <th>Mileage</th>
+                            <th>Registration</th>
+                            <th>Register No</th>
+                            <th>File No</th>
+                            <th>Chassis No</th>
+                            <th>Engine No</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {bulkBikeDetailEntries.map((entry) => (
+                            <tr key={`bulk-bike-detail-${entry.id}`}>
+                              <td>
+                                <div className="users-order-title">{entry.bike.brand} {entry.bike.model}</div>
+                                <span className="users-order-item-meta">{entry.bike.displayId} • {entry.bike.colour}</span>
+                              </td>
+                              <td>{entry.bike.year ?? "-"}</td>
+                              <td>{entry.bike.engineCapacityCc != null ? `${entry.bike.engineCapacityCc} cc` : "-"}</td>
+                              <td>{entry.bike.mileage != null ? `${entry.bike.mileage.toLocaleString()} km` : "-"}</td>
+                              <td>{entry.bike.registrationType}</td>
+                              <td>{entry.bike.registerNo ?? "-"}</td>
+                              <td>{entry.bike.fileNo ?? "-"}</td>
+                              <td>{entry.bike.chassisNo ?? "-"}</td>
+                              <td>{entry.bike.engineNo ?? "-"}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div style={{ display: "grid", gap: "0.6rem", marginTop: "0.75rem" }}>
+                      {bulkBikeDetailEntries.map((entry) => (
+                        <div key={`bulk-bike-card-${entry.id}`} className="bm-stat-card" style={{ padding: "0.75rem" }}>
+                          <div className="users-order-title">{entry.bike.brand} {entry.bike.model} ({entry.bike.displayId})</div>
+                          <div className="users-order-item-meta">Colour: {entry.bike.colour} | Year: {entry.bike.year ?? "-"}</div>
+                          <div className="users-muted" style={{ marginTop: "0.2rem" }}>
+                            Engine CC: {entry.bike.engineCapacityCc != null ? `${entry.bike.engineCapacityCc} cc` : "-"} | Mileage: {entry.bike.mileage != null ? `${entry.bike.mileage.toLocaleString()} km` : "-"}
+                          </div>
+                          <div className="users-muted">
+                            Registration: {entry.bike.registrationType} | Register No: {entry.bike.registerNo ?? "-"} | File No: {entry.bike.fileNo ?? "-"}
+                          </div>
+                          <div className="users-muted">
+                            Chassis No: {entry.bike.chassisNo ?? "-"} | Engine No: {entry.bike.engineNo ?? "-"}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+
+            {!isBulkInvoiceView && selectedHistoryPurchase.itemType === "BIKE" && selectedHistoryPurchase.bike && (
               <>
                 <h4 className="users-section-title" style={{ marginTop: "1rem" }}>Bought Bike Details</h4>
                 <div className="users-view-grid">
@@ -1269,7 +2229,7 @@ export default function UsersPage() {
               </>
             )}
 
-            {selectedHistoryPurchase.itemType === "INVENTORY" && selectedHistoryPurchase.inventory && (
+            {!isBulkInvoiceView && selectedHistoryPurchase.itemType === "INVENTORY" && selectedHistoryPurchase.inventory && (
               <>
                 <h4 className="users-section-title" style={{ marginTop: "1rem" }}>Bought Inventory Details</h4>
                 <div className="users-view-grid">
@@ -1286,15 +2246,64 @@ export default function UsersPage() {
 
             <h4 className="users-section-title" style={{ marginTop: "1rem" }}>Pricing</h4>
             <div className="users-view-grid">
-              <div><strong>Current Selling Price:</strong> {selectedHistoryPurchase.currentSellingPrice != null ? `Rs. ${selectedHistoryPurchase.currentSellingPrice.toLocaleString()}` : "-"}</div>
-              <div><strong>Quantity:</strong> {selectedHistoryPurchase.quantity}</div>
-              <div><strong>Final Selling Price:</strong> Rs. {selectedHistoryPurchase.finalSellingPrice.toLocaleString()}</div>
+              <div><strong>Purchase Mode:</strong> {selectedInvoicePurchaseMode}</div>
+              <div>
+                <strong>Current Selling Price:</strong>{" "}
+                {isBulkInvoiceView
+                  ? `Rs. ${selectedInvoiceCurrentSellingTotal.toLocaleString()}`
+                  : selectedHistoryPurchase.currentSellingPrice != null
+                    ? `Rs. ${selectedHistoryPurchase.currentSellingPrice.toLocaleString()}`
+                    : "-"}
+              </div>
+              <div><strong>Quantity:</strong> {selectedInvoiceTotals.quantity}</div>
+              <div><strong>Final Selling Price:</strong> Rs. {selectedInvoiceTotals.finalSellingPrice.toLocaleString()}</div>
+              <div><strong>Payment Type:</strong> {selectedInvoicePaymentType} Buy</div>
+              <div><strong>Downpayment:</strong> Rs. {selectedInvoiceTotals.downPaymentAmount.toLocaleString()}</div>
+              <div><strong>Remaining Amount:</strong> Rs. {selectedInvoiceTotals.remainingAmount.toLocaleString()}</div>
+              <div><strong>Status:</strong> {selectedInvoiceTotals.settlementStatus === "TO_SETTLE" ? "To Settle" : "Settled"}</div>
             </div>
 
             <div className="bm-modal-actions" style={{ marginTop: "1rem" }}>
-              <button type="button" className="btn-outline" onClick={() => setSelectedHistoryPurchase(null)}>Close</button>
+              {selectedInvoiceTotals.remainingAmount > 0 && (
+                <button type="button" className="btn-accent" onClick={() => openSettleModal(selectedHistoryPurchase)}>Settle Amount</button>
+              )}
+              <button type="button" className="btn-outline" onClick={closeInvoiceModal}>Close</button>
             </div>
           </div>
+        </div>
+      )}
+
+      {settleTarget && (
+        <div className="bm-modal-backdrop" onClick={closeSettleModal}>
+          <form className="bm-modal" onClick={(event) => event.stopPropagation()} onSubmit={submitSettlePayment}>
+            <button type="button" className="bm-modal-close" onClick={closeSettleModal}>x</button>
+            <h3 className="bm-modal-title">Settle Invoice Amount</h3>
+            {settleError && <div className="bm-alert bm-alert-error">{settleError}</div>}
+            <div className="users-view-grid" style={{ marginBottom: "1rem" }}>
+              <div><strong>Invoice:</strong> {settleTarget.invoiceGroupCode || `INV-${String(settleTarget.id).padStart(5, "0")}`}</div>
+              <div><strong>Customer:</strong> {settleTarget.customer.firstName} {settleTarget.customer.lastName}</div>
+              <div><strong>Remaining To Settle:</strong> Rs. {getInvoiceRemaining(settleTarget).toLocaleString()}</div>
+              <div><strong>Payment Type:</strong> {getPaymentTypeText(settleTarget)}</div>
+            </div>
+
+            <div className="bm-field-group">
+              <label>Settle Amount</label>
+              <input
+                className="bm-input"
+                type="number"
+                min={0.01}
+                step="0.01"
+                value={settleAmount}
+                onChange={(event) => setSettleAmount(event.target.value)}
+                required
+              />
+            </div>
+
+            <div className="bm-modal-actions" style={{ marginTop: "1rem" }}>
+              <button type="submit" className="btn-accent" disabled={settleSaving}>{settleSaving ? "Saving..." : "Add Settlement"}</button>
+              <button type="button" className="btn-outline" onClick={closeSettleModal}>Cancel</button>
+            </div>
+          </form>
         </div>
       )}
     </div>

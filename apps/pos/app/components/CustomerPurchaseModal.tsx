@@ -38,6 +38,26 @@ type CustomerPurchaseModalProps = {
   onSaved: () => void;
 };
 
+type BikeOption = {
+  id: number;
+  displayId: string;
+  colour: string;
+  status: "available" | "sold";
+  sellingPrice?: number | null;
+  brand: { name: string };
+  model: { name: string };
+};
+
+type BulkLine = {
+  key: string;
+  brandName: string;
+  modelName: string;
+  unitPrice: number;
+  quantity: number;
+  subtotal: number;
+  bikeIds: number[];
+};
+
 const EMPTY_USER_FORM: UserFormState = {
   firstName: "",
   lastName: "",
@@ -67,15 +87,25 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
 
   const [users, setUsers] = useState<PosUser[]>([]);
   const [provinces, setProvinces] = useState<ProvinceMeta[]>([]);
+  const [bikeOptions, setBikeOptions] = useState<BikeOption[]>([]);
 
   const [selectedUserId, setSelectedUserId] = useState<number | "">("");
   const [showAddUser, setShowAddUser] = useState(false);
   const [userForm, setUserForm] = useState<UserFormState>(EMPTY_USER_FORM);
 
+  const [purchaseMode, setPurchaseMode] = useState<"SINGLE" | "BULK">("SINGLE");
+  const [selectedBikeId, setSelectedBikeId] = useState<number | "">(itemType === "BIKE" ? itemId : "");
+  const [bulkBrandModelKey, setBulkBrandModelKey] = useState("");
+  const [bulkCount, setBulkCount] = useState("1");
+  const [bulkUnitPrice, setBulkUnitPrice] = useState(currentSellingPrice != null ? String(currentSellingPrice) : "");
+  const [bulkLines, setBulkLines] = useState<BulkLine[]>([]);
+
   const [quantity, setQuantity] = useState("1");
   const [finalSellingPrice, setFinalSellingPrice] = useState(
     currentSellingPrice != null ? String(currentSellingPrice) : ""
   );
+  const [paymentType, setPaymentType] = useState<"DIRECT" | "DOWNPAYMENT">("DIRECT");
+  const [downPaymentAmount, setDownPaymentAmount] = useState("");
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
@@ -85,31 +115,201 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
     [provinces, userForm.province]
   );
 
+  const availableBikeOptions = useMemo(
+    () => bikeOptions.filter((bike) => bike.status === "available"),
+    [bikeOptions]
+  );
+
+  const bikeGroupOptions = useMemo(() => {
+    const map = new Map<string, { brandName: string; modelName: string; availableCount: number; defaultPrice?: number | null }>();
+    availableBikeOptions.forEach((bike) => {
+      const key = `${bike.brand.name}__${bike.model.name}`;
+      const current = map.get(key);
+      if (current) {
+        current.availableCount += 1;
+      } else {
+        map.set(key, {
+          brandName: bike.brand.name,
+          modelName: bike.model.name,
+          availableCount: 1,
+          defaultPrice: bike.sellingPrice,
+        });
+      }
+    });
+    return Array.from(map.entries()).map(([key, value]) => ({ key, ...value }));
+  }, [availableBikeOptions]);
+
+  const selectedSingleBike = useMemo(
+    () => availableBikeOptions.find((bike) => bike.id === selectedBikeId),
+    [availableBikeOptions, selectedBikeId]
+  );
+
+  const bulkTotal = useMemo(
+    () => bulkLines.reduce((sum, line) => sum + line.subtotal, 0),
+    [bulkLines]
+  );
+
+  const computedInvoiceTotal = useMemo(() => {
+    if (itemType === "BIKE") {
+      if (purchaseMode === "BULK") return bulkTotal;
+      const parsed = Number(finalSellingPrice);
+      return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+    }
+    const parsed = Number(finalSellingPrice);
+    return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
+  }, [bulkTotal, finalSellingPrice, itemType, purchaseMode]);
+
+  const parsedDownPayment = Number(downPaymentAmount || "0");
+  const computedDownPayment = paymentType === "DIRECT"
+    ? computedInvoiceTotal
+    : (Number.isFinite(parsedDownPayment) && parsedDownPayment >= 0 ? parsedDownPayment : 0);
+  const computedRemaining = Math.max(0, Math.round((computedInvoiceTotal - computedDownPayment) * 100) / 100);
+
   useEffect(() => {
     void (async () => {
       setLoading(true);
       setError(null);
       try {
-        const [usersRes, provincesRes] = await Promise.all([
+        const requests: Array<Promise<Response>> = [
           fetch(`${base}?page=1&limit=500`, { headers: auth, cache: "no-store" }),
           fetch(`${base}/meta/provinces`, { headers: auth, cache: "no-store" }),
-        ]);
+        ];
+        if (itemType === "BIKE") {
+          requests.push(fetch(`${API_URL}/api/pos/bike-management/vehicles?page=1&limit=5000&status=available`, { headers: auth, cache: "no-store" }));
+        }
+
+        const responses = await Promise.all(requests);
+        const usersRes = responses[0];
+        const provincesRes = responses[1];
+        const bikesRes = itemType === "BIKE" ? responses[2] : null;
 
         const usersJson = (await usersRes.json()) as { data?: { users?: PosUser[] }; message?: string };
         const provincesJson = (await provincesRes.json()) as { data?: { provinces?: ProvinceMeta[] }; message?: string };
+        const bikesJson = bikesRes
+          ? (await bikesRes.json()) as { data?: { vehicles?: BikeOption[] }; message?: string }
+          : null;
 
         if (!usersRes.ok) throw new Error(usersJson.message ?? "Failed to load users");
         if (!provincesRes.ok) throw new Error(provincesJson.message ?? "Failed to load provinces");
+        if (bikesRes && !bikesRes.ok) throw new Error(bikesJson?.message ?? "Failed to load bikes");
 
         setUsers(usersJson.data?.users ?? []);
         setProvinces(provincesJson.data?.provinces ?? []);
+        if (bikesJson) {
+          const loadedBikes = bikesJson.data?.vehicles ?? [];
+          setBikeOptions(loadedBikes);
+          const selected = loadedBikes.find((bike) => bike.id === itemId) ?? loadedBikes[0];
+          if (selected) {
+            setSelectedBikeId(selected.id);
+            if (selected.sellingPrice != null) {
+              setFinalSellingPrice(String(selected.sellingPrice));
+            }
+          }
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to load customer data");
       } finally {
         setLoading(false);
       }
     })();
-  }, [auth, base]);
+  }, [auth, base, itemId, itemType]);
+
+  useEffect(() => {
+    if (itemType !== "BIKE") return;
+    if (!selectedSingleBike) return;
+    if (selectedSingleBike.sellingPrice != null) {
+      setFinalSellingPrice(String(selectedSingleBike.sellingPrice));
+    }
+  }, [itemType, selectedSingleBike]);
+
+  useEffect(() => {
+    if (paymentType === "DIRECT") {
+      setDownPaymentAmount(String(computedInvoiceTotal));
+    }
+  }, [computedInvoiceTotal, paymentType]);
+
+  const addBulkLine = () => {
+    if (!bulkBrandModelKey) {
+      setError("Please select a brand and model");
+      return;
+    }
+    const qty = Number(bulkCount);
+    const unitPrice = Number(bulkUnitPrice);
+    if (!Number.isInteger(qty) || qty <= 0) {
+      setError("Please enter a valid bike count");
+      return;
+    }
+    if (!Number.isFinite(unitPrice) || unitPrice < 0) {
+      setError("Please enter a valid allocated price");
+      return;
+    }
+
+    const [brandName, modelName] = bulkBrandModelKey.split("__");
+    const usedBikeIds = new Set(bulkLines.flatMap((line) => line.bikeIds));
+    const matching = availableBikeOptions.filter((bike) => bike.brand.name === brandName && bike.model.name === modelName && !usedBikeIds.has(bike.id));
+
+    if (matching.length < qty) {
+      setError(`Only ${matching.length} bike(s) available for ${brandName} ${modelName}`);
+      return;
+    }
+
+    const selectedBikes = matching.slice(0, qty);
+    const subtotal = Math.round(unitPrice * qty * 100) / 100;
+    const key = `${brandName}__${modelName}__${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+
+    setBulkLines((prev) => [
+      ...prev,
+      {
+        key,
+        brandName,
+        modelName,
+        unitPrice,
+        quantity: qty,
+        subtotal,
+        bikeIds: selectedBikes.map((bike) => bike.id),
+      },
+    ]);
+    setError(null);
+  };
+
+  const removeBulkLine = (key: string) => {
+    setBulkLines((prev) => prev.filter((line) => line.key !== key));
+  };
+
+  const allocateDownPayments = (lineItems: Array<{ bikeId: number; unitPrice: number }>, totalDownPayment: number) => {
+    if (lineItems.length === 0) return [] as Array<{ bikeId: number; unitPrice: number; downPayment: number }>;
+    const totalPrice = lineItems.reduce((sum, item) => sum + item.unitPrice, 0);
+    const targetCents = Math.round(totalDownPayment * 100);
+
+    if (totalPrice <= 0) {
+      const base = Math.floor(targetCents / lineItems.length);
+      const remainder = targetCents % lineItems.length;
+      return lineItems.map((item, index) => ({
+        ...item,
+        downPayment: (base + (index < remainder ? 1 : 0)) / 100,
+      }));
+    }
+
+    const provisional = lineItems.map((item, index) => {
+      const raw = (targetCents * item.unitPrice) / totalPrice;
+      const floor = Math.floor(raw);
+      return { index, floor, fraction: raw - floor };
+    });
+    let allocated = provisional.reduce((sum, item) => sum + item.floor, 0);
+    let remaining = targetCents - allocated;
+
+    provisional.sort((a, b) => b.fraction - a.fraction);
+    for (let i = 0; i < provisional.length && remaining > 0; i += 1) {
+      provisional[i].floor += 1;
+      remaining -= 1;
+    }
+
+    const centsByIndex = new Map<number, number>(provisional.map((item) => [item.index, item.floor]));
+    return lineItems.map((item, index) => ({
+      ...item,
+      downPayment: (centsByIndex.get(index) ?? 0) / 100,
+    }));
+  };
 
   const createCustomer = async () => {
     const response = await fetch(base, {
@@ -148,9 +348,6 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
       }
 
       const parsedFinalPrice = Number(finalSellingPrice);
-      if (!Number.isFinite(parsedFinalPrice) || parsedFinalPrice < 0) {
-        throw new Error("Please enter a valid final selling price");
-      }
 
       const parsedQty = itemType === "INVENTORY" ? Number(quantity) : 1;
       if (itemType === "INVENTORY") {
@@ -162,15 +359,76 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
         }
       }
 
+      if (paymentType === "DOWNPAYMENT") {
+        if (!Number.isFinite(parsedDownPayment) || parsedDownPayment <= 0) {
+          throw new Error("Please enter a valid downpayment amount");
+        }
+        if (parsedDownPayment > computedInvoiceTotal) {
+          throw new Error("Downpayment amount cannot exceed total invoice amount");
+        }
+      }
+
+      if (itemType === "BIKE" && purchaseMode === "SINGLE") {
+        if (!selectedBikeId) {
+          throw new Error("Please select a bike");
+        }
+        if (!Number.isFinite(parsedFinalPrice) || parsedFinalPrice < 0) {
+          throw new Error("Please enter a valid final selling price");
+        }
+      }
+
+      if (itemType === "BIKE" && purchaseMode === "BULK") {
+        if (bulkLines.length === 0) {
+          throw new Error("Please add at least one bulk bike line");
+        }
+
+        const invoiceGroupCode = `BULK-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+        const lineItems = bulkLines.flatMap((line) => line.bikeIds.map((bikeId) => ({ bikeId, unitPrice: line.unitPrice })));
+        const effectiveDownPayment = paymentType === "DIRECT" ? bulkTotal : parsedDownPayment;
+        const allocation = allocateDownPayments(lineItems, effectiveDownPayment);
+
+        for (const allocated of allocation) {
+          const response = await fetch(`${base}/${resolvedUserId}/purchases`, {
+            method: "POST",
+            headers: { ...auth, "Content-Type": "application/json" },
+            body: JSON.stringify({
+              purchaseType: "BIKE",
+              purchaseMode: "BULK",
+              invoiceGroupCode,
+              bikeVehicleId: allocated.bikeId,
+              finalSellingPrice: allocated.unitPrice,
+              paymentType,
+              downPaymentAmount: paymentType === "DOWNPAYMENT" ? allocated.downPayment : undefined,
+            }),
+          });
+
+          const payload = (await response.json()) as { message?: string };
+          if (!response.ok) {
+            throw new Error(payload.message ?? "Failed to create bulk purchase");
+          }
+        }
+
+        onSaved();
+        onClose();
+        return;
+      }
+
+      if (itemType !== "BIKE" && (!Number.isFinite(parsedFinalPrice) || parsedFinalPrice < 0)) {
+        throw new Error("Please enter a valid final selling price");
+      }
+
       const response = await fetch(`${base}/${resolvedUserId}/purchases`, {
         method: "POST",
         headers: { ...auth, "Content-Type": "application/json" },
         body: JSON.stringify({
           purchaseType: itemType,
-          bikeVehicleId: itemType === "BIKE" ? itemId : undefined,
+          purchaseMode: "SINGLE",
+          bikeVehicleId: itemType === "BIKE" ? selectedBikeId : undefined,
           inventoryProductId: itemType === "INVENTORY" ? itemId : undefined,
           quantity: itemType === "INVENTORY" ? parsedQty : undefined,
           finalSellingPrice: parsedFinalPrice,
+          paymentType,
+          downPaymentAmount: paymentType === "DOWNPAYMENT" ? parsedDownPayment : undefined,
         }),
       });
 
@@ -204,6 +462,24 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                 <label>Item</label>
                 <input className="bm-input" value={itemLabel} readOnly />
               </div>
+
+              {itemType === "BIKE" && (
+                <div className="bm-field-group users-span-2">
+                  <label>Purchase Option</label>
+                  <select
+                    className="bm-input"
+                    value={purchaseMode}
+                    onChange={(event) => {
+                      const mode = event.target.value as "SINGLE" | "BULK";
+                      setPurchaseMode(mode);
+                      setError(null);
+                    }}
+                  >
+                    <option value="SINGLE">Single Purchase</option>
+                    <option value="BULK">Bulk Purchase</option>
+                  </select>
+                </div>
+              )}
 
               <div className="bm-field-group users-span-2">
                 <label>Select Existing Customer</label>
@@ -293,6 +569,88 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                 </>
               )}
 
+              {itemType === "BIKE" && purchaseMode === "SINGLE" && (
+                <div className="bm-field-group users-span-2">
+                  <label>Select Bike</label>
+                  <select
+                    className="bm-input"
+                    value={selectedBikeId}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setSelectedBikeId(value ? Number(value) : "");
+                    }}
+                    required
+                  >
+                    <option value="">Select available bike</option>
+                    {availableBikeOptions.map((bike) => (
+                      <option key={bike.id} value={bike.id}>
+                        {bike.displayId} | {bike.brand.name} {bike.model.name} ({bike.colour})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {itemType === "BIKE" && purchaseMode === "BULK" && (
+                <>
+                  <div className="bm-field-group">
+                    <label>Brand + Model</label>
+                    <select className="bm-input" value={bulkBrandModelKey} onChange={(event) => setBulkBrandModelKey(event.target.value)}>
+                      <option value="">Select brand and model</option>
+                      {bikeGroupOptions.map((group) => (
+                        <option key={group.key} value={group.key}>
+                          {group.brandName} {group.modelName} (Available: {group.availableCount})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div className="bm-field-group">
+                    <label>Bike Count</label>
+                    <input className="bm-input" type="number" min={1} value={bulkCount} onChange={(event) => setBulkCount(event.target.value)} />
+                  </div>
+                  <div className="bm-field-group">
+                    <label>Allocated Price (Per Bike)</label>
+                    <input className="bm-input" type="number" min={0} step="0.01" value={bulkUnitPrice} onChange={(event) => setBulkUnitPrice(event.target.value)} />
+                  </div>
+                  <div className="bm-field-group" style={{ display: "flex", alignItems: "end" }}>
+                    <button type="button" className="btn-accent" onClick={addBulkLine}>Apply</button>
+                  </div>
+
+                  <div className="bm-field-group users-span-2">
+                    <label>Added Bike List</label>
+                    {bulkLines.length === 0 && <div className="users-muted">No bulk lines added yet.</div>}
+                    {bulkLines.length > 0 && (
+                      <div className="data-table-wrap" style={{ marginTop: 8 }}>
+                        <table className="data-table">
+                          <thead>
+                            <tr>
+                              <th>Brand</th>
+                              <th>Model</th>
+                              <th>Count</th>
+                              <th>Allocated Price</th>
+                              <th>Subtotal</th>
+                              <th>Action</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {bulkLines.map((line) => (
+                              <tr key={line.key}>
+                                <td>{line.brandName}</td>
+                                <td>{line.modelName}</td>
+                                <td>{line.quantity}</td>
+                                <td>Rs. {line.unitPrice.toLocaleString()}</td>
+                                <td>Rs. {line.subtotal.toLocaleString()}</td>
+                                <td><button type="button" className="btn-outline" onClick={() => removeBulkLine(line.key)}>Remove</button></td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    )}
+                  </div>
+                </>
+              )}
+
               {itemType === "INVENTORY" && (
                 <div className="bm-field-group">
                   <label>Quantity</label>
@@ -312,22 +670,58 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                 <label>Current Selling Price</label>
                 <input
                   className="bm-input"
-                  value={currentSellingPrice != null ? `Rs. ${currentSellingPrice.toLocaleString()}` : "Not set"}
+                  value={itemType === "BIKE" && purchaseMode === "BULK"
+                    ? `Rs. ${bulkTotal.toLocaleString()}`
+                    : currentSellingPrice != null ? `Rs. ${currentSellingPrice.toLocaleString()}` : "Not set"}
                   readOnly
                 />
               </div>
 
+              {(itemType !== "BIKE" || purchaseMode === "SINGLE") && (
+                <div className="bm-field-group">
+                  <label>Final Selling Price</label>
+                  <input
+                    className="bm-input"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={finalSellingPrice}
+                    onChange={(event) => setFinalSellingPrice(event.target.value)}
+                    required
+                  />
+                </div>
+              )}
+
               <div className="bm-field-group">
-                <label>Final Selling Price</label>
+                <label>Payment Type</label>
+                <select className="bm-input" value={paymentType} onChange={(event) => setPaymentType(event.target.value as "DIRECT" | "DOWNPAYMENT") }>
+                  <option value="DIRECT">Direct Buy</option>
+                  <option value="DOWNPAYMENT">Downpayment</option>
+                </select>
+              </div>
+
+              <div className="bm-field-group">
+                <label>Downpayment Amount</label>
                 <input
                   className="bm-input"
                   type="number"
                   min={0}
                   step="0.01"
-                  value={finalSellingPrice}
-                  onChange={(event) => setFinalSellingPrice(event.target.value)}
-                  required
+                  value={downPaymentAmount}
+                  onChange={(event) => setDownPaymentAmount(event.target.value)}
+                  disabled={paymentType === "DIRECT"}
+                  required={paymentType === "DOWNPAYMENT"}
                 />
+              </div>
+
+              <div className="bm-field-group">
+                <label>Invoice Total</label>
+                <input className="bm-input" value={`Rs. ${computedInvoiceTotal.toLocaleString()}`} readOnly />
+              </div>
+
+              <div className="bm-field-group">
+                <label>Remaining To Settle</label>
+                <input className="bm-input" value={`Rs. ${computedRemaining.toLocaleString()}`} readOnly />
               </div>
             </div>
 

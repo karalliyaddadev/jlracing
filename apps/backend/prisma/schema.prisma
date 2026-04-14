@@ -18,6 +18,21 @@ enum PosPurchaseItemType {
   INVENTORY
 }
 
+enum PosPurchaseMode {
+  SINGLE
+  BULK
+}
+
+enum PosPaymentType {
+  DIRECT
+  DOWNPAYMENT
+}
+
+enum PosSettlementStatus {
+  SETTLED
+  TO_SETTLE
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   name         String
@@ -285,10 +300,16 @@ model PosCustomerPurchase {
   id                  Int         @id @default(autoincrement())
   customerId          Int
   itemType            PosPurchaseItemType @default(BIKE)
+  purchaseMode        PosPurchaseMode @default(SINGLE)
+  invoiceGroupCode    String?
   bikeVehicleId       Int?
   inventoryProductId  Int?
   currentSellingPrice Float?
   finalSellingPrice   Float
+  paymentType         PosPaymentType @default(DIRECT)
+  downPaymentAmount   Float       @default(0)
+  remainingAmount     Float       @default(0)
+  settlementStatus    PosSettlementStatus @default(SETTLED)
   quantity            Int         @default(1)
   purchasedAt         DateTime    @default(now())
   customer            PosCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -296,6 +317,7 @@ model PosCustomerPurchase {
   inventoryProduct    InventoryProduct? @relation(fields: [inventoryProductId], references: [id], onDelete: SetNull)
 
   @@index([customerId])
+  @@index([invoiceGroupCode])
   @@index([bikeVehicleId])
   @@index([inventoryProductId])
   @@map("pos_customer_purchases")
