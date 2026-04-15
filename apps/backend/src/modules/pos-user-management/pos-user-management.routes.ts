@@ -16,5 +16,6 @@ router.post("/", controller.createPosUser);
 router.patch("/:id", controller.updatePosUser);
 router.delete("/:id", controller.deletePosUser);
 router.post("/:id/purchases", controller.createPurchase);
+router.post("/:id/purchases/:purchaseId/settle", controller.settlePurchase);
 
 export default router;

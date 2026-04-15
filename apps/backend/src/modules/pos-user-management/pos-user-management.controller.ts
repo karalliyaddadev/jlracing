@@ -6,6 +6,7 @@ import {
   createPosUserSchema,
   purchaseQuerySchema,
   posUserQuerySchema,
+  settlePurchaseSchema,
   updatePosUserSchema,
 } from "./dto/pos-user.dto";
 import * as service from "./pos-user-management.service";
@@ -93,6 +94,18 @@ export async function getPurchasesByUser(req: Request, res: Response, next: Next
   try {
     const query = validate(purchaseQuerySchema, req.query);
     return sendSuccess(res, await service.listPurchasesByUser(Number(req.params.id), query));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function settlePurchase(req: Request, res: Response, next: NextFunction) {
+  try {
+    const dto = validate(settlePurchaseSchema, req.body);
+    return sendSuccess(
+      res,
+      await service.settlePurchase(Number(req.params.id), Number(req.params.purchaseId), dto)
+    );
   } catch (error) {
     return next(error);
   }
