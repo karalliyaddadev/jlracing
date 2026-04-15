@@ -795,6 +795,17 @@ export default function UsersPage() {
     [selectedHistoryPurchase?.invoiceGroupCode, selectedHistoryPurchase?.purchaseMode, selectedInvoiceEntries.length]
   );
 
+  const selectedInvoiceDisplayCode = useMemo(() => {
+    if (!selectedHistoryPurchase) return "";
+    const explicitGroupCode = selectedHistoryPurchase.invoiceGroupCode?.trim();
+    if (explicitGroupCode) return explicitGroupCode;
+    if (selectedInvoiceEntries.length > 1) {
+      const minId = selectedInvoiceEntries.reduce((min, entry) => Math.min(min, entry.id), selectedInvoiceEntries[0]?.id ?? selectedHistoryPurchase.id);
+      return `BULK-${String(minId).padStart(5, "0")}`;
+    }
+    return `INV-${String(selectedHistoryPurchase.id).padStart(5, "0")}`;
+  }, [selectedHistoryPurchase, selectedInvoiceEntries]);
+
   const selectedInvoiceCurrentSellingTotal = useMemo(
     () => selectedInvoiceEntries.reduce((sum, entry) => sum + (entry.currentSellingPrice ?? 0), 0),
     [selectedInvoiceEntries]
@@ -2081,8 +2092,11 @@ export default function UsersPage() {
           <div className="bm-modal bm-modal-lg" onClick={(event) => event.stopPropagation()}>
             <button type="button" className="bm-modal-close" onClick={closeInvoiceModal}>x</button>
             <h3 className="bm-modal-title">
-              Invoice {selectedHistoryPurchase.invoiceGroupCode ? selectedHistoryPurchase.invoiceGroupCode : `INV-${String(selectedHistoryPurchase.id).padStart(5, "0")}`}
+              Invoice {selectedInvoiceDisplayCode}
             </h3>
+            <p className="users-muted" style={{ marginTop: "-0.5rem", marginBottom: "0.8rem" }}>
+              {selectedInvoicePurchaseMode} Invoice • {selectedInvoicePaymentType}
+            </p>
 
             <div className="users-view-grid">
               <div><strong>Date:</strong> {new Date(selectedHistoryPurchase.purchasedAt).toLocaleString()}</div>
