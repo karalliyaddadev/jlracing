@@ -1,7 +1,6 @@
 "use client";
 
 import { ChangeEvent, FormEvent, useEffect, useState } from "react";
-import { getSiteConfig } from "./components/dashboard/site-config";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
@@ -105,26 +104,19 @@ function CmsSignInModal({ cardKey, cardTitle, onClose }: ModalProps) {
     try {
       const res = await fetch(`${CMS_API_URL}/api/auth/login`, {
         method: "POST",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
       const data = (await res.json()) as {
-        accessToken?: string;
         admin?: { id: number; name: string; email: string };
         message?: string;
       };
       if (!res.ok) {
         throw new Error(data?.message || "Invalid credentials");
       }
-      // Store token + admin in localStorage so the dashboard can read it
-      const siteConfig = getSiteConfig(cardKey);
-      if (data.accessToken) {
-        localStorage.setItem(siteConfig.tokenKey, data.accessToken);
-      }
-      if (data.admin) {
-        localStorage.setItem(siteConfig.adminKey, JSON.stringify(data.admin));
-      }
-      // Redirect to the appropriate dashboard
+      // Cookies (access_token + refresh_token) are set by the server.
+      // Just redirect to the appropriate dashboard.
       window.location.href = CMS_DASHBOARD[cardKey];
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in");

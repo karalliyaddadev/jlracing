@@ -8,6 +8,7 @@ import {
   ReactNode,
 } from "react";
 import { SiteConfig } from "./site-config";
+import { apiFetch } from "../../lib/api";
 
 interface Admin {
   id: number;
@@ -17,7 +18,6 @@ interface Admin {
 
 interface DashContextValue {
   admin: Admin | null;
-  token: string | null;
   sidebarOpen: boolean;
   toggleSidebar: () => void;
   signOut: () => void;
@@ -39,29 +39,22 @@ interface Props {
 
 export default function DashProvider({ config, children }: Props) {
   const [admin, setAdmin] = useState<Admin | null>(null);
-  const [token, setToken] = useState<string | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    const t = localStorage.getItem(config.tokenKey);
-    const a = localStorage.getItem(config.adminKey);
-    if (t && a) {
-      try {
-        setToken(t);
-        setAdmin(JSON.parse(a));
-      } catch {
-        // corrupted
-      }
-    }
-    setReady(true);
-  }, [config.tokenKey, config.adminKey]);
+    apiFetch("/api/auth/me")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: Admin | null) => {
+        if (data) setAdmin(data);
+      })
+      .finally(() => setReady(true));
+  }, []);
 
   const toggleSidebar = () => setSidebarOpen((v) => !v);
 
-  const signOut = () => {
-    localStorage.removeItem(config.tokenKey);
-    localStorage.removeItem(config.adminKey);
+  const signOut = async () => {
+    await apiFetch("/api/auth/logout", { method: "POST" }).catch(() => {});
     window.location.href = "/";
   };
 
@@ -69,7 +62,7 @@ export default function DashProvider({ config, children }: Props) {
 
   return (
     <DashContext.Provider
-      value={{ admin, token, sidebarOpen, toggleSidebar, signOut, config }}
+      value={{ admin, sidebarOpen, toggleSidebar, signOut, config }}
     >
       {children}
     </DashContext.Provider>

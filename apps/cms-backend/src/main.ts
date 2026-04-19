@@ -2,10 +2,14 @@ import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
 import { NestExpressApplication } from "@nestjs/platform-express";
 import * as path from "path";
+import * as cookieParser from "cookie-parser";
 import { AppModule } from "./app.module";
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
+
+  // Parse cookies for httpOnly cookie auth
+  app.use(cookieParser());
 
   // Serve uploaded files — uses Express static middleware (no path-to-regexp routing)
   app.useStaticAssets(path.join(process.cwd(), "uploads"), {

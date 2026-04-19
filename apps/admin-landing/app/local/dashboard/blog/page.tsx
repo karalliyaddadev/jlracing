@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import { useDash } from "../../../components/dashboard";
+import { apiFetch } from "../../../lib/api";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
@@ -37,8 +37,6 @@ const EMPTY_FORM: FormData = {
 };
 
 export default function BlogAdminPage() {
-  const { token } = useDash();
-
   const [posts, setPosts] = useState<BlogPost[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -56,18 +54,14 @@ export default function BlogAdminPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
-  // Delete confirm state
+  // Delete confirm modal state
+  const [deleteTarget, setDeleteTarget] = useState<BlogPost | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
-
-  const authHeaders = {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
 
   const fetchPosts = useCallback(() => {
     setLoading(true);
     setError(null);
-    fetch(`${CMS_API_URL}/api/blog`, { headers: authHeaders })
+    apiFetch(`/api/blog`)
       .then((res) => {
         if (!res.ok) throw new Error("Failed to fetch posts");
         return res.json();
@@ -75,7 +69,7 @@ export default function BlogAdminPage() {
       .then(setPosts)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     fetchPosts();
@@ -141,9 +135,8 @@ export default function BlogAdminPage() {
         setUploading(true);
         const fd = new FormData();
         fd.append("file", imageFile);
-        const uploadRes = await fetch(`${CMS_API_URL}/api/upload/blog-image`, {
+        const uploadRes = await apiFetch(`/api/upload/blog-image`, {
           method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
           body: fd,
         });
         setUploading(false);
@@ -155,13 +148,11 @@ export default function BlogAdminPage() {
         finalImageUrl = uploadData.url;
       }
 
-      const url = editingPost
-        ? `${CMS_API_URL}/api/blog/${editingPost.id}`
-        : `${CMS_API_URL}/api/blog`;
+      const url = editingPost ? `/api/blog/${editingPost.id}` : `/api/blog`;
       const method = editingPost ? "PATCH" : "POST";
-      const res = await fetch(url, {
+      const res = await apiFetch(url, {
         method,
-        headers: authHeaders,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ ...form, imageUrl: finalImageUrl }),
       });
       if (!res.ok) {
@@ -177,14 +168,15 @@ export default function BlogAdminPage() {
     }
   }
 
-  async function handleDelete(id: number) {
-    setDeletingId(id);
+  async function confirmDelete() {
+    if (!deleteTarget) return;
+    setDeletingId(deleteTarget.id);
     try {
-      const res = await fetch(`${CMS_API_URL}/api/blog/${id}`, {
+      const res = await apiFetch(`/api/blog/${deleteTarget.id}`, {
         method: "DELETE",
-        headers: authHeaders,
       });
       if (!res.ok) throw new Error("Delete failed");
+      setDeleteTarget(null);
       fetchPosts();
     } catch (err: any) {
       setError(err.message);
@@ -195,9 +187,9 @@ export default function BlogAdminPage() {
 
   async function handleTogglePublish(post: BlogPost) {
     try {
-      const res = await fetch(`${CMS_API_URL}/api/blog/${post.id}`, {
+      const res = await apiFetch(`/api/blog/${post.id}`, {
         method: "PATCH",
-        headers: authHeaders,
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ isPublished: !post.isPublished }),
       });
       if (!res.ok) throw new Error("Update failed");
@@ -294,10 +286,9 @@ export default function BlogAdminPage() {
                       </button>
                       <button
                         className="blog-admin__delete-btn"
-                        onClick={() => handleDelete(post.id)}
-                        disabled={deletingId === post.id}
+                        onClick={() => setDeleteTarget(post)}
                       >
-                        {deletingId === post.id ? "…" : "Delete"}
+                        Delete
                       </button>
                     </div>
                   </td>
@@ -469,6 +460,52 @@ export default function BlogAdminPage() {
                     : editingPost
                       ? "Save Changes"
                       : "Create Post"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Delete confirmation modal ── */}
+      {deleteTarget && (
+        <div
+          className="blog-admin__modal-overlay"
+          onClick={() => setDeleteTarget(null)}
+        >
+          <div
+            className="blog-admin__modal blog-admin__modal--confirm"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="blog-admin__modal-header">
+              <h2 className="blog-admin__modal-title">Delete Post</h2>
+              <button
+                className="blog-admin__modal-close"
+                onClick={() => setDeleteTarget(null)}
+              >
+                ✕
+              </button>
+            </div>
+            <div className="blog-admin__modal-body">
+              <p className="blog-admin__confirm-text">
+                Are you sure you want to delete{" "}
+                <strong>&ldquo;{deleteTarget.title}&rdquo;</strong>? This action
+                cannot be undone.
+              </p>
+            </div>
+            <div className="blog-admin__modal-footer">
+              <button
+                className="blog-admin__cancel-btn"
+                onClick={() => setDeleteTarget(null)}
+                disabled={!!deletingId}
+              >
+                Cancel
+              </button>
+              <button
+                className="blog-admin__delete-confirm-btn"
+                onClick={confirmDelete}
+                disabled={!!deletingId}
+              >
+                {deletingId ? "Deleting…" : "Yes, Delete"}
               </button>
             </div>
           </div>

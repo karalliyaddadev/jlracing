@@ -159,4 +159,96 @@ export class UploadController {
       mimeType: file.mimetype,
     };
   }
+
+  // ── Gallery media upload — saves images & videos to uploads/local/gallery/ ──
+  @Post("gallery-media")
+  @UseInterceptors(
+    FileInterceptor("file", {
+      storage: buildStorage("local/gallery"),
+      fileFilter: (_req, file, cb) => {
+        const allowed = [...ALLOWED_IMAGE_TYPES, ...ALLOWED_VIDEO_TYPES];
+        if (allowed.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(
+            new BadRequestException("Only image or video files are allowed"),
+            false,
+          );
+        }
+      },
+      limits: { fileSize: 200 * 1024 * 1024 }, // 200 MB (covers videos)
+    }),
+  )
+  uploadGalleryMedia(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException("No file provided");
+    return {
+      url: `/uploads/local/gallery/${file.filename}`,
+      filename: file.filename,
+      originalName: file.originalname,
+      size: file.size,
+      mimeType: file.mimetype,
+    };
+  }
+
+  // ── Video banner upload — saves to uploads/local/video-banner/ ──
+  @Post("video-banner")
+  @UseInterceptors(
+    FileInterceptor("file", {
+      storage: buildStorage("local/video-banner"),
+      fileFilter: (_req, file, cb) => {
+        if (ALLOWED_VIDEO_TYPES.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(
+            new BadRequestException(
+              "Only video files (mp4, webm, ogg) are allowed",
+            ),
+            false,
+          );
+        }
+      },
+      limits: { fileSize: 200 * 1024 * 1024 }, // 200 MB
+    }),
+  )
+  uploadVideoBanner(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException("No file provided");
+    return {
+      url: `/uploads/local/video-banner/${file.filename}`,
+      filename: file.filename,
+      originalName: file.originalname,
+      size: file.size,
+      mimeType: file.mimetype,
+    };
+  }
+
+  // ── Hero image upload — saves to uploads/local/hero/ ──
+  @Post("hero-image")
+  @UseInterceptors(
+    FileInterceptor("file", {
+      storage: buildStorage("local/hero"),
+      fileFilter: (_req, file, cb) => {
+        if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(
+            new BadRequestException(
+              "Only image files (jpeg, png, webp, avif) are allowed",
+            ),
+            false,
+          );
+        }
+      },
+      limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
+    }),
+  )
+  uploadHeroImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException("No file provided");
+    return {
+      url: `/uploads/local/hero/${file.filename}`,
+      filename: file.filename,
+      originalName: file.originalname,
+      size: file.size,
+      mimeType: file.mimetype,
+    };
+  }
 }
