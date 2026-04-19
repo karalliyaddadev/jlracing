@@ -1,22 +1,45 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
-// Placeholder gallery items — swap src for real media when available
-const GALLERY_ITEMS = Array.from({ length: 18 }, (_, i) => ({
-  id: i + 1,
-  title: "Video Title",
-  image:
-    "https://images.pexels.com/photos/2393816/pexels-photo-2393816.jpeg?auto=compress&cs=tinysrgb&w=600",
-}));
+const CMS_API_URL =
+  process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
 
 const PER_PAGE = 6;
 
-export default function GalleryPage() {
-  const [page, setPage] = useState(1);
+interface GalleryItem {
+  id: number;
+  title: string;
+  mediaUrl: string;
+  thumbnailUrl: string | null;
+  mediaType: string;
+  aspectRatio: string;
+}
 
-  const totalPages = Math.max(1, Math.ceil(GALLERY_ITEMS.length / PER_PAGE));
-  const paginated = GALLERY_ITEMS.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+export default function GalleryPage() {
+  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLoading(true);
+    setError(null);
+    fetch(
+      `${CMS_API_URL}/api/gallery/active?site=FOREIGN&page=${page}&limit=${PER_PAGE}`,
+    )
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to load gallery");
+        return res.json();
+      })
+      .then((data) => {
+        setItems(data.items);
+        setTotalPages(data.totalPages ?? 1);
+      })
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false));
+  }, [page]);
 
   return (
     <>
@@ -37,21 +60,44 @@ export default function GalleryPage() {
       {/* ── Grid ── */}
       <section className="gal-grid-section">
         <div className="gal-grid-section__inner">
-          <div className="gal-grid">
-            {paginated.map((item) => (
-              <div key={item.id} className="gal-card">
-                <div className="gal-card__img-wrap">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={item.image}
-                    alt={item.title}
-                    className="gal-card__img"
-                  />
+          {loading ? (
+            <p className="gal-status">Loading gallery…</p>
+          ) : error ? (
+            <p className="gal-status gal-status--error">{error}</p>
+          ) : items.length === 0 ? (
+            <p className="gal-status">No gallery items yet.</p>
+          ) : (
+            <div className="gal-grid">
+              {items.map((item) => (
+                <div key={item.id} className="gal-card">
+                  <div className="gal-card__img-wrap">
+                    {item.mediaType === "video" ? (
+                      <video
+                        src={`${CMS_API_URL}${item.mediaUrl}`}
+                        poster={
+                          item.thumbnailUrl
+                            ? `${CMS_API_URL}${item.thumbnailUrl}`
+                            : undefined
+                        }
+                        className="gal-card__img"
+                        controls
+                        playsInline
+                        preload="metadata"
+                      />
+                    ) : (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={`${CMS_API_URL}${item.mediaUrl}`}
+                        alt={item.title}
+                        className="gal-card__img"
+                      />
+                    )}
+                  </div>
+                  <p className="gal-card__title">{item.title}</p>
                 </div>
-                <p className="gal-card__title">{item.title}</p>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
 
           {/* Pagination */}
           {totalPages > 1 && (

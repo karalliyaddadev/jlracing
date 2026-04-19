@@ -1,140 +1,25 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from "react-icons/fa";
 
-const FAQ_CATEGORIES = [
-  {
-    id: "getting-started",
-    title: "Getting Started",
-    items: [
-      {
-        q: "How do I start importing a vehicle?",
-        a: "You can start by contacting our team or selecting a vehicle. We guide you through sourcing, pricing, payment, and shipping.",
-      },
-      {
-        q: "Do I need prior experience to import vehicles?",
-        a: "No, our team assists beginners and experienced importers, ensuring a smooth and guided process from start to delivery.",
-      },
-      {
-        q: "Can I import to any country?",
-        a: "Yes, we support global exports, but import regulations vary by country. We guide you based on your location.",
-      },
-      {
-        q: "Do I need to register before placing an inquiry?",
-        a: "No registration is required. You can directly contact us with your requirements through the inquiry form.",
-      },
-      {
-        q: "Can I request a specific vehicle model?",
-        a: "Yes, you can share your requirements, and we will source suitable vehicles from Japanese auctions.",
-      },
-    ],
-  },
-  {
-    id: "auctions",
-    title: "Auctions & Vehicles",
-    items: [
-      {
-        q: "How do Japanese vehicle auctions work?",
-        a: "Vehicles are listed with inspection reports and grades. We bid on your behalf to secure the best possible deal.",
-      },
-      {
-        q: "Are all vehicles inspected before purchase?",
-        a: "Yes, auction houses provide detailed inspection reports, including condition grades and remarks for transparency.",
-      },
-      {
-        q: "Can I see vehicle details before bidding?",
-        a: "Yes, we provide auction sheets, images, and condition details before you confirm any purchase.",
-      },
-      {
-        q: "What types of vehicles do you export?",
-        a: "We export cars, motorcycles, and heavy machinery based on your requirements and market availability.",
-      },
-      {
-        q: "Are vehicles verified and authentic?",
-        a: "Yes, all vehicles are sourced from licensed auctions, ensuring authenticity and accurate documentation.",
-      },
-    ],
-  },
-  {
-    id: "pricing",
-    title: "Pricing & Payments",
-    items: [
-      {
-        q: "What payment methods do you accept?",
-        a: "We accept TT (Telegraphic Transfer) and LC (Letter of Credit) for secure international transactions.",
-      },
-      {
-        q: "What does the total price include?",
-        a: "The total price includes auction cost, commission, shipping, and documentation fees, depending on the shipment type.",
-      },
-      {
-        q: "Are there any hidden charges?",
-        a: "No, we provide a transparent cost breakdown before confirming your purchase to avoid surprises.",
-      },
-      {
-        q: "What is the difference between TT and LC?",
-        a: "TT is a direct bank transfer, while LC is a bank-backed payment method offering additional security.",
-      },
-      {
-        q: "When do I need to make payment?",
-        a: "Payment is required after confirming the vehicle, based on agreed terms and payment method.",
-      },
-    ],
-  },
-  {
-    id: "shipping",
-    title: "Shipping & Delivery",
-    items: [
-      {
-        q: "What is the difference between FOB and CIF?",
-        a: "FOB covers delivery to the Japanese port, while CIF includes shipping and insurance to your destination port.",
-      },
-      {
-        q: "What shipping methods do you offer?",
-        a: "We offer RoRo and container shipping options depending on the vehicle type and customer preference.",
-      },
-      {
-        q: "How long does delivery take?",
-        a: "Shipping timelines vary by destination but typically range from a few weeks to over a month.",
-      },
-      {
-        q: "Can I track my vehicle during shipping?",
-        a: "Yes, we provide tracking updates so you can monitor your shipment throughout the journey.",
-      },
-      {
-        q: "Is my vehicle insured during shipping?",
-        a: "Yes, insurance is included in CIF shipments, while FOB shipments can be insured upon request.",
-      },
-    ],
-  },
-  {
-    id: "documentation",
-    title: "Documentation & Support",
-    items: [
-      {
-        q: "What documents will I receive?",
-        a: "You will receive export certificates, Bill of Lading, commercial invoice, and other required documents.",
-      },
-      {
-        q: "Do you assist with customs clearance?",
-        a: "Yes, we guide you through the customs clearance process in your country.",
-      },
-      {
-        q: "What happens after my vehicle arrives?",
-        a: "You will complete customs clearance and registration based on your country's regulations.",
-      },
-      {
-        q: "Do you provide support after delivery?",
-        a: "Yes, we assist with documentation issues and any post-shipment inquiries.",
-      },
-      {
-        q: "Can you help with missing or delayed documents?",
-        a: "Yes, our team ensures all documents are handled properly and supports you if any issues arise.",
-      },
-    ],
-  },
-];
+const CMS_API_URL =
+  process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
+
+/* ── Types ── */
+interface FaqItem {
+  id: number;
+  question: string;
+  answer: string;
+  order: number;
+}
+
+interface FaqCategory {
+  id: number;
+  title: string;
+  order: number;
+  items: FaqItem[];
+}
 
 const CONTACT_INFO = [
   {
@@ -160,11 +45,28 @@ const CONTACT_INFO = [
 ];
 
 export default function ContactPage() {
-  const [activeCat, setActiveCat] = useState<string>(FAQ_CATEGORIES[0].id);
+  const [faqCategories, setFaqCategories] = useState<FaqCategory[]>([]);
+  const [faqLoading, setFaqLoading] = useState(true);
+
+  /* active category id (string for URL-compat, stored as number internally) */
+  const [activeCatId, setActiveCatId] = useState<number | null>(null);
   const [openIdx, setOpenIdx] = useState<number | null>(null);
 
-  const selectCat = (catId: string) => {
-    setActiveCat(catId);
+  useEffect(() => {
+    fetch(`${CMS_API_URL}/api/faq/active?site=FOREIGN`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: FaqCategory[]) => {
+        setFaqCategories(data);
+        if (data.length > 0) setActiveCatId(data[0].id);
+      })
+      .catch(() => {
+        /* ignore — show nothing */
+      })
+      .finally(() => setFaqLoading(false));
+  }, []);
+
+  const selectCat = (catId: number) => {
+    setActiveCatId(catId);
     setOpenIdx(null);
   };
 
@@ -172,7 +74,7 @@ export default function ContactPage() {
     setOpenIdx((prev) => (prev === idx ? null : idx));
   };
 
-  const currentCat = FAQ_CATEGORIES.find((c) => c.id === activeCat)!;
+  const currentCat = faqCategories.find((c) => c.id === activeCatId) ?? null;
 
   return (
     <>
@@ -203,7 +105,7 @@ export default function ContactPage() {
                       <span className="abt-grad-text">FAQs</span>
                     </span>
                   </span>
-                  <p className="cnt-faq__cat-desc">{currentCat.title}</p>
+                  <p className="cnt-faq__cat-desc">{currentCat?.title ?? ""}</p>
                 </div>
               </div>
               <h2 className="cnt-faq__heading">
@@ -215,45 +117,51 @@ export default function ContactPage() {
                 you clarity and confidence at every step.
               </p>
 
-              {/* Body: sidebar + panel */}
-              <div className="cnt-faq__body">
-                {/* Category sidebar */}
-                <div className="cnt-faq__sidebar">
-                  {FAQ_CATEGORIES.map((cat) => (
-                    <button
-                      key={cat.id}
-                      className={`cnt-faq__tab${activeCat === cat.id ? " cnt-faq__tab--active" : ""}`}
-                      onClick={() => selectCat(cat.id)}
-                    >
-                      {cat.title}
-                    </button>
-                  ))}
-                </div>
-
-                {/* Questions panel */}
-                <div className="cnt-faq__panel">
-                  {currentCat.items.map((item, idx) => {
-                    const isOpen = openIdx === idx;
-                    return (
-                      <div
-                        key={idx}
-                        className={`cnt-faq__item${isOpen ? " cnt-faq__item--open" : ""}`}
+              {faqLoading ? (
+                <p className="cnt-faq__loading">Loading…</p>
+              ) : faqCategories.length === 0 ? null : (
+                /* Body: sidebar + panel */
+                <div className="cnt-faq__body">
+                  {/* Category sidebar */}
+                  <div className="cnt-faq__sidebar">
+                    {faqCategories.map((cat) => (
+                      <button
+                        key={cat.id}
+                        className={`cnt-faq__tab${activeCatId === cat.id ? " cnt-faq__tab--active" : ""}`}
+                        onClick={() => selectCat(cat.id)}
                       >
-                        <button
-                          className="cnt-faq__q"
-                          onClick={() => toggleQ(idx)}
+                        {cat.title}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Questions panel */}
+                  <div className="cnt-faq__panel">
+                    {currentCat?.items.map((item, idx) => {
+                      const isOpen = openIdx === idx;
+                      return (
+                        <div
+                          key={item.id}
+                          className={`cnt-faq__item${isOpen ? " cnt-faq__item--open" : ""}`}
                         >
-                          <span>{item.q}</span>
-                          <span className="cnt-faq__chevron">
-                            {isOpen ? "−" : "+"}
-                          </span>
-                        </button>
-                        {isOpen && <p className="cnt-faq__a">{item.a}</p>}
-                      </div>
-                    );
-                  })}
+                          <button
+                            className="cnt-faq__q"
+                            onClick={() => toggleQ(idx)}
+                          >
+                            <span>{item.question}</span>
+                            <span className="cnt-faq__chevron">
+                              {isOpen ? "−" : "+"}
+                            </span>
+                          </button>
+                          {isOpen && (
+                            <p className="cnt-faq__a">{item.answer}</p>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <p className="cnt-faq__footer-note">
                 Still have questions?{" "}
