@@ -18,6 +18,8 @@ type Purchase = {
   downPaymentAmount?: number;
   remainingAmount?: number;
   settlementStatus?: "SETTLED" | "TO_SETTLE";
+  hasRegistrationFee?: boolean;
+  registrationFeeAmount?: number;
   customer: {
     id: number;
     firstName: string;
@@ -66,6 +68,7 @@ type InvoiceRow = {
   finalSellingPrice: number;
   currentSellingPrice: number;
   downPaymentAmount: number;
+  registrationFeeTotal: number;
   remainingAmount: number;
   settlementStatus: "SETTLED" | "TO_SETTLE";
   paymentTypeText: "Direct" | "Downpayment";
@@ -74,12 +77,20 @@ type InvoiceRow = {
   itemSubtitle: string;
 };
 
+type InvoiceTerm = {
+  id: number;
+  text: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
 export default function InvoicesPage() {
   const { token } = useAdmin();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [invoices, setInvoices] = useState<Purchase[]>([]);
+  const [invoiceTerms, setInvoiceTerms] = useState<InvoiceTerm[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
 
   const base = `${API_URL}/api/pos/user-management`;
@@ -106,6 +117,23 @@ export default function InvoicesPage() {
   useEffect(() => {
     void loadInvoices();
   }, [loadInvoices]);
+
+  const loadInvoiceTerms = useCallback(async () => {
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${base}/invoice-terms`, { headers: auth, cache: "no-store" });
+      const payload = await response.json() as { data?: { terms?: InvoiceTerm[] }; message?: string };
+      if (!response.ok) throw new Error(payload.message ?? "Failed to load invoice terms");
+      setInvoiceTerms(payload.data?.terms ?? []);
+    } catch {
+      setInvoiceTerms([]);
+    }
+  }, [auth, base, token]);
+
+  useEffect(() => {
+    void loadInvoiceTerms();
+  }, [loadInvoiceTerms]);
 
   const getPurchaseItemMeta = useCallback((entry: Purchase) => {
     if (entry.itemType === "BIKE" && entry.bike) {
@@ -174,6 +202,10 @@ export default function InvoicesPage() {
         if (!isDownPaymentEntry(entry)) return sum;
         return sum + Math.max(0, entry.finalSellingPrice - (entry.remainingAmount ?? 0));
       }, 0);
+      const registrationFeeTotal = sorted.reduce((sum, entry) => {
+        if (!entry.hasRegistrationFee) return sum;
+        return sum + (entry.registrationFeeAmount ?? 0);
+      }, 0);
       const remainingAmount = Math.max(0, Math.round(sorted.reduce((sum, entry) => sum + (entry.remainingAmount ?? 0), 0) * 100) / 100);
       const settlementStatus: "SETTLED" | "TO_SETTLE" = remainingAmount > 0 || sorted.some((entry) => entry.settlementStatus === "TO_SETTLE")
         ? "TO_SETTLE"
@@ -201,6 +233,7 @@ export default function InvoicesPage() {
         finalSellingPrice,
         currentSellingPrice,
         downPaymentAmount,
+        registrationFeeTotal,
         remainingAmount,
         settlementStatus,
         paymentTypeText,
@@ -218,6 +251,15 @@ export default function InvoicesPage() {
     () => invoiceRows.reduce((sum, invoice) => sum + invoice.finalSellingPrice, 0),
     [invoiceRows]
   );
+
+  const activeInvoiceTerms = useMemo(() => {
+    return invoiceTerms
+      .filter((term) => term.isActive)
+      .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
+      .map((term) => term.text);
+  }, [invoiceTerms]);
+
+  const getInvoiceGrandTotal = (invoice: InvoiceRow) => invoice.finalSellingPrice + invoice.registrationFeeTotal;
 
   return (
     <div className="bm-page">
@@ -296,99 +338,114 @@ export default function InvoicesPage() {
 
       {selectedInvoice && (
         <div className="bm-modal-backdrop" onClick={() => setSelectedInvoice(null)}>
-          <div className="bm-modal bm-modal-lg" onClick={(e) => e.stopPropagation()}>
+          <div className="bm-modal bm-modal-lg invoice-template-modal" onClick={(e) => e.stopPropagation()}>
             <button type="button" className="bm-modal-close" onClick={() => setSelectedInvoice(null)}>x</button>
-            <h3 className="bm-modal-title">Invoice {selectedInvoice.invoiceLabel}</h3>
-            <p className="users-muted" style={{ marginTop: "-0.5rem", marginBottom: "0.8rem" }}>
-              {selectedInvoice.purchaseModeText} Invoice • {selectedInvoice.paymentTypeText}
-            </p>
+            <div className="invoice-paper">
+              <header className="invoice-paper-header">
+                <img src="/landing/logo.jpg" alt="JL Racing" className="invoice-brand-logo" />
+                <p className="invoice-brand-line">Importers, Exporters & Dealers Of Motorcycles, Motor Vehicles, Machineries & Other</p>
+                <p className="invoice-brand-line">Motorized Equipments With Spare Parts.</p>
+                <p className="invoice-brand-address">No:154, Puttalam Road, Kurunegala, Sri Lanka, Kurunegala</p>
+              </header>
 
-            <div className="users-view-grid">
-              <div><strong>Date:</strong> {new Date(selectedInvoice.purchasedAt).toLocaleString()}</div>
-              <div><strong>Customer:</strong> {selectedInvoice.customer.firstName} {selectedInvoice.customer.lastName}</div>
-              <div><strong>NIC:</strong> {selectedInvoice.customer.nic}</div>
-              <div><strong>Mobile:</strong> {selectedInvoice.customer.mobileNumber}</div>
-              <div className="users-span-2"><strong>Address:</strong> {selectedInvoice.customer.address}, {selectedInvoice.customer.district}, {selectedInvoice.customer.province}</div>
-            </div>
+              <section className="invoice-paper-body">
+                <div className="invoice-meta-row">
+                  <strong>Invoice No: #{String(Math.min(...selectedInvoice.entries.map((entry) => entry.id))).padStart(4, "0")}</strong>
+                  <strong>Date: {new Date(selectedInvoice.purchasedAt).toLocaleDateString("en-GB")}</strong>
+                </div>
 
-            {selectedInvoice.entries.length > 1 && (
-              <>
-                <h4 className="users-section-title" style={{ marginTop: "1rem" }}>Bulk Contains Bikes</h4>
-                <div className="data-table-wrap">
-                  <table className="data-table users-orders-table">
-                    <thead>
-                      <tr>
-                        <th>Item</th>
-                        <th>Qty</th>
-                        <th>Payment</th>
-                        <th>Final Price</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {selectedInvoice.entries.map((entry) => (
-                        <tr key={entry.id}>
-                          <td>
-                            <div className="users-order-title">{getPurchaseItemMeta(entry).title}</div>
-                            <span className="users-order-item-meta">{getPurchaseItemMeta(entry).subtitle}</span>
+                <div className="invoice-customer-block">
+                  <strong>{selectedInvoice.customer.firstName} {selectedInvoice.customer.lastName}</strong>
+                  <span>{selectedInvoice.customer.address}</span>
+                  <span>{selectedInvoice.customer.district}</span>
+                </div>
+
+                <div className="invoice-divider" />
+
+                <table className="invoice-print-table">
+                  <thead>
+                    <tr>
+                      <th className="invoice-col-desc">Description</th>
+                      <th className="invoice-col-qty">Qty</th>
+                      <th className="invoice-col-amount">Unit Price</th>
+                      <th className="invoice-col-amount">Total Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {selectedInvoice.entries.map((entry) => {
+                      const itemMeta = getPurchaseItemMeta(entry);
+                      const hasBike = entry.itemType === "BIKE" && !!entry.bike;
+                      return (
+                        <tr key={`entry-${entry.id}`}>
+                          <td className="invoice-desc-cell">
+                            <strong>{itemMeta.title}</strong>
+                            <div className="invoice-item-meta">{itemMeta.subtitle}</div>
+                            {hasBike && (
+                              <div className="invoice-vehicle-meta">
+                                Chassis No: {entry.bike?.chassisNo ?? "-"} | Engine No: {entry.bike?.engineNo ?? "-"} | Registration: {entry.bike?.registrationType ?? "-"}
+                              </div>
+                            )}
                           </td>
-                          <td>{entry.quantity}</td>
-                          <td>{isDownPaymentEntry(entry) ? "Downpayment" : "Direct"}</td>
-                          <td>Rs. {entry.finalSellingPrice.toLocaleString()}</td>
-                          <td>{(entry.remainingAmount ?? 0) > 0 || entry.settlementStatus === "TO_SETTLE" ? `To Settle (Rs. ${(entry.remainingAmount ?? 0).toLocaleString()})` : "Settled"}</td>
+                          <td className="invoice-col-qty">{entry.quantity}</td>
+                          <td className="invoice-col-amount">Rs. {(entry.quantity > 0 ? entry.finalSellingPrice / entry.quantity : entry.finalSellingPrice).toLocaleString()}</td>
+                          <td className="invoice-col-amount">Rs. {entry.finalSellingPrice.toLocaleString()}</td>
+                        </tr>
+                      );
+                    })}
+                    {selectedInvoice.entries
+                      .filter((entry) => entry.hasRegistrationFee && (entry.registrationFeeAmount ?? 0) > 0)
+                      .map((entry) => (
+                        <tr key={`reg-${entry.id}`} className="invoice-registration-row">
+                          <td className="invoice-desc-cell">
+                            Registration Fee
+                            {entry.bike ? ` - ${entry.bike.brand} ${entry.bike.model}` : ""}
+                          </td>
+                          <td className="invoice-col-qty">{entry.quantity}</td>
+                          <td className="invoice-col-amount">Rs. {(entry.registrationFeeAmount ?? 0).toLocaleString()}</td>
+                          <td className="invoice-col-amount">Rs. {((entry.registrationFeeAmount ?? 0) * entry.quantity).toLocaleString()}</td>
                         </tr>
                       ))}
-                    </tbody>
-                  </table>
-                </div>
-              </>
-            )}
+                    <tr className="invoice-summary-row">
+                      <td className="invoice-desc-cell">Advance</td>
+                      <td className="invoice-col-qty" />
+                      <td className="invoice-col-amount">Rs. {selectedInvoice.downPaymentAmount.toLocaleString()}</td>
+                      <td className="invoice-col-amount" />
+                    </tr>
+                    <tr className="invoice-summary-row invoice-balance-row">
+                      <td className="invoice-desc-cell">Balance</td>
+                      <td className="invoice-col-qty" />
+                      <td className="invoice-col-amount">Rs. {selectedInvoice.remainingAmount.toLocaleString()}</td>
+                      <td className="invoice-col-amount" />
+                    </tr>
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td colSpan={3} className="invoice-total-label">Total</td>
+                      <td className="invoice-total-value">Rs. {getInvoiceGrandTotal(selectedInvoice).toLocaleString()}</td>
+                    </tr>
+                  </tfoot>
+                </table>
 
-            {selectedInvoice.entries.length === 1 && selectedInvoice.entries[0].itemType === "BIKE" && selectedInvoice.entries[0].bike && (
-              <>
-                <h4 className="users-section-title" style={{ marginTop: "1rem" }}>Bike Details</h4>
-                <div className="users-view-grid">
-                  <div><strong>Bike ID:</strong> {selectedInvoice.entries[0].bike.displayId}</div>
-                  <div><strong>Model:</strong> {selectedInvoice.entries[0].bike.brand} {selectedInvoice.entries[0].bike.model}</div>
-                  <div><strong>Colour:</strong> {selectedInvoice.entries[0].bike.colour}</div>
-                  <div><strong>Year:</strong> {selectedInvoice.entries[0].bike.year ?? "-"}</div>
-                  <div><strong>Engine Capacity:</strong> {selectedInvoice.entries[0].bike.engineCapacityCc ? `${selectedInvoice.entries[0].bike.engineCapacityCc} cc` : "-"}</div>
-                  <div><strong>Mileage:</strong> {selectedInvoice.entries[0].bike.mileage != null ? `${selectedInvoice.entries[0].bike.mileage.toLocaleString()} km` : "-"}</div>
-                  <div><strong>Condition:</strong> {selectedInvoice.entries[0].bike.condition}</div>
-                  <div><strong>Registration:</strong> {selectedInvoice.entries[0].bike.registrationType}</div>
-                  <div><strong>Register No:</strong> {selectedInvoice.entries[0].bike.registerNo ?? "-"}</div>
-                  <div><strong>File No:</strong> {selectedInvoice.entries[0].bike.fileNo ?? "-"}</div>
-                  <div><strong>Chassis No:</strong> {selectedInvoice.entries[0].bike.chassisNo ?? "-"}</div>
-                  <div><strong>Engine No:</strong> {selectedInvoice.entries[0].bike.engineNo ?? "-"}</div>
+                <div className="invoice-bank-block">
+                  <strong>Bank Details</strong>
+                  <span>019010033205</span>
+                  <span>JL Racing</span>
+                  <span>HNB</span>
                 </div>
-              </>
-            )}
 
-            {selectedInvoice.entries.length === 1 && selectedInvoice.entries[0].itemType === "INVENTORY" && selectedInvoice.entries[0].inventory && (
-              <>
-                <h4 className="users-section-title" style={{ marginTop: "1rem" }}>Inventory Item Details</h4>
-                <div className="users-view-grid">
-                  <div><strong>Product ID:</strong> {selectedInvoice.entries[0].inventory.displayId}</div>
-                  <div><strong>Product:</strong> {selectedInvoice.entries[0].inventory.name}</div>
-                  <div><strong>Brand:</strong> {selectedInvoice.entries[0].inventory.brand}</div>
-                  <div><strong>Category:</strong> {selectedInvoice.entries[0].inventory.category}</div>
-                  <div><strong>Supplier:</strong> {selectedInvoice.entries[0].inventory.supplier ?? "-"}</div>
-                  <div><strong>Quantity:</strong> {selectedInvoice.entries[0].quantity}</div>
-                  <div className="users-span-2"><strong>Description:</strong> {selectedInvoice.entries[0].inventory.description ?? "-"}</div>
-                </div>
-              </>
-            )}
+                {activeInvoiceTerms.length > 0 && (
+                  <>
+                    <div className="invoice-divider" />
+                    <ul className="invoice-paper-terms">
+                      {activeInvoiceTerms.map((term, index) => (
+                        <li key={`${index}-${term.slice(0, 24)}`}>{term}</li>
+                      ))}
+                    </ul>
+                  </>
+                )}
 
-            <h4 className="users-section-title" style={{ marginTop: "1rem" }}>Pricing</h4>
-            <div className="users-view-grid">
-              <div><strong>Purchase Mode:</strong> {selectedInvoice.purchaseModeText}</div>
-              <div><strong>Current Selling Price:</strong> {selectedInvoice.currentSellingPrice > 0 ? `Rs. ${selectedInvoice.currentSellingPrice.toLocaleString()}` : "-"}</div>
-              <div><strong>Quantity:</strong> {selectedInvoice.quantity}</div>
-              <div><strong>Final Selling Price:</strong> Rs. {selectedInvoice.finalSellingPrice.toLocaleString()}</div>
-              <div><strong>Payment Type:</strong> {selectedInvoice.paymentTypeText} Buy</div>
-              <div><strong>Downpayment:</strong> Rs. {selectedInvoice.downPaymentAmount.toLocaleString()}</div>
-              <div><strong>Remaining Amount:</strong> Rs. {selectedInvoice.remainingAmount.toLocaleString()}</div>
-              <div><strong>Status:</strong> {selectedInvoice.settlementStatus === "TO_SETTLE" ? "To Settle" : "Settled"}</div>
+                <p className="invoice-support-note">If you have any questions concerning this invoice, please contact us at <strong>071 791 0091</strong></p>
+              </section>
             </div>
 
             <div className="bm-modal-actions" style={{ marginTop: "1rem" }}>
