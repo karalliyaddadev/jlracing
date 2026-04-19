@@ -67,13 +67,13 @@ export default function Header() {
             </Link>
 
             {/* Admin Sign In */}
-            <button
+            {/* <button
               className="header__signin-btn"
               onClick={() => setSignInOpen(true)}
               aria-label="Admin sign in"
             >
               Sign In
-            </button>
+            </button> */}
 
             {/* Mobile Hamburger */}
             <button

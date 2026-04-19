@@ -128,4 +128,35 @@ export class UploadController {
       mimeType: file.mimetype,
     };
   }
+
+  // ── Blog image upload — saves to uploads/local/blog/ ──
+  @Post("blog-image")
+  @UseInterceptors(
+    FileInterceptor("file", {
+      storage: buildStorage("local/blog"),
+      fileFilter: (_req, file, cb) => {
+        if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(
+            new BadRequestException(
+              "Only image files (jpeg, png, webp, avif) are allowed",
+            ),
+            false,
+          );
+        }
+      },
+      limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
+    }),
+  )
+  uploadBlogImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException("No file provided");
+    return {
+      url: `/uploads/local/blog/${file.filename}`,
+      filename: file.filename,
+      originalName: file.originalname,
+      size: file.size,
+      mimeType: file.mimetype,
+    };
+  }
 }
