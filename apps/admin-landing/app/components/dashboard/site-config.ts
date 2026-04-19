@@ -75,6 +75,7 @@ const LOCAL_CONFIG: SiteConfig = {
       items: [
         { href: "/local/dashboard/blog", label: "Blog Posts", icon: "pen" },
         { href: "/local/dashboard/gallery", label: "Gallery", icon: "gallery" },
+        { href: "/local/dashboard/faq", label: "FAQ", icon: "help" },
       ],
     },
     {
@@ -101,6 +102,7 @@ const LOCAL_CONFIG: SiteConfig = {
     { label: "Upload to Gallery", href: "/local/dashboard/gallery" },
     { label: "Manage Spare Parts", href: "/local/dashboard/spare-parts" },
     { label: "Pre Orders", href: "/local/dashboard/pre-orders" },
+    { label: "Manage FAQs", href: "/local/dashboard/faq" },
   ],
 };
 
@@ -121,14 +123,19 @@ const INTERNATIONAL_CONFIG: SiteConfig = {
       group: "Content",
       items: [
         {
-          href: "/international/dashboard/pdf",
-          label: "Downloadable PDF",
-          icon: "file",
+          href: "/international/dashboard/hero-banner",
+          label: "Hero Banner",
+          icon: "image",
         },
         {
           href: "/international/dashboard/video",
-          label: "Video",
+          label: "Video Banner",
           icon: "play",
+        },
+        {
+          href: "/international/dashboard/pdf",
+          label: "Downloadable PDF",
+          icon: "file",
         },
         {
           href: "/international/dashboard/bikes",
@@ -139,6 +146,21 @@ const INTERNATIONAL_CONFIG: SiteConfig = {
           href: "/international/dashboard/spare-parts",
           label: "Spare Parts",
           icon: "cog",
+        },
+      ],
+    },
+    {
+      group: "Media",
+      items: [
+        {
+          href: "/international/dashboard/gallery",
+          label: "Gallery",
+          icon: "gallery",
+        },
+        {
+          href: "/international/dashboard/faq",
+          label: "FAQ",
+          icon: "help",
         },
       ],
     },
@@ -154,12 +176,14 @@ const INTERNATIONAL_CONFIG: SiteConfig = {
     },
   ],
   stats: [
+    { label: "Hero Banners", value: "—", icon: "image" },
     { label: "Downloadable PDFs", value: "—", icon: "file" },
     { label: "Bike Inventory", value: "—", icon: "bike" },
     { label: "Spare Parts", value: "—", icon: "cog" },
-    { label: "Videos", value: "—", icon: "play" },
+    { label: "Gallery Items", value: "—", icon: "gallery" },
   ],
   actions: [
+    { label: "Edit Hero Banner", href: "/international/dashboard/hero-banner" },
     { label: "Manage PDFs", href: "/international/dashboard/pdf" },
     { label: "Edit Video", href: "/international/dashboard/video" },
     { label: "Manage Bikes", href: "/international/dashboard/bikes" },
@@ -167,6 +191,8 @@ const INTERNATIONAL_CONFIG: SiteConfig = {
       label: "Manage Spare Parts",
       href: "/international/dashboard/spare-parts",
     },
+    { label: "Upload to Gallery", href: "/international/dashboard/gallery" },
+    { label: "Manage FAQs", href: "/international/dashboard/faq" },
   ],
 };
 

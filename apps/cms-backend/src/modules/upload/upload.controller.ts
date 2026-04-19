@@ -221,6 +221,37 @@ export class UploadController {
     };
   }
 
+  // ── Foreign video-banner upload — saves to uploads/foreign/video-banner/ ──
+  @Post("foreign-video-banner")
+  @UseInterceptors(
+    FileInterceptor("file", {
+      storage: buildStorage("foreign/video-banner"),
+      fileFilter: (_req, file, cb) => {
+        if (ALLOWED_VIDEO_TYPES.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(
+            new BadRequestException(
+              "Only video files (mp4, webm, ogg) are allowed",
+            ),
+            false,
+          );
+        }
+      },
+      limits: { fileSize: 200 * 1024 * 1024 }, // 200 MB
+    }),
+  )
+  uploadForeignVideoBanner(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException("No file provided");
+    return {
+      url: `/uploads/foreign/video-banner/${file.filename}`,
+      filename: file.filename,
+      originalName: file.originalname,
+      size: file.size,
+      mimeType: file.mimetype,
+    };
+  }
+
   // ── Hero image upload — saves to uploads/local/hero/ ──
   @Post("hero-image")
   @UseInterceptors(
