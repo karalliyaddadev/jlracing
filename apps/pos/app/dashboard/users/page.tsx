@@ -77,6 +77,8 @@ type PurchaseHistoryEntry = {
   downPaymentAmount?: number;
   remainingAmount?: number;
   settlementStatus?: "SETTLED" | "TO_SETTLE";
+  hasRegistrationFee?: boolean;
+  registrationFeeAmount?: number;
   customer: {
     id: number;
     firstName: string;
@@ -140,6 +142,8 @@ type PurchaseFormState = {
   finalSellingPrice: string;
   paymentType: "DIRECT" | "DOWNPAYMENT";
   downPaymentAmount: string;
+  hasRegistrationFee: boolean;
+  registrationFeeAmount: string;
 };
 
 type BulkBikeLine = {
@@ -149,6 +153,9 @@ type BulkBikeLine = {
   unitPrice: number;
   quantity: number;
   subtotal: number;
+  hasRegistrationFee: boolean;
+  registrationFeeAmount: number;
+  registrationFeeSubtotal: number;
   bikeIds: number[];
 };
 
@@ -190,6 +197,15 @@ const EMPTY_FORM: UserFormState = {
   dreamBikeIds: [],
 };
 
+function parsePositiveInt(value: string, fallback = 1) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function formatMoneyInput(value: number) {
+  return Number.isFinite(value) ? String(Math.round(value * 100) / 100) : "";
+}
+
 export default function UsersPage() {
   const { token } = useAdmin();
   const pathname = usePathname();
@@ -227,6 +243,8 @@ export default function UsersPage() {
     finalSellingPrice: "",
     paymentType: "DIRECT",
     downPaymentAmount: "",
+    hasRegistrationFee: false,
+    registrationFeeAmount: "",
   });
   const [bulkBrandModelKey, setBulkBrandModelKey] = useState("");
   const [bulkCount, setBulkCount] = useState("1");
@@ -326,6 +344,11 @@ export default function UsersPage() {
 
   const bulkBikeTotal = useMemo(
     () => bulkBikeLines.reduce((sum, line) => sum + line.subtotal, 0),
+    [bulkBikeLines]
+  );
+
+  const bulkRegistrationFeeTotal = useMemo(
+    () => bulkBikeLines.reduce((sum, line) => sum + line.registrationFeeSubtotal, 0),
     [bulkBikeLines]
   );
 
@@ -689,6 +712,19 @@ export default function UsersPage() {
     return Number.isFinite(value) && value >= 0 ? value : 0;
   }, [bulkBikeTotal, purchaseForm.finalSellingPrice, purchaseForm.purchaseMode, purchaseForm.purchaseType]);
 
+  const purchaseRegistrationTotal = useMemo(() => {
+    if (purchaseForm.purchaseType !== "BIKE") return 0;
+    if (purchaseForm.purchaseMode === "BULK") return bulkRegistrationFeeTotal;
+    if (!purchaseForm.hasRegistrationFee) return 0;
+    const value = Number(purchaseForm.registrationFeeAmount || "0");
+    return Number.isFinite(value) && value > 0 ? value : 0;
+  }, [bulkRegistrationFeeTotal, purchaseForm.hasRegistrationFee, purchaseForm.purchaseMode, purchaseForm.purchaseType, purchaseForm.registrationFeeAmount]);
+
+  const purchaseGrandTotal = useMemo(
+    () => purchaseInvoiceTotal + purchaseRegistrationTotal,
+    [purchaseInvoiceTotal, purchaseRegistrationTotal]
+  );
+
   const purchaseDownPaymentPreview = useMemo(() => {
     if (purchaseForm.paymentType === "DIRECT") return purchaseInvoiceTotal;
     const value = Number(purchaseForm.downPaymentAmount || "0");
@@ -779,6 +815,10 @@ export default function UsersPage() {
         if (!isDownPaymentEntry(entry)) return sum;
         const paidAmount = Math.max(0, entry.finalSellingPrice - (entry.remainingAmount ?? 0));
         return sum + paidAmount;
+      }, 0),
+      registrationFeeAmount: entries.reduce((sum, entry) => {
+        if (!entry.hasRegistrationFee) return sum;
+        return sum + (entry.registrationFeeAmount ?? 0);
       }, 0),
       remainingAmount: entries.reduce((sum, entry) => sum + (entry.remainingAmount ?? 0), 0),
       settlementStatus: entries.some((entry) => entry.settlementStatus === "TO_SETTLE") ? "TO_SETTLE" : "SETTLED",
@@ -1020,6 +1060,8 @@ export default function UsersPage() {
       finalSellingPrice: "",
       paymentType: "DIRECT",
       downPaymentAmount: "",
+      hasRegistrationFee: false,
+      registrationFeeAmount: "",
     });
     setBulkBrandModelKey("");
     setBulkCount("1");
@@ -1041,6 +1083,8 @@ export default function UsersPage() {
       finalSellingPrice: "",
       paymentType: "DIRECT",
       downPaymentAmount: "",
+      hasRegistrationFee: false,
+      registrationFeeAmount: "",
     });
     setBulkBrandModelKey("");
     setBulkCount("1");
@@ -1083,7 +1127,9 @@ export default function UsersPage() {
       setPurchaseProductDetail(detail);
       setPurchaseForm((prev) => ({
         ...prev,
-        finalSellingPrice: detail.sellingPrice != null ? String(detail.sellingPrice) : prev.finalSellingPrice,
+        finalSellingPrice: detail.sellingPrice != null
+          ? formatMoneyInput(detail.sellingPrice * parsePositiveInt(prev.quantity, 1))
+          : prev.finalSellingPrice,
       }));
     } catch (err) {
       setPurchaseError(err instanceof Error ? err.message : "Failed to load product details");
@@ -1114,6 +1160,13 @@ export default function UsersPage() {
       setPurchaseError("Please enter a valid allocated price greater than 0");
       return;
     }
+    const registrationFeeAmount = purchaseForm.hasRegistrationFee
+      ? Number(purchaseForm.registrationFeeAmount || "0")
+      : 0;
+    if (purchaseForm.hasRegistrationFee && (!Number.isFinite(registrationFeeAmount) || registrationFeeAmount <= 0)) {
+      setPurchaseError("Please enter a valid registration fee amount");
+      return;
+    }
 
     const [brandName, modelName] = bulkBrandModelKey.split("__");
     const usedBikeIds = new Set(bulkBikeLines.flatMap((line) => line.bikeIds));
@@ -1141,6 +1194,11 @@ export default function UsersPage() {
         unitPrice,
         quantity: requestedCount,
         subtotal,
+        hasRegistrationFee: purchaseForm.hasRegistrationFee,
+        registrationFeeAmount: purchaseForm.hasRegistrationFee ? registrationFeeAmount : 0,
+        registrationFeeSubtotal: purchaseForm.hasRegistrationFee
+          ? Math.round(registrationFeeAmount * requestedCount * 100) / 100
+          : 0,
         bikeIds: selected.map((bike) => bike.id),
       },
     ]);
@@ -1232,6 +1290,16 @@ export default function UsersPage() {
     ) ? bulkBikeTotal : finalPrice;
 
     const downPayment = Number(purchaseForm.downPaymentAmount || "0");
+    const registrationFee = Number(purchaseForm.registrationFeeAmount || "0");
+    if (
+      purchaseForm.purchaseType === "BIKE"
+      && purchaseForm.purchaseMode === "SINGLE"
+      && purchaseForm.hasRegistrationFee
+      && (!Number.isFinite(registrationFee) || registrationFee <= 0)
+    ) {
+      setPurchaseError("Please enter a valid registration fee amount");
+      return;
+    }
     if (purchaseForm.paymentType === "DOWNPAYMENT") {
       if (!Number.isFinite(downPayment) || downPayment <= 0) {
         setPurchaseError("Please enter a valid downpayment amount");
@@ -1248,11 +1316,17 @@ export default function UsersPage() {
     try {
       if (purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseMode === "BULK") {
         const invoiceGroupCode = `BULK-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
-        const lineItems = bulkBikeLines.flatMap((line) => line.bikeIds.map((bikeId) => ({ bikeId, unitPrice: line.unitPrice })));
+        const lineItems = bulkBikeLines.flatMap((line) => line.bikeIds.map((bikeId) => ({
+          bikeId,
+          unitPrice: line.unitPrice,
+          hasRegistrationFee: line.hasRegistrationFee,
+          registrationFeeAmount: line.registrationFeeAmount,
+        })));
         const effectiveDownPayment = purchaseForm.paymentType === "DIRECT" ? bulkBikeTotal : downPayment;
         const allocations = allocateDownPayments(lineItems, effectiveDownPayment);
 
         for (const line of allocations) {
+          const registrationForBike = lineItems.find((item) => item.bikeId === line.bikeId);
           const response = await fetch(`${base}/${purchaseUser.id}/purchases`, {
             method: "POST",
             headers: { ...authHeader, "Content-Type": "application/json" },
@@ -1264,6 +1338,8 @@ export default function UsersPage() {
               finalSellingPrice: line.unitPrice,
               paymentType: purchaseForm.paymentType,
               downPaymentAmount: purchaseForm.paymentType === "DOWNPAYMENT" ? line.downPayment : undefined,
+              hasRegistrationFee: registrationForBike?.hasRegistrationFee ?? false,
+              registrationFeeAmount: registrationForBike?.registrationFeeAmount ?? 0,
             }),
           });
 
@@ -1289,6 +1365,8 @@ export default function UsersPage() {
           finalSellingPrice: finalPrice,
           paymentType: purchaseForm.paymentType,
           downPaymentAmount: purchaseForm.paymentType === "DOWNPAYMENT" ? downPayment : undefined,
+          hasRegistrationFee: purchaseForm.purchaseType === "BIKE" ? purchaseForm.hasRegistrationFee : false,
+          registrationFeeAmount: purchaseForm.purchaseType === "BIKE" && purchaseForm.hasRegistrationFee ? registrationFee : undefined,
         }),
       });
 
@@ -1654,6 +1732,8 @@ export default function UsersPage() {
                       finalSellingPrice: "",
                       paymentType: "DIRECT",
                       downPaymentAmount: "",
+                      hasRegistrationFee: false,
+                      registrationFeeAmount: "",
                     }));
                     setBulkBrandModelKey("");
                     setBulkCount("1");
@@ -1755,6 +1835,36 @@ export default function UsersPage() {
                       <span className="users-muted">Default selling price: Rs. {selectedBulkGroup.defaultPrice.toLocaleString()}</span>
                     )}
                   </div>
+                  <div className="bm-field-group">
+                    <label>Registration Needed</label>
+                    <select
+                      className="bm-input"
+                      value={purchaseForm.hasRegistrationFee ? "yes" : "no"}
+                      onChange={(e) => {
+                        const enabled = e.target.value === "yes";
+                        setPurchaseForm((prev) => ({
+                          ...prev,
+                          hasRegistrationFee: enabled,
+                          registrationFeeAmount: enabled ? prev.registrationFeeAmount : "",
+                        }));
+                      }}
+                    >
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                    </select>
+                  </div>
+                  <div className="bm-field-group">
+                    <label>Registration Fee (Per Bike)</label>
+                    <input
+                      className="bm-input"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={purchaseForm.registrationFeeAmount}
+                      onChange={(e) => setPurchaseForm((prev) => ({ ...prev, registrationFeeAmount: e.target.value }))}
+                      disabled={!purchaseForm.hasRegistrationFee}
+                    />
+                  </div>
                   <div className="bm-field-group" style={{ display: "flex", alignItems: "end" }}>
                     <button type="button" className="btn-accent" onClick={addBulkBikeLine}>Apply</button>
                   </div>
@@ -1772,6 +1882,7 @@ export default function UsersPage() {
                               <th>Model</th>
                               <th>Count</th>
                               <th>Allocated Price</th>
+                              <th>Reg Fee</th>
                               <th>Subtotal</th>
                               <th>Action</th>
                             </tr>
@@ -1783,6 +1894,7 @@ export default function UsersPage() {
                                 <td>{line.modelName}</td>
                                 <td>{line.quantity}</td>
                                 <td>Rs. {line.unitPrice.toLocaleString()}</td>
+                                <td>{line.hasRegistrationFee ? `Rs. ${line.registrationFeeSubtotal.toLocaleString()}` : "-"}</td>
                                 <td>Rs. {line.subtotal.toLocaleString()}</td>
                                 <td>
                                   <button type="button" className="btn-outline" onClick={() => removeBulkBikeLine(line.key)}>Remove</button>
@@ -1869,7 +1981,25 @@ export default function UsersPage() {
                       min={1}
                       step={1}
                       value={purchaseForm.quantity}
-                      onChange={(e) => setPurchaseForm((prev) => ({ ...prev, quantity: e.target.value }))}
+                      onChange={(e) => {
+                        const nextQuantityRaw = e.target.value;
+                        setPurchaseForm((prev) => {
+                          const oldQuantity = parsePositiveInt(prev.quantity, 1);
+                          const nextQuantity = parsePositiveInt(nextQuantityRaw, oldQuantity);
+                          const oldTotal = Number(prev.finalSellingPrice);
+                          const fallbackUnitPrice = purchaseProductDetail?.sellingPrice ?? 0;
+                          const inferredUnitPrice = Number.isFinite(oldTotal) && oldTotal > 0
+                            ? oldTotal / oldQuantity
+                            : fallbackUnitPrice;
+                          const nextTotal = inferredUnitPrice > 0 ? inferredUnitPrice * nextQuantity : oldTotal;
+
+                          return {
+                            ...prev,
+                            quantity: nextQuantityRaw,
+                            finalSellingPrice: formatMoneyInput(nextTotal),
+                          };
+                        });
+                      }}
                       required
                     />
                   </div>
@@ -1892,6 +2022,36 @@ export default function UsersPage() {
                   <div className="bm-field-group"><label>File No</label><input className="bm-input" value={purchaseBikeDetail.fileNo ?? "-"} readOnly /></div>
                   <div className="bm-field-group"><label>Chassis No</label><input className="bm-input" value={purchaseBikeDetail.chassisNo ?? "-"} readOnly /></div>
                   <div className="bm-field-group"><label>Engine No</label><input className="bm-input" value={purchaseBikeDetail.engineNo ?? "-"} readOnly /></div>
+                  <div className="bm-field-group">
+                    <label>Registration Needed</label>
+                    <select
+                      className="bm-input"
+                      value={purchaseForm.hasRegistrationFee ? "yes" : "no"}
+                      onChange={(e) => {
+                        const enabled = e.target.value === "yes";
+                        setPurchaseForm((prev) => ({
+                          ...prev,
+                          hasRegistrationFee: enabled,
+                          registrationFeeAmount: enabled ? prev.registrationFeeAmount : "",
+                        }));
+                      }}
+                    >
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                    </select>
+                  </div>
+                  <div className="bm-field-group">
+                    <label>Registration Fee</label>
+                    <input
+                      className="bm-input"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={purchaseForm.registrationFeeAmount}
+                      onChange={(e) => setPurchaseForm((prev) => ({ ...prev, registrationFeeAmount: e.target.value }))}
+                      disabled={!purchaseForm.hasRegistrationFee}
+                    />
+                  </div>
                 </>
               )}
 
@@ -1960,6 +2120,18 @@ export default function UsersPage() {
               <div className="bm-field-group">
                 <label>Invoice Total</label>
                 <input className="bm-input" value={`Rs. ${purchaseInvoiceTotal.toLocaleString()}`} readOnly />
+              </div>
+
+              {purchaseForm.purchaseType === "BIKE" && (
+                <div className="bm-field-group">
+                  <label>Registration Total</label>
+                  <input className="bm-input" value={`Rs. ${purchaseRegistrationTotal.toLocaleString()}`} readOnly />
+                </div>
+              )}
+
+              <div className="bm-field-group">
+                <label>Grand Total</label>
+                <input className="bm-input" value={`Rs. ${purchaseGrandTotal.toLocaleString()}`} readOnly />
               </div>
 
               <div className="bm-field-group">
@@ -2273,6 +2445,8 @@ export default function UsersPage() {
               <div><strong>Final Selling Price:</strong> Rs. {selectedInvoiceTotals.finalSellingPrice.toLocaleString()}</div>
               <div><strong>Payment Type:</strong> {selectedInvoicePaymentType} Buy</div>
               <div><strong>Downpayment:</strong> Rs. {selectedInvoiceTotals.downPaymentAmount.toLocaleString()}</div>
+              <div><strong>Registration Fee:</strong> Rs. {selectedInvoiceTotals.registrationFeeAmount.toLocaleString()}</div>
+              <div><strong>Grand Total:</strong> Rs. {(selectedInvoiceTotals.finalSellingPrice + selectedInvoiceTotals.registrationFeeAmount).toLocaleString()}</div>
               <div><strong>Remaining Amount:</strong> Rs. {selectedInvoiceTotals.remainingAmount.toLocaleString()}</div>
               <div><strong>Status:</strong> {selectedInvoiceTotals.settlementStatus === "TO_SETTLE" ? "To Settle" : "Settled"}</div>
             </div>

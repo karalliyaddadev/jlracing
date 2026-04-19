@@ -44,6 +44,11 @@ const INVENTORY_SUB_ITEMS = [
   { key: "manage", label: "Manage Data", href: "/dashboard/inventory/manage" },
 ] as const;
 
+const INVOICE_SUB_ITEMS = [
+  { key: "invoice-list", label: "Invoices", href: "/dashboard/invoices" },
+  { key: "invoice-terms", label: "Terms & Conditions", href: "/dashboard/invoices/terms" },
+] as const;
+
 const SIDEBAR_COLLAPSED_KEY = "pos-sidebar-collapsed";
 
 export function Sidebar() {
@@ -52,6 +57,7 @@ export function Sidebar() {
   const [userOpen, setUserOpen] = useState(pathname.startsWith("/dashboard/users"));
   const [bikeOpen, setBikeOpen] = useState(pathname.startsWith("/dashboard/bikes"));
   const [inventoryOpen, setInventoryOpen] = useState(pathname.startsWith("/dashboard/inventory"));
+  const [invoiceOpen, setInvoiceOpen] = useState(pathname.startsWith("/dashboard/invoices"));
 
   useEffect(() => {
     const saved = window.localStorage.getItem(SIDEBAR_COLLAPSED_KEY);
@@ -74,11 +80,15 @@ export function Sidebar() {
     if (pathname.startsWith("/dashboard/inventory")) {
       setInventoryOpen(true);
     }
+    if (pathname.startsWith("/dashboard/invoices")) {
+      setInvoiceOpen(true);
+    }
   }, [pathname]);
 
   const isBikeActive = pathname.startsWith("/dashboard/bikes");
   const isInventoryActive = pathname.startsWith("/dashboard/inventory");
   const isUserActive = pathname.startsWith("/dashboard/users");
+  const isInvoiceActive = pathname.startsWith("/dashboard/invoices");
 
   const isSubItemActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
 
@@ -167,6 +177,40 @@ export function Sidebar() {
                   {userOpen && (
                     <div className="nav-sub-group">
                       {USER_SUB_ITEMS.map(({ key: itemKey, label: itemLabel, href: itemHref }) => {
+                        const itemActive = isSubItemActive(itemHref);
+                        return (
+                          <Link
+                            key={itemKey}
+                            href={itemHref}
+                            className={`nav-sub-item${itemActive ? " active" : ""}`}
+                          >
+                            <span className="nav-sub-dot" />
+                            <span>{itemLabel}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </>
+              ) : key === "invoices" && !collapsed ? (
+                <>
+                  <button
+                    type="button"
+                    className={`nav-item nav-group-toggle${isInvoiceActive ? " active" : ""}`}
+                    onClick={() => setInvoiceOpen((value) => !value)}
+                  >
+                    <span className="nav-icon"><Icon /></span>
+                    <span className="nav-label">{label}</span>
+                    <span
+                      className="nav-chevron"
+                      style={{ transform: invoiceOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
+                    >
+                      <IconChevronNav />
+                    </span>
+                  </button>
+                  {invoiceOpen && (
+                    <div className="nav-sub-group">
+                      {INVOICE_SUB_ITEMS.map(({ key: itemKey, label: itemLabel, href: itemHref }) => {
                         const itemActive = isSubItemActive(itemHref);
                         return (
                           <Link

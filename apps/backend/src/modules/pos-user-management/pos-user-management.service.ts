@@ -2,11 +2,13 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../database/prisma.client";
 import { AppError } from "../../common/utils/errors";
 import type {
+  CreateInvoiceTermDto,
   CreatePurchaseDto,
   CreatePosUserDto,
   PurchaseQueryDto,
   PosUserQueryDto,
   SettlePurchaseDto,
+  UpdateInvoiceTermDto,
   UpdatePosUserDto,
 } from "./dto/pos-user.dto";
 
@@ -81,6 +83,17 @@ function getPurchaseModelClient(db: any) {
   if (!model) {
     throw new AppError(
       "Purchase model is unavailable. Run 'npm run db:generate' in apps/backend and restart the backend server.",
+      500
+    );
+  }
+  return model;
+}
+
+function getInvoiceTermModelClient(db: any) {
+  const model = db?.posInvoiceTerm;
+  if (!model) {
+    throw new AppError(
+      "Invoice term model is unavailable. Run 'npm run db:generate' in apps/backend and restart the backend server.",
       500
     );
   }
@@ -360,6 +373,13 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
   ) ? "DOWNPAYMENT" : "DIRECT";
   const purchaseMode = dto.purchaseMode ?? "SINGLE";
   const invoiceGroupCode = dto.invoiceGroupCode?.trim() || undefined;
+  const hasRegistrationFee = dto.hasRegistrationFee === true;
+  const registrationFeeAmount = hasRegistrationFee
+    ? roundCurrency(dto.registrationFeeAmount ?? 0)
+    : 0;
+  if (hasRegistrationFee && registrationFeeAmount <= 0) {
+    throw AppError.validation({ registrationFeeAmount: ["Registration fee amount must be greater than 0"] });
+  }
   const paymentDetails = resolvePaymentDetails(dto.finalSellingPrice, paymentType, dto.downPaymentAmount);
 
   if (dto.purchaseType === "BIKE") {
@@ -407,6 +427,8 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
           downPaymentAmount: paymentDetails.downPaymentAmount,
           remainingAmount: paymentDetails.remainingAmount,
           settlementStatus: paymentDetails.settlementStatus,
+          hasRegistrationFee,
+          registrationFeeAmount,
         },
       });
 
@@ -460,6 +482,8 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
       downPaymentAmount: result.downPaymentAmount,
       remainingAmount: result.remainingAmount,
       settlementStatus: result.settlementStatus,
+      hasRegistrationFee: result.hasRegistrationFee,
+      registrationFeeAmount: result.registrationFeeAmount,
       purchasedAt: result.purchasedAt,
     };
   }
@@ -496,6 +520,8 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
         downPaymentAmount: paymentDetails.downPaymentAmount,
         remainingAmount: paymentDetails.remainingAmount,
         settlementStatus: paymentDetails.settlementStatus,
+        hasRegistrationFee,
+        registrationFeeAmount,
       },
     });
 
@@ -542,6 +568,8 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
     downPaymentAmount: result.downPaymentAmount,
     remainingAmount: result.remainingAmount,
     settlementStatus: result.settlementStatus,
+    hasRegistrationFee: result.hasRegistrationFee,
+    registrationFeeAmount: result.registrationFeeAmount,
     purchasedAt: result.purchasedAt,
   };
 }
@@ -634,6 +662,8 @@ export async function listPurchases(query: PurchaseQueryDto) {
       downPaymentAmount: row.downPaymentAmount,
       remainingAmount: row.remainingAmount,
       settlementStatus: row.settlementStatus,
+      hasRegistrationFee: row.hasRegistrationFee,
+      registrationFeeAmount: row.registrationFeeAmount,
       customer: row.customer,
       bike: row.bikeVehicle ? {
         id: row.bikeVehicle.id,
@@ -763,6 +793,8 @@ export async function listPurchasesByUser(customerId: number, query: PurchaseQue
       downPaymentAmount: row.downPaymentAmount,
       remainingAmount: row.remainingAmount,
       settlementStatus: row.settlementStatus,
+      hasRegistrationFee: row.hasRegistrationFee,
+      registrationFeeAmount: row.registrationFeeAmount,
       customer: row.customer,
       bike: row.bikeVehicle
         ? {
@@ -929,4 +961,64 @@ export async function settlePurchase(customerId: number, purchaseId: number, dto
     settlementStatus: totalRemainingAfter > 0 ? "TO_SETTLE" : "SETTLED",
     updatedEntries: refreshed,
   };
+}
+
+export async function listInvoiceTerms() {
+  const model = getInvoiceTermModelClient(prisma as any);
+  const terms = await model.findMany({
+    orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+  });
+
+  return {
+    terms,
+  };
+}
+
+export async function createInvoiceTerm(dto: CreateInvoiceTermDto) {
+  const model = getInvoiceTermModelClient(prisma as any);
+  const maxSortOrderRow = await model.findFirst({
+    orderBy: { sortOrder: "desc" },
+    select: { sortOrder: true },
+  });
+
+  return model.create({
+    data: {
+      text: dto.text,
+      sortOrder: dto.sortOrder ?? (maxSortOrderRow?.sortOrder ?? 0) + 1,
+      isActive: dto.isActive ?? true,
+    },
+  });
+}
+
+export async function updateInvoiceTerm(termId: number, dto: UpdateInvoiceTermDto) {
+  const model = getInvoiceTermModelClient(prisma as any);
+
+  try {
+    return await model.update({
+      where: { id: termId },
+      data: {
+        ...(dto.text != null ? { text: dto.text } : {}),
+        ...(dto.sortOrder != null ? { sortOrder: dto.sortOrder } : {}),
+        ...(dto.isActive != null ? { isActive: dto.isActive } : {}),
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      throw AppError.notFound("Invoice term not found");
+    }
+    throw error;
+  }
+}
+
+export async function deleteInvoiceTerm(termId: number) {
+  const model = getInvoiceTermModelClient(prisma as any);
+
+  try {
+    await model.delete({ where: { id: termId } });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      throw AppError.notFound("Invoice term not found");
+    }
+    throw error;
+  }
 }

@@ -8,6 +8,10 @@ router.use(authenticatePosAdmin);
 router.get("/meta/provinces", controller.getProvinceDistrictMeta);
 router.get("/dream-bikes", controller.getDreamBikeOptions);
 router.get("/purchases", controller.getPurchases);
+router.get("/invoice-terms", controller.getInvoiceTerms);
+router.post("/invoice-terms", controller.createInvoiceTerm);
+router.patch("/invoice-terms/:termId", controller.updateInvoiceTerm);
+router.delete("/invoice-terms/:termId", controller.deleteInvoiceTerm);
 
 router.get("/", controller.getPosUsers);
 router.get("/:id/purchases", controller.getPurchasesByUser);

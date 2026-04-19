@@ -55,6 +55,9 @@ type BulkLine = {
   unitPrice: number;
   quantity: number;
   subtotal: number;
+  hasRegistrationFee: boolean;
+  registrationFeeAmount: number;
+  registrationFeeSubtotal: number;
   bikeIds: number[];
 };
 
@@ -68,6 +71,15 @@ const EMPTY_USER_FORM: UserFormState = {
   district: "",
   address: "",
 };
+
+function parsePositiveInt(value: string, fallback = 1) {
+  const parsed = Number(value);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function roundCurrency(value: number) {
+  return Math.round(value * 100) / 100;
+}
 
 export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps) {
   const {
@@ -98,6 +110,8 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
   const [bulkBrandModelKey, setBulkBrandModelKey] = useState("");
   const [bulkCount, setBulkCount] = useState("1");
   const [bulkUnitPrice, setBulkUnitPrice] = useState(currentSellingPrice != null ? String(currentSellingPrice) : "");
+  const [bulkHasRegistrationFee, setBulkHasRegistrationFee] = useState(false);
+  const [bulkRegistrationFeeAmount, setBulkRegistrationFeeAmount] = useState("");
   const [bulkLines, setBulkLines] = useState<BulkLine[]>([]);
 
   const [quantity, setQuantity] = useState("1");
@@ -106,6 +120,8 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
   );
   const [paymentType, setPaymentType] = useState<"DIRECT" | "DOWNPAYMENT">("DIRECT");
   const [downPaymentAmount, setDownPaymentAmount] = useState("");
+  const [hasRegistrationFee, setHasRegistrationFee] = useState(false);
+  const [registrationFeeAmount, setRegistrationFeeAmount] = useState("");
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
@@ -149,6 +165,11 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
     [bulkLines]
   );
 
+  const bulkRegistrationFeeTotal = useMemo(
+    () => bulkLines.reduce((sum, line) => sum + line.registrationFeeSubtotal, 0),
+    [bulkLines]
+  );
+
   const computedInvoiceTotal = useMemo(() => {
     if (itemType === "BIKE") {
       if (purchaseMode === "BULK") return bulkTotal;
@@ -158,6 +179,19 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
     const parsed = Number(finalSellingPrice);
     return Number.isFinite(parsed) && parsed >= 0 ? parsed : 0;
   }, [bulkTotal, finalSellingPrice, itemType, purchaseMode]);
+
+  const computedRegistrationTotal = useMemo(() => {
+    if (itemType !== "BIKE") return 0;
+    if (purchaseMode === "BULK") return bulkRegistrationFeeTotal;
+    if (!hasRegistrationFee) return 0;
+    const parsed = Number(registrationFeeAmount || "0");
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 0;
+  }, [bulkRegistrationFeeTotal, hasRegistrationFee, itemType, purchaseMode, registrationFeeAmount]);
+
+  const computedInvoiceGrandTotal = useMemo(
+    () => computedInvoiceTotal + computedRegistrationTotal,
+    [computedInvoiceTotal, computedRegistrationTotal]
+  );
 
   const parsedDownPayment = Number(downPaymentAmount || "0");
   const computedDownPayment = paymentType === "DIRECT"
@@ -235,12 +269,17 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
     }
     const qty = Number(bulkCount);
     const unitPrice = Number(bulkUnitPrice);
+    const parsedRegistrationFee = Number(bulkRegistrationFeeAmount || "0");
     if (!Number.isInteger(qty) || qty <= 0) {
       setError("Please enter a valid bike count");
       return;
     }
     if (!Number.isFinite(unitPrice) || unitPrice < 0) {
       setError("Please enter a valid allocated price");
+      return;
+    }
+    if (bulkHasRegistrationFee && (!Number.isFinite(parsedRegistrationFee) || parsedRegistrationFee <= 0)) {
+      setError("Please enter a valid registration fee amount");
       return;
     }
 
@@ -255,6 +294,8 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
 
     const selectedBikes = matching.slice(0, qty);
     const subtotal = Math.round(unitPrice * qty * 100) / 100;
+    const registrationFeeAmount = bulkHasRegistrationFee ? Math.round(parsedRegistrationFee * 100) / 100 : 0;
+    const registrationFeeSubtotal = Math.round(registrationFeeAmount * qty * 100) / 100;
     const key = `${brandName}__${modelName}__${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
 
     setBulkLines((prev) => [
@@ -266,6 +307,9 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
         unitPrice,
         quantity: qty,
         subtotal,
+        hasRegistrationFee: bulkHasRegistrationFee,
+        registrationFeeAmount,
+        registrationFeeSubtotal,
         bikeIds: selectedBikes.map((bike) => bike.id),
       },
     ]);
@@ -375,6 +419,10 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
         if (!Number.isFinite(parsedFinalPrice) || parsedFinalPrice < 0) {
           throw new Error("Please enter a valid final selling price");
         }
+        const parsedRegistrationFee = Number(registrationFeeAmount || "0");
+        if (hasRegistrationFee && (!Number.isFinite(parsedRegistrationFee) || parsedRegistrationFee <= 0)) {
+          throw new Error("Please enter a valid registration fee amount");
+        }
       }
 
       if (itemType === "BIKE" && purchaseMode === "BULK") {
@@ -399,6 +447,8 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
               finalSellingPrice: allocated.unitPrice,
               paymentType,
               downPaymentAmount: paymentType === "DOWNPAYMENT" ? allocated.downPayment : undefined,
+              hasRegistrationFee: bulkLines.find((line) => line.bikeIds.includes(allocated.bikeId))?.hasRegistrationFee ?? false,
+              registrationFeeAmount: bulkLines.find((line) => line.bikeIds.includes(allocated.bikeId))?.registrationFeeAmount ?? 0,
             }),
           });
 
@@ -429,6 +479,8 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
           finalSellingPrice: parsedFinalPrice,
           paymentType,
           downPaymentAmount: paymentType === "DOWNPAYMENT" ? parsedDownPayment : undefined,
+          hasRegistrationFee: itemType === "BIKE" ? hasRegistrationFee : false,
+          registrationFeeAmount: itemType === "BIKE" && hasRegistrationFee ? Number(registrationFeeAmount || "0") : undefined,
         }),
       });
 
@@ -612,6 +664,17 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                     <label>Allocated Price (Per Bike)</label>
                     <input className="bm-input" type="number" min={0} step="0.01" value={bulkUnitPrice} onChange={(event) => setBulkUnitPrice(event.target.value)} />
                   </div>
+                  <div className="bm-field-group">
+                    <label>Registration Needed</label>
+                    <select className="bm-input" value={bulkHasRegistrationFee ? "yes" : "no"} onChange={(event) => setBulkHasRegistrationFee(event.target.value === "yes")}>
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                    </select>
+                  </div>
+                  <div className="bm-field-group">
+                    <label>Registration Fee (Per Bike)</label>
+                    <input className="bm-input" type="number" min={0} step="0.01" value={bulkRegistrationFeeAmount} onChange={(event) => setBulkRegistrationFeeAmount(event.target.value)} disabled={!bulkHasRegistrationFee} />
+                  </div>
                   <div className="bm-field-group" style={{ display: "flex", alignItems: "end" }}>
                     <button type="button" className="btn-accent" onClick={addBulkLine}>Apply</button>
                   </div>
@@ -628,6 +691,7 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                               <th>Model</th>
                               <th>Count</th>
                               <th>Allocated Price</th>
+                              <th>Reg Fee</th>
                               <th>Subtotal</th>
                               <th>Action</th>
                             </tr>
@@ -639,6 +703,7 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                                 <td>{line.modelName}</td>
                                 <td>{line.quantity}</td>
                                 <td>Rs. {line.unitPrice.toLocaleString()}</td>
+                                <td>{line.hasRegistrationFee ? `Rs. ${line.registrationFeeSubtotal.toLocaleString()}` : "-"}</td>
                                 <td>Rs. {line.subtotal.toLocaleString()}</td>
                                 <td><button type="button" className="btn-outline" onClick={() => removeBulkLine(line.key)}>Remove</button></td>
                               </tr>
@@ -660,7 +725,23 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                     min={1}
                     max={maxQuantity}
                     value={quantity}
-                    onChange={(event) => setQuantity(event.target.value)}
+                    onChange={(event) => {
+                      const nextQuantityRaw = event.target.value;
+                      const previousQuantity = parsePositiveInt(quantity, 1);
+                      const nextQuantity = parsePositiveInt(nextQuantityRaw, previousQuantity);
+
+                      const previousTotal = Number(finalSellingPrice);
+                      const fallbackUnitPrice = currentSellingPrice ?? 0;
+                      const inferredUnitPrice = Number.isFinite(previousTotal) && previousTotal > 0
+                        ? previousTotal / previousQuantity
+                        : fallbackUnitPrice;
+                      const nextTotal = inferredUnitPrice > 0
+                        ? roundCurrency(inferredUnitPrice * nextQuantity)
+                        : previousTotal;
+
+                      setQuantity(nextQuantityRaw);
+                      setFinalSellingPrice(Number.isFinite(nextTotal) ? String(nextTotal) : finalSellingPrice);
+                    }}
                     required
                   />
                 </div>
@@ -692,6 +773,34 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                 </div>
               )}
 
+              {itemType === "BIKE" && purchaseMode === "SINGLE" && (
+                <>
+                  <div className="bm-field-group">
+                    <label>Registration Needed</label>
+                    <select
+                      className="bm-input"
+                      value={hasRegistrationFee ? "yes" : "no"}
+                      onChange={(event) => setHasRegistrationFee(event.target.value === "yes")}
+                    >
+                      <option value="no">No</option>
+                      <option value="yes">Yes</option>
+                    </select>
+                  </div>
+                  <div className="bm-field-group">
+                    <label>Registration Fee</label>
+                    <input
+                      className="bm-input"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={registrationFeeAmount}
+                      onChange={(event) => setRegistrationFeeAmount(event.target.value)}
+                      disabled={!hasRegistrationFee}
+                    />
+                  </div>
+                </>
+              )}
+
               <div className="bm-field-group">
                 <label>Payment Type</label>
                 <select className="bm-input" value={paymentType} onChange={(event) => setPaymentType(event.target.value as "DIRECT" | "DOWNPAYMENT") }>
@@ -717,6 +826,18 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
               <div className="bm-field-group">
                 <label>Invoice Total</label>
                 <input className="bm-input" value={`Rs. ${computedInvoiceTotal.toLocaleString()}`} readOnly />
+              </div>
+
+              {itemType === "BIKE" && (
+                <div className="bm-field-group">
+                  <label>Registration Total</label>
+                  <input className="bm-input" value={`Rs. ${computedRegistrationTotal.toLocaleString()}`} readOnly />
+                </div>
+              )}
+
+              <div className="bm-field-group">
+                <label>Grand Total</label>
+                <input className="bm-input" value={`Rs. ${computedInvoiceGrandTotal.toLocaleString()}`} readOnly />
               </div>
 
               <div className="bm-field-group">

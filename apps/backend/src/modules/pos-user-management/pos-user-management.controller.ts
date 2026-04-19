@@ -1,15 +1,26 @@
 import type { NextFunction, Request, Response } from "express";
 import { sendCreated, sendSuccess } from "../../common/utils/response";
-import { validate } from "../../common/utils/errors";
+import { AppError, validate } from "../../common/utils/errors";
 import {
   createPurchaseSchema,
+  createInvoiceTermSchema,
   createPosUserSchema,
   purchaseQuerySchema,
   posUserQuerySchema,
   settlePurchaseSchema,
+  updateInvoiceTermSchema,
   updatePosUserSchema,
 } from "./dto/pos-user.dto";
 import * as service from "./pos-user-management.service";
+
+function parsePositiveIntParam(paramName: string, raw: string | string[] | undefined) {
+  const value = Array.isArray(raw) ? raw[0] : raw;
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed <= 0) {
+    throw AppError.validation({ [paramName]: [`${paramName} must be a positive integer`] });
+  }
+  return parsed;
+}
 
 export async function getProvinceDistrictMeta(_req: Request, res: Response, next: NextFunction) {
   try {
@@ -38,7 +49,8 @@ export async function getPosUsers(req: Request, res: Response, next: NextFunctio
 
 export async function getPosUser(req: Request, res: Response, next: NextFunction) {
   try {
-    return sendSuccess(res, await service.getPosUser(Number(req.params.id)));
+    const id = parsePositiveIntParam("id", req.params.id);
+    return sendSuccess(res, await service.getPosUser(id));
   } catch (error) {
     return next(error);
   }
@@ -56,7 +68,8 @@ export async function createPosUser(req: Request, res: Response, next: NextFunct
 export async function updatePosUser(req: Request, res: Response, next: NextFunction) {
   try {
     const dto = validate(updatePosUserSchema, req.body);
-    return sendSuccess(res, await service.updatePosUser(Number(req.params.id), dto));
+    const id = parsePositiveIntParam("id", req.params.id);
+    return sendSuccess(res, await service.updatePosUser(id, dto));
   } catch (error) {
     return next(error);
   }
@@ -64,7 +77,8 @@ export async function updatePosUser(req: Request, res: Response, next: NextFunct
 
 export async function deletePosUser(req: Request, res: Response, next: NextFunction) {
   try {
-    await service.deletePosUser(Number(req.params.id));
+    const id = parsePositiveIntParam("id", req.params.id);
+    await service.deletePosUser(id);
     return sendSuccess(res, { message: "User deleted" });
   } catch (error) {
     return next(error);
@@ -74,7 +88,8 @@ export async function deletePosUser(req: Request, res: Response, next: NextFunct
 export async function createPurchase(req: Request, res: Response, next: NextFunction) {
   try {
     const dto = validate(createPurchaseSchema, req.body);
-    const data = await service.createPurchase(Number(req.params.id), dto);
+    const id = parsePositiveIntParam("id", req.params.id);
+    const data = await service.createPurchase(id, dto);
     return sendCreated(res, data);
   } catch (error) {
     return next(error);
@@ -93,7 +108,8 @@ export async function getPurchases(req: Request, res: Response, next: NextFuncti
 export async function getPurchasesByUser(req: Request, res: Response, next: NextFunction) {
   try {
     const query = validate(purchaseQuerySchema, req.query);
-    return sendSuccess(res, await service.listPurchasesByUser(Number(req.params.id), query));
+    const id = parsePositiveIntParam("id", req.params.id);
+    return sendSuccess(res, await service.listPurchasesByUser(id, query));
   } catch (error) {
     return next(error);
   }
@@ -102,10 +118,49 @@ export async function getPurchasesByUser(req: Request, res: Response, next: Next
 export async function settlePurchase(req: Request, res: Response, next: NextFunction) {
   try {
     const dto = validate(settlePurchaseSchema, req.body);
+    const id = parsePositiveIntParam("id", req.params.id);
+    const purchaseId = parsePositiveIntParam("purchaseId", req.params.purchaseId);
     return sendSuccess(
       res,
-      await service.settlePurchase(Number(req.params.id), Number(req.params.purchaseId), dto)
+      await service.settlePurchase(id, purchaseId, dto)
     );
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function getInvoiceTerms(_req: Request, res: Response, next: NextFunction) {
+  try {
+    return sendSuccess(res, await service.listInvoiceTerms());
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function createInvoiceTerm(req: Request, res: Response, next: NextFunction) {
+  try {
+    const dto = validate(createInvoiceTermSchema, req.body);
+    return sendCreated(res, await service.createInvoiceTerm(dto));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function updateInvoiceTerm(req: Request, res: Response, next: NextFunction) {
+  try {
+    const dto = validate(updateInvoiceTermSchema, req.body);
+    const termId = parsePositiveIntParam("termId", req.params.termId);
+    return sendSuccess(res, await service.updateInvoiceTerm(termId, dto));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function deleteInvoiceTerm(req: Request, res: Response, next: NextFunction) {
+  try {
+    const termId = parsePositiveIntParam("termId", req.params.termId);
+    await service.deleteInvoiceTerm(termId);
+    return sendSuccess(res, { message: "Invoice term deleted" });
   } catch (error) {
     return next(error);
   }

@@ -310,6 +310,8 @@ model PosCustomerPurchase {
   downPaymentAmount   Float       @default(0)
   remainingAmount     Float       @default(0)
   settlementStatus    PosSettlementStatus @default(SETTLED)
+  hasRegistrationFee  Boolean     @default(false)
+  registrationFeeAmount Float     @default(0)
   quantity            Int         @default(1)
   purchasedAt         DateTime    @default(now())
   customer            PosCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -321,4 +323,16 @@ model PosCustomerPurchase {
   @@index([bikeVehicleId])
   @@index([inventoryProductId])
   @@map("pos_customer_purchases")
+}
+
+model PosInvoiceTerm {
+  id        Int      @id @default(autoincrement())
+  text      String
+  sortOrder Int      @default(1)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@map("pos_invoice_terms")
 }
