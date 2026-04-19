@@ -13,6 +13,26 @@ enum Role {
   CUSTOMER
 }
 
+enum PosPurchaseItemType {
+  BIKE
+  INVENTORY
+}
+
+enum PosPurchaseMode {
+  SINGLE
+  BULK
+}
+
+enum PosPaymentType {
+  DIRECT
+  DOWNPAYMENT
+}
+
+enum PosSettlementStatus {
+  SETTLED
+  TO_SETTLE
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   name         String
@@ -138,6 +158,8 @@ model BikeVehicle {
   updatedAt        DateTime  @updatedAt
   expenses         BikeVehicleExpense[]
   images           BikeVehicleImage[]
+  dreamUsers       PosCustomerDreamBike[]
+  customerPurchases PosCustomerPurchase[]
 
   @@map("bike_vehicles")
 }
@@ -208,6 +230,7 @@ model InventoryProduct {
   updatedAt          DateTime                @updatedAt
   expenses           InventoryProductExpense[]
   images             InventoryProductImage[]
+  customerPurchases  PosCustomerPurchase[]
 
   @@index([brandId])
   @@index([categoryId])
@@ -236,4 +259,80 @@ model InventoryProductImage {
   createdAt DateTime         @default(now())
 
   @@map("inventory_product_images")
+}
+
+model PosCustomer {
+  id           Int                    @id @default(autoincrement())
+  firstName    String
+  lastName     String
+  nic          String                 @unique
+  mobileNumber String                 @unique
+  email        String?                @unique
+  province     String
+  district     String
+  address      String
+  createdAt    DateTime               @default(now())
+  updatedAt    DateTime               @updatedAt
+  dreamBikes   PosCustomerDreamBike[]
+  purchases    PosCustomerPurchase[]
+
+  @@index([firstName])
+  @@index([lastName])
+  @@index([province])
+  @@index([district])
+  @@map("pos_customers")
+}
+
+model PosCustomerDreamBike {
+  id           Int         @id @default(autoincrement())
+  customerId   Int
+  bikeVehicleId Int
+  customer     PosCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  bikeVehicle  BikeVehicle @relation(fields: [bikeVehicleId], references: [id], onDelete: Cascade)
+  createdAt    DateTime    @default(now())
+
+  @@unique([customerId, bikeVehicleId])
+  @@index([bikeVehicleId])
+  @@map("pos_customer_dream_bikes")
+}
+
+model PosCustomerPurchase {
+  id                  Int         @id @default(autoincrement())
+  customerId          Int
+  itemType            PosPurchaseItemType @default(BIKE)
+  purchaseMode        PosPurchaseMode @default(SINGLE)
+  invoiceGroupCode    String?
+  bikeVehicleId       Int?
+  inventoryProductId  Int?
+  currentSellingPrice Float?
+  finalSellingPrice   Float
+  paymentType         PosPaymentType @default(DIRECT)
+  downPaymentAmount   Float       @default(0)
+  remainingAmount     Float       @default(0)
+  settlementStatus    PosSettlementStatus @default(SETTLED)
+  hasRegistrationFee  Boolean     @default(false)
+  registrationFeeAmount Float     @default(0)
+  quantity            Int         @default(1)
+  purchasedAt         DateTime    @default(now())
+  customer            PosCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  bikeVehicle         BikeVehicle? @relation(fields: [bikeVehicleId], references: [id], onDelete: SetNull)
+  inventoryProduct    InventoryProduct? @relation(fields: [inventoryProductId], references: [id], onDelete: SetNull)
+
+  @@index([customerId])
+  @@index([invoiceGroupCode])
+  @@index([bikeVehicleId])
+  @@index([inventoryProductId])
+  @@map("pos_customer_purchases")
+}
+
+model PosInvoiceTerm {
+  id        Int      @id @default(autoincrement())
+  text      String
+  sortOrder Int      @default(1)
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([sortOrder])
+  @@map("pos_invoice_terms")
 }

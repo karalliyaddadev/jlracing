@@ -33,6 +33,24 @@ type Vehicle = {
   images?: VehicleImage[];
 };
 
+type BikePurchase = {
+  id: number;
+  purchasedAt: string;
+  finalSellingPrice: number;
+  customer: {
+    firstName: string;
+    lastName: string;
+    nic: string;
+    mobileNumber: string;
+    province: string;
+    district: string;
+    address: string;
+  };
+  bike: {
+    id: number;
+  } | null;
+};
+
 function ImageGallery({ images }: { images: VehicleImage[] }) {
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -103,7 +121,7 @@ function ImageGallery({ images }: { images: VehicleImage[] }) {
   );
 }
 
-function ViewVehicleModal({ vehicle: initialVehicle, token, relatedVehicles = [], onClose }: { vehicle: Vehicle; token: string; relatedVehicles?: Vehicle[]; onClose: () => void }) {
+function ViewVehicleModal({ vehicle: initialVehicle, token, relatedVehicles = [], purchase, onClose }: { vehicle: Vehicle; token: string; relatedVehicles?: Vehicle[]; purchase?: BikePurchase | null; onClose: () => void }) {
   const [vehicle, setVehicle] = useState<Vehicle>(initialVehicle);
   const [images, setImages] = useState<VehicleImage[]>(initialVehicle.images ?? []);
   const [showExpenses, setShowExpenses] = useState(false);
@@ -270,6 +288,19 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, relatedVehicles = []
               )}
             </div>
 
+            {purchase && (
+              <div className="bm-view-section">
+                <h4 className="bm-view-section-title">Customer Details</h4>
+                <div className="bm-view-detail-grid">
+                  <div className="bm-view-detail"><span className="bm-view-detail-label">Customer</span><span className="bm-view-detail-value">{purchase.customer.firstName} {purchase.customer.lastName}</span></div>
+                  <div className="bm-view-detail"><span className="bm-view-detail-label">NIC</span><span className="bm-view-detail-value">{purchase.customer.nic}</span></div>
+                  <div className="bm-view-detail"><span className="bm-view-detail-label">Mobile</span><span className="bm-view-detail-value">{purchase.customer.mobileNumber}</span></div>
+                  <div className="bm-view-detail"><span className="bm-view-detail-label">Purchased At</span><span className="bm-view-detail-value">{new Date(purchase.purchasedAt).toLocaleString()}</span></div>
+                  <div className="bm-view-detail" style={{ gridColumn: "1 / -1" }}><span className="bm-view-detail-label">Address</span><span className="bm-view-detail-value">{purchase.customer.address}, {purchase.customer.district}, {purchase.customer.province}</span></div>
+                </div>
+              </div>
+            )}
+
             {(displayExpenses.length > 0 || displayTotalExpenses > 0) && (
               <div className="bm-view-section">
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
@@ -316,7 +347,9 @@ function ViewVehicleModal({ vehicle: initialVehicle, token, relatedVehicles = []
 export default function SoldBikesPage() {
   const { token } = useAdmin();
   const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [purchasesByBikeId, setPurchasesByBikeId] = useState<Record<number, BikePurchase>>({});
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [restoring, setRestoring] = useState<number | null>(null);
   const [delConfirm, setDelConfirm] = useState<number | null>(null);
   const [viewVehicle, setViewVehicle] = useState<Vehicle | null>(null);
@@ -326,10 +359,32 @@ export default function SoldBikesPage() {
 
   const load = useCallback(async () => {
     setLoading(true);
+    setError(null);
     try {
-      const response = await fetch(`${base}/vehicles?status=sold&limit=5000`, { headers: auth });
-      const payload = await response.json() as { data?: { vehicles?: Vehicle[] } };
+      const response = await fetch(`${base}/vehicles?status=sold&limit=5000`, { headers: auth, cache: "no-store" });
+      const payload = await response.json() as { data?: { vehicles?: Vehicle[] }; message?: string };
+      if (!response.ok) throw new Error(payload.message ?? "Failed to load sold bikes");
       setVehicles(payload.data?.vehicles ?? []);
+
+      const purchaseRes = await fetch(`${API_URL}/api/pos/user-management/purchases?page=1&limit=500`, { headers: auth, cache: "no-store" });
+      const purchaseJson = await purchaseRes.json() as { data?: { purchases?: BikePurchase[] }; message?: string };
+      if (!purchaseRes.ok) throw new Error(purchaseJson.message ?? "Failed to load purchase records");
+      const bikePurchases = (purchaseJson.data?.purchases ?? []).filter((purchase) => !!purchase.bike?.id);
+      setPurchasesByBikeId(
+        bikePurchases.reduce<Record<number, BikePurchase>>((acc, purchase) => {
+          if (purchase.bike?.id) {
+            const current = acc[purchase.bike.id];
+            if (!current || new Date(purchase.purchasedAt).getTime() > new Date(current.purchasedAt).getTime()) {
+              acc[purchase.bike.id] = purchase;
+            }
+          }
+          return acc;
+        }, {})
+      );
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to load sold bikes");
+      setVehicles([]);
+      setPurchasesByBikeId({});
     } finally {
       setLoading(false);
     }
@@ -372,6 +427,8 @@ export default function SoldBikesPage() {
         </div>
       </div>
 
+      {error && <div className="bm-alert bm-alert-error">{error}</div>}
+
       <div className="bm-stats-grid">
         <div className="bm-stat-card bm-stat-card-danger">
           <div className="bm-stat-head"><span className="bm-stat-icon"><IconBike /></span><span className="bm-stat-label">Total Sold</span></div>
@@ -404,16 +461,18 @@ export default function SoldBikesPage() {
                 <th>ID</th>
                 <th>Bike</th>
                 <th>Supplier</th>
+                <th>Customer</th>
                 <th>Selling Price</th>
                 <th>Sold At</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan={7} className="bm-table-empty">Loading…</td></tr>}
-              {!loading && vehicles.length === 0 && <tr><td colSpan={7} className="bm-table-empty">No sold bikes.</td></tr>}
+              {loading && <tr><td colSpan={8} className="bm-table-empty">Loading…</td></tr>}
+              {!loading && vehicles.length === 0 && <tr><td colSpan={8} className="bm-table-empty">No sold bikes.</td></tr>}
               {!loading && vehicles.map((vehicle) => {
                 const primaryImg = (vehicle.images ?? []).find((img) => img.isPrimary) ?? (vehicle.images ?? [])[0];
+                const purchase = purchasesByBikeId[vehicle.id];
                 return (
                   <>
                     <tr key={vehicle.id} className="bm-vehicle-row">
@@ -425,6 +484,11 @@ export default function SoldBikesPage() {
                         <span className="bm-vehicle-meta">{vehicle.engineCapacityCc ? `${vehicle.engineCapacityCc} cc` : "No engine capacity"}</span>
                       </td>
                       <td>{vehicle.supplier ? `${vehicle.supplier.name} (${vehicle.supplier.code})` : <em className="bm-missing">—</em>}</td>
+                      <td>
+                        {purchase
+                          ? <span className="bm-vehicle-meta">{purchase.customer.firstName} {purchase.customer.lastName}<br />{purchase.customer.mobileNumber}</span>
+                          : <em className="bm-missing">No customer</em>}
+                      </td>
                       <td>{vehicle.sellingPrice != null ? `Rs. ${vehicle.sellingPrice.toLocaleString()}` : <em className="bm-missing">—</em>}</td>
                       <td>{vehicle.soldAt ? new Date(vehicle.soldAt).toLocaleDateString() : "—"}</td>
                       <td>
@@ -437,7 +501,7 @@ export default function SoldBikesPage() {
                     </tr>
                     {delConfirm === vehicle.id && (
                       <tr key={`del-${vehicle.id}`}>
-                        <td colSpan={7}>
+                        <td colSpan={8}>
                           <div className="bm-inline-confirm">
                             <span>Delete <strong>{vehicle.displayId}</strong> permanently?</span>
                             <button className="bm-btn-danger" onClick={() => deleteSold(vehicle.id)}>Delete</button>
@@ -454,7 +518,7 @@ export default function SoldBikesPage() {
         </div>
       </div>
 
-      {viewVehicle && <ViewVehicleModal vehicle={viewVehicle} relatedVehicles={vehicles} token={token} onClose={() => setViewVehicle(null)} />}
+      {viewVehicle && <ViewVehicleModal vehicle={viewVehicle} relatedVehicles={vehicles} token={token} purchase={purchasesByBikeId[viewVehicle.id]} onClose={() => setViewVehicle(null)} />}
     </div>
   );
 }
