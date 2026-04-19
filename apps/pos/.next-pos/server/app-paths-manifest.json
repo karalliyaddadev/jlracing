@@ -1,7 +1,18 @@
 {
-  "/dashboard/users/history/page": "app/dashboard/users/history/page.js",
-  "/dashboard/invoices/page": "app/dashboard/invoices/page.js",
+  "/_not-found/page": "app/_not-found/page.js",
+  "/page": "app/page.js",
+  "/signin/page": "app/signin/page.js",
+  "/dashboard/access/page": "app/dashboard/access/page.js",
+  "/dashboard/bikes/add/page": "app/dashboard/bikes/add/page.js",
+  "/dashboard/bikes/manage/page": "app/dashboard/bikes/manage/page.js",
   "/dashboard/bikes/sold/page": "app/dashboard/bikes/sold/page.js",
+  "/dashboard/bikes/page": "app/dashboard/bikes/page.js",
+  "/dashboard/inventory/manage/page": "app/dashboard/inventory/manage/page.js",
+  "/dashboard/inventory/page": "app/dashboard/inventory/page.js",
+  "/dashboard/inventory/sold/page": "app/dashboard/inventory/sold/page.js",
+  "/dashboard/invoices/page": "app/dashboard/invoices/page.js",
   "/dashboard/page": "app/dashboard/page.js",
-  "/dashboard/users/page": "app/dashboard/users/page.js"
+  "/dashboard/users/history/page": "app/dashboard/users/history/page.js",
+  "/dashboard/users/page": "app/dashboard/users/page.js",
+  "/dashboard/suppliers/page": "app/dashboard/suppliers/page.js"
 }

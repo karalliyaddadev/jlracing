@@ -1,4 +1,4 @@
-// File: D:\jlraicng\jlracing\apps\pos\app\page.tsx
+// File: /root/projects/jlracing/jlracing/apps/pos/app/page.tsx
 import * as entry from '../../../app/page.js'
 import type { ResolvingMetadata, ResolvingViewport } from 'next/dist/lib/metadata/types/metadata-interface.js'
 
