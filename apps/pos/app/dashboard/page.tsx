@@ -56,6 +56,13 @@ function labelFromKey(key: string, mode: RevenueViewMode) {
   return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
+function formatCurrencyCompact(value: number) {
+  return new Intl.NumberFormat(undefined, {
+    notation: "compact",
+    maximumFractionDigits: 1,
+  }).format(Math.round(value));
+}
+
 export default function DashboardPage() {
   const { admin, token } = useAdmin();
   const router = useRouter();
@@ -241,7 +248,7 @@ export default function DashboardPage() {
         {[
           {
             label: "Daily Revenue",
-            value: loading ? "Loading..." : `LKR ${Math.round(totals.todayRevenue).toLocaleString()}`,
+            value: loading ? "Loading..." : `LKR ${formatCurrencyCompact(totals.todayRevenue)}`,
             trend: `${totals.todaySoldUnits} units sold today`,
             up: true,
             icon: <IconRevenue />,
@@ -249,7 +256,7 @@ export default function DashboardPage() {
           },
           {
             label: "Whole Revenue",
-            value: loading ? "Loading..." : `LKR ${Math.round(totals.totalRevenue).toLocaleString()}`,
+            value: loading ? "Loading..." : `LKR ${formatCurrencyCompact(totals.totalRevenue)}`,
             trend: `${purchases.length} total invoices`,
             up: true,
             icon: <IconTrend />,
@@ -307,7 +314,7 @@ export default function DashboardPage() {
                 <option value="MONTHLY">Monthly</option>
                 <option value="YEARLY">Yearly</option>
               </select>
-              <span className="chart-badge chart-badge-gold">LKR {Math.round(selectedRangeRevenue).toLocaleString()}</span>
+              <span className="chart-badge chart-badge-gold">LKR {formatCurrencyCompact(selectedRangeRevenue)}</span>
             </div>
           </div>
           <div className="chart-legend-row">
