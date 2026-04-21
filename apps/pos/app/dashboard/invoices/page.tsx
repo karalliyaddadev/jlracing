@@ -15,6 +15,10 @@ type Purchase = {
   currentSellingPrice?: number | null;
   finalSellingPrice: number;
   paymentType?: "DIRECT" | "DOWNPAYMENT";
+  purchaseChannel?: "PERSONAL" | "LEASING";
+  leasingCompany?: { id: number; name: string } | null;
+  leasingDownPaymentAmount?: number;
+  leasingFinancedAmount?: number;
   downPaymentAmount?: number;
   remainingAmount?: number;
   settlementStatus?: "SETTLED" | "TO_SETTLE";
@@ -71,7 +75,7 @@ type InvoiceRow = {
   registrationFeeTotal: number;
   remainingAmount: number;
   settlementStatus: "SETTLED" | "TO_SETTLE";
-  paymentTypeText: "Direct" | "Downpayment";
+  paymentTypeText: string;
   purchaseModeText: "Single" | "Bulk";
   itemTitle: string;
   itemSubtitle: string;
@@ -152,6 +156,7 @@ export default function InvoicesPage() {
   }, []);
 
   const isDownPaymentEntry = useCallback((entry: Purchase) => {
+    if (entry.purchaseChannel === "LEASING") return false;
     if (entry.paymentType === "DOWNPAYMENT") return true;
     const downPayment = entry.downPaymentAmount ?? 0;
     const remaining = entry.remainingAmount ?? 0;
@@ -159,6 +164,13 @@ export default function InvoicesPage() {
     if (downPayment > 0 && downPayment < entry.finalSellingPrice) return true;
     return false;
   }, []);
+
+  const getPaymentLabel = useCallback((entry: Purchase) => {
+    if (entry.purchaseChannel === "LEASING") {
+      return entry.leasingCompany?.name ? `Leasing (${entry.leasingCompany.name})` : "Leasing";
+    }
+    return isDownPaymentEntry(entry) ? "Downpayment" : "Direct";
+  }, [isDownPaymentEntry]);
 
   const invoiceRows = useMemo(() => {
     const grouped = new Map<string, Purchase[]>();
@@ -210,7 +222,7 @@ export default function InvoicesPage() {
       const settlementStatus: "SETTLED" | "TO_SETTLE" = remainingAmount > 0 || sorted.some((entry) => entry.settlementStatus === "TO_SETTLE")
         ? "TO_SETTLE"
         : "SETTLED";
-      const paymentTypeText: "Direct" | "Downpayment" = sorted.some((entry) => isDownPaymentEntry(entry)) ? "Downpayment" : "Direct";
+      const paymentTypeText = getPaymentLabel(representative);
 
       const itemTitle = isBulk ? `Bulk Purchase (${sorted.length} bike entries)` : getPurchaseItemMeta(representative).title;
       const itemSubtitle = isBulk
@@ -245,7 +257,7 @@ export default function InvoicesPage() {
 
     rows.sort((a, b) => +new Date(b.purchasedAt) - +new Date(a.purchasedAt));
     return rows;
-  }, [getPurchaseItemMeta, invoices, isDownPaymentEntry]);
+  }, [getPaymentLabel, getPurchaseItemMeta, invoices, isDownPaymentEntry]);
 
   const totalInvoiceAmount = useMemo(
     () => invoiceRows.reduce((sum, invoice) => sum + invoice.finalSellingPrice, 0),
@@ -405,6 +417,27 @@ export default function InvoicesPage() {
                           <td className="invoice-col-amount">Rs. {((entry.registrationFeeAmount ?? 0) * entry.quantity).toLocaleString()}</td>
                         </tr>
                       ))}
+                    {selectedInvoice.entries.some((entry) => entry.purchaseChannel === "LEASING") && (
+                      <>
+                        <tr className="invoice-summary-row">
+                          <td className="invoice-desc-cell">
+                            Leasing Partner
+                            {selectedInvoice.entries.find((entry) => entry.purchaseChannel === "LEASING")?.leasingCompany?.name
+                              ? ` - ${selectedInvoice.entries.find((entry) => entry.purchaseChannel === "LEASING")?.leasingCompany?.name}`
+                              : ""}
+                          </td>
+                          <td className="invoice-col-qty" />
+                          <td className="invoice-col-amount" />
+                          <td className="invoice-col-amount" />
+                        </tr>
+                        <tr className="invoice-summary-row">
+                          <td className="invoice-desc-cell">Leasing Amount</td>
+                          <td className="invoice-col-qty" />
+                          <td className="invoice-col-amount">Rs. {selectedInvoice.entries.reduce((sum, entry) => sum + (entry.leasingFinancedAmount ?? 0), 0).toLocaleString()}</td>
+                          <td className="invoice-col-amount" />
+                        </tr>
+                      </>
+                    )}
                     <tr className="invoice-summary-row">
                       <td className="invoice-desc-cell">Advance</td>
                       <td className="invoice-col-qty" />

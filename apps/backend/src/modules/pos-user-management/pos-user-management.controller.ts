@@ -2,12 +2,14 @@ import type { NextFunction, Request, Response } from "express";
 import { sendCreated, sendSuccess } from "../../common/utils/response";
 import { AppError, validate } from "../../common/utils/errors";
 import {
+  createLeasingCompanySchema,
   createPurchaseSchema,
   createInvoiceTermSchema,
   createPosUserSchema,
   purchaseQuerySchema,
   posUserQuerySchema,
   settlePurchaseSchema,
+  updateLeasingCompanySchema,
   updateInvoiceTermSchema,
   updatePosUserSchema,
 } from "./dto/pos-user.dto";
@@ -161,6 +163,53 @@ export async function deleteInvoiceTerm(req: Request, res: Response, next: NextF
     const termId = parsePositiveIntParam("termId", req.params.termId);
     await service.deleteInvoiceTerm(termId);
     return sendSuccess(res, { message: "Invoice term deleted" });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function getLeasingCompanies(_req: Request, res: Response, next: NextFunction) {
+  try {
+    return sendSuccess(res, await service.listLeasingCompanies());
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function createLeasingCompany(req: Request, res: Response, next: NextFunction) {
+  try {
+    const dto = validate(createLeasingCompanySchema, req.body);
+    return sendCreated(res, await service.createLeasingCompany(dto));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function updateLeasingCompany(req: Request, res: Response, next: NextFunction) {
+  try {
+    const dto = validate(updateLeasingCompanySchema, req.body);
+    const companyId = parsePositiveIntParam("companyId", req.params.companyId);
+    return sendSuccess(res, await service.updateLeasingCompany(companyId, dto));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function deleteLeasingCompany(req: Request, res: Response, next: NextFunction) {
+  try {
+    const companyId = parsePositiveIntParam("companyId", req.params.companyId);
+    await service.deleteLeasingCompany(companyId);
+    return sendSuccess(res, { message: "Leasing company deleted" });
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function getLeasingCompanyApplications(req: Request, res: Response, next: NextFunction) {
+  try {
+    const query = validate(purchaseQuerySchema, req.query);
+    const companyId = parsePositiveIntParam("companyId", req.params.companyId);
+    return sendSuccess(res, await service.listLeasingApplicationsByCompany(companyId, query));
   } catch (error) {
     return next(error);
   }

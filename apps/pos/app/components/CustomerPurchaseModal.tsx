@@ -61,6 +61,11 @@ type BulkLine = {
   bikeIds: number[];
 };
 
+type LeasingCompanyOption = {
+  id: number;
+  name: string;
+};
+
 const EMPTY_USER_FORM: UserFormState = {
   firstName: "",
   lastName: "",
@@ -100,6 +105,7 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
   const [users, setUsers] = useState<PosUser[]>([]);
   const [provinces, setProvinces] = useState<ProvinceMeta[]>([]);
   const [bikeOptions, setBikeOptions] = useState<BikeOption[]>([]);
+  const [leasingCompanies, setLeasingCompanies] = useState<LeasingCompanyOption[]>([]);
 
   const [selectedUserId, setSelectedUserId] = useState<number | "">("");
   const [showAddUser, setShowAddUser] = useState(false);
@@ -120,6 +126,9 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
   );
   const [paymentType, setPaymentType] = useState<"DIRECT" | "DOWNPAYMENT">("DIRECT");
   const [downPaymentAmount, setDownPaymentAmount] = useState("");
+  const [purchaseChannel, setPurchaseChannel] = useState<"PERSONAL" | "LEASING">("PERSONAL");
+  const [leasingCompanyId, setLeasingCompanyId] = useState<number | "">("");
+  const [leasingDownPaymentAmount, setLeasingDownPaymentAmount] = useState("");
   const [hasRegistrationFee, setHasRegistrationFee] = useState(false);
   const [registrationFeeAmount, setRegistrationFeeAmount] = useState("");
 
@@ -194,9 +203,12 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
   );
 
   const parsedDownPayment = Number(downPaymentAmount || "0");
-  const computedDownPayment = paymentType === "DIRECT"
-    ? computedInvoiceTotal
-    : (Number.isFinite(parsedDownPayment) && parsedDownPayment >= 0 ? parsedDownPayment : 0);
+  const parsedLeasingDownPayment = Number(leasingDownPaymentAmount || "0");
+  const computedDownPayment = purchaseChannel === "LEASING"
+    ? (Number.isFinite(parsedLeasingDownPayment) && parsedLeasingDownPayment >= 0 ? parsedLeasingDownPayment : 0)
+    : (paymentType === "DIRECT"
+      ? computedInvoiceTotal
+      : (Number.isFinite(parsedDownPayment) && parsedDownPayment >= 0 ? parsedDownPayment : 0));
   const computedRemaining = Math.max(0, Math.round((computedInvoiceTotal - computedDownPayment) * 100) / 100);
 
   useEffect(() => {
@@ -207,6 +219,7 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
         const requests: Array<Promise<Response>> = [
           fetch(`${base}?page=1&limit=500`, { headers: auth, cache: "no-store" }),
           fetch(`${base}/meta/provinces`, { headers: auth, cache: "no-store" }),
+          fetch(`${base}/leasing-companies`, { headers: auth, cache: "no-store" }),
         ];
         if (itemType === "BIKE") {
           requests.push(fetch(`${API_URL}/api/pos/bike-management/vehicles?page=1&limit=5000&status=available`, { headers: auth, cache: "no-store" }));
@@ -215,20 +228,24 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
         const responses = await Promise.all(requests);
         const usersRes = responses[0];
         const provincesRes = responses[1];
-        const bikesRes = itemType === "BIKE" ? responses[2] : null;
+        const leasingCompaniesRes = responses[2];
+        const bikesRes = itemType === "BIKE" ? responses[3] : null;
 
         const usersJson = (await usersRes.json()) as { data?: { users?: PosUser[] }; message?: string };
         const provincesJson = (await provincesRes.json()) as { data?: { provinces?: ProvinceMeta[] }; message?: string };
+        const leasingCompaniesJson = (await leasingCompaniesRes.json()) as { data?: { companies?: LeasingCompanyOption[] }; message?: string };
         const bikesJson = bikesRes
           ? (await bikesRes.json()) as { data?: { vehicles?: BikeOption[] }; message?: string }
           : null;
 
         if (!usersRes.ok) throw new Error(usersJson.message ?? "Failed to load users");
         if (!provincesRes.ok) throw new Error(provincesJson.message ?? "Failed to load provinces");
+        if (!leasingCompaniesRes.ok) throw new Error(leasingCompaniesJson.message ?? "Failed to load leasing companies");
         if (bikesRes && !bikesRes.ok) throw new Error(bikesJson?.message ?? "Failed to load bikes");
 
         setUsers(usersJson.data?.users ?? []);
         setProvinces(provincesJson.data?.provinces ?? []);
+        setLeasingCompanies(leasingCompaniesJson.data?.companies ?? []);
         if (bikesJson) {
           const loadedBikes = bikesJson.data?.vehicles ?? [];
           setBikeOptions(loadedBikes);
@@ -257,10 +274,10 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
   }, [itemType, selectedSingleBike]);
 
   useEffect(() => {
-    if (paymentType === "DIRECT") {
+    if (purchaseChannel !== "LEASING" && paymentType === "DIRECT") {
       setDownPaymentAmount(String(computedInvoiceTotal));
     }
-  }, [computedInvoiceTotal, paymentType]);
+  }, [computedInvoiceTotal, paymentType, purchaseChannel]);
 
   const addBulkLine = () => {
     if (!bulkBrandModelKey) {
@@ -403,7 +420,20 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
         }
       }
 
-      if (paymentType === "DOWNPAYMENT") {
+      if (itemType === "BIKE" && purchaseChannel === "LEASING") {
+        const parsedLeasingDownPayment = Number(leasingDownPaymentAmount || "0");
+        if (leasingCompanyId === "") {
+          throw new Error("Please select a leasing company");
+        }
+        if (!Number.isFinite(parsedLeasingDownPayment) || parsedLeasingDownPayment < 0) {
+          throw new Error("Please enter a valid leasing downpayment amount");
+        }
+        if (parsedLeasingDownPayment > computedInvoiceTotal) {
+          throw new Error("Leasing downpayment amount cannot exceed total invoice amount");
+        }
+      }
+
+      if (purchaseChannel !== "LEASING" && paymentType === "DOWNPAYMENT") {
         if (!Number.isFinite(parsedDownPayment) || parsedDownPayment <= 0) {
           throw new Error("Please enter a valid downpayment amount");
         }
@@ -432,7 +462,10 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
 
         const invoiceGroupCode = `BULK-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
         const lineItems = bulkLines.flatMap((line) => line.bikeIds.map((bikeId) => ({ bikeId, unitPrice: line.unitPrice })));
-        const effectiveDownPayment = paymentType === "DIRECT" ? bulkTotal : parsedDownPayment;
+        const effectiveLeasingDownPayment = Number(leasingDownPaymentAmount || "0");
+        const effectiveDownPayment = purchaseChannel === "LEASING"
+          ? effectiveLeasingDownPayment
+          : (paymentType === "DIRECT" ? bulkTotal : parsedDownPayment);
         const allocation = allocateDownPayments(lineItems, effectiveDownPayment);
 
         for (const allocated of allocation) {
@@ -445,8 +478,13 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
               invoiceGroupCode,
               bikeVehicleId: allocated.bikeId,
               finalSellingPrice: allocated.unitPrice,
-              paymentType,
-              downPaymentAmount: paymentType === "DOWNPAYMENT" ? allocated.downPayment : undefined,
+              purchaseChannel,
+              leasingCompanyId: purchaseChannel === "LEASING" ? leasingCompanyId : undefined,
+              leasingDownPaymentAmount: purchaseChannel === "LEASING" ? allocated.downPayment : undefined,
+              paymentType: purchaseChannel === "LEASING" ? "DIRECT" : paymentType,
+              downPaymentAmount: purchaseChannel === "LEASING"
+                ? undefined
+                : (paymentType === "DOWNPAYMENT" ? allocated.downPayment : undefined),
               hasRegistrationFee: bulkLines.find((line) => line.bikeIds.includes(allocated.bikeId))?.hasRegistrationFee ?? false,
               registrationFeeAmount: bulkLines.find((line) => line.bikeIds.includes(allocated.bikeId))?.registrationFeeAmount ?? 0,
             }),
@@ -477,8 +515,15 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
           inventoryProductId: itemType === "INVENTORY" ? itemId : undefined,
           quantity: itemType === "INVENTORY" ? parsedQty : undefined,
           finalSellingPrice: parsedFinalPrice,
-          paymentType,
-          downPaymentAmount: paymentType === "DOWNPAYMENT" ? parsedDownPayment : undefined,
+          purchaseChannel: itemType === "BIKE" ? purchaseChannel : "PERSONAL",
+          leasingCompanyId: itemType === "BIKE" && purchaseChannel === "LEASING" ? leasingCompanyId : undefined,
+          leasingDownPaymentAmount: itemType === "BIKE" && purchaseChannel === "LEASING"
+            ? Number(leasingDownPaymentAmount || "0")
+            : undefined,
+          paymentType: itemType === "BIKE" && purchaseChannel === "LEASING" ? "DIRECT" : paymentType,
+          downPaymentAmount: itemType === "BIKE" && purchaseChannel === "LEASING"
+            ? undefined
+            : (paymentType === "DOWNPAYMENT" ? parsedDownPayment : undefined),
           hasRegistrationFee: itemType === "BIKE" ? hasRegistrationFee : false,
           registrationFeeAmount: itemType === "BIKE" && hasRegistrationFee ? Number(registrationFeeAmount || "0") : undefined,
         }),
@@ -801,27 +846,104 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                 </>
               )}
 
-              <div className="bm-field-group">
-                <label>Payment Type</label>
-                <select className="bm-input" value={paymentType} onChange={(event) => setPaymentType(event.target.value as "DIRECT" | "DOWNPAYMENT") }>
-                  <option value="DIRECT">Direct Buy</option>
-                  <option value="DOWNPAYMENT">Downpayment</option>
-                </select>
-              </div>
+              {itemType === "BIKE" && (
+                <>
+                  <div className="bm-field-group">
+                    <label>Payment Option</label>
+                    <select className="bm-input" value={purchaseChannel} onChange={(event) => setPurchaseChannel(event.target.value as "PERSONAL" | "LEASING") }>
+                      <option value="PERSONAL">Pay Personally</option>
+                      <option value="LEASING">Go With Leasing</option>
+                    </select>
+                  </div>
 
-              <div className="bm-field-group">
-                <label>Downpayment Amount</label>
-                <input
-                  className="bm-input"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={downPaymentAmount}
-                  onChange={(event) => setDownPaymentAmount(event.target.value)}
-                  disabled={paymentType === "DIRECT"}
-                  required={paymentType === "DOWNPAYMENT"}
-                />
-              </div>
+                  {purchaseChannel === "PERSONAL" && (
+                    <>
+                      <div className="bm-field-group">
+                        <label>Payment Type</label>
+                        <select className="bm-input" value={paymentType} onChange={(event) => setPaymentType(event.target.value as "DIRECT" | "DOWNPAYMENT") }>
+                          <option value="DIRECT">Direct Buy</option>
+                          <option value="DOWNPAYMENT">Downpayment</option>
+                        </select>
+                      </div>
+
+                      <div className="bm-field-group">
+                        <label>Downpayment Amount</label>
+                        <input
+                          className="bm-input"
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={downPaymentAmount}
+                          onChange={(event) => setDownPaymentAmount(event.target.value)}
+                          disabled={paymentType === "DIRECT"}
+                          required={paymentType === "DOWNPAYMENT"}
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {purchaseChannel === "LEASING" && (
+                    <>
+                      <div className="bm-field-group">
+                        <label>Select Leasing Partner</label>
+                        <select
+                          className="bm-input"
+                          value={leasingCompanyId}
+                          onChange={(event) => {
+                            const value = event.target.value;
+                            setLeasingCompanyId(value ? Number(value) : "");
+                          }}
+                          required
+                        >
+                          <option value="">Select leasing company</option>
+                          {leasingCompanies.map((company) => (
+                            <option key={company.id} value={company.id}>{company.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="bm-field-group">
+                        <label>Customer Downpayment</label>
+                        <input
+                          className="bm-input"
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={leasingDownPaymentAmount}
+                          onChange={(event) => setLeasingDownPaymentAmount(event.target.value)}
+                        />
+                        <span className="users-muted">Remaining amount will be attached to selected leasing company.</span>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
+              {itemType === "INVENTORY" && (
+                <>
+                  <div className="bm-field-group">
+                    <label>Payment Type</label>
+                    <select className="bm-input" value={paymentType} onChange={(event) => setPaymentType(event.target.value as "DIRECT" | "DOWNPAYMENT") }>
+                      <option value="DIRECT">Direct Buy</option>
+                      <option value="DOWNPAYMENT">Downpayment</option>
+                    </select>
+                  </div>
+
+                  <div className="bm-field-group">
+                    <label>Downpayment Amount</label>
+                    <input
+                      className="bm-input"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={downPaymentAmount}
+                      onChange={(event) => setDownPaymentAmount(event.target.value)}
+                      disabled={paymentType === "DIRECT"}
+                      required={paymentType === "DOWNPAYMENT"}
+                    />
+                  </div>
+                </>
+              )}
 
               <div className="bm-field-group">
                 <label>Invoice Total</label>

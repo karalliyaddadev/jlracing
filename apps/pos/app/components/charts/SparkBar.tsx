@@ -8,7 +8,7 @@ interface SparkBarProps {
 }
 
 export function SparkBar({ values, color }: SparkBarProps) {
-  const max = Math.max(...values);
+  const max = Math.max(...values, 1);
   const refs = useRef<(HTMLDivElement | null)[]>([]);
 
   useEffect(() => {

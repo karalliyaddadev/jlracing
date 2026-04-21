@@ -12,6 +12,7 @@ import {
   IconChevronRight,
   IconDashboard,
   IconInventory,
+  IconLeasing,
   IconInvoice,
   IconSearch,
   IconSupplier,
@@ -23,6 +24,7 @@ const NAV_ITEMS = [
   { key: "users", label: "User Management", href: "/dashboard/users", Icon: IconUsers },
   { key: "suppliers", label: "Supplier Management", href: "/dashboard/suppliers", Icon: IconSupplier },
   { key: "invoices", label: "Invoice Management", href: "/dashboard/invoices", Icon: IconInvoice },
+  { key: "leasing-companies", label: "Leasing Companies", href: "/dashboard/leasing-companies", Icon: IconLeasing },
   { key: "inventory", label: "Inventory Management", href: "/dashboard/inventory", Icon: IconInventory },
   { key: "access", label: "Access Management", href: "/dashboard/access", Icon: IconAccess },
 ] as const;
