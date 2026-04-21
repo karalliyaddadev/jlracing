@@ -58,6 +58,9 @@ export const createPurchaseSchema = z.object({
   finalSellingPrice: z.number().min(0, "Final selling price must be >= 0"),
   paymentType: z.enum(["DIRECT", "DOWNPAYMENT"]).default("DIRECT"),
   downPaymentAmount: z.number().min(0, "Downpayment amount must be >= 0").optional(),
+  purchaseChannel: z.enum(["PERSONAL", "LEASING"]).default("PERSONAL"),
+  leasingCompanyId: z.number().int().positive("Leasing company is required").optional(),
+  leasingDownPaymentAmount: z.number().min(0, "Leasing downpayment amount must be >= 0").optional(),
   hasRegistrationFee: z.boolean().optional().default(false),
   registrationFeeAmount: z.number().min(0, "Registration fee must be >= 0").optional(),
 }).superRefine((data, ctx) => {
@@ -81,7 +84,32 @@ export const createPurchaseSchema = z.object({
       path: ["hasRegistrationFee"],
     });
   }
+  if (data.purchaseChannel === "LEASING") {
+    if (data.purchaseType !== "BIKE") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Leasing is supported only for bike purchases",
+        path: ["purchaseType"],
+      });
+    }
+    if (!data.leasingCompanyId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Leasing company is required",
+        path: ["leasingCompanyId"],
+      });
+    }
+  }
 });
+
+export const createLeasingCompanySchema = z.object({
+  name: z.string().trim().min(1, "Leasing company name is required").max(120, "Leasing company name is too long"),
+});
+
+export const updateLeasingCompanySchema = createLeasingCompanySchema.partial().refine(
+  (data) => Object.keys(data).length > 0,
+  { message: "At least one field is required" }
+);
 
 export const purchaseQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),
@@ -112,3 +140,5 @@ export type PurchaseQueryDto = z.infer<typeof purchaseQuerySchema>;
 export type SettlePurchaseDto = z.infer<typeof settlePurchaseSchema>;
 export type CreateInvoiceTermDto = z.infer<typeof createInvoiceTermSchema>;
 export type UpdateInvoiceTermDto = z.infer<typeof updateInvoiceTermSchema>;
+export type CreateLeasingCompanyDto = z.infer<typeof createLeasingCompanySchema>;
+export type UpdateLeasingCompanyDto = z.infer<typeof updateLeasingCompanySchema>;

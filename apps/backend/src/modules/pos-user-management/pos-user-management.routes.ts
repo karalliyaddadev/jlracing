@@ -7,6 +7,11 @@ router.use(authenticatePosAdmin);
 
 router.get("/meta/provinces", controller.getProvinceDistrictMeta);
 router.get("/dream-bikes", controller.getDreamBikeOptions);
+router.get("/leasing-companies", controller.getLeasingCompanies);
+router.post("/leasing-companies", controller.createLeasingCompany);
+router.patch("/leasing-companies/:companyId", controller.updateLeasingCompany);
+router.delete("/leasing-companies/:companyId", controller.deleteLeasingCompany);
+router.get("/leasing-companies/:companyId/applications", controller.getLeasingCompanyApplications);
 router.get("/purchases", controller.getPurchases);
 router.get("/invoice-terms", controller.getInvoiceTerms);
 router.post("/invoice-terms", controller.createInvoiceTerm);
