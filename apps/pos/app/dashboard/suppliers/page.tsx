@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
+import { exportTableToPdf } from "../../lib/pdf-export";
 import { IconBike, IconSupplier } from "../../lib/icons";
 
 type Supplier = {
@@ -674,6 +675,27 @@ export default function SupplierManagementPage() {
   const linkedBikeCount = suppliers.reduce((sum, supplier) => sum + (supplier._count?.vehicles ?? 0), 0);
   const activeContacts = suppliers.filter((supplier) => supplier.contactPerson || supplier.telephone || supplier.email).length;
 
+  const exportSuppliersPdf = () => {
+    exportTableToPdf({
+      fileName: "suppliers-report",
+      title: "Suppliers Report",
+      subtitle: "All supplier records currently loaded in Supplier Management",
+      rows: suppliers,
+      columns: [
+        { header: "Supplier Name", value: (supplier) => supplier.name },
+        { header: "Supplier Code", value: (supplier) => supplier.code },
+        { header: "Contact Person", value: (supplier) => supplier.contactPerson ?? "-" },
+        { header: "Telephone", value: (supplier) => supplier.telephone ?? "-" },
+        { header: "Email", value: (supplier) => supplier.email ?? "-" },
+        { header: "Fax", value: (supplier) => supplier.fax ?? "-" },
+        { header: "VAT Reg. No", value: (supplier) => supplier.vatRegistrationNo ?? "-" },
+        { header: "Address", value: (supplier) => supplier.address ?? "-" },
+        { header: "Linked Bikes", value: (supplier) => supplier._count?.vehicles ?? 0 },
+        { header: "Linked Products", value: (supplier) => supplier._count?.products ?? 0 },
+      ],
+    });
+  };
+
   return (
     <div className="bm-page">
       <div className="page-title-row">
@@ -682,6 +704,7 @@ export default function SupplierManagementPage() {
           <h2 className="page-title">Supplier Management</h2>
           <p className="page-subtitle">Register and manage suppliers separately from bike inventory data.</p>
         </div>
+        <button type="button" className="btn-outline" onClick={exportSuppliersPdf}>Export PDF</button>
       </div>
 
       {error && <div className="bm-alert bm-alert-error">{error}</div>}
