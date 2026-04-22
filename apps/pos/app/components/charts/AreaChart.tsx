@@ -8,7 +8,7 @@ interface AreaChartProps {
 export function AreaChart({ values, color }: AreaChartProps) {
   const w = 280;
   const h = 72;
-  const max = Math.max(...values);
+  const max = Math.max(...values, 1);
   const pts = values
     .map((v, i) => `${(i / (values.length - 1)) * w},${h - (v / max) * (h - 8)}`)
     .join(" ");

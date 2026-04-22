@@ -2,12 +2,42 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { PRE_ORDER_BIKES } from "./data";
 import Pagination from "../components/Pagination";
 
 const MAX_PRICE = 3_000_000;
-
 const ITEMS_PER_PAGE = 6;
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+type PreOrderImage = {
+  id: number;
+  url: string;
+  isPrimary: boolean;
+  sortOrder: number;
+};
+type PreOrderBike = {
+  id: number;
+  brand: string;
+  model: string;
+  year?: number | null;
+  cc?: string | null;
+  colour?: string | null;
+  price?: number | null;
+  depositRequired?: string | null;
+  expectedArrival?: string | null;
+  status: string;
+  description?: string | null;
+  images: PreOrderImage[];
+};
+
+function getStatusDisplay(status: string): "In Stock" | "Pre Order" {
+  return status === "in-stock" ? "In Stock" : "Pre Order";
+}
+
+function getPrimaryImageSrc(images: PreOrderImage[]): string | null {
+  if (!images?.length) return null;
+  const primary = images.find((i) => i.isPrimary) ?? images[0];
+  return `${BACKEND_URL}${primary.url}`;
+}
 
 const AVAILABILITY_OPTIONS = ["In Stock", "Pre Order"] as const;
 
@@ -53,6 +83,8 @@ function RangeSlider({
 }
 
 export default function PreOrdersPage() {
+  const [allBikes, setAllBikes] = useState<PreOrderBike[]>([]);
+  const [loadingBikes, setLoadingBikes] = useState(true);
   const [priceRange, setPriceRange] = useState<[number, number]>([
     0,
     MAX_PRICE,
@@ -61,6 +93,14 @@ export default function PreOrdersPage() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/api/pre-orders`)
+      .then((r) => r.json())
+      .then((data) => setAllBikes(data.preOrders ?? []))
+      .catch(() => setAllBikes([]))
+      .finally(() => setLoadingBikes(false));
+  }, []);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -73,10 +113,13 @@ export default function PreOrdersPage() {
   };
 
   const q = search.toLowerCase();
-  const filtered = PRE_ORDER_BIKES.filter((b) => {
-    if (b.price < priceRange[0] || b.price > priceRange[1]) return false;
-    if (availability.length && !availability.includes(b.status)) return false;
-    if (q && !`${b.brand} ${b.model} ${b.year}`.toLowerCase().includes(q))
+  const filtered = allBikes.filter((b) => {
+    const price = b.price ?? 0;
+    if (price < priceRange[0] || price > priceRange[1]) return false;
+    const displayStatus = getStatusDisplay(b.status);
+    if (availability.length && !availability.includes(displayStatus))
+      return false;
+    if (q && !`${b.brand} ${b.model} ${b.year ?? ""}`.toLowerCase().includes(q))
       return false;
     return true;
   });
@@ -214,65 +257,88 @@ export default function PreOrdersPage() {
 
           {/* ── Product Grid ── */}
           <div className="po-grid">
-            {filtered.length === 0 ? (
+            {loadingBikes ? (
+              <p className="po-grid__empty">Loading pre-orders…</p>
+            ) : filtered.length === 0 ? (
               <p className="po-grid__empty">No bikes match your filters.</p>
             ) : (
-              paginated.map((bike) => (
-                <Link
-                  key={bike.id}
-                  href={`/pre-orders/${bike.id}`}
-                  className="po-card"
-                >
-                  <div className="po-card__image">
-                    <div className="po-card__placeholder">
-                      <svg
-                        width="56"
-                        height="56"
-                        viewBox="0 0 640 512"
-                        fill="currentColor"
-                      >
-                        <path d="M280 32a80 80 0 1 1 0 160 80 80 0 1 1 0-160zM128 0c-44.2 0-80 35.8-80 80v16H32C14.3 96 0 110.3 0 128s14.3 32 32 32H48v16c0 17.7 14.3 32 32 32H96c17.7 0 32-14.3 32-32V160h5.4l34.9 104.7A96 96 0 1 0 344 352h48a96 96 0 1 0 192 0 96 96 0 1 0-183.2-40H336A96 96 0 0 0 193 192H96V80c0-44.2-35.8-80-80-80H128zM488 352a48 48 0 1 1-96 0 48 48 0 1 1 96 0zm-240 48a48 48 0 1 1 0-96 48 48 0 1 1 0 96z" />
-                      </svg>
+              paginated.map((bike) => {
+                const imgSrc = getPrimaryImageSrc(bike.images);
+                const displayStatus = getStatusDisplay(bike.status);
+                return (
+                  <Link
+                    key={bike.id}
+                    href={`/pre-orders/${bike.id}`}
+                    className="po-card"
+                  >
+                    <div className="po-card__image">
+                      {imgSrc ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img
+                          src={imgSrc}
+                          alt={`${bike.brand} ${bike.model}`}
+                          style={{
+                            width: "100%",
+                            height: "100%",
+                            objectFit: "cover",
+                          }}
+                        />
+                      ) : (
+                        <div className="po-card__placeholder">
+                          <svg
+                            width="56"
+                            height="56"
+                            viewBox="0 0 640 512"
+                            fill="currentColor"
+                          >
+                            <path d="M280 32a80 80 0 1 1 0 160 80 80 0 1 1 0-160zM128 0c-44.2 0-80 35.8-80 80v16H32C14.3 96 0 110.3 0 128s14.3 32 32 32H48v16c0 17.7 14.3 32 32 32H96c17.7 0 32-14.3 32-32V160h5.4l34.9 104.7A96 96 0 1 0 344 352h48a96 96 0 1 0 192 0 96 96 0 1 0-183.2-40H336A96 96 0 0 0 193 192H96V80c0-44.2-35.8-80-80-80H128zM488 352a48 48 0 1 1-96 0 48 48 0 1 1 96 0zm-240 48a48 48 0 1 1 0-96 48 48 0 1 1 0 96z" />
+                          </svg>
+                        </div>
+                      )}
                     </div>
-                    <span
-                      className={`po-card__badge${
-                        bike.status === "Pre Order"
-                          ? " po-card__badge--preorder"
-                          : ""
-                      }`}
-                    >
-                      {bike.status}
-                    </span>
-                  </div>
-                  <div className="po-card__body">
-                    <h3 className="po-card__title">
-                      {bike.brand} {bike.model} {bike.year}
-                    </h3>
-                    <div className="po-card__footer">
-                      <span className="po-card__price">
-                        Rs.&nbsp;{bike.price.toLocaleString("en-LK")}.00
+                    <div className="po-card__body">
+                      <span
+                        className={`po-card__badge${
+                          displayStatus === "Pre Order"
+                            ? " po-card__badge--preorder"
+                            : ""
+                        }`}
+                      >
+                        {displayStatus}
                       </span>
-                      <button
-                        className="po-card__cart"
-                        aria-label="Enquire about this bike"
-                      >
-                        <svg
-                          width="15"
-                          height="15"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
+                      <h3 className="po-card__title">
+                        {bike.brand} {bike.model} {bike.year}
+                      </h3>
+                      <div className="po-card__footer">
+                        <span className="po-card__price">
+                          Rs.&nbsp;
+                          {bike.price != null
+                            ? bike.price.toLocaleString("en-LK")
+                            : "—"}
+                          .00
+                        </span>
+                        <button
+                          className="po-card__cart"
+                          aria-label="Enquire about this bike"
                         >
-                          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                          <line x1="3" y1="6" x2="21" y2="6" />
-                          <path d="M16 10a4 4 0 01-8 0" />
-                        </svg>
-                      </button>
+                          <svg
+                            width="15"
+                            height="15"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <path d="M16 10a4 4 0 01-8 0" />
+                          </svg>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </Link>
-              ))
+                  </Link>
+                );
+              })
             )}
           </div>
         </div>

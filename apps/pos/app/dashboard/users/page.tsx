@@ -74,6 +74,10 @@ type PurchaseHistoryEntry = {
   currentSellingPrice?: number | null;
   finalSellingPrice: number;
   paymentType?: "DIRECT" | "DOWNPAYMENT";
+  purchaseChannel?: "PERSONAL" | "LEASING";
+  leasingCompany?: { id: number; name: string } | null;
+  leasingDownPaymentAmount?: number;
+  leasingFinancedAmount?: number;
   downPaymentAmount?: number;
   remainingAmount?: number;
   settlementStatus?: "SETTLED" | "TO_SETTLE";
@@ -127,7 +131,7 @@ type PurchaseInvoiceRow = {
   finalSellingPrice: number;
   remainingAmount: number;
   settlementStatus: "SETTLED" | "TO_SETTLE";
-  paymentTypeText: "Direct" | "Downpayment";
+  paymentTypeText: string;
   statusText: string;
   itemTitle: string;
   itemSubtitle: string;
@@ -142,8 +146,16 @@ type PurchaseFormState = {
   finalSellingPrice: string;
   paymentType: "DIRECT" | "DOWNPAYMENT";
   downPaymentAmount: string;
+  purchaseChannel: "PERSONAL" | "LEASING";
+  leasingCompanyId: number | "";
+  leasingDownPaymentAmount: string;
   hasRegistrationFee: boolean;
   registrationFeeAmount: string;
+};
+
+type LeasingCompanyOption = {
+  id: number;
+  name: string;
 };
 
 type BulkBikeLine = {
@@ -223,6 +235,7 @@ export default function UsersPage() {
   const [provinces, setProvinces] = useState<ProvinceMeta[]>([]);
   const [dreamBikeOptions, setDreamBikeOptions] = useState<DreamBikeOption[]>([]);
   const [inventoryOptions, setInventoryOptions] = useState<InventoryProductOption[]>([]);
+  const [leasingCompanies, setLeasingCompanies] = useState<LeasingCompanyOption[]>([]);
 
   const [editingUserId, setEditingUserId] = useState<number | null>(null);
   const [form, setForm] = useState<UserFormState>(EMPTY_FORM);
@@ -243,6 +256,9 @@ export default function UsersPage() {
     finalSellingPrice: "",
     paymentType: "DIRECT",
     downPaymentAmount: "",
+    purchaseChannel: "PERSONAL",
+    leasingCompanyId: "",
+    leasingDownPaymentAmount: "",
     hasRegistrationFee: false,
     registrationFeeAmount: "",
   });
@@ -380,27 +396,31 @@ export default function UsersPage() {
     setError(null);
 
     try {
-      const [usersRes, provincesRes, bikesRes, productsRes] = await Promise.all([
+      const [usersRes, provincesRes, bikesRes, productsRes, leasingCompaniesRes] = await Promise.all([
         fetch(`${base}?page=1&limit=200`, { headers: authHeader, cache: "no-store" }),
         fetch(`${base}/meta/provinces`, { headers: authHeader, cache: "no-store" }),
         fetch(`${base}/dream-bikes`, { headers: authHeader, cache: "no-store" }),
         fetch(`${bikeBase}/products?page=1&limit=500`, { headers: authHeader, cache: "no-store" }),
+        fetch(`${base}/leasing-companies`, { headers: authHeader, cache: "no-store" }),
       ]);
 
       const usersJson = await usersRes.json() as { data?: { users?: PosUser[] }; message?: string };
       const provincesJson = await provincesRes.json() as { data?: { provinces?: ProvinceMeta[] }; message?: string };
       const bikesJson = await bikesRes.json() as { data?: DreamBikeOption[]; message?: string };
       const productsJson = await productsRes.json() as { data?: { products?: InventoryProductOption[] }; message?: string };
+      const leasingCompaniesJson = await leasingCompaniesRes.json() as { data?: { companies?: LeasingCompanyOption[] }; message?: string };
 
       if (!usersRes.ok) throw new Error(usersJson.message ?? "Failed to load users");
       if (!provincesRes.ok) throw new Error(provincesJson.message ?? "Failed to load province data");
       if (!bikesRes.ok) throw new Error(bikesJson.message ?? "Failed to load dream bikes");
       if (!productsRes.ok) throw new Error(productsJson.message ?? "Failed to load inventory products");
+      if (!leasingCompaniesRes.ok) throw new Error(leasingCompaniesJson.message ?? "Failed to load leasing companies");
 
       setUsers(usersJson.data?.users ?? []);
       setProvinces(provincesJson.data?.provinces ?? []);
       setDreamBikeOptions(bikesJson.data ?? []);
       setInventoryOptions((productsJson.data?.products ?? []).filter((product) => product.quantity > 0));
+      setLeasingCompanies(leasingCompaniesJson.data?.companies ?? []);
     } catch (err) {
       const message = err instanceof Error ? err.message : "Failed to load user management data";
       setError(message.includes("Route not found") ? `${message}. Restart backend and confirm /api/pos/user-management route is running.` : message);
@@ -514,6 +534,7 @@ export default function UsersPage() {
   };
 
   const isDownPaymentEntry = (entry: PurchaseHistoryEntry) => {
+    if (entry.purchaseChannel === "LEASING") return false;
     if (entry.paymentType === "DOWNPAYMENT") return true;
     const downPayment = entry.downPaymentAmount ?? 0;
     const remaining = entry.remainingAmount ?? 0;
@@ -533,7 +554,12 @@ export default function UsersPage() {
     return "Direct • Settled";
   };
 
-  const getPaymentTypeText = (entry: PurchaseHistoryEntry) => (isDownPaymentEntry(entry) ? "Downpayment" : "Direct");
+  const getPaymentTypeText = (entry: PurchaseHistoryEntry) => {
+    if (entry.purchaseChannel === "LEASING") {
+      return entry.leasingCompany?.name ? `Leasing (${entry.leasingCompany.name})` : "Leasing";
+    }
+    return isDownPaymentEntry(entry) ? "Downpayment" : "Direct";
+  };
 
   const buildInvoiceRows = useCallback((entries: PurchaseHistoryEntry[]): PurchaseInvoiceRow[] => {
     const bulkHeuristicCounts = new Map<string, number>();
@@ -578,12 +604,14 @@ export default function UsersPage() {
         ? "TO_SETTLE"
         : "SETTLED";
 
-      const paymentTypeText: "Direct" | "Downpayment" = hasDownPayment ? "Downpayment" : "Direct";
-      const statusText = hasDownPayment
-        ? settlementStatus === "TO_SETTLE"
-          ? `Downpay • Settle Rs. ${remainingAmount.toLocaleString()}`
-          : "Downpay • Settled"
-        : "Direct • Settled";
+      const paymentTypeText = getPaymentTypeText(representative);
+      const statusText = representative.purchaseChannel === "LEASING"
+        ? `Leasing • Rs. ${sorted.reduce((sum, row) => sum + (row.leasingFinancedAmount ?? 0), 0).toLocaleString()}`
+        : hasDownPayment
+          ? settlementStatus === "TO_SETTLE"
+            ? `Downpay • Settle Rs. ${remainingAmount.toLocaleString()}`
+            : "Downpay • Settled"
+          : "Direct • Settled";
 
       const itemTitle = isBulk ? `Bulk Purchase (${bucket.length} bike entries)` : getPurchaseItemMeta(representative).title;
       const itemSubtitle = isBulk
@@ -726,10 +754,14 @@ export default function UsersPage() {
   );
 
   const purchaseDownPaymentPreview = useMemo(() => {
+    if (purchaseForm.purchaseChannel === "LEASING") {
+      const value = Number(purchaseForm.leasingDownPaymentAmount || "0");
+      return Number.isFinite(value) && value >= 0 ? value : 0;
+    }
     if (purchaseForm.paymentType === "DIRECT") return purchaseInvoiceTotal;
     const value = Number(purchaseForm.downPaymentAmount || "0");
     return Number.isFinite(value) && value >= 0 ? value : 0;
-  }, [purchaseForm.downPaymentAmount, purchaseForm.paymentType, purchaseInvoiceTotal]);
+  }, [purchaseForm.downPaymentAmount, purchaseForm.leasingDownPaymentAmount, purchaseForm.paymentType, purchaseForm.purchaseChannel, purchaseInvoiceTotal]);
 
   const purchaseRemainingPreview = useMemo(
     () => Math.max(0, Math.round((purchaseInvoiceTotal - purchaseDownPaymentPreview) * 100) / 100),
@@ -829,6 +861,13 @@ export default function UsersPage() {
     () => (selectedInvoiceEntries.some((entry) => isDownPaymentEntry(entry)) ? "Downpayment" : "Direct"),
     [selectedInvoiceEntries]
   );
+
+  const selectedInvoicePurchaseChannel = useMemo(() => {
+    const leasingEntries = selectedInvoiceEntries.filter((entry) => entry.purchaseChannel === "LEASING");
+    if (leasingEntries.length === 0) return "Pay Personally";
+    const leasingCompanyName = leasingEntries[0]?.leasingCompany?.name;
+    return leasingCompanyName ? `Go With Leasing (${leasingCompanyName})` : "Go With Leasing";
+  }, [selectedInvoiceEntries]);
 
   const selectedInvoicePurchaseMode = useMemo(
     () => (selectedInvoiceEntries.length > 1 || selectedHistoryPurchase?.purchaseMode === "BULK" || !!selectedHistoryPurchase?.invoiceGroupCode ? "Bulk" : "Single"),
@@ -1060,6 +1099,9 @@ export default function UsersPage() {
       finalSellingPrice: "",
       paymentType: "DIRECT",
       downPaymentAmount: "",
+      purchaseChannel: "PERSONAL",
+      leasingCompanyId: "",
+      leasingDownPaymentAmount: "",
       hasRegistrationFee: false,
       registrationFeeAmount: "",
     });
@@ -1083,6 +1125,9 @@ export default function UsersPage() {
       finalSellingPrice: "",
       paymentType: "DIRECT",
       downPaymentAmount: "",
+      purchaseChannel: "PERSONAL",
+      leasingCompanyId: "",
+      leasingDownPaymentAmount: "",
       hasRegistrationFee: false,
       registrationFeeAmount: "",
     });
@@ -1290,6 +1335,7 @@ export default function UsersPage() {
     ) ? bulkBikeTotal : finalPrice;
 
     const downPayment = Number(purchaseForm.downPaymentAmount || "0");
+    const leasingDownPayment = Number(purchaseForm.leasingDownPaymentAmount || "0");
     const registrationFee = Number(purchaseForm.registrationFeeAmount || "0");
     if (
       purchaseForm.purchaseType === "BIKE"
@@ -1300,7 +1346,22 @@ export default function UsersPage() {
       setPurchaseError("Please enter a valid registration fee amount");
       return;
     }
-    if (purchaseForm.paymentType === "DOWNPAYMENT") {
+    if (purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseChannel === "LEASING") {
+      if (purchaseForm.leasingCompanyId === "") {
+        setPurchaseError("Please select a leasing company");
+        return;
+      }
+      if (!Number.isFinite(leasingDownPayment) || leasingDownPayment < 0) {
+        setPurchaseError("Please enter a valid leasing downpayment amount");
+        return;
+      }
+      if (leasingDownPayment > effectiveTotalPrice) {
+        setPurchaseError("Leasing downpayment amount cannot exceed final selling price");
+        return;
+      }
+    }
+
+    if (purchaseForm.purchaseChannel !== "LEASING" && purchaseForm.paymentType === "DOWNPAYMENT") {
       if (!Number.isFinite(downPayment) || downPayment <= 0) {
         setPurchaseError("Please enter a valid downpayment amount");
         return;
@@ -1322,7 +1383,9 @@ export default function UsersPage() {
           hasRegistrationFee: line.hasRegistrationFee,
           registrationFeeAmount: line.registrationFeeAmount,
         })));
-        const effectiveDownPayment = purchaseForm.paymentType === "DIRECT" ? bulkBikeTotal : downPayment;
+        const effectiveDownPayment = purchaseForm.purchaseChannel === "LEASING"
+          ? leasingDownPayment
+          : (purchaseForm.paymentType === "DIRECT" ? bulkBikeTotal : downPayment);
         const allocations = allocateDownPayments(lineItems, effectiveDownPayment);
 
         for (const line of allocations) {
@@ -1336,8 +1399,13 @@ export default function UsersPage() {
               invoiceGroupCode,
               bikeVehicleId: line.bikeId,
               finalSellingPrice: line.unitPrice,
-              paymentType: purchaseForm.paymentType,
-              downPaymentAmount: purchaseForm.paymentType === "DOWNPAYMENT" ? line.downPayment : undefined,
+              purchaseChannel: purchaseForm.purchaseChannel,
+              leasingCompanyId: purchaseForm.purchaseChannel === "LEASING" ? purchaseForm.leasingCompanyId : undefined,
+              leasingDownPaymentAmount: purchaseForm.purchaseChannel === "LEASING" ? line.downPayment : undefined,
+              paymentType: purchaseForm.purchaseChannel === "LEASING" ? "DIRECT" : purchaseForm.paymentType,
+              downPaymentAmount: purchaseForm.purchaseChannel === "LEASING"
+                ? undefined
+                : (purchaseForm.paymentType === "DOWNPAYMENT" ? line.downPayment : undefined),
               hasRegistrationFee: registrationForBike?.hasRegistrationFee ?? false,
               registrationFeeAmount: registrationForBike?.registrationFeeAmount ?? 0,
             }),
@@ -1363,8 +1431,19 @@ export default function UsersPage() {
           inventoryProductId: purchaseForm.purchaseType === "INVENTORY" ? purchaseForm.inventoryProductId : undefined,
           quantity: purchaseForm.purchaseType === "INVENTORY" ? quantity : undefined,
           finalSellingPrice: finalPrice,
-          paymentType: purchaseForm.paymentType,
-          downPaymentAmount: purchaseForm.paymentType === "DOWNPAYMENT" ? downPayment : undefined,
+          purchaseChannel: purchaseForm.purchaseType === "BIKE" ? purchaseForm.purchaseChannel : "PERSONAL",
+          leasingCompanyId: purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseChannel === "LEASING"
+            ? purchaseForm.leasingCompanyId
+            : undefined,
+          leasingDownPaymentAmount: purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseChannel === "LEASING"
+            ? leasingDownPayment
+            : undefined,
+          paymentType: purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseChannel === "LEASING"
+            ? "DIRECT"
+            : purchaseForm.paymentType,
+          downPaymentAmount: purchaseForm.purchaseType === "BIKE" && purchaseForm.purchaseChannel === "LEASING"
+            ? undefined
+            : (purchaseForm.paymentType === "DOWNPAYMENT" ? downPayment : undefined),
           hasRegistrationFee: purchaseForm.purchaseType === "BIKE" ? purchaseForm.hasRegistrationFee : false,
           registrationFeeAmount: purchaseForm.purchaseType === "BIKE" && purchaseForm.hasRegistrationFee ? registrationFee : undefined,
         }),
@@ -1732,6 +1811,9 @@ export default function UsersPage() {
                       finalSellingPrice: "",
                       paymentType: "DIRECT",
                       downPaymentAmount: "",
+                      purchaseChannel: "PERSONAL",
+                      leasingCompanyId: "",
+                      leasingDownPaymentAmount: "",
                       hasRegistrationFee: false,
                       registrationFeeAmount: "",
                     }));
@@ -2084,38 +2166,138 @@ export default function UsersPage() {
                 </div>
               )}
 
-              <div className="bm-field-group">
-                <label>Payment Type</label>
-                <select
-                  className="bm-input"
-                  value={purchaseForm.paymentType}
-                  onChange={(e) => {
-                    const paymentType = e.target.value as "DIRECT" | "DOWNPAYMENT";
-                    setPurchaseForm((prev) => ({
-                      ...prev,
-                      paymentType,
-                      downPaymentAmount: paymentType === "DIRECT" ? String(purchaseInvoiceTotal) : prev.downPaymentAmount,
-                    }));
-                  }}
-                >
-                  <option value="DIRECT">Direct Buy</option>
-                  <option value="DOWNPAYMENT">Downpayment</option>
-                </select>
-              </div>
+              {purchaseForm.purchaseType === "BIKE" && (
+                <>
+                  <div className="bm-field-group">
+                    <label>Payment Option</label>
+                    <select
+                      className="bm-input"
+                      value={purchaseForm.purchaseChannel}
+                      onChange={(e) => {
+                        const channel = e.target.value as "PERSONAL" | "LEASING";
+                        setPurchaseForm((prev) => ({
+                          ...prev,
+                          purchaseChannel: channel,
+                          leasingCompanyId: channel === "LEASING" ? prev.leasingCompanyId : "",
+                          leasingDownPaymentAmount: channel === "LEASING" ? prev.leasingDownPaymentAmount : "",
+                        }));
+                      }}
+                    >
+                      <option value="PERSONAL">Pay Personally</option>
+                      <option value="LEASING">Go With Leasing</option>
+                    </select>
+                  </div>
 
-              <div className="bm-field-group">
-                <label>Downpayment Amount</label>
-                <input
-                  className="bm-input"
-                  type="number"
-                  min={0}
-                  step="0.01"
-                  value={purchaseForm.paymentType === "DIRECT" ? String(purchaseInvoiceTotal) : purchaseForm.downPaymentAmount}
-                  onChange={(e) => setPurchaseForm((prev) => ({ ...prev, downPaymentAmount: e.target.value }))}
-                  disabled={purchaseForm.paymentType === "DIRECT"}
-                  required={purchaseForm.paymentType === "DOWNPAYMENT"}
-                />
-              </div>
+                  {purchaseForm.purchaseChannel === "PERSONAL" && (
+                    <>
+                      <div className="bm-field-group">
+                        <label>Payment Type</label>
+                        <select
+                          className="bm-input"
+                          value={purchaseForm.paymentType}
+                          onChange={(e) => {
+                            const paymentType = e.target.value as "DIRECT" | "DOWNPAYMENT";
+                            setPurchaseForm((prev) => ({
+                              ...prev,
+                              paymentType,
+                              downPaymentAmount: paymentType === "DIRECT" ? String(purchaseInvoiceTotal) : prev.downPaymentAmount,
+                            }));
+                          }}
+                        >
+                          <option value="DIRECT">Direct Buy</option>
+                          <option value="DOWNPAYMENT">Downpayment</option>
+                        </select>
+                      </div>
+
+                      <div className="bm-field-group">
+                        <label>Downpayment Amount</label>
+                        <input
+                          className="bm-input"
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={purchaseForm.paymentType === "DIRECT" ? String(purchaseInvoiceTotal) : purchaseForm.downPaymentAmount}
+                          onChange={(e) => setPurchaseForm((prev) => ({ ...prev, downPaymentAmount: e.target.value }))}
+                          disabled={purchaseForm.paymentType === "DIRECT"}
+                          required={purchaseForm.paymentType === "DOWNPAYMENT"}
+                        />
+                      </div>
+                    </>
+                  )}
+
+                  {purchaseForm.purchaseChannel === "LEASING" && (
+                    <>
+                      <div className="bm-field-group">
+                        <label>Select Leasing Partner</label>
+                        <select
+                          className="bm-input"
+                          value={purchaseForm.leasingCompanyId}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setPurchaseForm((prev) => ({ ...prev, leasingCompanyId: value ? Number(value) : "" }));
+                          }}
+                          required
+                        >
+                          <option value="">Select leasing company</option>
+                          {leasingCompanies.map((company) => (
+                            <option key={company.id} value={company.id}>{company.name}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="bm-field-group">
+                        <label>Customer Downpayment</label>
+                        <input
+                          className="bm-input"
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={purchaseForm.leasingDownPaymentAmount}
+                          onChange={(e) => setPurchaseForm((prev) => ({ ...prev, leasingDownPaymentAmount: e.target.value }))}
+                        />
+                        <span className="users-muted">Remaining amount will be marked under selected leasing company.</span>
+                      </div>
+                    </>
+                  )}
+                </>
+              )}
+
+              {purchaseForm.purchaseType === "INVENTORY" && (
+                <>
+                  <div className="bm-field-group">
+                    <label>Payment Type</label>
+                    <select
+                      className="bm-input"
+                      value={purchaseForm.paymentType}
+                      onChange={(e) => {
+                        const paymentType = e.target.value as "DIRECT" | "DOWNPAYMENT";
+                        setPurchaseForm((prev) => ({
+                          ...prev,
+                          paymentType,
+                          downPaymentAmount: paymentType === "DIRECT" ? String(purchaseInvoiceTotal) : prev.downPaymentAmount,
+                        }));
+                      }}
+                    >
+                      <option value="DIRECT">Direct Buy</option>
+                      <option value="DOWNPAYMENT">Downpayment</option>
+                    </select>
+                  </div>
+
+                  <div className="bm-field-group">
+                    <label>Downpayment Amount</label>
+                    <input
+                      className="bm-input"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={purchaseForm.paymentType === "DIRECT" ? String(purchaseInvoiceTotal) : purchaseForm.downPaymentAmount}
+                      onChange={(e) => setPurchaseForm((prev) => ({ ...prev, downPaymentAmount: e.target.value }))}
+                      disabled={purchaseForm.paymentType === "DIRECT"}
+                      required={purchaseForm.paymentType === "DOWNPAYMENT"}
+                    />
+                  </div>
+                </>
+              )}
 
               <div className="bm-field-group">
                 <label>Invoice Total</label>
@@ -2267,7 +2449,7 @@ export default function UsersPage() {
               Invoice {selectedInvoiceDisplayCode}
             </h3>
             <p className="users-muted" style={{ marginTop: "-0.5rem", marginBottom: "0.8rem" }}>
-              {selectedInvoicePurchaseMode} Invoice • {selectedInvoicePaymentType}
+              {selectedInvoicePurchaseMode} Invoice • {selectedInvoicePurchaseChannel} • {selectedInvoicePaymentType}
             </p>
 
             <div className="users-view-grid">
@@ -2433,6 +2615,7 @@ export default function UsersPage() {
             <h4 className="users-section-title" style={{ marginTop: "1rem" }}>Pricing</h4>
             <div className="users-view-grid">
               <div><strong>Purchase Mode:</strong> {selectedInvoicePurchaseMode}</div>
+              <div><strong>Purchase Method:</strong> {selectedInvoicePurchaseChannel}</div>
               <div>
                 <strong>Current Selling Price:</strong>{" "}
                 {isBulkInvoiceView
@@ -2445,6 +2628,8 @@ export default function UsersPage() {
               <div><strong>Final Selling Price:</strong> Rs. {selectedInvoiceTotals.finalSellingPrice.toLocaleString()}</div>
               <div><strong>Payment Type:</strong> {selectedInvoicePaymentType} Buy</div>
               <div><strong>Downpayment:</strong> Rs. {selectedInvoiceTotals.downPaymentAmount.toLocaleString()}</div>
+              <div><strong>Leasing Downpayment:</strong> Rs. {selectedInvoiceEntries.reduce((sum, entry) => sum + (entry.leasingDownPaymentAmount ?? 0), 0).toLocaleString()}</div>
+              <div><strong>Leasing Amount:</strong> Rs. {selectedInvoiceEntries.reduce((sum, entry) => sum + (entry.leasingFinancedAmount ?? 0), 0).toLocaleString()}</div>
               <div><strong>Registration Fee:</strong> Rs. {selectedInvoiceTotals.registrationFeeAmount.toLocaleString()}</div>
               <div><strong>Grand Total:</strong> Rs. {(selectedInvoiceTotals.finalSellingPrice + selectedInvoiceTotals.registrationFeeAmount).toLocaleString()}</div>
               <div><strong>Remaining Amount:</strong> Rs. {selectedInvoiceTotals.remainingAmount.toLocaleString()}</div>

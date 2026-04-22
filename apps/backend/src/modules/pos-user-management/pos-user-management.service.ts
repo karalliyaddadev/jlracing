@@ -2,12 +2,14 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "../../database/prisma.client";
 import { AppError } from "../../common/utils/errors";
 import type {
+  CreateLeasingCompanyDto,
   CreateInvoiceTermDto,
   CreatePurchaseDto,
   CreatePosUserDto,
   PurchaseQueryDto,
   PosUserQueryDto,
   SettlePurchaseDto,
+  UpdateLeasingCompanyDto,
   UpdateInvoiceTermDto,
   UpdatePosUserDto,
 } from "./dto/pos-user.dto";
@@ -94,6 +96,17 @@ function getInvoiceTermModelClient(db: any) {
   if (!model) {
     throw new AppError(
       "Invoice term model is unavailable. Run 'npm run db:generate' in apps/backend and restart the backend server.",
+      500
+    );
+  }
+  return model;
+}
+
+function getLeasingCompanyModelClient(db: any) {
+  const model = db?.posLeasingCompany;
+  if (!model) {
+    throw new AppError(
+      "Leasing company model is unavailable. Run 'npm run db:generate' in apps/backend and restart the backend server.",
       500
     );
   }
@@ -217,6 +230,145 @@ export async function listDreamBikeOptions() {
     sellingPrice: bike.sellingPrice,
     availability: bike.status,
   }));
+}
+
+export async function listLeasingCompanies() {
+  const model = getLeasingCompanyModelClient(prisma as any);
+  const companies = await model.findMany({
+    orderBy: [{ name: "asc" }],
+  });
+
+  return {
+    companies,
+  };
+}
+
+export async function createLeasingCompany(dto: CreateLeasingCompanyDto) {
+  const model = getLeasingCompanyModelClient(prisma as any);
+  try {
+    return await model.create({
+      data: {
+        name: dto.name,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      throw AppError.conflict("Leasing company name already exists");
+    }
+    throw error;
+  }
+}
+
+export async function updateLeasingCompany(companyId: number, dto: UpdateLeasingCompanyDto) {
+  const model = getLeasingCompanyModelClient(prisma as any);
+  try {
+    return await model.update({
+      where: { id: companyId },
+      data: {
+        ...(dto.name != null ? { name: dto.name } : {}),
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      throw AppError.conflict("Leasing company name already exists");
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      throw AppError.notFound("Leasing company not found");
+    }
+    throw error;
+  }
+}
+
+export async function deleteLeasingCompany(companyId: number) {
+  const model = getLeasingCompanyModelClient(prisma as any);
+  try {
+    await model.delete({ where: { id: companyId } });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      throw AppError.notFound("Leasing company not found");
+    }
+    throw error;
+  }
+}
+
+export async function listLeasingApplicationsByCompany(companyId: number, query: PurchaseQueryDto) {
+  const companyModel = getLeasingCompanyModelClient(prisma as any);
+  const purchaseModel = getPurchaseModelClient(prisma as any);
+  const company = await companyModel.findUnique({ where: { id: companyId } });
+  if (!company) throw AppError.notFound("Leasing company not found");
+
+  const { page, limit } = query;
+  const skip = (page - 1) * limit;
+
+  const [rows, total] = await Promise.all([
+    purchaseModel.findMany({
+      where: {
+        purchaseChannel: "LEASING",
+        leasingCompanyId: companyId,
+      },
+      skip,
+      take: limit,
+      orderBy: { purchasedAt: "desc" },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            nic: true,
+            mobileNumber: true,
+            address: true,
+            province: true,
+            district: true,
+          },
+        },
+        bikeVehicle: {
+          select: {
+            id: true,
+            displayId: true,
+            colour: true,
+            brand: { select: { name: true } },
+            model: { select: { name: true } },
+          },
+        },
+      },
+    }),
+    purchaseModel.count({
+      where: {
+        purchaseChannel: "LEASING",
+        leasingCompanyId: companyId,
+      },
+    }),
+  ]);
+
+  return {
+    company,
+    applications: rows.map((row: any) => ({
+      id: row.id,
+      purchasedAt: row.purchasedAt,
+      invoiceGroupCode: row.invoiceGroupCode,
+      purchaseMode: row.purchaseMode,
+      finalSellingPrice: row.finalSellingPrice,
+      downPaymentAmount: row.downPaymentAmount,
+      remainingAmount: row.remainingAmount,
+      settlementStatus: row.settlementStatus,
+      leasingDownPaymentAmount: row.leasingDownPaymentAmount,
+      leasingFinancedAmount: row.leasingFinancedAmount,
+      customer: row.customer,
+      bike: row.bikeVehicle
+        ? {
+            id: row.bikeVehicle.id,
+            displayId: row.bikeVehicle.displayId,
+            brand: row.bikeVehicle.brand.name,
+            model: row.bikeVehicle.model.name,
+            colour: row.bikeVehicle.colour,
+          }
+        : null,
+    })),
+    total,
+    page,
+    limit,
+  };
 }
 
 export async function listPosUsers(query: PosUserQueryDto) {
@@ -363,6 +515,7 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
   });
   if (!customer) throw AppError.notFound("User not found");
 
+  const purchaseChannel: "PERSONAL" | "LEASING" = dto.purchaseChannel ?? "PERSONAL";
   const requestedPaymentType = dto.paymentType ?? "DIRECT";
   const inferredDownPayment = dto.downPaymentAmount != null
     && Number.isFinite(dto.downPaymentAmount)
@@ -380,7 +533,44 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
   if (hasRegistrationFee && registrationFeeAmount <= 0) {
     throw AppError.validation({ registrationFeeAmount: ["Registration fee amount must be greater than 0"] });
   }
-  const paymentDetails = resolvePaymentDetails(dto.finalSellingPrice, paymentType, dto.downPaymentAmount);
+  const leasingCompanyId = purchaseChannel === "LEASING" ? dto.leasingCompanyId : undefined;
+  const leasingDownPaymentAmount = purchaseChannel === "LEASING"
+    ? roundCurrency(dto.leasingDownPaymentAmount ?? 0)
+    : 0;
+  if (purchaseChannel === "LEASING") {
+    if (dto.purchaseType !== "BIKE") {
+      throw AppError.validation({ purchaseType: ["Leasing is supported only for bike purchases"] });
+    }
+    if (!leasingCompanyId) {
+      throw AppError.validation({ leasingCompanyId: ["Leasing company is required"] });
+    }
+    if (!Number.isFinite(leasingDownPaymentAmount) || leasingDownPaymentAmount < 0) {
+      throw AppError.validation({ leasingDownPaymentAmount: ["Leasing downpayment amount must be a valid value"] });
+    }
+    if (leasingDownPaymentAmount > dto.finalSellingPrice) {
+      throw AppError.validation({ leasingDownPaymentAmount: ["Leasing downpayment cannot exceed final selling price"] });
+    }
+    const leasingCompanyExists = await getLeasingCompanyModelClient(prisma as any).findUnique({
+      where: { id: leasingCompanyId },
+      select: { id: true },
+    });
+    if (!leasingCompanyExists) {
+      throw AppError.validation({ leasingCompanyId: ["Selected leasing company does not exist"] });
+    }
+  }
+
+  const paymentDetails = purchaseChannel === "LEASING"
+    ? {
+        downPaymentAmount: leasingDownPaymentAmount,
+        remainingAmount: roundCurrency(dto.finalSellingPrice - leasingDownPaymentAmount),
+        settlementStatus: roundCurrency(dto.finalSellingPrice - leasingDownPaymentAmount) > 0
+          ? ("TO_SETTLE" as const)
+          : ("SETTLED" as const),
+      }
+    : resolvePaymentDetails(dto.finalSellingPrice, paymentType, dto.downPaymentAmount);
+  const leasingFinancedAmount = purchaseChannel === "LEASING"
+    ? roundCurrency(dto.finalSellingPrice - leasingDownPaymentAmount)
+    : 0;
 
   if (dto.purchaseType === "BIKE") {
     const bikeId = dto.bikeVehicleId;
@@ -423,10 +613,16 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
           quantity: 1,
           currentSellingPrice: bike.sellingPrice,
           finalSellingPrice: dto.finalSellingPrice,
-          paymentType,
+          paymentType: purchaseChannel === "LEASING"
+            ? (paymentDetails.remainingAmount > 0 ? "DOWNPAYMENT" : "DIRECT")
+            : paymentType,
           downPaymentAmount: paymentDetails.downPaymentAmount,
           remainingAmount: paymentDetails.remainingAmount,
           settlementStatus: paymentDetails.settlementStatus,
+          purchaseChannel,
+          leasingCompanyId,
+          leasingDownPaymentAmount,
+          leasingFinancedAmount,
           hasRegistrationFee,
           registrationFeeAmount,
         },
@@ -482,6 +678,10 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
       downPaymentAmount: result.downPaymentAmount,
       remainingAmount: result.remainingAmount,
       settlementStatus: result.settlementStatus,
+      purchaseChannel: result.purchaseChannel,
+      leasingCompanyId: result.leasingCompanyId,
+      leasingDownPaymentAmount: result.leasingDownPaymentAmount,
+      leasingFinancedAmount: result.leasingFinancedAmount,
       hasRegistrationFee: result.hasRegistrationFee,
       registrationFeeAmount: result.registrationFeeAmount,
       purchasedAt: result.purchasedAt,
@@ -505,6 +705,10 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
     throw AppError.validation({ quantity: [`Only ${product.quantity} item(s) available`] });
   }
 
+  if (purchaseChannel === "LEASING") {
+    throw AppError.validation({ purchaseType: ["Leasing is not available for inventory purchases"] });
+  }
+
   const result = await prisma.$transaction(async (tx) => {
     const purchase = await getPurchaseModelClient(tx as any).create({
       data: {
@@ -520,6 +724,10 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
         downPaymentAmount: paymentDetails.downPaymentAmount,
         remainingAmount: paymentDetails.remainingAmount,
         settlementStatus: paymentDetails.settlementStatus,
+        purchaseChannel: "PERSONAL",
+        leasingCompanyId: null,
+        leasingDownPaymentAmount: 0,
+        leasingFinancedAmount: 0,
         hasRegistrationFee,
         registrationFeeAmount,
       },
@@ -568,6 +776,10 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
     downPaymentAmount: result.downPaymentAmount,
     remainingAmount: result.remainingAmount,
     settlementStatus: result.settlementStatus,
+    purchaseChannel: result.purchaseChannel,
+    leasingCompanyId: result.leasingCompanyId,
+    leasingDownPaymentAmount: result.leasingDownPaymentAmount,
+    leasingFinancedAmount: result.leasingFinancedAmount,
     hasRegistrationFee: result.hasRegistrationFee,
     registrationFeeAmount: result.registrationFeeAmount,
     purchasedAt: result.purchasedAt,
@@ -588,6 +800,7 @@ export async function listPurchases(query: PurchaseQueryDto) {
           { bikeVehicle: { displayId: { contains: search, mode: "insensitive" } } },
           { bikeVehicle: { brand: { name: { contains: search, mode: "insensitive" } } } },
           { bikeVehicle: { model: { name: { contains: search, mode: "insensitive" } } } },
+          { leasingCompany: { name: { contains: search, mode: "insensitive" } } },
         ],
       }
     : {};
@@ -643,6 +856,12 @@ export async function listPurchases(query: PurchaseQueryDto) {
             supplier: { select: { name: true, code: true } },
           },
         },
+        leasingCompany: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     }),
     getPurchaseModelClient(prisma as any).count({ where }),
@@ -662,6 +881,13 @@ export async function listPurchases(query: PurchaseQueryDto) {
       downPaymentAmount: row.downPaymentAmount,
       remainingAmount: row.remainingAmount,
       settlementStatus: row.settlementStatus,
+      purchaseChannel: row.purchaseChannel,
+      leasingCompany: row.leasingCompany ? {
+        id: row.leasingCompany.id,
+        name: row.leasingCompany.name,
+      } : null,
+      leasingDownPaymentAmount: row.leasingDownPaymentAmount,
+      leasingFinancedAmount: row.leasingFinancedAmount,
       hasRegistrationFee: row.hasRegistrationFee,
       registrationFeeAmount: row.registrationFeeAmount,
       customer: row.customer,
@@ -718,6 +944,7 @@ export async function listPurchasesByUser(customerId: number, query: PurchaseQue
             { inventoryProduct: { name: { contains: search, mode: "insensitive" } } },
             { inventoryProduct: { brand: { name: { contains: search, mode: "insensitive" } } } },
             { inventoryProduct: { category: { name: { contains: search, mode: "insensitive" } } } },
+            { leasingCompany: { name: { contains: search, mode: "insensitive" } } },
           ],
         }
       : {}),
@@ -774,6 +1001,12 @@ export async function listPurchasesByUser(customerId: number, query: PurchaseQue
             supplier: { select: { name: true, code: true } },
           },
         },
+        leasingCompany: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     }),
     getPurchaseModelClient(prisma as any).count({ where }),
@@ -793,6 +1026,15 @@ export async function listPurchasesByUser(customerId: number, query: PurchaseQue
       downPaymentAmount: row.downPaymentAmount,
       remainingAmount: row.remainingAmount,
       settlementStatus: row.settlementStatus,
+      purchaseChannel: row.purchaseChannel,
+      leasingCompany: row.leasingCompany
+        ? {
+            id: row.leasingCompany.id,
+            name: row.leasingCompany.name,
+          }
+        : null,
+      leasingDownPaymentAmount: row.leasingDownPaymentAmount,
+      leasingFinancedAmount: row.leasingFinancedAmount,
       hasRegistrationFee: row.hasRegistrationFee,
       registrationFeeAmount: row.registrationFeeAmount,
       customer: row.customer,

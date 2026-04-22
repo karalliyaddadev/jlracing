@@ -33,6 +33,11 @@ enum PosSettlementStatus {
   TO_SETTLE
 }
 
+enum PosPurchaseChannel {
+  PERSONAL
+  LEASING
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   name         String
@@ -217,6 +222,8 @@ model InventoryProduct {
   category           InventoryCategory       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   supplier           BikeSupplier?           @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   name               String
+  partNumber         String?
+  compatibleWith     String?
   quantity           Int                     @default(0)
   soldQuantity       Int                     @default(0)
   lowStockThreshold  Int?
@@ -283,6 +290,16 @@ model PosCustomer {
   @@map("pos_customers")
 }
 
+model PosLeasingCompany {
+  id        Int                 @id @default(autoincrement())
+  name      String              @unique
+  createdAt DateTime            @default(now())
+  updatedAt DateTime            @updatedAt
+  purchases PosCustomerPurchase[]
+
+  @@map("pos_leasing_companies")
+}
+
 model PosCustomerDreamBike {
   id           Int         @id @default(autoincrement())
   customerId   Int
@@ -310,6 +327,10 @@ model PosCustomerPurchase {
   downPaymentAmount   Float       @default(0)
   remainingAmount     Float       @default(0)
   settlementStatus    PosSettlementStatus @default(SETTLED)
+  purchaseChannel     PosPurchaseChannel @default(PERSONAL)
+  leasingCompanyId    Int?
+  leasingDownPaymentAmount Float   @default(0)
+  leasingFinancedAmount Float      @default(0)
   hasRegistrationFee  Boolean     @default(false)
   registrationFeeAmount Float     @default(0)
   quantity            Int         @default(1)
@@ -317,11 +338,14 @@ model PosCustomerPurchase {
   customer            PosCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   bikeVehicle         BikeVehicle? @relation(fields: [bikeVehicleId], references: [id], onDelete: SetNull)
   inventoryProduct    InventoryProduct? @relation(fields: [inventoryProductId], references: [id], onDelete: SetNull)
+  leasingCompany      PosLeasingCompany? @relation(fields: [leasingCompanyId], references: [id], onDelete: SetNull)
 
   @@index([customerId])
   @@index([invoiceGroupCode])
   @@index([bikeVehicleId])
   @@index([inventoryProductId])
+  @@index([leasingCompanyId])
+  @@index([purchaseChannel])
   @@map("pos_customer_purchases")
 }
 
@@ -335,4 +359,62 @@ model PosInvoiceTerm {
 
   @@index([sortOrder])
   @@map("pos_invoice_terms")
+}
+
+// ── Pre Orders ────────────────────────────────────────────────────────────────
+
+model PreOrder {
+  id              Int             @id @default(autoincrement())
+  displayId       String          @unique
+  brand           String
+  model           String
+  year            Int?
+  cc              String?
+  colour          String?
+  price           Float?
+  depositRequired String?
+  expectedArrival String?
+  status          String          @default("pre-order")
+  description     String?
+  isPublished     Boolean         @default(true)
+  sortOrder       Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  images          PreOrderImage[]
+
+  @@index([status])
+  @@index([isPublished])
+  @@map("pre_orders")
+}
+
+model PreOrderImage {
+  id         Int      @id @default(autoincrement())
+  preOrderId Int
+  preOrder   PreOrder @relation(fields: [preOrderId], references: [id], onDelete: Cascade)
+  url        String
+  isPrimary  Boolean  @default(false)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@map("pre_order_images")
+}
+
+// ── Contact Requests ──────────────────────────────────────────────────────────
+
+model ContactRequest {
+  id        Int      @id @default(autoincrement())
+  displayId String   @unique
+  name      String
+  email     String
+  phone     String?
+  city      String?
+  interests String   @default("")
+  message   String?
+  status    String   @default("new")
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@map("contact_requests")
 }
