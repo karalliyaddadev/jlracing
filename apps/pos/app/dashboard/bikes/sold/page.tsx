@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
+import { exportTableToPdf } from "../../../lib/pdf-export";
 import { IconActivity, IconBike, IconInventory, IconInvoice } from "../../../lib/icons";
 
 type VehicleImage = { id: number; vehicleId: number; url: string; isPrimary: boolean; sortOrder: number; createdAt: string };
@@ -15,6 +16,7 @@ type Vehicle = {
   supplier?: { id: number; name: string; code: string } | null;
   colour: string;
   year?: number;
+  manufactureDate?: string;
   createdAt: string;
   fileNo?: string;
   registerNo?: string;
@@ -415,6 +417,61 @@ export default function SoldBikesPage() {
   const totalSoldValue = vehicles.reduce((sum, vehicle) => sum + (vehicle.sellingPrice ?? 0), 0);
   const latestSold = vehicles.map((vehicle) => vehicle.soldAt).filter((value): value is string => typeof value === "string").sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0];
 
+  const exportSoldBikesPdf = () => {
+    exportTableToPdf({
+      fileName: "bike-sold-report",
+      title: "Sold Bikes Report",
+      subtitle: "All sold bikes currently loaded in Sold Bikes tab",
+      rows: vehicles,
+      columns: [
+        { header: "Display ID", value: (vehicle) => vehicle.displayId },
+        { header: "Brand", value: (vehicle) => vehicle.brand?.name ?? "-" },
+        { header: "Model", value: (vehicle) => vehicle.model?.name ?? "-" },
+        { header: "Supplier", value: (vehicle) => vehicle.supplier ? `${vehicle.supplier.name} (${vehicle.supplier.code})` : "-" },
+        { header: "Colour", value: (vehicle) => vehicle.colour },
+        { header: "Year", value: (vehicle) => vehicle.year ?? "-" },
+        { header: "Manufacture Date", value: (vehicle) => vehicle.manufactureDate ? new Date(vehicle.manufactureDate).toLocaleDateString() : "-" },
+        { header: "Condition", value: (vehicle) => vehicle.condition ? (vehicle.condition === "brandnew" ? "Brand New" : "Used") : "-" },
+        { header: "Mileage", value: (vehicle) => vehicle.mileage ?? "-" },
+        { header: "Engine Capacity (cc)", value: (vehicle) => vehicle.engineCapacityCc ?? "-" },
+        { header: "File No", value: (vehicle) => vehicle.fileNo ?? "-" },
+        { header: "Register No", value: (vehicle) => vehicle.registerNo ?? "-" },
+        { header: "Chassis No", value: (vehicle) => vehicle.chassisNo ?? "-" },
+        { header: "Engine No", value: (vehicle) => vehicle.engineNo ?? "-" },
+        { header: "Registration", value: (vehicle) => vehicle.registrationType === "registered" ? "Registered" : vehicle.registrationType === "unregistered" ? "Unregistered" : "-" },
+        { header: "Purchase Price", value: (vehicle) => vehicle.purchasePrice ?? "-" },
+        { header: "Tax Amount", value: (vehicle) => vehicle.taxAmount ?? "-" },
+        {
+          header: "Additional Expenses Total",
+          value: (vehicle) => (vehicle.expenses?.length
+            ? vehicle.expenses.reduce((sum, expense) => sum + (expense.amount ?? 0), 0)
+            : "-"),
+        },
+        {
+          header: "Expense Breakdown",
+          value: (vehicle) => vehicle.expenses?.length
+            ? vehicle.expenses.map((expense) => `${expense.description}: ${expense.amount}`).join(" | ")
+            : "-",
+        },
+        { header: "Selling Price", value: (vehicle) => vehicle.sellingPrice ?? "-" },
+        { header: "Sold At", value: (vehicle) => vehicle.soldAt ? new Date(vehicle.soldAt).toLocaleString() : "-" },
+        { header: "Customer", value: (vehicle) => {
+          const purchase = purchasesByBikeId[vehicle.id];
+          return purchase ? `${purchase.customer.firstName} ${purchase.customer.lastName}` : "-";
+        } },
+        { header: "Customer NIC", value: (vehicle) => purchasesByBikeId[vehicle.id]?.customer.nic ?? "-" },
+        { header: "Customer Mobile", value: (vehicle) => purchasesByBikeId[vehicle.id]?.customer.mobileNumber ?? "-" },
+        { header: "Customer Address", value: (vehicle) => {
+          const customer = purchasesByBikeId[vehicle.id]?.customer;
+          return customer ? `${customer.address}, ${customer.district}, ${customer.province}` : "-";
+        } },
+        { header: "Image Count", value: (vehicle) => vehicle.images?.length ?? 0 },
+        { header: "Added At", value: (vehicle) => vehicle.createdAt ? new Date(vehicle.createdAt).toLocaleString() : "-" },
+        { header: "Description", value: (vehicle) => vehicle.description ?? "-" },
+      ],
+    });
+  };
+
   return (
     <div className="bm-page">
       <div className="bm-page-header">
@@ -425,6 +482,7 @@ export default function SoldBikesPage() {
             <p className="page-subtitle">{vehicles.length} bike{vehicles.length !== 1 ? "s" : ""} sold</p>
           </div>
         </div>
+        <button type="button" className="btn-outline" onClick={exportSoldBikesPdf}>Export PDF</button>
       </div>
 
       {error && <div className="bm-alert bm-alert-error">{error}</div>}
