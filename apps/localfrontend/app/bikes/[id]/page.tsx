@@ -1,66 +1,162 @@
-"use client";
+﻿"use client";
 
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { MOCK_BIKES } from "../data";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+
+interface VehicleImage {
+  id: number;
+  url: string;
+  isPrimary: boolean;
+  sortOrder: number;
+}
+
+interface PublicVehicle {
+  id: number;
+  displayId: string;
+  brand: { id: number; name: string };
+  model: { id: number; name: string };
+  colour: string;
+  engineCapacityCc: number | null;
+  year: number | null;
+  condition: string;
+  mileage: number;
+  sellingPrice: number | null;
+  description: string | null;
+  images: VehicleImage[];
+}
+
+function mapCondition(c: string): string {
+  if (c === "brandnew") return "Brand New";
+  if (c === "reconditioned") return "Reconditioned";
+  return "Used";
+}
+
+function formatPrice(price: number | null): string {
+  if (price === null || price === 0) return "Contact for price";
+  return `Rs. ${price.toLocaleString("en-LK")}`;
+}
 
 export default function BikeDetailPage() {
   const { id } = useParams();
-  const bike = MOCK_BIKES.find((b) => b.id === Number(id));
+  const [vehicle, setVehicle] = useState<PublicVehicle | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
+  const [activeImg, setActiveImg] = useState(0);
 
-  if (!bike) {
+  useEffect(() => {
+    if (!id) return;
+    fetch(`${BACKEND_URL}/api/bikes/vehicles/${id}`)
+      .then((res) => {
+        if (res.status === 404) {
+          setNotFound(true);
+          setLoading(false);
+          return null;
+        }
+        if (!res.ok) throw new Error("Failed to fetch");
+        return res.json();
+      })
+      .then((data) => {
+        if (data) {
+          setVehicle(data);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        setNotFound(true);
+        setLoading(false);
+      });
+  }, [id]);
+
+  if (loading) {
+    return (
+      <section className="bikedetail-notfound">
+        <p>Loadingâ€¦</p>
+      </section>
+    );
+  }
+
+  if (notFound || !vehicle) {
     return (
       <section className="bikedetail-notfound">
         <h2>Bike not found.</h2>
         <Link href="/bikes" className="bikedetail__back">
-          ← Back to Bikes
+          â† Back to Bikes
         </Link>
       </section>
     );
   }
 
+  const images = vehicle.images.map((img) => `${BACKEND_URL}${img.url}`);
+
   const specs = [
-    { label: "Brand", value: bike.brand },
-    { label: "Model", value: bike.model },
-    { label: "Year", value: bike.year },
-    { label: "Engine", value: bike.cc },
-    { label: "Condition", value: bike.condition },
-    { label: "Mileage", value: bike.mileage },
-    { label: "Color", value: bike.color },
+    { label: "Brand", value: vehicle.brand.name },
+    { label: "Model", value: vehicle.model.name },
+    { label: "Year", value: vehicle.year ?? "â€”" },
+    {
+      label: "Engine",
+      value: vehicle.engineCapacityCc ? `${vehicle.engineCapacityCc}cc` : "â€”",
+    },
+    { label: "Condition", value: mapCondition(vehicle.condition) },
+    {
+      label: "Mileage",
+      value: `${vehicle.mileage.toLocaleString()} km`,
+    },
+    { label: "Color", value: vehicle.colour },
   ];
 
   return (
     <section className="bikedetail-page">
       <div className="bikedetail-container">
-        {/* ── Back ── */}
+        {/* â”€â”€ Back â”€â”€ */}
         <Link href="/bikes" className="bikedetail__back">
-          ← Back to Bikes
+          â† Back to Bikes
         </Link>
 
         <div className="bikedetail__layout">
-          {/* ── Left — Image ── */}
+          {/* â”€â”€ Left â€” Image â”€â”€ */}
           <div className="bikedetail__gallery">
             <div className="bikedetail__main-img">
-              <img src={bike.image} alt={`${bike.brand} ${bike.model}`} />
+              {images.length > 0 ? (
+                <img
+                  src={images[activeImg]}
+                  alt={`${vehicle.brand.name} ${vehicle.model.name}`}
+                />
+              ) : (
+                <div className="bike-card__no-image">No image available</div>
+              )}
             </div>
-            <div className="bikedetail__thumbs">
-              {[bike.image, bike.image, bike.image].map((img, i) => (
-                <div key={i} className="bikedetail__thumb">
-                  <img src={img} alt={`thumb ${i + 1}`} />
-                </div>
-              ))}
-            </div>
+            {images.length > 1 && (
+              <div className="bikedetail__thumbs">
+                {images.map((img, i) => (
+                  <div
+                    key={i}
+                    className={`bikedetail__thumb${activeImg === i ? " is-active" : ""}`}
+                    onClick={() => setActiveImg(i)}
+                    style={{ cursor: "pointer" }}
+                  >
+                    <img src={img} alt={`thumb ${i + 1}`} />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
-          {/* ── Right — Info ── */}
+          {/* â”€â”€ Right â€” Info â”€â”€ */}
           <div className="bikedetail__info">
-            <span className="bikedetail__badge">{bike.condition}</span>
+            <span className="bikedetail__badge">
+              {mapCondition(vehicle.condition)}
+            </span>
             <h1 className="bikedetail__title">
-              {bike.brand} {bike.model}
+              {vehicle.brand.name} {vehicle.model.name}
             </h1>
-            <p className="bikedetail__year">{bike.year} Model</p>
+            <p className="bikedetail__year">{vehicle.year ?? ""} Model</p>
 
-            <p className="bikedetail__price">{bike.price}</p>
+            <p className="bikedetail__price">
+              {formatPrice(vehicle.sellingPrice)}
+            </p>
 
             <div className="bikedetail__divider" />
 
@@ -77,10 +173,12 @@ export default function BikeDetailPage() {
             <div className="bikedetail__divider" />
 
             {/* Description */}
-            <div className="bikedetail__desc">
-              <h3>About This Bike</h3>
-              <p>{bike.description}</p>
-            </div>
+            {vehicle.description && (
+              <div className="bikedetail__desc">
+                <h3>About This Bike</h3>
+                <p>{vehicle.description}</p>
+              </div>
+            )}
 
             {/* CTA Buttons */}
             <div className="bikedetail__actions">

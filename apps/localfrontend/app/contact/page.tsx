@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 interface FaqItem {
   id: number;
@@ -28,6 +30,16 @@ export default function ContactPage() {
   const [activeFaqTab, setActiveFaqTab] = useState<number | null>(null);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
 
+  // Form state
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formPhone, setFormPhone] = useState("");
+  const [formCity, setFormCity] = useState("");
+  const [formMessage, setFormMessage] = useState("");
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formSuccess, setFormSuccess] = useState(false);
+  const [formError, setFormError] = useState("");
+
   useEffect(() => {
     fetch(`${CMS_API_URL}/api/faq/active?site=LOCAL`)
       .then((r) => (r.ok ? r.json() : []))
@@ -45,6 +57,41 @@ export default function ContactPage() {
     setInterest((prev) =>
       prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item],
     );
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+    setFormSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/api/contact-requests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formName,
+          email: formEmail,
+          phone: formPhone || undefined,
+          city: formCity || undefined,
+          interests: interest.join(", "),
+          message: formMessage || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error((json as { message?: string }).message || "Submission failed");
+      }
+      setFormSuccess(true);
+      setFormName("");
+      setFormEmail("");
+      setFormPhone("");
+      setFormCity("");
+      setFormMessage("");
+      setInterest([]);
+    } catch (err) {
+      setFormError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      setFormSubmitting(false);
+    }
   };
 
   return (
@@ -225,11 +272,15 @@ export default function ContactPage() {
               Fill the form below and our team will contact you soon.
             </p>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-              }}
-            >
+            {formSuccess ? (
+              <div className="contact-form__success">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="9 12 11 14 15 10"/></svg>
+                <h3>Message Sent!</h3>
+                <p>Thank you! Our team will get back to you shortly.</p>
+                <button className="contact-form__submit" onClick={() => setFormSuccess(false)}>Send Another</button>
+              </div>
+            ) : (
+            <form onSubmit={handleSubmit}>
               <div className="contact-form__row">
                 <div className="contact-form__group">
                   <label className="contact-form__label">Full Name*</label>
@@ -238,6 +289,8 @@ export default function ContactPage() {
                     className="contact-form__input"
                     placeholder="Enter Full Name"
                     required
+                    value={formName}
+                    onChange={(e) => setFormName(e.target.value)}
                   />
                 </div>
                 <div className="contact-form__group">
@@ -247,6 +300,8 @@ export default function ContactPage() {
                     className="contact-form__input"
                     placeholder="Enter Email Address"
                     required
+                    value={formEmail}
+                    onChange={(e) => setFormEmail(e.target.value)}
                   />
                 </div>
               </div>
@@ -258,6 +313,8 @@ export default function ContactPage() {
                     type="tel"
                     className="contact-form__input"
                     placeholder="Enter mobile number"
+                    value={formPhone}
+                    onChange={(e) => setFormPhone(e.target.value)}
                   />
                 </div>
                 <div className="contact-form__group">
@@ -266,6 +323,8 @@ export default function ContactPage() {
                     type="text"
                     className="contact-form__input"
                     placeholder="Enter your city"
+                    value={formCity}
+                    onChange={(e) => setFormCity(e.target.value)}
                   />
                 </div>
               </div>
@@ -298,13 +357,24 @@ export default function ContactPage() {
                   className="contact-form__textarea"
                   rows={5}
                   placeholder="Tell us more about your requirement"
+                  value={formMessage}
+                  onChange={(e) => setFormMessage(e.target.value)}
                 />
               </div>
 
-              <button type="submit" className="contact-form__submit">
-                Submit
+              {formError && (
+                <p className="contact-form__error">{formError}</p>
+              )}
+
+              <button
+                type="submit"
+                className="contact-form__submit"
+                disabled={formSubmitting}
+              >
+                {formSubmitting ? "Sending…" : "Submit"}
               </button>
             </form>
+            )}
           </div>
         </div>
       </section>
