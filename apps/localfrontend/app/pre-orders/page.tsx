@@ -295,6 +295,8 @@ export default function PreOrdersPage() {
                           </svg>
                         </div>
                       )}
+                    </div>
+                    <div className="po-card__body">
                       <span
                         className={`po-card__badge${
                           displayStatus === "Pre Order"
@@ -304,8 +306,6 @@ export default function PreOrdersPage() {
                       >
                         {displayStatus}
                       </span>
-                    </div>
-                    <div className="po-card__body">
                       <h3 className="po-card__title">
                         {bike.brand} {bike.model} {bike.year}
                       </h3>

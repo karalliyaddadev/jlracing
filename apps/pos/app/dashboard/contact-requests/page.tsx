@@ -95,7 +95,7 @@ export default function ContactRequestsPage() {
       });
       if (res.ok) setStats(await res.json());
     } catch {}
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   const loadRequests = useCallback(async () => {
@@ -108,10 +108,9 @@ export default function ContactRequestsPage() {
         ...(search ? { search } : {}),
         ...(filterStatus ? { status: filterStatus } : {}),
       });
-      const res = await fetch(
-        `${API_URL}/api/pos/contact-requests?${params}`,
-        { headers: authHeader },
-      );
+      const res = await fetch(`${API_URL}/api/pos/contact-requests?${params}`, {
+        headers: authHeader,
+      });
       if (!res.ok) throw new Error("Failed to load contact requests");
       const json: ListResult = await res.json();
       setRequests(json.data);
@@ -121,7 +120,7 @@ export default function ContactRequestsPage() {
     } finally {
       setLoading(false);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, page, search, filterStatus]);
 
   useEffect(() => {
@@ -163,7 +162,10 @@ export default function ContactRequestsPage() {
     }
   }
 
-  async function handleQuickStatus(item: ContactRequest, status: ContactStatus) {
+  async function handleQuickStatus(
+    item: ContactRequest,
+    status: ContactStatus,
+  ) {
     try {
       const res = await fetch(
         `${API_URL}/api/pos/contact-requests/${item.id}`,
@@ -203,13 +205,24 @@ export default function ContactRequestsPage() {
       <div className="bm-page-header">
         <div className="page-title-row">
           <span className="page-title-icon">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
             </svg>
           </span>
           <div>
             <h1 className="page-title">Contact Requests</h1>
-            <p className="page-subtitle">Manage enquiries from the website contact form</p>
+            <p className="page-subtitle">
+              Manage enquiries from the website contact form
+            </p>
           </div>
         </div>
       </div>
@@ -227,13 +240,17 @@ export default function ContactRequestsPage() {
             <div className="bm-stat-head">
               <span className="bm-stat-label">New</span>
             </div>
-            <div className="bm-stat-value" style={{ color: "var(--accent)" }}>{stats.new}</div>
+            <div className="bm-stat-value" style={{ color: "var(--accent)" }}>
+              {stats.new}
+            </div>
           </div>
           <div className="bm-stat-card">
             <div className="bm-stat-head">
               <span className="bm-stat-label">Contacted</span>
             </div>
-            <div className="bm-stat-value" style={{ color: "var(--success)" }}>{stats.contacted}</div>
+            <div className="bm-stat-value" style={{ color: "var(--success)" }}>
+              {stats.contacted}
+            </div>
           </div>
           <div className="bm-stat-card">
             <div className="bm-stat-head">
@@ -246,18 +263,31 @@ export default function ContactRequestsPage() {
 
       {/* Filters */}
       <div className="bm-table-card">
-        <div style={{ display: "flex", gap: "0.75rem", padding: "1rem", flexWrap: "wrap" }}>
+        <div
+          style={{
+            display: "flex",
+            gap: "0.75rem",
+            padding: "1rem",
+            flexWrap: "wrap",
+          }}
+        >
           <input
             className="bm-input"
             placeholder="Search name, email, phone, ID…"
             value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             style={{ flex: 1, minWidth: "200px" }}
           />
           <select
             className="bm-input"
             value={filterStatus}
-            onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
+            onChange={(e) => {
+              setFilterStatus(e.target.value);
+              setPage(1);
+            }}
             style={{ minWidth: "140px" }}
           >
             <option value="">All Status</option>
@@ -265,7 +295,14 @@ export default function ContactRequestsPage() {
             <option value="contacted">Contacted</option>
             <option value="closed">Closed</option>
           </select>
-          <button className="btn-outline" onClick={() => { setSearch(""); setFilterStatus(""); setPage(1); }}>
+          <button
+            className="btn-outline"
+            onClick={() => {
+              setSearch("");
+              setFilterStatus("");
+              setPage(1);
+            }}
+          >
             Reset
           </button>
         </div>
@@ -289,70 +326,131 @@ export default function ContactRequestsPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={9} className="bm-table-empty">Loading…</td></tr>
-              ) : requests.length === 0 ? (
-                <tr><td colSpan={9} className="bm-table-empty">No contact requests found.</td></tr>
-              ) : requests.map((item) => (
-                <tr key={item.id}>
-                  <td><span style={{ fontFamily: "monospace", fontSize: "0.78rem" }}>{item.displayId}</span></td>
-                  <td><strong>{item.name}</strong></td>
-                  <td style={{ fontSize: "0.82rem" }}>{item.email}</td>
-                  <td style={{ fontSize: "0.82rem" }}>{item.phone || "—"}</td>
-                  <td style={{ fontSize: "0.82rem" }}>{item.city || "—"}</td>
-                  <td style={{ fontSize: "0.78rem", maxWidth: "140px", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                    {item.interests || "—"}
-                  </td>
-                  <td>
-                    <span className={statusBadgeClass(item.status)}>
-                      {statusLabel(item.status)}
-                    </span>
-                  </td>
-                  <td style={{ fontSize: "0.82rem", whiteSpace: "nowrap" }}>{formatDate(item.createdAt)}</td>
-                  <td>
-                    <div className="bm-actions">
-                      <button
-                        type="button"
-                        className="bm-action-btn bm-view-btn"
-                        title="View & Edit"
-                        onClick={() => openView(item)}
-                      >View</button>
-                      {item.status === "new" && (
-                        <button
-                          type="button"
-                          className="bm-action-btn bm-edit-btn"
-                          title="Mark as Contacted"
-                          onClick={() => handleQuickStatus(item, "contacted")}
-                        >Contacted</button>
-                      )}
-                      {item.status !== "closed" && (
-                        <button
-                          type="button"
-                          className="bm-action-btn"
-                          title="Mark as Closed"
-                          style={{ background: "rgba(100,100,120,0.1)", color: "var(--text-muted)" }}
-                          onClick={() => handleQuickStatus(item, "closed")}
-                        >Close</button>
-                      )}
-                      <button
-                        type="button"
-                        className="bm-action-btn bm-del-btn"
-                        title="Delete"
-                        onClick={() => setDeleteItem(item)}
-                      >Del</button>
-                    </div>
+                <tr>
+                  <td colSpan={9} className="bm-table-empty">
+                    Loading…
                   </td>
                 </tr>
-              ))}
+              ) : requests.length === 0 ? (
+                <tr>
+                  <td colSpan={9} className="bm-table-empty">
+                    No contact requests found.
+                  </td>
+                </tr>
+              ) : (
+                requests.map((item) => (
+                  <tr key={item.id}>
+                    <td>
+                      <span
+                        style={{ fontFamily: "monospace", fontSize: "0.78rem" }}
+                      >
+                        {item.displayId}
+                      </span>
+                    </td>
+                    <td>
+                      <strong>{item.name}</strong>
+                    </td>
+                    <td style={{ fontSize: "0.82rem" }}>{item.email}</td>
+                    <td style={{ fontSize: "0.82rem" }}>{item.phone || "—"}</td>
+                    <td style={{ fontSize: "0.82rem" }}>{item.city || "—"}</td>
+                    <td
+                      style={{
+                        fontSize: "0.78rem",
+                        maxWidth: "140px",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.interests || "—"}
+                    </td>
+                    <td>
+                      <span className={statusBadgeClass(item.status)}>
+                        {statusLabel(item.status)}
+                      </span>
+                    </td>
+                    <td style={{ fontSize: "0.82rem", whiteSpace: "nowrap" }}>
+                      {formatDate(item.createdAt)}
+                    </td>
+                    <td>
+                      <div className="bm-actions">
+                        <button
+                          type="button"
+                          className="bm-action-btn bm-view-btn"
+                          title="View & Edit"
+                          onClick={() => openView(item)}
+                        >
+                          View
+                        </button>
+                        {item.status === "new" && (
+                          <button
+                            type="button"
+                            className="bm-action-btn bm-edit-btn"
+                            title="Mark as Contacted"
+                            onClick={() => handleQuickStatus(item, "contacted")}
+                          >
+                            Contacted
+                          </button>
+                        )}
+                        {item.status !== "closed" && (
+                          <button
+                            type="button"
+                            className="bm-action-btn"
+                            title="Mark as Closed"
+                            style={{
+                              background: "rgba(100,100,120,0.1)",
+                              color: "var(--text-muted)",
+                            }}
+                            onClick={() => handleQuickStatus(item, "closed")}
+                          >
+                            Close
+                          </button>
+                        )}
+                        <button
+                          type="button"
+                          className="bm-action-btn bm-del-btn"
+                          title="Delete"
+                          onClick={() => setDeleteItem(item)}
+                        >
+                          Del
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
 
         {/* Pagination */}
         {totalPages > 1 && (
-          <div style={{ display: "flex", gap: "0.5rem", padding: "1rem", justifyContent: "flex-end", alignItems: "center" }}>
-            <button className="btn-outline" disabled={page <= 1} onClick={() => setPage((p) => p - 1)}>Prev</button>
-            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>Page {page} / {totalPages}</span>
-            <button className="btn-outline" disabled={page >= totalPages} onClick={() => setPage((p) => p + 1)}>Next</button>
+          <div
+            style={{
+              display: "flex",
+              gap: "0.5rem",
+              padding: "1rem",
+              justifyContent: "flex-end",
+              alignItems: "center",
+            }}
+          >
+            <button
+              className="btn-outline"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => p - 1)}
+            >
+              Prev
+            </button>
+            <span style={{ fontSize: "0.85rem", color: "var(--text-muted)" }}>
+              Page {page} / {totalPages}
+            </span>
+            <button
+              className="btn-outline"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+            >
+              Next
+            </button>
           </div>
         )}
       </div>
@@ -360,57 +458,168 @@ export default function ContactRequestsPage() {
       {/* ── View / Edit Modal ── */}
       {viewItem && (
         <div className="bm-modal-backdrop" onClick={() => setViewItem(null)}>
-          <div className="bm-modal bm-view-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "560px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "1.25rem" }}>
+          <div
+            className="bm-modal bm-view-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "560px" }}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                marginBottom: "1.25rem",
+              }}
+            >
               <div>
-                <span style={{ fontFamily: "monospace", fontSize: "0.8rem", color: "var(--text-muted)" }}>{viewItem.displayId}</span>
-                <h2 className="bm-modal-title" style={{ marginTop: "0.25rem" }}>{viewItem.name}</h2>
+                <span
+                  style={{
+                    fontFamily: "monospace",
+                    fontSize: "0.8rem",
+                    color: "var(--text-muted)",
+                  }}
+                >
+                  {viewItem.displayId}
+                </span>
+                <h2 className="bm-modal-title" style={{ marginTop: "0.25rem" }}>
+                  {viewItem.name}
+                </h2>
               </div>
-              <button className="bm-modal-close" onClick={() => setViewItem(null)}>&times;</button>
+              <button
+                className="bm-modal-close"
+                onClick={() => setViewItem(null)}
+              >
+                &times;
+              </button>
             </div>
 
-            <div className="bm-modal-body" style={{ display: "grid", gap: "0.75rem" }}>
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+            <div
+              className="bm-modal-body"
+              style={{ display: "grid", gap: "0.75rem" }}
+            >
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 1fr",
+                  gap: "0.75rem",
+                }}
+              >
                 <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.2rem" }}>Email</div>
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--text-muted)",
+                      marginBottom: "0.2rem",
+                    }}
+                  >
+                    Email
+                  </div>
                   <div style={{ fontSize: "0.9rem" }}>{viewItem.email}</div>
                 </div>
                 <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.2rem" }}>Phone</div>
-                  <div style={{ fontSize: "0.9rem" }}>{viewItem.phone || "—"}</div>
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--text-muted)",
+                      marginBottom: "0.2rem",
+                    }}
+                  >
+                    Phone
+                  </div>
+                  <div style={{ fontSize: "0.9rem" }}>
+                    {viewItem.phone || "—"}
+                  </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.2rem" }}>City</div>
-                  <div style={{ fontSize: "0.9rem" }}>{viewItem.city || "—"}</div>
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--text-muted)",
+                      marginBottom: "0.2rem",
+                    }}
+                  >
+                    City
+                  </div>
+                  <div style={{ fontSize: "0.9rem" }}>
+                    {viewItem.city || "—"}
+                  </div>
                 </div>
                 <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.2rem" }}>Date</div>
-                  <div style={{ fontSize: "0.9rem" }}>{formatDate(viewItem.createdAt)}</div>
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--text-muted)",
+                      marginBottom: "0.2rem",
+                    }}
+                  >
+                    Date
+                  </div>
+                  <div style={{ fontSize: "0.9rem" }}>
+                    {formatDate(viewItem.createdAt)}
+                  </div>
                 </div>
               </div>
 
               {viewItem.interests && (
                 <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.2rem" }}>Interests</div>
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--text-muted)",
+                      marginBottom: "0.2rem",
+                    }}
+                  >
+                    Interests
+                  </div>
                   <div style={{ fontSize: "0.9rem" }}>{viewItem.interests}</div>
                 </div>
               )}
 
               {viewItem.message && (
                 <div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--text-muted)", marginBottom: "0.2rem" }}>Message</div>
-                  <div style={{ fontSize: "0.9rem", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{viewItem.message}</div>
+                  <div
+                    style={{
+                      fontSize: "0.75rem",
+                      color: "var(--text-muted)",
+                      marginBottom: "0.2rem",
+                    }}
+                  >
+                    Message
+                  </div>
+                  <div
+                    style={{
+                      fontSize: "0.9rem",
+                      lineHeight: 1.6,
+                      whiteSpace: "pre-wrap",
+                    }}
+                  >
+                    {viewItem.message}
+                  </div>
                 </div>
               )}
 
-              <hr style={{ borderColor: "var(--border)", margin: "0.25rem 0" }} />
+              <hr
+                style={{ borderColor: "var(--border)", margin: "0.25rem 0" }}
+              />
 
               <div className="bm-field-group">
-                <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: "0.4rem" }}>Status</label>
+                <label
+                  style={{
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    color: "var(--text-muted)",
+                    display: "block",
+                    marginBottom: "0.4rem",
+                  }}
+                >
+                  Status
+                </label>
                 <select
                   className="bm-input"
                   value={editStatus}
-                  onChange={(e) => setEditStatus(e.target.value as ContactStatus)}
+                  onChange={(e) =>
+                    setEditStatus(e.target.value as ContactStatus)
+                  }
                 >
                   <option value="new">New</option>
                   <option value="contacted">Contacted</option>
@@ -419,7 +628,17 @@ export default function ContactRequestsPage() {
               </div>
 
               <div className="bm-field-group">
-                <label style={{ fontSize: "0.8rem", fontWeight: 600, color: "var(--text-muted)", display: "block", marginBottom: "0.4rem" }}>Internal Notes</label>
+                <label
+                  style={{
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    color: "var(--text-muted)",
+                    display: "block",
+                    marginBottom: "0.4rem",
+                  }}
+                >
+                  Internal Notes
+                </label>
                 <textarea
                   className="bm-input"
                   rows={3}
@@ -430,12 +649,20 @@ export default function ContactRequestsPage() {
                 />
               </div>
 
-              {saveError && <div className="bm-alert bm-alert-error">{saveError}</div>}
+              {saveError && (
+                <div className="bm-alert bm-alert-error">{saveError}</div>
+              )}
             </div>
 
             <div className="bm-modal-actions" style={{ marginTop: "1.25rem" }}>
-              <button className="btn-outline" onClick={() => setViewItem(null)}>Cancel</button>
-              <button className="btn-accent" onClick={handleSave} disabled={saving}>
+              <button className="btn-outline" onClick={() => setViewItem(null)}>
+                Cancel
+              </button>
+              <button
+                className="btn-accent"
+                onClick={handleSave}
+                disabled={saving}
+              >
                 {saving ? "Saving…" : "Save Changes"}
               </button>
             </div>
@@ -446,15 +673,41 @@ export default function ContactRequestsPage() {
       {/* ── Delete Confirm Modal ── */}
       {deleteItem && (
         <div className="bm-modal-backdrop" onClick={() => setDeleteItem(null)}>
-          <div className="bm-modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: "420px" }}>
-            <button className="bm-modal-close" onClick={() => setDeleteItem(null)}>&times;</button>
+          <div
+            className="bm-modal"
+            onClick={(e) => e.stopPropagation()}
+            style={{ maxWidth: "420px" }}
+          >
+            <button
+              className="bm-modal-close"
+              onClick={() => setDeleteItem(null)}
+            >
+              &times;
+            </button>
             <h2 className="bm-modal-title">Delete Request?</h2>
-            <p style={{ margin: "0.75rem 0 1.25rem", color: "var(--text-muted)", fontSize: "0.9rem" }}>
-              Permanently delete contact request <strong>{deleteItem.displayId}</strong> from <strong>{deleteItem.name}</strong>? This cannot be undone.
+            <p
+              style={{
+                margin: "0.75rem 0 1.25rem",
+                color: "var(--text-muted)",
+                fontSize: "0.9rem",
+              }}
+            >
+              Permanently delete contact request{" "}
+              <strong>{deleteItem.displayId}</strong> from{" "}
+              <strong>{deleteItem.name}</strong>? This cannot be undone.
             </p>
             <div className="bm-modal-actions">
-              <button className="btn-outline" onClick={() => setDeleteItem(null)}>Cancel</button>
-              <button className="bm-btn-danger" onClick={handleDelete} disabled={deleting}>
+              <button
+                className="btn-outline"
+                onClick={() => setDeleteItem(null)}
+              >
+                Cancel
+              </button>
+              <button
+                className="bm-btn-danger"
+                onClick={handleDelete}
+                disabled={deleting}
+              >
                 {deleting ? "Deleting…" : "Delete"}
               </button>
             </div>

@@ -52,7 +52,6 @@ export default function Pagination({
         >
           <polyline points="15 18 9 12 15 6" />
         </svg>
-        Prev
       </button>
 
       <div className="pagination__pages">
@@ -81,7 +80,6 @@ export default function Pagination({
         disabled={currentPage === totalPages}
         aria-label="Next page"
       >
-        Next
         <svg
           width="14"
           height="14"

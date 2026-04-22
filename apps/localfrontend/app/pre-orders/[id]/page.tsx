@@ -54,8 +54,8 @@ export default function PreOrderDetailPage() {
 
   if (loading) {
     return (
-      <section className="bikedetail-notfound">
-        <h2>Loading…</h2>
+      <section className="detail-loader-wrap">
+        <span className="detail-loader__spinner" />
       </section>
     );
   }

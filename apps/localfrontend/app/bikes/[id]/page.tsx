@@ -72,8 +72,8 @@ export default function BikeDetailPage() {
 
   if (loading) {
     return (
-      <section className="bikedetail-notfound">
-        <p>Loadingâ€¦</p>
+      <section className="detail-loader-wrap">
+        <span className="detail-loader__spinner" />
       </section>
     );
   }

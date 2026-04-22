@@ -7,7 +7,7 @@ const CATEGORIES = [
     heading: "Available Bike Inventory",
     description:
       "Explore our current stock of imported bikes ready for sale today.",
-    image: "/images/product-bikes.png",
+    image: "/home/Bikes.png",
     imageBg: "#ffffff",
   },
   {
@@ -16,7 +16,7 @@ const CATEGORIES = [
     heading: "Genuine Spare Parts",
     description:
       "Order original spare parts for bikes with trusted quality guarantee.",
-    image: "/images/product-spare-parts.jpg",
+    image: "/home/Spare%20Parts.png",
     imageBg: "#ffffff",
   },
   {
@@ -25,7 +25,7 @@ const CATEGORIES = [
     heading: "Pre-Order Bikes",
     description:
       "Check available pre-order models and request imports from our latest listings.",
-    image: "/images/product-preorder.png",
+    image: "/home/Pre%20Order.png",
     imageBg: "#ffffff",
   },
 ];
@@ -34,10 +34,10 @@ export default function WhatWeHave() {
   return (
     <section className="wwh">
       <div className="wwh__header">
-        <h2 className="wwh__title">What We Have</h2>
+        <h2 className="wwh__title">Ride Your Dream</h2>
         <p className="wwh__subtitle">
-          Everything you need — from brand-new bikes to genuine parts and
-          exclusive pre-orders.
+          Discover brand-new bikes, authentic spare parts and exclusive
+          pre-orders built for riders like you.
         </p>
       </div>
 
@@ -55,7 +55,7 @@ export default function WhatWeHave() {
 
             {/* Image block */}
             <div
-              className={`wwh-card__image${cat.href === "/pre-orders" || cat.href === "/spare-parts" ? " wwh-card__image--contain" : ""}`}
+              className="wwh-card__image"
               style={{
                 backgroundImage: cat.image ? `url(${cat.image})` : "none",
                 backgroundColor: cat.imageBg,

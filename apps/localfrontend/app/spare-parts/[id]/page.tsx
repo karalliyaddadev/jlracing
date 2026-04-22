@@ -66,15 +66,8 @@ export default function SparePartDetailPage() {
 
   if (loading) {
     return (
-      <section className="bikedetail-page">
-        <div className="bikedetail-container">
-          <Link href="/spare-parts" className="bikedetail__back">
-            ← Back to Spare Parts
-          </Link>
-          <p style={{ padding: "4rem 0", textAlign: "center", color: "#888" }}>
-            Loading…
-          </p>
-        </div>
+      <section className="detail-loader-wrap">
+        <span className="detail-loader__spinner" />
       </section>
     );
   }

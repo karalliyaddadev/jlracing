@@ -8,9 +8,9 @@ const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
 const CC_OPTIONS = [
   "Under 150cc",
-  "150â€“250cc",
-  "250â€“400cc",
-  "400â€“600cc",
+  "150–250cc",
+  "250–400cc",
+  "400–600cc",
   "600cc +",
 ];
 const STATUS_OPTIONS = ["Brand New", "Used", "Reconditioned"];
@@ -41,9 +41,9 @@ interface PublicVehicle {
 function getCCBucket(cc: number | null): string {
   if (cc === null || cc === 0) return "";
   if (cc < 150) return "Under 150cc";
-  if (cc <= 250) return "150â€“250cc";
-  if (cc <= 400) return "250â€“400cc";
-  if (cc <= 600) return "400â€“600cc";
+  if (cc <= 250) return "150–250cc";
+  if (cc <= 400) return "250–400cc";
+  if (cc <= 600) return "400–600cc";
   return "600cc +";
 }
 
@@ -256,7 +256,7 @@ export default function BikesPage() {
         <div className="bikes-page__header">
           <div className="bikes-page__header-row">
             <div>
-              <h1 className="bikes-page__title">Bikes</h1>
+              <h1 className="bikes-page__title">Stock</h1>
               <p className="bikes-page__subtitle">
                 Discover our collection of imported bikes, from sports machines
                 to everyday rides.
@@ -276,7 +276,7 @@ export default function BikesPage() {
               </svg>
               <input
                 type="text"
-                placeholder="Search bikesâ€¦"
+                placeholder="Search bikes…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 className="page-searchbar__input"
@@ -379,7 +379,7 @@ export default function BikesPage() {
           {/* â”€â”€ Product Grid â”€â”€ */}
           <div className="bikes-grid">
             {loading ? (
-              <p className="bikes-grid__empty">Loading bikesâ€¦</p>
+              <p className="bikes-grid__empty">Loading bikes…</p>
             ) : error ? (
               <p className="bikes-grid__empty">{error}</p>
             ) : filtered.length === 0 ? (
