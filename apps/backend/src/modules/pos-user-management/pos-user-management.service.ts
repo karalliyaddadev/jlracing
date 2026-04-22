@@ -547,8 +547,8 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
     if (!Number.isFinite(leasingDownPaymentAmount) || leasingDownPaymentAmount < 0) {
       throw AppError.validation({ leasingDownPaymentAmount: ["Leasing downpayment amount must be a valid value"] });
     }
-    if (leasingDownPaymentAmount > dto.finalSellingPrice) {
-      throw AppError.validation({ leasingDownPaymentAmount: ["Leasing downpayment cannot exceed final selling price"] });
+    if (leasingDownPaymentAmount >= dto.finalSellingPrice) {
+      throw AppError.validation({ leasingDownPaymentAmount: ["Leasing downpayment must be less than final selling price"] });
     }
     const leasingCompanyExists = await getLeasingCompanyModelClient(prisma as any).findUnique({
       where: { id: leasingCompanyId },
