@@ -5,7 +5,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  IconAccess,
   IconBike,
   IconChevronLeft,
   IconChevronNav,
@@ -21,12 +20,11 @@ import {
 
 const NAV_ITEMS = [
   { key: "dashboard", label: "Dashboard", href: "/dashboard", Icon: IconDashboard },
-  { key: "users", label: "User Management", href: "/dashboard/users", Icon: IconUsers },
-  { key: "suppliers", label: "Supplier Management", href: "/dashboard/suppliers", Icon: IconSupplier },
-  { key: "invoices", label: "Invoice Management", href: "/dashboard/invoices", Icon: IconInvoice },
-  { key: "leasing-companies", label: "Leasing Companies", href: "/dashboard/leasing-companies", Icon: IconLeasing },
-  { key: "inventory", label: "Inventory Management", href: "/dashboard/inventory", Icon: IconInventory },
-  { key: "access", label: "Access Management", href: "/dashboard/access", Icon: IconAccess },
+  { key: "users", label: "User", href: "/dashboard/users", Icon: IconUsers },
+  { key: "suppliers", label: "Supplier", href: "/dashboard/suppliers", Icon: IconSupplier },
+  { key: "inventory", label: "Spare Parts", href: "/dashboard/inventory", Icon: IconInventory },
+  { key: "leasing-companies", label: "Leasing-Companies", href: "/dashboard/leasing-companies", Icon: IconLeasing },
+  { key: "invoices", label: "Invoicing", href: "/dashboard/invoices", Icon: IconInvoice },
 ] as const;
 
 const BIKE_SUB_ITEMS = [
@@ -246,7 +244,7 @@ export function Sidebar() {
                     <Link
                       href="/dashboard/bikes"
                       className={`nav-item${isBikeActive ? " active" : ""}`}
-                      title="Bike Management"
+                      title="Bike"
                     >
                       <span className="nav-icon"><IconBike /></span>
                     </Link>
@@ -258,7 +256,7 @@ export function Sidebar() {
                         onClick={() => setBikeOpen((value) => !value)}
                       >
                         <span className="nav-icon"><IconBike /></span>
-                        <span className="nav-label">Bike Management</span>
+                        <span className="nav-label">Bike</span>
                         <span
                           className="nav-chevron"
                           style={{ transform: bikeOpen ? "rotate(90deg)" : "rotate(0deg)", transition: "transform 0.2s" }}
