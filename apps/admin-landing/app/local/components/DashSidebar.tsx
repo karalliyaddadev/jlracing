@@ -18,17 +18,6 @@ const NAV_ITEMS = [
         icon: "image",
       },
       { href: "/local/dashboard/video", label: "Video", icon: "play" },
-      { href: "/local/dashboard/bikes", label: "Bike Listings", icon: "bike" },
-      {
-        href: "/local/dashboard/spare-parts",
-        label: "Spare Parts",
-        icon: "cog",
-      },
-      {
-        href: "/local/dashboard/pre-orders",
-        label: "Pre Orders",
-        icon: "cart",
-      },
     ],
   },
   {

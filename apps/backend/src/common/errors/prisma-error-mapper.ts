@@ -1,4 +1,4 @@
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../generated/prisma";
 import { AppException } from "./app-exception";
 import { ErrorCode } from "./error-codes.enum";
 

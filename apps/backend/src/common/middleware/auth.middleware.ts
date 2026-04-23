@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import { env } from "../../config/env";
 import { AppError } from "../utils/errors";
-import type { Role } from "@prisma/client";
+import type { Role } from "../../generated/prisma";
 
 // Extend Express Request type
 declare global {

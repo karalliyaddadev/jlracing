@@ -1,5 +1,5 @@
 import { prisma } from "../../database/prisma.client";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../generated/prisma";
 import { AppError } from "../../common/utils/errors";
 
 // ── Types ──────────────────────────────────────────────────────────────────

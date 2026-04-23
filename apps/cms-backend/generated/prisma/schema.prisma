@@ -1,0 +1,160 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Enums
+// ─────────────────────────────────────────────────────────────────────────────
+
+enum SiteType {
+  LOCAL
+  FOREIGN
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// CMS Admin
+// ─────────────────────────────────────────────────────────────────────────────
+
+model CmsAdmin {
+  id               Int       @id @default(autoincrement())
+  name             String
+  email            String    @unique
+  passwordHash     String
+  isActive         Boolean   @default(true)
+  lastLoginAt      DateTime?
+  refreshTokenHash String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("cms_admins")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hero Images  (Local + Foreign home pages)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model HeroImage {
+  id           Int      @id @default(autoincrement())
+  site         SiteType
+  desktopImage String // URL / storage path  — 16:9 recommended
+  mobileImage  String // URL / storage path  — 9:16 recommended
+  buttonLink   String // internal path e.g. /bikes or /listings
+  order        Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("hero_images")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Video Banner  (Home page — 16:9, 12-15 s)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model VideoBanner {
+  id          Int      @id @default(autoincrement())
+  site        SiteType
+  videoUrl    String
+  aspectRatio String   @default("16:9")
+  durationSec Int?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("video_banners")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Gallery  (Local = videos, Foreign = images)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model GalleryItem {
+  id           Int      @id @default(autoincrement())
+  site         SiteType
+  mediaUrl     String
+  thumbnailUrl String?
+  title        String
+  mediaType    String   @default("video") // "video" | "image"
+  aspectRatio  String   @default("16:9")
+  order        Int      @default(0)
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("gallery_items")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Blog Posts  (Local frontend only)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model BlogPost {
+  id          Int      @id @default(autoincrement())
+  imageUrl    String
+  imageRatio  String   @default("16:9")
+  title       String
+  author      String
+  article     String   @db.Text
+  publishedAt DateTime @default(now())
+  isPublished Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("blog_posts")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Foreign Listings  (Brand / Model / Year / Price / PDF)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model ForeignListing {
+  id        Int      @id @default(autoincrement())
+  brand     String
+  model     String
+  year      Int
+  price     Float
+  pdfUrl    String
+  category  String   @default("2-Wheelers") // "2-Wheelers" | "Automobiles" | "Heavy Machinery"
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("foreign_listings")
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// FAQ  (Local + Foreign contact pages — full CRUD on categories & items)
+// ─────────────────────────────────────────────────────────────────────────────
+
+model FaqCategory {
+  id        Int       @id @default(autoincrement())
+  site      SiteType
+  title     String
+  order     Int       @default(0)
+  isActive  Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  items     FaqItem[]
+
+  @@map("faq_categories")
+}
+
+model FaqItem {
+  id         Int         @id @default(autoincrement())
+  categoryId Int
+  category   FaqCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  question   String
+  answer     String      @db.Text
+  order      Int         @default(0)
+  isActive   Boolean     @default(true)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@map("faq_items")
+}

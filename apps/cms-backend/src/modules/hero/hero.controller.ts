@@ -9,7 +9,7 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
-import { SiteType } from "@prisma/client";
+import { SiteType } from "../../../generated/prisma";
 import { Public } from "../../common/decorators/public.decorator";
 import { HeroService } from "./hero.service";
 import { CreateHeroImageDto } from "./dto/create-hero.dto";

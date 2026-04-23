@@ -1,8 +1,11 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { vehicles, VehicleCategory } from "../data/vehicles";
+import Link from "next/link";
+import { VehicleCategory } from "../data/vehicles";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
 const CATEGORIES: VehicleCategory[] = [
   "2-Wheelers",
@@ -39,22 +42,174 @@ const CATEGORY_DESCS: Record<VehicleCategory, string> = {
 
 const PER_PAGE = 6;
 
+interface VehicleImage {
+  id: number;
+  url: string;
+  isPrimary: boolean;
+  sortOrder: number;
+}
+
+interface ApiBikeVehicle {
+  id: number;
+  brand: { id: number; name: string };
+  model: { id: number; name: string };
+  year: number | null;
+  sellingPrice: number | null;
+  images: VehicleImage[];
+}
+
+interface ApiExportVehicle {
+  id: number;
+  brand: string;
+  model: string;
+  year: number | null;
+  price: number | null;
+  images: VehicleImage[];
+}
+
+interface ListingCard {
+  id: number | string;
+  name: string;
+  year: number | null;
+  price: string;
+  image: string | null;
+}
+
+function categorySlug(cat: VehicleCategory): string {
+  if (cat === "2-Wheelers") return "2-wheelers";
+  if (cat === "Heavy Machinery") return "heavy-machinery";
+  return "automobiles";
+}
+
+function formatPrice(price: number | null | undefined): string {
+  if (!price) return "Contact for price";
+  return `Rs. ${price.toLocaleString("en-LK")}`;
+}
+
+function getPrimaryImage(images: VehicleImage[]): string | null {
+  if (!images.length) return null;
+  const primary = images.find((i) => i.isPrimary) ?? images[0];
+  return `${BACKEND_URL}${primary.url}`;
+}
+
+type FetchState = {
+  loading: boolean;
+  error: string | null;
+  cards: ListingCard[];
+};
+const INITIAL_STATE: FetchState = { loading: false, error: null, cards: [] };
+
 export default function ListingsPage() {
   const [active, setActive] = useState<VehicleCategory>("Automobiles");
   const [page, setPage] = useState(1);
 
-  const filtered = vehicles.filter((v) => v.category === active);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const [bikes, setBikes] = useState<FetchState>(INITIAL_STATE);
+  const [autos, setAutos] = useState<FetchState>(INITIAL_STATE);
+  const [heavy, setHeavy] = useState<FetchState>(INITIAL_STATE);
+
+  // Fetch 2-Wheelers (bikes API)
+  useEffect(() => {
+    setBikes((s) => ({ ...s, loading: true, error: null }));
+    fetch(`${BACKEND_URL}/api/bikes/vehicles?limit=200`)
+      .then((r) => {
+        if (!r.ok) throw new Error();
+        return r.json();
+      })
+      .then((data) => {
+        const cards: ListingCard[] = (data.vehicles ?? []).map(
+          (v: ApiBikeVehicle) => ({
+            id: v.id,
+            name: `${v.brand.name} ${v.model.name}`,
+            year: v.year,
+            price: formatPrice(v.sellingPrice),
+            image: getPrimaryImage(v.images),
+          }),
+        );
+        setBikes({ loading: false, error: null, cards });
+      })
+      .catch(() =>
+        setBikes({ loading: false, error: "Could not load bikes.", cards: [] }),
+      );
+  }, []);
+
+  // Fetch Automobiles
+  useEffect(() => {
+    setAutos((s) => ({ ...s, loading: true, error: null }));
+    fetch(`${BACKEND_URL}/api/export-vehicles/automobile?limit=200`)
+      .then((r) => {
+        if (!r.ok) throw new Error();
+        return r.json();
+      })
+      .then((data) => {
+        const cards: ListingCard[] = (data.vehicles ?? []).map(
+          (v: ApiExportVehicle) => ({
+            id: v.id,
+            name: `${v.brand} ${v.model}`,
+            year: v.year,
+            price: formatPrice(v.price),
+            image: getPrimaryImage(v.images),
+          }),
+        );
+        setAutos({ loading: false, error: null, cards });
+      })
+      .catch(() =>
+        setAutos({
+          loading: false,
+          error: "Could not load automobiles.",
+          cards: [],
+        }),
+      );
+  }, []);
+
+  // Fetch Heavy Machinery
+  useEffect(() => {
+    setHeavy((s) => ({ ...s, loading: true, error: null }));
+    fetch(`${BACKEND_URL}/api/export-vehicles/heavy-machinery?limit=200`)
+      .then((r) => {
+        if (!r.ok) throw new Error();
+        return r.json();
+      })
+      .then((data) => {
+        const cards: ListingCard[] = (data.vehicles ?? []).map(
+          (v: ApiExportVehicle) => ({
+            id: v.id,
+            name: `${v.brand} ${v.model}`,
+            year: v.year,
+            price: formatPrice(v.price),
+            image: getPrimaryImage(v.images),
+          }),
+        );
+        setHeavy({ loading: false, error: null, cards });
+      })
+      .catch(() =>
+        setHeavy({
+          loading: false,
+          error: "Could not load heavy machinery.",
+          cards: [],
+        }),
+      );
+  }, []);
 
   const handleCategory = (cat: VehicleCategory) => {
     setActive(cat);
     setPage(1);
   };
 
+  const activeState =
+    active === "2-Wheelers" ? bikes : active === "Automobiles" ? autos : heavy;
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(activeState.cards.length / PER_PAGE),
+  );
+  const paginated = activeState.cards.slice(
+    (page - 1) * PER_PAGE,
+    page * PER_PAGE,
+  );
+
   return (
     <>
-      {/* ── Hero ── */}
+      {/* â”€â”€ Hero â”€â”€ */}
       <section className="lst-hero">
         <div className="lst-hero__bg" />
         <div className="lst-hero__overlay" />
@@ -66,7 +221,7 @@ export default function ListingsPage() {
         </div>
       </section>
 
-      {/* ── Full Listings ── */}
+      {/* â”€â”€ Full Listings â”€â”€ */}
       <section className="lst-full">
         <div className="lst-full__inner">
           {/* Top row: category info + tabs */}
@@ -101,32 +256,42 @@ export default function ListingsPage() {
 
           {/* Cards Grid */}
           <div className="int-listings__grid">
-            {paginated.map((vehicle) => (
-              <div key={vehicle.id} className="int-veh-card">
-                <div className="int-veh-card__img-wrap">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={vehicle.image}
-                    alt={`${vehicle.name} ${vehicle.year}`}
-                    className="int-veh-card__img"
-                  />
-                </div>
-                <div className="int-veh-card__body">
-                  <h3 className="int-veh-card__name">
-                    {vehicle.name}&nbsp;&nbsp;{vehicle.year}
-                  </h3>
-                  <p className="int-veh-card__price">{vehicle.price}</p>
-                  <a
-                    href={vehicle.pdfUrl ?? "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="int-veh-card__cta"
-                  >
-                    Explore More &gt;
-                  </a>
-                </div>
-              </div>
-            ))}
+            {activeState.loading ? (
+              <p className="bikes-grid__empty">Loading vehiclesâ€¦</p>
+            ) : activeState.error ? (
+              <p className="bikes-grid__empty">{activeState.error}</p>
+            ) : paginated.length === 0 ? (
+              <p className="bikes-grid__empty">No vehicles available yet.</p>
+            ) : (
+              paginated.map((vehicle) => (
+                <Link
+                  key={vehicle.id}
+                  href={`/listings/${categorySlug(active)}/${vehicle.id}`}
+                  className="int-veh-card"
+                >
+                  <div className="int-veh-card__img-wrap">
+                    {vehicle.image ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={vehicle.image}
+                        alt={`${vehicle.name} ${vehicle.year ?? ""}`}
+                        className="int-veh-card__img"
+                      />
+                    ) : (
+                      <div className="bike-card__no-image">No image</div>
+                    )}
+                  </div>
+                  <div className="int-veh-card__body">
+                    <h3 className="int-veh-card__name">
+                      {vehicle.name}
+                      {vehicle.year ? `\u00a0\u00a0${vehicle.year}` : ""}
+                    </h3>
+                    <p className="int-veh-card__price">{vehicle.price}</p>
+                    <span className="int-veh-card__cta">Explore More &gt;</span>
+                  </div>
+                </Link>
+              ))
+            )}
           </div>
 
           {/* Footer: pagination */}
