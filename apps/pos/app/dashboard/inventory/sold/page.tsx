@@ -33,6 +33,8 @@ export default function SoldInventoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = { Authorization: `Bearer ${token}` };
@@ -56,15 +58,28 @@ export default function SoldInventoryPage() {
 
   useEffect(() => { void loadData(); }, [loadData]);
 
-  const totalSoldUnits = useMemo(() => purchases.reduce((sum, purchase) => sum + purchase.quantity, 0), [purchases]);
-  const estimatedRevenue = useMemo(() => purchases.reduce((sum, purchase) => sum + purchase.finalSellingPrice, 0), [purchases]);
+  const filteredPurchases = useMemo(() => {
+    const fromBoundary = fromDate ? new Date(`${fromDate}T00:00:00`) : null;
+    const toBoundary = toDate ? new Date(`${toDate}T23:59:59.999`) : null;
+
+    return purchases.filter((purchase) => {
+      const purchasedAt = new Date(purchase.purchasedAt);
+      if (Number.isNaN(purchasedAt.getTime())) return !fromBoundary && !toBoundary;
+      if (fromBoundary && purchasedAt < fromBoundary) return false;
+      if (toBoundary && purchasedAt > toBoundary) return false;
+      return true;
+    });
+  }, [fromDate, purchases, toDate]);
+
+  const totalSoldUnits = useMemo(() => filteredPurchases.reduce((sum, purchase) => sum + purchase.quantity, 0), [filteredPurchases]);
+  const estimatedRevenue = useMemo(() => filteredPurchases.reduce((sum, purchase) => sum + purchase.finalSellingPrice, 0), [filteredPurchases]);
 
   const exportSoldInventoryPdf = () => {
     exportTableToPdf({
       fileName: "inventory-sold-report",
       title: "Inventory Sold Report",
       subtitle: "All sold inventory entries currently loaded in Sold Items tab",
-      rows: purchases,
+      rows: filteredPurchases,
       columns: [
         { header: "Invoice", value: (purchase) => `INV-${String(purchase.id).padStart(5, "0")}` },
         { header: "Purchased At", value: (purchase) => new Date(purchase.purchasedAt).toLocaleString() },
@@ -103,7 +118,7 @@ export default function SoldInventoryPage() {
       {error && <div className="bm-alert bm-alert-error">{error}</div>}
 
       <div className="bm-stats-grid">
-        <div className="bm-stat-card bm-stat-card-soft"><div className="bm-stat-head"><span className="bm-stat-icon"><IconInventory /></span><span className="bm-stat-label">Sold Entries</span></div><strong className="bm-stat-value">{purchases.length}</strong><span className="bm-stat-sub">Customer-linked purchase records</span></div>
+        <div className="bm-stat-card bm-stat-card-soft"><div className="bm-stat-head"><span className="bm-stat-icon"><IconInventory /></span><span className="bm-stat-label">Sold Entries</span></div><strong className="bm-stat-value">{filteredPurchases.length}</strong><span className="bm-stat-sub">Customer-linked purchase records</span></div>
         <div className="bm-stat-card"><div className="bm-stat-head"><span className="bm-stat-icon"><IconInvoice /></span><span className="bm-stat-label">Sold Units</span></div><strong className="bm-stat-value">{totalSoldUnits}</strong><span className="bm-stat-sub">Total quantity sold</span></div>
         <div className="bm-stat-card bm-stat-card-soft"><div className="bm-stat-head"><span className="bm-stat-icon"><IconActivity /></span><span className="bm-stat-label">Revenue</span></div><strong className="bm-stat-value">Rs. {estimatedRevenue.toLocaleString()}</strong><span className="bm-stat-sub">From purchase final prices</span></div>
         <div className="bm-stat-card"><div className="bm-stat-head"><span className="bm-stat-icon"><IconSupplier /></span><span className="bm-stat-label">Source</span></div><strong className="bm-stat-value">Invoices</strong><span className="bm-stat-sub">POS customer purchase records</span></div>
@@ -112,6 +127,23 @@ export default function SoldInventoryPage() {
       <div className="bm-table-card">
         <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)", display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
           <input className="bm-input" style={{ maxWidth: 420 }} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by customer, NIC, product ID, name or brand" />
+          <label htmlFor="sold-inventory-from" style={{ fontSize: 13, color: "var(--text-soft)" }}>From</label>
+          <input
+            id="sold-inventory-from"
+            className="bm-input"
+            type="date"
+            value={fromDate}
+            onChange={(event) => setFromDate(event.target.value)}
+          />
+          <label htmlFor="sold-inventory-to" style={{ fontSize: 13, color: "var(--text-soft)" }}>To</label>
+          <input
+            id="sold-inventory-to"
+            className="bm-input"
+            type="date"
+            value={toDate}
+            onChange={(event) => setToDate(event.target.value)}
+          />
+          <button type="button" className="btn-outline" onClick={() => { setFromDate(""); setToDate(""); }}>Clear Dates</button>
           <button type="button" className="btn-outline" onClick={() => void loadData()}>Refresh</button>
           <button type="button" className="btn-outline" onClick={exportSoldInventoryPdf}>Export PDF</button>
         </div>
@@ -131,8 +163,8 @@ export default function SoldInventoryPage() {
             </thead>
             <tbody>
               {loading && <tr><td colSpan={8} className="bm-table-empty">Loading sold products...</td></tr>}
-              {!loading && purchases.length === 0 && <tr><td colSpan={8} className="bm-table-empty">No sold inventory records yet.</td></tr>}
-              {!loading && purchases.map((purchase) => {
+              {!loading && filteredPurchases.length === 0 && <tr><td colSpan={8} className="bm-table-empty">No sold inventory records for selected dates.</td></tr>}
+              {!loading && filteredPurchases.map((purchase) => {
                 return (
                   <tr key={purchase.id} className="bm-vehicle-row">
                     <td>INV-{String(purchase.id).padStart(5, "0")}</td>

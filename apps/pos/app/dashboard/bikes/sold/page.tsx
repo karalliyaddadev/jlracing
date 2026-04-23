@@ -1,9 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
-import { exportTableToPdf } from "../../../lib/pdf-export";
 import { IconActivity, IconBike, IconInventory, IconInvoice } from "../../../lib/icons";
 
 type VehicleImage = { id: number; vehicleId: number; url: string; isPrimary: boolean; sortOrder: number; createdAt: string };
@@ -52,6 +51,15 @@ type BikePurchase = {
     id: number;
   } | null;
 };
+
+function escapeHtml(value: string) {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
 
 function ImageGallery({ images }: { images: VehicleImage[] }) {
   const [selectedIdx, setSelectedIdx] = useState(0);
@@ -355,6 +363,8 @@ export default function SoldBikesPage() {
   const [restoring, setRestoring] = useState<number | null>(null);
   const [delConfirm, setDelConfirm] = useState<number | null>(null);
   const [viewVehicle, setViewVehicle] = useState<Vehicle | null>(null);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   const base = `${API_URL}/api/pos/bike-management`;
   const auth = { Authorization: `Bearer ${token}` };
@@ -395,6 +405,21 @@ export default function SoldBikesPage() {
 
   useEffect(() => { void load(); }, [load]);
 
+  const filteredVehicles = useMemo(() => {
+    const fromBoundary = fromDate ? new Date(`${fromDate}T00:00:00`) : null;
+    const toBoundary = toDate ? new Date(`${toDate}T23:59:59.999`) : null;
+
+    return vehicles.filter((vehicle) => {
+      const soldDateRaw = vehicle.soldAt ?? purchasesByBikeId[vehicle.id]?.purchasedAt;
+      if (!soldDateRaw) return !fromBoundary && !toBoundary;
+      const soldDate = new Date(soldDateRaw);
+      if (Number.isNaN(soldDate.getTime())) return !fromBoundary && !toBoundary;
+      if (fromBoundary && soldDate < fromBoundary) return false;
+      if (toBoundary && soldDate > toBoundary) return false;
+      return true;
+    });
+  }, [fromDate, toDate, purchasesByBikeId, vehicles]);
+
   const restore = async (id: number) => {
     setRestoring(id);
     await fetch(`${base}/vehicles/${id}`, {
@@ -412,64 +437,206 @@ export default function SoldBikesPage() {
     void load();
   };
 
-  const soldWithImages = vehicles.filter((vehicle) => (vehicle.images ?? []).length > 0).length;
-  const soldWithRegister = vehicles.filter((vehicle) => !!vehicle.registerNo).length;
-  const totalSoldValue = vehicles.reduce((sum, vehicle) => sum + (vehicle.sellingPrice ?? 0), 0);
-  const latestSold = vehicles.map((vehicle) => vehicle.soldAt).filter((value): value is string => typeof value === "string").sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0];
+  const soldWithImages = filteredVehicles.filter((vehicle) => (vehicle.images ?? []).length > 0).length;
+  const soldWithRegister = filteredVehicles.filter((vehicle) => !!vehicle.registerNo).length;
+  const totalSoldValue = filteredVehicles.reduce((sum, vehicle) => sum + (vehicle.sellingPrice ?? 0), 0);
+  const latestSold = filteredVehicles
+    .map((vehicle) => vehicle.soldAt ?? purchasesByBikeId[vehicle.id]?.purchasedAt)
+    .filter((value): value is string => typeof value === "string")
+    .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0];
 
   const exportSoldBikesPdf = () => {
-    exportTableToPdf({
-      fileName: "bike-sold-report",
-      title: "Sold Bikes Report",
-      subtitle: "All sold bikes currently loaded in Sold Bikes tab",
-      rows: vehicles,
-      columns: [
-        { header: "Display ID", value: (vehicle) => vehicle.displayId },
-        { header: "Brand", value: (vehicle) => vehicle.brand?.name ?? "-" },
-        { header: "Model", value: (vehicle) => vehicle.model?.name ?? "-" },
-        { header: "Supplier", value: (vehicle) => vehicle.supplier ? `${vehicle.supplier.name} (${vehicle.supplier.code})` : "-" },
-        { header: "Colour", value: (vehicle) => vehicle.colour },
-        { header: "Year", value: (vehicle) => vehicle.year ?? "-" },
-        { header: "Manufacture Date", value: (vehicle) => vehicle.manufactureDate ? new Date(vehicle.manufactureDate).toLocaleDateString() : "-" },
-        { header: "Condition", value: (vehicle) => vehicle.condition ? (vehicle.condition === "brandnew" ? "Brand New" : "Used") : "-" },
-        { header: "Mileage", value: (vehicle) => vehicle.mileage ?? "-" },
-        { header: "Engine Capacity (cc)", value: (vehicle) => vehicle.engineCapacityCc ?? "-" },
-        { header: "File No", value: (vehicle) => vehicle.fileNo ?? "-" },
-        { header: "Register No", value: (vehicle) => vehicle.registerNo ?? "-" },
-        { header: "Chassis No", value: (vehicle) => vehicle.chassisNo ?? "-" },
-        { header: "Engine No", value: (vehicle) => vehicle.engineNo ?? "-" },
-        { header: "Registration", value: (vehicle) => vehicle.registrationType === "registered" ? "Registered" : vehicle.registrationType === "unregistered" ? "Unregistered" : "-" },
-        { header: "Purchase Price", value: (vehicle) => vehicle.purchasePrice ?? "-" },
-        { header: "Tax Amount", value: (vehicle) => vehicle.taxAmount ?? "-" },
-        {
-          header: "Additional Expenses Total",
-          value: (vehicle) => (vehicle.expenses?.length
-            ? vehicle.expenses.reduce((sum, expense) => sum + (expense.amount ?? 0), 0)
-            : "-"),
-        },
-        {
-          header: "Expense Breakdown",
-          value: (vehicle) => vehicle.expenses?.length
-            ? vehicle.expenses.map((expense) => `${expense.description}: ${expense.amount}`).join(" | ")
-            : "-",
-        },
-        { header: "Selling Price", value: (vehicle) => vehicle.sellingPrice ?? "-" },
-        { header: "Sold At", value: (vehicle) => vehicle.soldAt ? new Date(vehicle.soldAt).toLocaleString() : "-" },
-        { header: "Customer", value: (vehicle) => {
-          const purchase = purchasesByBikeId[vehicle.id];
-          return purchase ? `${purchase.customer.firstName} ${purchase.customer.lastName}` : "-";
-        } },
-        { header: "Customer NIC", value: (vehicle) => purchasesByBikeId[vehicle.id]?.customer.nic ?? "-" },
-        { header: "Customer Mobile", value: (vehicle) => purchasesByBikeId[vehicle.id]?.customer.mobileNumber ?? "-" },
-        { header: "Customer Address", value: (vehicle) => {
-          const customer = purchasesByBikeId[vehicle.id]?.customer;
-          return customer ? `${customer.address}, ${customer.district}, ${customer.province}` : "-";
-        } },
-        { header: "Image Count", value: (vehicle) => vehicle.images?.length ?? 0 },
-        { header: "Added At", value: (vehicle) => vehicle.createdAt ? new Date(vehicle.createdAt).toLocaleString() : "-" },
-        { header: "Description", value: (vehicle) => vehicle.description ?? "-" },
-      ],
-    });
+    if (typeof window === "undefined") return;
+
+    const generatedAt = new Date().toLocaleString();
+    const fromLabel = fromDate || "All";
+    const toLabel = toDate || "All";
+
+    const rows = filteredVehicles.map((vehicle) => {
+      const purchase = purchasesByBikeId[vehicle.id];
+      const soldAt = vehicle.soldAt ?? purchase?.purchasedAt;
+      const customer = purchase
+        ? `${purchase.customer.firstName} ${purchase.customer.lastName}`
+        : "-";
+
+      return `
+        <tr>
+          <td>${escapeHtml(vehicle.displayId ?? "-")}</td>
+          <td>${escapeHtml(vehicle.brand?.name ?? "-")}</td>
+          <td>${escapeHtml(vehicle.model?.name ?? "-")}</td>
+          <td>${escapeHtml(vehicle.supplier ? `${vehicle.supplier.name} (${vehicle.supplier.code})` : "-")}</td>
+          <td>${escapeHtml(customer)}</td>
+          <td style="text-align:right;">${vehicle.sellingPrice != null ? `Rs. ${vehicle.sellingPrice.toLocaleString()}` : "-"}</td>
+          <td>${soldAt ? escapeHtml(new Date(soldAt).toLocaleString()) : "-"}</td>
+        </tr>`;
+    }).join("");
+
+    const html = `
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>bike-sold-report</title>
+    <style>
+      @page { size: A4 portrait; margin: 14mm; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        color: #111827;
+        background: #ffffff;
+      }
+      .header {
+        border-bottom: 2px solid #d4af37;
+        padding-bottom: 10px;
+        margin-bottom: 14px;
+      }
+      .title {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .subtitle {
+        margin-top: 4px;
+        font-size: 12px;
+        color: #4b5563;
+      }
+      .meta {
+        margin-top: 4px;
+        font-size: 11px;
+        color: #6b7280;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .card {
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 10px;
+      }
+      .label {
+        font-size: 11px;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .value {
+        margin-top: 6px;
+        font-size: 24px;
+        font-weight: 700;
+      }
+      .section-title {
+        margin-top: 10px;
+        margin-bottom: 6px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #374151;
+        font-weight: 700;
+      }
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 4px;
+      }
+      .table th {
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        text-align: left;
+        font-size: 11px;
+        padding: 7px 8px;
+      }
+      .table td {
+        border: 1px solid #e5e7eb;
+        font-size: 11px;
+        padding: 7px 8px;
+        vertical-align: top;
+      }
+      .empty {
+        border: 1px dashed #d1d5db;
+        border-radius: 8px;
+        padding: 18px;
+        text-align: center;
+        color: #6b7280;
+        font-size: 12px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1 class="title">JL Racing Sold Bikes Report</h1>
+      <div class="subtitle">Dashboard-style export for sold bikes in the selected date range.</div>
+      <div class="meta">Generated: ${escapeHtml(generatedAt)}</div>
+      <div class="meta">Date Filter: ${escapeHtml(fromLabel)} to ${escapeHtml(toLabel)}</div>
+    </div>
+
+    <div class="grid">
+      <div class="card"><div class="label">Total Sold Bikes</div><div class="value">${filteredVehicles.length}</div></div>
+      <div class="card"><div class="label">Sold Value</div><div class="value">LKR ${totalSoldValue.toLocaleString()}</div></div>
+      <div class="card"><div class="label">With Images</div><div class="value">${soldWithImages}</div></div>
+      <div class="card"><div class="label">Registered Bikes</div><div class="value">${soldWithRegister}</div></div>
+    </div>
+
+    <div class="section-title">Sold Bike List</div>
+    ${filteredVehicles.length === 0 ? '<div class="empty">No sold bikes found for the selected date range.</div>' : `
+      <table class="table">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Brand</th>
+            <th>Model</th>
+            <th>Supplier</th>
+            <th>Customer</th>
+            <th>Selling Price</th>
+            <th>Sold At</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${rows}
+        </tbody>
+      </table>
+    `}
+  </body>
+</html>`;
+
+    const printFrame = document.createElement("iframe");
+    printFrame.setAttribute("aria-hidden", "true");
+    printFrame.style.position = "fixed";
+    printFrame.style.right = "0";
+    printFrame.style.bottom = "0";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "0";
+    printFrame.style.opacity = "0";
+
+    const cleanup = () => {
+      window.setTimeout(() => {
+        if (printFrame.parentNode) {
+          printFrame.parentNode.removeChild(printFrame);
+        }
+      }, 1000);
+    };
+
+    printFrame.onload = () => {
+      const frameWindow = printFrame.contentWindow;
+      if (!frameWindow) {
+        cleanup();
+        return;
+      }
+      frameWindow.requestAnimationFrame(() => {
+        window.setTimeout(() => {
+          frameWindow.focus();
+          frameWindow.print();
+          cleanup();
+        }, 120);
+      });
+    };
+
+    document.body.appendChild(printFrame);
+    printFrame.srcdoc = html;
   };
 
   return (
@@ -479,7 +646,7 @@ export default function SoldBikesPage() {
           <div className="page-title-icon"><IconBike /></div>
           <div>
             <h2 className="page-title">Sold Bikes</h2>
-            <p className="page-subtitle">{vehicles.length} bike{vehicles.length !== 1 ? "s" : ""} sold</p>
+            <p className="page-subtitle">{filteredVehicles.length} bike{filteredVehicles.length !== 1 ? "s" : ""} sold</p>
           </div>
         </div>
         <button type="button" className="btn-outline" onClick={exportSoldBikesPdf}>Export PDF</button>
@@ -490,7 +657,7 @@ export default function SoldBikesPage() {
       <div className="bm-stats-grid">
         <div className="bm-stat-card bm-stat-card-danger">
           <div className="bm-stat-head"><span className="bm-stat-icon"><IconBike /></span><span className="bm-stat-label">Total Sold</span></div>
-          <strong className="bm-stat-value">{vehicles.length}</strong>
+          <strong className="bm-stat-value">{filteredVehicles.length}</strong>
           <span className="bm-stat-sub">Sold inventory records</span>
         </div>
         <div className="bm-stat-card bm-stat-card-soft">
@@ -511,6 +678,26 @@ export default function SoldBikesPage() {
       </div>
 
       <div className="bm-table-card">
+        <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)", display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
+          <label htmlFor="sold-bikes-from" style={{ fontSize: 13, color: "var(--text-soft)" }}>From</label>
+          <input
+            id="sold-bikes-from"
+            className="bm-input"
+            type="date"
+            value={fromDate}
+            onChange={(event) => setFromDate(event.target.value)}
+          />
+          <label htmlFor="sold-bikes-to" style={{ fontSize: 13, color: "var(--text-soft)" }}>To</label>
+          <input
+            id="sold-bikes-to"
+            className="bm-input"
+            type="date"
+            value={toDate}
+            onChange={(event) => setToDate(event.target.value)}
+          />
+          <button type="button" className="btn-outline" onClick={() => { setFromDate(""); setToDate(""); }}>Clear Dates</button>
+          <button type="button" className="btn-outline" onClick={() => void load()}>Refresh</button>
+        </div>
         <div className="data-table-wrap">
           <table className="data-table">
             <thead>
@@ -527,8 +714,8 @@ export default function SoldBikesPage() {
             </thead>
             <tbody>
               {loading && <tr><td colSpan={8} className="bm-table-empty">Loading…</td></tr>}
-              {!loading && vehicles.length === 0 && <tr><td colSpan={8} className="bm-table-empty">No sold bikes.</td></tr>}
-              {!loading && vehicles.map((vehicle) => {
+              {!loading && filteredVehicles.length === 0 && <tr><td colSpan={8} className="bm-table-empty">No sold bikes for selected dates.</td></tr>}
+              {!loading && filteredVehicles.map((vehicle) => {
                 const primaryImg = (vehicle.images ?? []).find((img) => img.isPrimary) ?? (vehicle.images ?? [])[0];
                 const purchase = purchasesByBikeId[vehicle.id];
                 return (
@@ -576,7 +763,7 @@ export default function SoldBikesPage() {
         </div>
       </div>
 
-      {viewVehicle && <ViewVehicleModal vehicle={viewVehicle} relatedVehicles={vehicles} token={token} purchase={purchasesByBikeId[viewVehicle.id]} onClose={() => setViewVehicle(null)} />}
+      {viewVehicle && <ViewVehicleModal vehicle={viewVehicle} relatedVehicles={filteredVehicles} token={token} purchase={purchasesByBikeId[viewVehicle.id]} onClose={() => setViewVehicle(null)} />}
     </div>
   );
 }
