@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import SignInModal from "./SignInModal";
 
 const NAV_LINKS = [
-  { href: "/bikes", label: "Bikes" },
+  { href: "/bikes", label: "Stock" },
   { href: "/spare-parts", label: "Spare Parts" },
   { href: "/pre-orders", label: "Pre Orders" },
   { href: "/about", label: "About" },

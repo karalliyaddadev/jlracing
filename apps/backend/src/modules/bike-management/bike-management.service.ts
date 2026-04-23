@@ -1,7 +1,14 @@
 import { Prisma } from "@prisma/client";
 import { prisma } from "../../database/prisma.client";
 import { AppError } from "../../common/utils/errors";
-import type { CreateBrandDto, UpdateBrandDto, CreateModelDto, UpdateModelDto, CreateColorDto, UpdateColorDto } from "./dto/brand.dto";
+import type {
+  CreateBrandDto,
+  UpdateBrandDto,
+  CreateModelDto,
+  UpdateModelDto,
+  CreateColorDto,
+  UpdateColorDto,
+} from "./dto/brand.dto";
 import type { CreateSupplierDto, UpdateSupplierDto } from "./dto/supplier.dto";
 import type {
   CreateProductBrandDto,
@@ -30,7 +37,9 @@ async function generateDisplayId(): Promise<string> {
     select: { displayId: true },
   });
 
-  const current = latest?.displayId ? Number.parseInt(latest.displayId.replace(/^JLR-/, ""), 10) : 0;
+  const current = latest?.displayId
+    ? Number.parseInt(latest.displayId.replace(/^JLR-/, ""), 10)
+    : 0;
   return `JLR-${String(Number.isFinite(current) ? current + 1 : 1).padStart(5, "0")}`;
 }
 
@@ -40,7 +49,9 @@ async function generateSupplierCode(): Promise<string> {
     select: { code: true },
   });
 
-  const current = latest?.code ? Number.parseInt(latest.code.replace(/^SUP-/, ""), 10) : 0;
+  const current = latest?.code
+    ? Number.parseInt(latest.code.replace(/^SUP-/, ""), 10)
+    : 0;
   return `SUP-${String(Number.isFinite(current) ? current + 1 : 1).padStart(5, "0")}`;
 }
 
@@ -50,25 +61,39 @@ async function generateProductDisplayId(): Promise<string> {
     select: { displayId: true },
   });
 
-  const current = latest?.displayId ? Number.parseInt(latest.displayId.replace(/^PRD-/, ""), 10) : 0;
+  const current = latest?.displayId
+    ? Number.parseInt(latest.displayId.replace(/^PRD-/, ""), 10)
+    : 0;
   return `PRD-${String(Number.isFinite(current) ? current + 1 : 1).padStart(5, "0")}`;
 }
 
 async function assertSupplierExists(supplierId?: number) {
   if (!supplierId) return;
-  const supplier = await prisma.bikeSupplier.findUnique({ where: { id: supplierId } });
+  const supplier = await prisma.bikeSupplier.findUnique({
+    where: { id: supplierId },
+  });
   if (!supplier) throw AppError.notFound("Supplier not found");
 }
 
 function normalizeSupplierInput(dto: Partial<CreateSupplierDto>) {
   return {
     ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
-    ...(dto.contactPerson !== undefined ? { contactPerson: dto.contactPerson.trim() || undefined } : {}),
-    ...(dto.telephone !== undefined ? { telephone: dto.telephone.trim() || undefined } : {}),
-    ...(dto.address !== undefined ? { address: dto.address.trim() || undefined } : {}),
+    ...(dto.contactPerson !== undefined
+      ? { contactPerson: dto.contactPerson.trim() || undefined }
+      : {}),
+    ...(dto.telephone !== undefined
+      ? { telephone: dto.telephone.trim() || undefined }
+      : {}),
+    ...(dto.address !== undefined
+      ? { address: dto.address.trim() || undefined }
+      : {}),
     ...(dto.fax !== undefined ? { fax: dto.fax.trim() || undefined } : {}),
-    ...(dto.email !== undefined ? { email: dto.email.trim() || undefined } : {}),
-    ...(dto.vatRegistrationNo !== undefined ? { vatRegistrationNo: dto.vatRegistrationNo.trim() || undefined } : {}),
+    ...(dto.email !== undefined
+      ? { email: dto.email.trim() || undefined }
+      : {}),
+    ...(dto.vatRegistrationNo !== undefined
+      ? { vatRegistrationNo: dto.vatRegistrationNo.trim() || undefined }
+      : {}),
   };
 }
 
@@ -91,7 +116,9 @@ export async function getBrand(id: number) {
 }
 
 export async function createBrand(dto: CreateBrandDto) {
-  const existing = await prisma.bikeBrand.findUnique({ where: { name: dto.name } });
+  const existing = await prisma.bikeBrand.findUnique({
+    where: { name: dto.name },
+  });
   if (existing) throw AppError.conflict(`Brand "${dto.name}" already exists`);
   return prisma.bikeBrand.create({ data: { name: dto.name } });
 }
@@ -99,7 +126,9 @@ export async function createBrand(dto: CreateBrandDto) {
 export async function updateBrand(id: number, dto: UpdateBrandDto) {
   await getBrand(id);
   if (dto.name) {
-    const conflict = await prisma.bikeBrand.findFirst({ where: { name: dto.name, id: { not: id } } });
+    const conflict = await prisma.bikeBrand.findFirst({
+      where: { name: dto.name, id: { not: id } },
+    });
     if (conflict) throw AppError.conflict(`Brand "${dto.name}" already exists`);
   }
   return prisma.bikeBrand.update({ where: { id }, data: dto });
@@ -124,7 +153,10 @@ export async function listModels(brandId: number) {
 export async function listAllModels() {
   return prisma.bikeModel.findMany({
     orderBy: { name: "asc" },
-    include: { brand: { select: { id: true, name: true } }, _count: { select: { vehicles: true } } },
+    include: {
+      brand: { select: { id: true, name: true } },
+      _count: { select: { vehicles: true } },
+    },
   });
 }
 
@@ -139,7 +171,10 @@ export async function createModel(brandId: number, dto: CreateModelDto) {
   const existing = await prisma.bikeModel.findUnique({
     where: { name_brandId: { name: dto.name, brandId } },
   });
-  if (existing) throw AppError.conflict(`Model "${dto.name}" already exists for this brand`);
+  if (existing)
+    throw AppError.conflict(
+      `Model "${dto.name}" already exists for this brand`,
+    );
   return prisma.bikeModel.create({
     data: {
       name: dto.name,
@@ -155,14 +190,19 @@ export async function updateModel(id: number, dto: UpdateModelDto) {
     const conflict = await prisma.bikeModel.findFirst({
       where: { name: dto.name, brandId: model.brandId, id: { not: id } },
     });
-    if (conflict) throw AppError.conflict(`Model "${dto.name}" already exists for this brand`);
+    if (conflict)
+      throw AppError.conflict(
+        `Model "${dto.name}" already exists for this brand`,
+      );
   }
 
   return prisma.bikeModel.update({
     where: { id },
     data: {
       ...(dto.name !== undefined ? { name: dto.name } : {}),
-      ...(dto.lowStockThreshold !== undefined ? { lowStockThreshold: dto.lowStockThreshold ?? 0 } : {}),
+      ...(dto.lowStockThreshold !== undefined
+        ? { lowStockThreshold: dto.lowStockThreshold ?? 0 }
+        : {}),
     },
   });
 }
@@ -179,7 +219,9 @@ export async function listColors() {
 }
 
 export async function createColor(dto: CreateColorDto) {
-  const existing = await prisma.bikeColor.findUnique({ where: { name: dto.name } });
+  const existing = await prisma.bikeColor.findUnique({
+    where: { name: dto.name },
+  });
   if (existing) throw AppError.conflict(`Color "${dto.name}" already exists`);
   return prisma.bikeColor.create({ data: { name: dto.name } });
 }
@@ -188,7 +230,9 @@ export async function updateColor(id: number, dto: UpdateColorDto) {
   const color = await prisma.bikeColor.findUnique({ where: { id } });
   if (!color) throw AppError.notFound("Color not found");
   if (dto.name) {
-    const conflict = await prisma.bikeColor.findFirst({ where: { name: dto.name, id: { not: id } } });
+    const conflict = await prisma.bikeColor.findFirst({
+      where: { name: dto.name, id: { not: id } },
+    });
     if (conflict) throw AppError.conflict(`Color "${dto.name}" already exists`);
   }
   return prisma.bikeColor.update({ where: { id }, data: dto });
@@ -238,8 +282,8 @@ export async function createSupplier(dto: CreateSupplierDto) {
       });
     } catch (error) {
       if (
-        error instanceof Prisma.PrismaClientKnownRequestError
-        && error.code === "P2002"
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
       ) {
         continue;
       }
@@ -274,8 +318,13 @@ const productInclude = {
   images: { orderBy: { sortOrder: "asc" as const } },
 } as const;
 
-function normalizeProductDescription(description?: string, descriptionPoints?: string[]) {
-  const normalizedPoints = (descriptionPoints ?? []).map((point) => point.trim()).filter(Boolean);
+function normalizeProductDescription(
+  description?: string,
+  descriptionPoints?: string[],
+) {
+  const normalizedPoints = (descriptionPoints ?? [])
+    .map((point) => point.trim())
+    .filter(Boolean);
   if (normalizedPoints.length > 0) {
     return normalizedPoints.map((point) => `• ${point}`).join("\n");
   }
@@ -283,13 +332,20 @@ function normalizeProductDescription(description?: string, descriptionPoints?: s
   return fallback || undefined;
 }
 
-function normalizeProductExpenses(expenses?: { description: string; amount: number }[]) {
+function normalizeProductExpenses(
+  expenses?: { description: string; amount: number }[],
+) {
   return (expenses ?? [])
     .map((expense) => ({
       description: expense.description.trim(),
       amount: Number(expense.amount),
     }))
-    .filter((expense) => expense.description && Number.isFinite(expense.amount) && expense.amount >= 0);
+    .filter(
+      (expense) =>
+        expense.description &&
+        Number.isFinite(expense.amount) &&
+        expense.amount >= 0,
+    );
 }
 
 function getSafePerItemCount(count: number | undefined) {
@@ -299,7 +355,10 @@ function getSafePerItemCount(count: number | undefined) {
   return Math.max(Math.floor(count), 1);
 }
 
-function divideTotalAmountPerItem(amount: number | undefined, count: number | undefined) {
+function divideTotalAmountPerItem(
+  amount: number | undefined,
+  count: number | undefined,
+) {
   if (amount === undefined || !Number.isFinite(amount)) {
     return undefined;
   }
@@ -308,7 +367,10 @@ function divideTotalAmountPerItem(amount: number | undefined, count: number | un
   return Math.round((amount / safeCount) * 100) / 100;
 }
 
-function normalizeProductExpensesForCount(expenses: { description: string; amount: number }[] | undefined, count: number | undefined) {
+function normalizeProductExpensesForCount(
+  expenses: { description: string; amount: number }[] | undefined,
+  count: number | undefined,
+) {
   return normalizeProductExpenses(expenses).map((expense) => ({
     ...expense,
     amount: divideTotalAmountPerItem(expense.amount, count) ?? 0,
@@ -325,9 +387,9 @@ async function createProductWithUniqueDisplayId(data: Record<string, unknown>) {
       });
     } catch (error) {
       if (
-        error instanceof Prisma.PrismaClientKnownRequestError
-        && error.code === "P2002"
-        && String(error.meta?.target ?? "").includes("displayId")
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002" &&
+        String(error.meta?.target ?? "").includes("displayId")
       ) {
         continue;
       }
@@ -348,20 +410,27 @@ export async function listProductBrands() {
 export async function createProductBrand(dto: CreateProductBrandDto) {
   const name = dto.name.trim();
   const existing = await prisma.inventoryBrand.findUnique({ where: { name } });
-  if (existing) throw AppError.conflict(`Product brand "${name}" already exists`);
+  if (existing)
+    throw AppError.conflict(`Product brand "${name}" already exists`);
   return prisma.inventoryBrand.create({
     data: { name },
     include: { _count: { select: { products: true } } },
   });
 }
 
-export async function updateProductBrand(id: number, dto: UpdateProductBrandDto) {
+export async function updateProductBrand(
+  id: number,
+  dto: UpdateProductBrandDto,
+) {
   const brand = await prisma.inventoryBrand.findUnique({ where: { id } });
   if (!brand) throw AppError.notFound("Product brand not found");
   const name = dto.name?.trim();
   if (name) {
-    const conflict = await prisma.inventoryBrand.findFirst({ where: { name, id: { not: id } } });
-    if (conflict) throw AppError.conflict(`Product brand "${name}" already exists`);
+    const conflict = await prisma.inventoryBrand.findFirst({
+      where: { name, id: { not: id } },
+    });
+    if (conflict)
+      throw AppError.conflict(`Product brand "${name}" already exists`);
   }
   return prisma.inventoryBrand.update({
     where: { id },
@@ -385,21 +454,30 @@ export async function listProductCategories() {
 
 export async function createProductCategory(dto: CreateProductCategoryDto) {
   const name = dto.name.trim();
-  const existing = await prisma.inventoryCategory.findUnique({ where: { name } });
-  if (existing) throw AppError.conflict(`Product category "${name}" already exists`);
+  const existing = await prisma.inventoryCategory.findUnique({
+    where: { name },
+  });
+  if (existing)
+    throw AppError.conflict(`Product category "${name}" already exists`);
   return prisma.inventoryCategory.create({
     data: { name },
     include: { _count: { select: { products: true } } },
   });
 }
 
-export async function updateProductCategory(id: number, dto: UpdateProductCategoryDto) {
+export async function updateProductCategory(
+  id: number,
+  dto: UpdateProductCategoryDto,
+) {
   const category = await prisma.inventoryCategory.findUnique({ where: { id } });
   if (!category) throw AppError.notFound("Product category not found");
   const name = dto.name?.trim();
   if (name) {
-    const conflict = await prisma.inventoryCategory.findFirst({ where: { name, id: { not: id } } });
-    if (conflict) throw AppError.conflict(`Product category "${name}" already exists`);
+    const conflict = await prisma.inventoryCategory.findFirst({
+      where: { name, id: { not: id } },
+    });
+    if (conflict)
+      throw AppError.conflict(`Product category "${name}" already exists`);
   }
   return prisma.inventoryCategory.update({
     where: { id },
@@ -415,7 +493,8 @@ export async function deleteProductCategory(id: number) {
 }
 
 export async function listProducts(query: ProductQueryDto) {
-  const { page, limit, brandId, categoryId, supplierId, soldOnly, search } = query;
+  const { page, limit, brandId, categoryId, supplierId, soldOnly, search } =
+    query;
   const skip = (page - 1) * limit;
 
   const where = {
@@ -423,16 +502,43 @@ export async function listProducts(query: ProductQueryDto) {
     ...(categoryId ? { categoryId } : {}),
     ...(supplierId ? { supplierId } : {}),
     ...(soldOnly ? { soldQuantity: { gt: 0 } } : {}),
-    ...(search ? {
-      OR: [
-        { name: { contains: search, mode: "insensitive" as const } },
-        { displayId: { contains: search, mode: "insensitive" as const } },
-        { description: { contains: search, mode: "insensitive" as const } },
-        { brand: { is: { name: { contains: search, mode: "insensitive" as const } } } },
-        { category: { is: { name: { contains: search, mode: "insensitive" as const } } } },
-        { supplier: { is: { name: { contains: search, mode: "insensitive" as const } } } },
-      ],
-    } : {}),
+    ...(search
+      ? {
+          OR: [
+            { name: { contains: search, mode: "insensitive" as const } },
+            { displayId: { contains: search, mode: "insensitive" as const } },
+            { partNumber: { contains: search, mode: "insensitive" as const } },
+            {
+              compatibleWith: {
+                contains: search,
+                mode: "insensitive" as const,
+              },
+            },
+            { description: { contains: search, mode: "insensitive" as const } },
+            {
+              brand: {
+                is: {
+                  name: { contains: search, mode: "insensitive" as const },
+                },
+              },
+            },
+            {
+              category: {
+                is: {
+                  name: { contains: search, mode: "insensitive" as const },
+                },
+              },
+            },
+            {
+              supplier: {
+                is: {
+                  name: { contains: search, mode: "insensitive" as const },
+                },
+              },
+            },
+          ],
+        }
+      : {}),
   };
 
   const [products, total] = await Promise.all([
@@ -440,7 +546,9 @@ export async function listProducts(query: ProductQueryDto) {
       where,
       skip,
       take: limit,
-      orderBy: soldOnly ? [{ lastSoldAt: "desc" }, { updatedAt: "desc" }] : [{ categoryId: "asc" }, { brandId: "asc" }, { name: "asc" }],
+      orderBy: soldOnly
+        ? [{ lastSoldAt: "desc" }, { updatedAt: "desc" }]
+        : [{ categoryId: "asc" }, { brandId: "asc" }, { name: "asc" }],
       include: productInclude,
     }),
     prisma.inventoryProduct.count({ where }),
@@ -462,30 +570,46 @@ export async function getProduct(id: number) {
 }
 
 export async function createProduct(dto: CreateProductDto) {
-  const brand = await prisma.inventoryBrand.findUnique({ where: { id: dto.brandId } });
+  const brand = await prisma.inventoryBrand.findUnique({
+    where: { id: dto.brandId },
+  });
   if (!brand) throw AppError.notFound("Product brand not found");
-  const category = await prisma.inventoryCategory.findUnique({ where: { id: dto.categoryId } });
+  const category = await prisma.inventoryCategory.findUnique({
+    where: { id: dto.categoryId },
+  });
   if (!category) throw AppError.notFound("Product category not found");
   await assertSupplierExists(dto.supplierId);
 
   const pricingUnitCount = getSafePerItemCount(dto.quantity);
-  const expenses = normalizeProductExpensesForCount(dto.expenses, pricingUnitCount);
-  const description = normalizeProductDescription(dto.description, dto.descriptionPoints);
+  const expenses = normalizeProductExpensesForCount(
+    dto.expenses,
+    pricingUnitCount,
+  );
+  const description = normalizeProductDescription(
+    dto.description,
+    dto.descriptionPoints,
+  );
 
   return createProductWithUniqueDisplayId({
     brandId: dto.brandId,
     categoryId: dto.categoryId,
     supplierId: dto.supplierId,
     name: dto.name.trim(),
+    partNumber: dto.partNumber?.trim() || null,
+    compatibleWith: dto.compatibleWith?.trim() || null,
     quantity: dto.quantity ?? 0,
     lowStockThreshold: dto.lowStockThreshold ?? 0,
-    purchasePrice: divideTotalAmountPerItem(dto.purchasePrice, pricingUnitCount),
+    purchasePrice: divideTotalAmountPerItem(
+      dto.purchasePrice,
+      pricingUnitCount,
+    ),
     taxPaid: divideTotalAmountPerItem(dto.taxPaid, pricingUnitCount),
     sellingPrice: dto.sellingPrice,
     description,
-    additionalExpenses: expenses.length > 0
-      ? expenses.reduce((sum, expense) => sum + expense.amount, 0)
-      : divideTotalAmountPerItem(dto.additionalExpenses, pricingUnitCount),
+    additionalExpenses:
+      expenses.length > 0
+        ? expenses.reduce((sum, expense) => sum + expense.amount, 0)
+        : divideTotalAmountPerItem(dto.additionalExpenses, pricingUnitCount),
     ...(expenses.length > 0
       ? {
           expenses: {
@@ -499,21 +623,32 @@ export async function createProduct(dto: CreateProductDto) {
 export async function updateProduct(id: number, dto: UpdateProductDto) {
   const existingProduct = await getProduct(id);
   if (dto.brandId) {
-    const brand = await prisma.inventoryBrand.findUnique({ where: { id: dto.brandId } });
+    const brand = await prisma.inventoryBrand.findUnique({
+      where: { id: dto.brandId },
+    });
     if (!brand) throw AppError.notFound("Product brand not found");
   }
   if (dto.categoryId) {
-    const category = await prisma.inventoryCategory.findUnique({ where: { id: dto.categoryId } });
+    const category = await prisma.inventoryCategory.findUnique({
+      where: { id: dto.categoryId },
+    });
     if (!category) throw AppError.notFound("Product category not found");
   }
   const supplierId = dto.supplierId === null ? undefined : dto.supplierId;
   await assertSupplierExists(supplierId);
 
-  const pricingUnitCount = getSafePerItemCount((dto.quantity ?? existingProduct.quantity) + (existingProduct.soldQuantity ?? 0));
-  const expenses = dto.expenses !== undefined ? normalizeProductExpensesForCount(dto.expenses, pricingUnitCount) : undefined;
-  const description = dto.description !== undefined || dto.descriptionPoints !== undefined
-    ? normalizeProductDescription(dto.description, dto.descriptionPoints)
-    : undefined;
+  const pricingUnitCount = getSafePerItemCount(
+    (dto.quantity ?? existingProduct.quantity) +
+      (existingProduct.soldQuantity ?? 0),
+  );
+  const expenses =
+    dto.expenses !== undefined
+      ? normalizeProductExpensesForCount(dto.expenses, pricingUnitCount)
+      : undefined;
+  const description =
+    dto.description !== undefined || dto.descriptionPoints !== undefined
+      ? normalizeProductDescription(dto.description, dto.descriptionPoints)
+      : undefined;
 
   return prisma.inventoryProduct.update({
     where: { id },
@@ -521,23 +656,56 @@ export async function updateProduct(id: number, dto: UpdateProductDto) {
       ...(dto.brandId !== undefined ? { brandId: dto.brandId } : {}),
       ...(dto.categoryId !== undefined ? { categoryId: dto.categoryId } : {}),
       ...(dto.name !== undefined ? { name: dto.name.trim() } : {}),
+      ...(dto.partNumber !== undefined
+        ? { partNumber: dto.partNumber?.trim() || null }
+        : {}),
+      ...(dto.compatibleWith !== undefined
+        ? { compatibleWith: dto.compatibleWith?.trim() || null }
+        : {}),
       ...(dto.quantity !== undefined ? { quantity: dto.quantity } : {}),
-      ...(dto.lowStockThreshold !== undefined ? { lowStockThreshold: dto.lowStockThreshold ?? 0 } : {}),
-      ...(dto.purchasePrice !== undefined ? { purchasePrice: divideTotalAmountPerItem(dto.purchasePrice, pricingUnitCount) } : {}),
-      ...(dto.taxPaid !== undefined ? { taxPaid: divideTotalAmountPerItem(dto.taxPaid, pricingUnitCount) } : {}),
-      ...(dto.sellingPrice !== undefined ? { sellingPrice: dto.sellingPrice } : {}),
-      ...(description !== undefined ? { description: description || null } : {}),
-      ...(dto.supplierId === null ? { supplierId: null } : dto.supplierId !== undefined ? { supplierId: dto.supplierId } : {}),
+      ...(dto.lowStockThreshold !== undefined
+        ? { lowStockThreshold: dto.lowStockThreshold ?? 0 }
+        : {}),
+      ...(dto.purchasePrice !== undefined
+        ? {
+            purchasePrice: divideTotalAmountPerItem(
+              dto.purchasePrice,
+              pricingUnitCount,
+            ),
+          }
+        : {}),
+      ...(dto.taxPaid !== undefined
+        ? { taxPaid: divideTotalAmountPerItem(dto.taxPaid, pricingUnitCount) }
+        : {}),
+      ...(dto.sellingPrice !== undefined
+        ? { sellingPrice: dto.sellingPrice }
+        : {}),
+      ...(description !== undefined
+        ? { description: description || null }
+        : {}),
+      ...(dto.supplierId === null
+        ? { supplierId: null }
+        : dto.supplierId !== undefined
+          ? { supplierId: dto.supplierId }
+          : {}),
       ...(expenses !== undefined
         ? {
-            additionalExpenses: expenses.reduce((sum, expense) => sum + expense.amount, 0),
+            additionalExpenses: expenses.reduce(
+              (sum, expense) => sum + expense.amount,
+              0,
+            ),
             expenses: {
               deleteMany: {},
               ...(expenses.length > 0 ? { create: expenses } : {}),
             },
           }
         : dto.additionalExpenses !== undefined
-          ? { additionalExpenses: divideTotalAmountPerItem(dto.additionalExpenses, pricingUnitCount) }
+          ? {
+              additionalExpenses: divideTotalAmountPerItem(
+                dto.additionalExpenses,
+                pricingUnitCount,
+              ),
+            }
           : {}),
     },
     include: productInclude,
@@ -547,7 +715,10 @@ export async function updateProduct(id: number, dto: UpdateProductDto) {
 export async function recordProductSale(id: number, dto: RecordProductSaleDto) {
   const product = await getProduct(id);
   if (dto.quantity > product.quantity) {
-    throw new AppError(`Only ${product.quantity} items are available in stock`, 400);
+    throw new AppError(
+      `Only ${product.quantity} items are available in stock`,
+      400,
+    );
   }
 
   return prisma.inventoryProduct.update({
@@ -586,9 +757,9 @@ async function createVehicleWithUniqueDisplayId(data: Record<string, unknown>) {
       });
     } catch (error) {
       if (
-        error instanceof Prisma.PrismaClientKnownRequestError
-        && error.code === "P2002"
-        && String(error.meta?.target ?? "").includes("displayId")
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002" &&
+        String(error.meta?.target ?? "").includes("displayId")
       ) {
         continue;
       }
@@ -618,7 +789,9 @@ export async function vehicleSummary(status?: string) {
   }
 
   return Array.from(groups.entries()).map(([, items]) => {
-    const availableCount = items.filter((vehicle) => vehicle.status === "available").length;
+    const availableCount = items.filter(
+      (vehicle) => vehicle.status === "available",
+    ).length;
     const lowStockThreshold = items[0].model.lowStockThreshold ?? 0;
 
     return {
@@ -635,39 +808,70 @@ export async function vehicleSummary(status?: string) {
 }
 
 export async function listVehicles(query: VehicleQueryDto) {
-  const { page, limit, brandId, modelId, colour, year, fileNo, registerNo, status, search } = query;
+  const {
+    page,
+    limit,
+    brandId,
+    modelId,
+    colour,
+    year,
+    fileNo,
+    registerNo,
+    status,
+    search,
+  } = query;
   const skip = (page - 1) * limit;
 
   const where = {
     ...(brandId ? { brandId } : {}),
     ...(modelId ? { modelId } : {}),
-    ...(colour ? { colour: { contains: colour, mode: "insensitive" as const } } : {}),
+    ...(colour
+      ? { colour: { contains: colour, mode: "insensitive" as const } }
+      : {}),
     ...(year ? { year } : {}),
-    ...(fileNo ? { fileNo: { contains: fileNo, mode: "insensitive" as const } } : {}),
-    ...(registerNo ? { registerNo: { contains: registerNo, mode: "insensitive" as const } } : {}),
-    ...(status  ? { status }  : {}),
-    ...(search ? {
-      OR: [
-        { chassisNo:  { contains: search, mode: "insensitive" as const } },
-        { engineNo:   { contains: search, mode: "insensitive" as const } },
-        { registerNo: { contains: search, mode: "insensitive" as const } },
-        { displayId:  { contains: search, mode: "insensitive" as const } },
-        { colour:     { contains: search, mode: "insensitive" as const } },
-        { fileNo:     { contains: search, mode: "insensitive" as const } },
-      ],
-    } : {}),
+    ...(fileNo
+      ? { fileNo: { contains: fileNo, mode: "insensitive" as const } }
+      : {}),
+    ...(registerNo
+      ? { registerNo: { contains: registerNo, mode: "insensitive" as const } }
+      : {}),
+    ...(status ? { status } : {}),
+    ...(search
+      ? {
+          OR: [
+            { chassisNo: { contains: search, mode: "insensitive" as const } },
+            { engineNo: { contains: search, mode: "insensitive" as const } },
+            { registerNo: { contains: search, mode: "insensitive" as const } },
+            { displayId: { contains: search, mode: "insensitive" as const } },
+            { colour: { contains: search, mode: "insensitive" as const } },
+            { fileNo: { contains: search, mode: "insensitive" as const } },
+          ],
+        }
+      : {}),
   };
 
   const [vehicles, total] = await Promise.all([
-    prisma.bikeVehicle.findMany({ where, skip, take: limit, orderBy: { createdAt: "desc" }, include: vehicleInclude }),
+    prisma.bikeVehicle.findMany({
+      where,
+      skip,
+      take: limit,
+      orderBy: { createdAt: "desc" },
+      include: vehicleInclude,
+    }),
     prisma.bikeVehicle.count({ where }),
   ]);
 
-  return { vehicles, pagination: { page, limit, total, pages: Math.ceil(total / limit) } };
+  return {
+    vehicles,
+    pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+  };
 }
 
 export async function getVehicle(id: number) {
-  const vehicle = await prisma.bikeVehicle.findUnique({ where: { id }, include: vehicleInclude });
+  const vehicle = await prisma.bikeVehicle.findUnique({
+    where: { id },
+    include: vehicleInclude,
+  });
   if (!vehicle) throw AppError.notFound(`Vehicle with id ${id} not found`);
   return vehicle;
 }
@@ -681,13 +885,19 @@ function splitAmountAcrossCount(amount: number | undefined, count: number) {
   const baseCents = Math.floor(totalCents / count);
   const remainder = totalCents % count;
 
-  return Array.from({ length: count }, (_, index) => (baseCents + (index < remainder ? 1 : 0)) / 100);
+  return Array.from(
+    { length: count },
+    (_, index) => (baseCents + (index < remainder ? 1 : 0)) / 100,
+  );
 }
 
 export async function createVehicle(dto: CreateVehicleDto) {
-  const model = await prisma.bikeModel.findUnique({ where: { id: dto.modelId } });
+  const model = await prisma.bikeModel.findUnique({
+    where: { id: dto.modelId },
+  });
   if (!model) throw AppError.notFound("Model not found");
-  if (model.brandId !== dto.brandId) throw AppError.validation("Model does not belong to the selected brand");
+  if (model.brandId !== dto.brandId)
+    throw AppError.validation("Model does not belong to the selected brand");
   await assertSupplierExists(dto.supplierId);
 
   const { expenses, ...rest } = dto;
@@ -706,12 +916,18 @@ export async function createVehicle(dto: CreateVehicleDto) {
 }
 
 export async function bulkCreateVehicles(dto: BulkCreateVehicleDto) {
-  const model = await prisma.bikeModel.findUnique({ where: { id: dto.modelId } });
+  const model = await prisma.bikeModel.findUnique({
+    where: { id: dto.modelId },
+  });
   if (!model) throw AppError.notFound("Model not found");
-  if (model.brandId !== dto.brandId) throw AppError.validation("Model does not belong to the selected brand");
+  if (model.brandId !== dto.brandId)
+    throw AppError.validation("Model does not belong to the selected brand");
   await assertSupplierExists(dto.supplierId);
 
-  const perBikePurchasePrices = splitAmountAcrossCount(dto.purchasePrice, dto.count);
+  const perBikePurchasePrices = splitAmountAcrossCount(
+    dto.purchasePrice,
+    dto.count,
+  );
   const perBikeTaxAmounts = splitAmountAcrossCount(dto.taxAmount, dto.count);
   const normalizedExpenses = (dto.expenses ?? [])
     .map((expense) => ({
@@ -741,7 +957,9 @@ export async function bulkCreateVehicles(dto: BulkCreateVehicleDto) {
       taxAmount: perBikeTaxAmounts[i],
       sellingPrice: dto.sellingPrice,
       status: "available",
-      ...(perBikeExpenses.length > 0 ? { expenses: { create: perBikeExpenses } } : {}),
+      ...(perBikeExpenses.length > 0
+        ? { expenses: { create: perBikeExpenses } }
+        : {}),
     } as Record<string, unknown>;
 
     const vehicle = await createVehicleWithUniqueDisplayId(createData);
@@ -754,21 +972,32 @@ export async function updateVehicle(id: number, dto: UpdateVehicleDto) {
   const existing = await getVehicle(id);
   const brandId = dto.brandId ?? existing.brandId;
   const modelId = dto.modelId ?? existing.modelId;
-  const supplierId = dto.supplierId === undefined ? (existing.supplier ? existing.supplier.id : undefined) : dto.supplierId ?? undefined;
+  const supplierId =
+    dto.supplierId === undefined
+      ? existing.supplier
+        ? existing.supplier.id
+        : undefined
+      : (dto.supplierId ?? undefined);
 
   if (dto.modelId || dto.brandId) {
     const model = await prisma.bikeModel.findUnique({ where: { id: modelId } });
     if (!model) throw AppError.notFound("Model not found");
-    if (model.brandId !== brandId) throw AppError.validation("Model does not belong to the selected brand");
+    if (model.brandId !== brandId)
+      throw AppError.validation("Model does not belong to the selected brand");
   }
 
   await assertSupplierExists(supplierId);
 
   const data: Record<string, unknown> = { ...dto };
-  if (dto.status === "sold" && existing.status !== "sold") data.soldAt = new Date();
+  if (dto.status === "sold" && existing.status !== "sold")
+    data.soldAt = new Date();
   if (dto.status === "available") data.soldAt = null;
 
-  return prisma.bikeVehicle.update({ where: { id }, data, include: vehicleInclude });
+  return prisma.bikeVehicle.update({
+    where: { id },
+    data,
+    include: vehicleInclude,
+  });
 }
 
 export async function deleteVehicle(id: number) {
@@ -790,11 +1019,17 @@ export async function listFileNos() {
 export async function renameFileNo(dto: RenameFileNoDto) {
   if (dto.oldFileNo === dto.newFileNo) return { updated: 0 };
 
-  const sourceCount = await prisma.bikeVehicle.count({ where: { fileNo: dto.oldFileNo } });
-  if (sourceCount === 0) throw AppError.notFound(`File number \"${dto.oldFileNo}\" not found`);
+  const sourceCount = await prisma.bikeVehicle.count({
+    where: { fileNo: dto.oldFileNo },
+  });
+  if (sourceCount === 0)
+    throw AppError.notFound(`File number \"${dto.oldFileNo}\" not found`);
 
-  const targetCount = await prisma.bikeVehicle.count({ where: { fileNo: dto.newFileNo } });
-  if (targetCount > 0) throw AppError.conflict(`File number \"${dto.newFileNo}\" already exists`);
+  const targetCount = await prisma.bikeVehicle.count({
+    where: { fileNo: dto.newFileNo },
+  });
+  if (targetCount > 0)
+    throw AppError.conflict(`File number \"${dto.newFileNo}\" already exists`);
 
   const result = await prisma.bikeVehicle.updateMany({
     where: { fileNo: dto.oldFileNo },
@@ -805,8 +1040,11 @@ export async function renameFileNo(dto: RenameFileNoDto) {
 }
 
 export async function deleteFileNo(dto: DeleteFileNoDto) {
-  const sourceCount = await prisma.bikeVehicle.count({ where: { fileNo: dto.fileNo } });
-  if (sourceCount === 0) throw AppError.notFound(`File number \"${dto.fileNo}\" not found`);
+  const sourceCount = await prisma.bikeVehicle.count({
+    where: { fileNo: dto.fileNo },
+  });
+  if (sourceCount === 0)
+    throw AppError.notFound(`File number \"${dto.fileNo}\" not found`);
 
   const result = await prisma.bikeVehicle.updateMany({
     where: { fileNo: dto.fileNo },
@@ -845,12 +1083,19 @@ export async function deleteExpense(vehicleId: number, expenseId: number) {
 
 // ── Vehicle Images ────────────────────────────────────────────────────────────
 
-export async function addVehicleImages(vehicleId: number, files: { filename: string }[]) {
+export async function addVehicleImages(
+  vehicleId: number,
+  files: { filename: string }[],
+) {
   await getVehicle(vehicleId);
 
-  const existingCount = await prisma.bikeVehicleImage.count({ where: { vehicleId } });
+  const existingCount = await prisma.bikeVehicleImage.count({
+    where: { vehicleId },
+  });
   if (existingCount + files.length > 6) {
-    throw AppError.validation(`Maximum 6 images allowed. This vehicle already has ${existingCount}.`);
+    throw AppError.validation(
+      `Maximum 6 images allowed. This vehicle already has ${existingCount}.`,
+    );
   }
 
   const images = [];
@@ -924,12 +1169,19 @@ export async function setPrimaryImage(vehicleId: number, imageId: number) {
 
 // ── Product Images ───────────────────────────────────────────────────────────
 
-export async function addProductImages(productId: number, files: { filename: string }[]) {
+export async function addProductImages(
+  productId: number,
+  files: { filename: string }[],
+) {
   await getProduct(productId);
 
-  const existingCount = await prisma.inventoryProductImage.count({ where: { productId } });
+  const existingCount = await prisma.inventoryProductImage.count({
+    where: { productId },
+  });
   if (existingCount + files.length > 3) {
-    throw AppError.validation(`Maximum 3 images allowed. This product already has ${existingCount}.`);
+    throw AppError.validation(
+      `Maximum 3 images allowed. This product already has ${existingCount}.`,
+    );
   }
 
   const images = [];
@@ -970,14 +1222,20 @@ export async function deleteProductImage(productId: number, imageId: number) {
       orderBy: { sortOrder: "asc" },
     });
     if (next) {
-      await prisma.inventoryProductImage.update({ where: { id: next.id }, data: { isPrimary: true } });
+      await prisma.inventoryProductImage.update({
+        where: { id: next.id },
+        data: { isPrimary: true },
+      });
     }
   }
 
   return image;
 }
 
-export async function setPrimaryProductImage(productId: number, imageId: number) {
+export async function setPrimaryProductImage(
+  productId: number,
+  imageId: number,
+) {
   const image = await prisma.inventoryProductImage.findFirst({
     where: { id: imageId, productId },
   });

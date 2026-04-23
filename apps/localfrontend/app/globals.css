@@ -336,9 +336,9 @@ button {
   inset: 0;
   background: linear-gradient(
     135deg,
-    rgba(0, 0, 0, 0.75) 0%,
-    rgba(0, 0, 0, 0.35) 50%,
-    rgba(0, 0, 0, 0.65) 100%
+    rgba(0, 0, 0, 0.35) 0%,
+    rgba(0, 0, 0, 0.1) 50%,
+    rgba(0, 0, 0, 0.25) 100%
   );
   pointer-events: none;
 }
@@ -779,9 +779,9 @@ button {
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(0, 0, 0, 0.55) 0%,
-    rgba(0, 0, 0, 0.7) 60%,
-    rgba(5, 5, 5, 0.95) 100%
+    rgba(0, 0, 0, 0.2) 0%,
+    rgba(0, 0, 0, 0.35) 60%,
+    rgba(0, 0, 0, 0.55) 100%
   );
 }
 
@@ -2062,6 +2062,13 @@ button {
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
+  background-image: url('/about/hero-desktop.jpg');
+}
+
+@media (max-width: 768px) {
+  .about-hero__bg {
+    background-image: url('/about/hero-mobile.jpg');
+  }
 }
 
 .about-hero__overlay {
@@ -2232,8 +2239,8 @@ button {
   max-width: 1200px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: 1fr 1.4fr;
-  gap: 5rem;
+  grid-template-columns: 1fr 2fr;
+  gap: 4rem;
   align-items: center;
 }
 
@@ -2271,7 +2278,7 @@ button {
 .about-founder__img-wrap {
   position: relative;
   width: 100%;
-  aspect-ratio: 3 / 4;
+  aspect-ratio: 3 / 5;
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--bg-dark-tertiary);
@@ -2848,6 +2855,12 @@ button {
   gap: 1.25rem;
 }
 
+@media (max-width: 1024px) {
+  .bikes-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
 .bikes-grid__empty {
   grid-column: 1 / -1;
   text-align: center;
@@ -3209,11 +3222,41 @@ button {
   padding: calc(var(--header-h) + var(--announce-h) + 3rem) 2rem 5rem;
   min-height: 100vh;
   background: #f4f4f4;
+  animation: detail-fadein 0.35s ease both;
 }
 
 .bikedetail-container {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+/* ── Detail page spinner + fade-in ── */
+@keyframes detail-fadein {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes detail-spin {
+  to { transform: rotate(360deg); }
+}
+
+.detail-loader-wrap {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f4f4f4;
+  padding-top: calc(var(--header-h) + var(--announce-h));
+}
+
+.detail-loader__spinner {
+  display: block;
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: detail-spin 0.7s linear infinite;
 }
 
 .bikedetail__back {
@@ -3781,6 +3824,49 @@ button {
   box-shadow: 0 8px 28px rgba(184, 134, 11, 0.5);
 }
 
+.contact-form__submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.contact-form__error {
+  color: #e53e3e;
+  font-size: 0.9rem;
+  margin-bottom: 0.75rem;
+  padding: 0.6rem 0.9rem;
+  background: rgba(229, 62, 62, 0.08);
+  border-radius: 6px;
+}
+
+.contact-form__success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.75rem;
+  padding: 3rem 1rem;
+  color: var(--text-dark);
+}
+
+.contact-form__success svg {
+  color: #38a169;
+}
+
+.contact-form__success h3 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  margin: 0;
+  color: #fff;
+}
+
+.contact-form__success p {
+  color: var(--text-muted, #6b7280);
+  margin: 0;
+  font-size: 0.95rem;
+}
+
 /* ── Map ── */
 .contact-map {
   padding: 4rem 2rem;
@@ -3891,7 +3977,7 @@ button {
 .contact-faq__tab--active {
   background: var(--accent);
   border-color: var(--accent);
-  color: #000;
+  color: #fff;
   font-weight: 700;
 }
 
@@ -4106,68 +4192,74 @@ button {
 }
 
 .pagination__btn {
+  width: 42px;
+  height: 42px;
   display: flex;
   align-items: center;
-  gap: 0.35rem;
-  padding: 0.5rem 1.1rem;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  color: rgba(255, 255, 255, 0.6);
-  border-radius: 8px;
-  font-size: 0.85rem;
-  font-weight: 500;
+  justify-content: center;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  color: #555;
+  border-radius: 50%;
   cursor: pointer;
-  transition: border-color 0.18s ease, color 0.18s ease;
+  transition: border-color 0.18s ease, color 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
 }
 
 .pagination__btn:hover:not(:disabled) {
   border-color: var(--accent);
   color: var(--accent);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .pagination__btn:disabled {
-  opacity: 0.3;
+  opacity: 0.35;
   cursor: not-allowed;
 }
 
 .pagination__pages {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.4rem;
 }
 
 .pagination__page {
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: rgba(255, 255, 255, 0.65);
-  border-radius: 6px;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  color: #444;
+  border-radius: 50%;
   font-size: 0.875rem;
+  font-weight: 500;
   cursor: pointer;
-  transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+  transition: border-color 0.18s ease, color 0.18s ease, background 0.18s ease, box-shadow 0.18s ease;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.07);
 }
 
 .pagination__page:hover {
   border-color: var(--accent);
   color: var(--accent);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
 }
 
 .pagination__page--active {
   background: var(--accent);
   border-color: var(--accent);
-  color: #000;
+  color: #fff;
   font-weight: 700;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.15);
 }
 
 .pagination__ellipsis {
-  color: rgba(255, 255, 255, 0.3);
+  color: #aaa;
   font-size: 0.875rem;
   padding: 0 0.2rem;
-  line-height: 36px;
+  line-height: 42px;
+  user-select: none;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -4522,6 +4614,10 @@ button {
   .video-banner__stat-num {
     font-size: 1.4rem;
   }
+
+  .bikes-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -4566,6 +4662,122 @@ button {
 
 .bikedetail-specs__item--wide {
   grid-column: 1 / -1;
+}
+
+/* ─────────────────────────────────────────
+   SKELETON / SHIMMER LOADING
+───────────────────────────────────────── */
+@keyframes skeleton-shimmer {
+  0%   { background-position: -800px 0; }
+  100% { background-position:  800px 0; }
+}
+
+.skeleton {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    #e2e2e2 25%,
+    #efefef 50%,
+    #e2e2e2 75%
+  );
+  background-size: 1600px 100%;
+  animation: skeleton-shimmer 1.5s ease-in-out infinite;
+}
+
+/* ── Detail page skeleton layout ── */
+.bikedetail-skeleton__back {
+  width: 130px;
+  height: 18px;
+  margin-bottom: 2rem;
+}
+
+.bikedetail-skeleton__main-img {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius-lg);
+  width: 100%;
+}
+
+.bikedetail-skeleton__thumb {
+  aspect-ratio: 4 / 3;
+  border-radius: var(--radius);
+  width: 100%;
+}
+
+.bikedetail-skeleton__info {
+  background: #fff;
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+}
+
+.bikedetail-skeleton__badge {
+  width: 90px;
+  height: 26px;
+  border-radius: 50px;
+  margin-bottom: 0.85rem;
+}
+
+.bikedetail-skeleton__title {
+  width: 72%;
+  height: 38px;
+  margin-bottom: 0.5rem;
+}
+
+.bikedetail-skeleton__subtitle {
+  width: 42%;
+  height: 18px;
+  margin-bottom: 1.25rem;
+}
+
+.bikedetail-skeleton__price {
+  width: 52%;
+  height: 34px;
+  margin-bottom: 1.25rem;
+}
+
+.bikedetail-skeleton__specs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem 1.5rem;
+  margin: 1rem 0;
+}
+
+.bikedetail-skeleton__spec {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.bikedetail-skeleton__spec-label {
+  height: 11px;
+  width: 55%;
+  border-radius: 3px;
+}
+
+.bikedetail-skeleton__spec-value {
+  height: 16px;
+  width: 80%;
+  border-radius: 3px;
+}
+
+.bikedetail-skeleton__desc-heading {
+  height: 16px;
+  width: 38%;
+  margin-bottom: 0.7rem;
+  border-radius: 3px;
+}
+
+.bikedetail-skeleton__desc-line {
+  height: 13px;
+  width: 100%;
+  margin-bottom: 0.5rem;
+  border-radius: 3px;
+}
+
+.bikedetail-skeleton__desc-line--short {
+  width: 70%;
 }
 
 /* Active thumb override (the [id] page manages active state via class) */

@@ -48,6 +48,9 @@ export default function HeroCarousel() {
           className="hero__slide"
           style={{
             backgroundImage: `url(${CMS_API_URL}${s.desktopImage})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center center",
+            backgroundRepeat: "no-repeat",
             transform: `translateX(${(i - current) * 100}%)`,
           }}
         />
