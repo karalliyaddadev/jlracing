@@ -33,6 +33,8 @@ export default function SoldInventoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = { Authorization: `Bearer ${token}` };
@@ -88,7 +90,7 @@ export default function SoldInventoryPage() {
       fileName: "inventory-sold-report",
       title: "Inventory Sold Report",
       subtitle: "All sold inventory entries currently loaded in Sold Items tab",
-      rows: purchases,
+      rows: filteredPurchases,
       columns: [
         { header: "Invoice", value: (purchase) => `INV-${String(purchase.id).padStart(5, "0")}` },
         { header: "Purchased At", value: (purchase) => new Date(purchase.purchasedAt).toLocaleString() },
@@ -192,6 +194,23 @@ export default function SoldInventoryPage() {
       <div className="bm-table-card">
         <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)", display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
           <input className="bm-input" style={{ maxWidth: 420 }} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by customer, NIC, product ID, name or brand" />
+          <label htmlFor="sold-inventory-from" style={{ fontSize: 13, color: "var(--text-soft)" }}>From</label>
+          <input
+            id="sold-inventory-from"
+            className="bm-input"
+            type="date"
+            value={fromDate}
+            onChange={(event) => setFromDate(event.target.value)}
+          />
+          <label htmlFor="sold-inventory-to" style={{ fontSize: 13, color: "var(--text-soft)" }}>To</label>
+          <input
+            id="sold-inventory-to"
+            className="bm-input"
+            type="date"
+            value={toDate}
+            onChange={(event) => setToDate(event.target.value)}
+          />
+          <button type="button" className="btn-outline" onClick={() => { setFromDate(""); setToDate(""); }}>Clear Dates</button>
           <button type="button" className="btn-outline" onClick={() => void loadData()}>Refresh</button>
           <button type="button" className="btn-outline" onClick={exportSoldInventoryPdf}>Export PDF</button>
         </div>

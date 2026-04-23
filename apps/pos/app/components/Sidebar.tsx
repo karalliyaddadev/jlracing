@@ -357,7 +357,7 @@ export function Sidebar() {
                     <Link
                       href="/dashboard/bikes"
                       className={`nav-item${isBikeActive ? " active" : ""}`}
-                      title="Bike Management"
+                      title="Bike"
                     >
                       <span className="nav-icon">
                         <IconBike />
