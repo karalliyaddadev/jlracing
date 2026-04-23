@@ -171,7 +171,7 @@ export default function InventoryManagePage() {
         <div className="page-title-row">
           <div className="page-title-icon"><IconInventory /></div>
           <div>
-            <h2 className="page-title">Manage Spare Parts Data</h2>Inventory Manage Data</h2>
+            <h2 className="page-title">Manage Spare Parts Data</h2>
             <p className="page-subtitle">Manage spare parts brands and categories — keep your spare parts catalog organized and up to date.</p>
           </div>
         </div>
