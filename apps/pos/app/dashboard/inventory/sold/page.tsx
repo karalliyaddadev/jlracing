@@ -75,14 +75,33 @@ export default function SoldInventoryPage() {
     void loadData();
   }, [loadData]);
 
+  // Filter purchases by date range
+  const filteredPurchases = useMemo(() => {
+    let filtered = [...purchases];
+    
+    if (fromDate) {
+      const fromDateTime = new Date(fromDate);
+      fromDateTime.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(purchase => new Date(purchase.purchasedAt) >= fromDateTime);
+    }
+    
+    if (toDate) {
+      const toDateTime = new Date(toDate);
+      toDateTime.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(purchase => new Date(purchase.purchasedAt) <= toDateTime);
+    }
+    
+    return filtered;
+  }, [purchases, fromDate, toDate]);
+
   const totalSoldUnits = useMemo(
-    () => purchases.reduce((sum, purchase) => sum + purchase.quantity, 0),
-    [purchases],
+    () => filteredPurchases.reduce((sum, purchase) => sum + purchase.quantity, 0),
+    [filteredPurchases],
   );
+  
   const estimatedRevenue = useMemo(
-    () =>
-      purchases.reduce((sum, purchase) => sum + purchase.finalSellingPrice, 0),
-    [purchases],
+    () => filteredPurchases.reduce((sum, purchase) => sum + purchase.finalSellingPrice, 0),
+    [filteredPurchases],
   );
 
   const exportSoldInventoryPdf = () => {
@@ -154,7 +173,7 @@ export default function SoldInventoryPage() {
             </span>
             <span className="bm-stat-label">Sold Entries</span>
           </div>
-          <strong className="bm-stat-value">{purchases.length}</strong>
+          <strong className="bm-stat-value">{filteredPurchases.length}</strong>
           <span className="bm-stat-sub">Customer-linked purchase records</span>
         </div>
         <div className="bm-stat-card">
@@ -236,7 +255,7 @@ export default function SoldInventoryPage() {
                   </td>
                 </tr>
               )}
-              {!loading && purchases.length === 0 && (
+              {!loading && filteredPurchases.length === 0 && (
                 <tr>
                   <td colSpan={8} className="bm-table-empty">
                     No sold inventory records yet.
@@ -244,7 +263,7 @@ export default function SoldInventoryPage() {
                 </tr>
               )}
               {!loading &&
-                purchases.map((purchase) => {
+                filteredPurchases.map((purchase) => {
                   return (
                     <tr key={purchase.id} className="bm-vehicle-row">
                       <td>INV-{String(purchase.id).padStart(5, "0")}</td>
