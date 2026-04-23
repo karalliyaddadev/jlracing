@@ -171,23 +171,23 @@ export default function InventoryManagePage() {
         <div className="page-title-row">
           <div className="page-title-icon"><IconInventory /></div>
           <div>
-            <h2 className="page-title">Inventory Manage Data</h2>
-            <p className="page-subtitle">Keep inventory brands and categories in a separate management section, just like bike management.</p>
+            <h2 className="page-title">Manage Spare Parts Data</h2>
+            <p className="page-subtitle">Manage spare parts brands and categories — keep your spare parts catalog organized and up to date.</p>
           </div>
         </div>
       </div>
 
       <div style={{ display: "flex", gap: "0.75rem", flexWrap: "wrap", marginBottom: "1rem" }}>
-        <Link href="/dashboard/inventory" className="btn-outline">Inventory</Link>
-        <Link href="/dashboard/inventory/sold" className="btn-outline">Sold Items</Link>
+        <Link href="/dashboard/inventory" className="btn-outline">Spare Parts</Link>
+        <Link href="/dashboard/inventory/sold" className="btn-outline">Sold Parts</Link>
         <Link href="/dashboard/inventory/manage" className="btn-accent">Manage Data</Link>
       </div>
 
       {error && <div className="bm-alert bm-alert-error">{error}</div>}
 
       <div className="bm-stats-grid">
-        <div className="bm-stat-card bm-stat-card-soft"><div className="bm-stat-head"><span className="bm-stat-icon"><IconInventory /></span><span className="bm-stat-label">Brands</span></div><strong className="bm-stat-value">{brands.length}</strong><span className="bm-stat-sub">Product brands configured</span></div>
-        <div className="bm-stat-card"><div className="bm-stat-head"><span className="bm-stat-icon"><IconActivity /></span><span className="bm-stat-label">Categories</span></div><strong className="bm-stat-value">{categories.length}</strong><span className="bm-stat-sub">Inventory categories available</span></div>
+        <div className="bm-stat-card bm-stat-card-soft"><div className="bm-stat-head"><span className="bm-stat-icon"><IconInventory /></span><span className="bm-stat-label">Brands</span></div><strong className="bm-stat-value">{brands.length}</strong><span className="bm-stat-sub">Spare part brands configured</span></div>
+        <div className="bm-stat-card"><div className="bm-stat-head"><span className="bm-stat-icon"><IconActivity /></span><span className="bm-stat-label">Categories</span></div><strong className="bm-stat-value">{categories.length}</strong><span className="bm-stat-sub">Spare parts categories available</span></div>
         <div className="bm-stat-card bm-stat-card-soft"><div className="bm-stat-head"><span className="bm-stat-icon"><IconInvoice /></span><span className="bm-stat-label">Mapped Products</span></div><strong className="bm-stat-value">{products.length}</strong><span className="bm-stat-sub">In stock: {totalQty}</span></div>
         <div className="bm-stat-card"><div className="bm-stat-head"><span className="bm-stat-icon"><IconActivity /></span><span className="bm-stat-label">Sold Units</span></div><strong className="bm-stat-value">{totalSoldQty}</strong><span className="bm-stat-sub">Recorded from inventory sales</span></div>
       </div>
