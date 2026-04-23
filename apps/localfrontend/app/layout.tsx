@@ -5,7 +5,7 @@ import Footer from "./components/Footer";
 import NewsLetter from "./components/NewsLetter";
 
 export const metadata: Metadata = {
-  title: "JL Racing — Premium Motorcycles Sri Lanka",
+  title: "JL Racing - Sri Lanka’s No.1 High Performance Bike Dealership",
   description:
     "Sri Lanka's premier destination for high-performance motorcycles, genuine spare parts, and expert services.",
 };

@@ -1,13 +1,47 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import {
-  SPARE_PARTS,
-  PART_CATEGORIES,
-  PART_BRANDS,
-  MAX_PART_PRICE,
-} from "./data";
+import Pagination from "../components/Pagination";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const ITEMS_PER_PAGE = 6;
+
+interface ProductImage {
+  id: number;
+  url: string;
+  isPrimary: boolean;
+  sortOrder: number;
+}
+
+interface PublicProduct {
+  id: number;
+  displayId: string;
+  name: string;
+  brand: { id: number; name: string } | null;
+  category: { id: number; name: string } | null;
+  quantity: number;
+  lowStockThreshold: number | null;
+  sellingPrice: number | null;
+  description: string | null;
+  images: ProductImage[];
+}
+
+function getStatus(
+  quantity: number,
+  lowStockThreshold: number | null,
+): "In Stock" | "Low Stock" | "Out of Stock" {
+  if (quantity <= 0) return "Out of Stock";
+  if (lowStockThreshold != null && quantity <= lowStockThreshold)
+    return "Low Stock";
+  return "In Stock";
+}
+
+function getImageSrc(images: ProductImage[]): string {
+  if (!images || images.length === 0) return "/images/placeholder.png";
+  const primary = images.find((img) => img.isPrimary) ?? images[0];
+  return `${BACKEND_URL}${primary.url}`;
+}
 
 function RangeSlider({
   min,
@@ -57,7 +91,7 @@ function CheckGroup({
   onChange,
 }: {
   title: string;
-  options: readonly string[];
+  options: string[];
   selected: string[];
   onChange: (v: string[]) => void;
 }) {
@@ -86,34 +120,88 @@ function CheckGroup({
   );
 }
 
-const STATUS_OPTIONS = ["In Stock", "Low Stock", "Pre Order"] as const;
+const STATUS_OPTIONS = ["In Stock", "Low Stock", "Out of Stock"] as const;
 
 export default function SparePartsPage() {
-  const [priceRange, setPriceRange] = useState<[number, number]>([
-    0,
-    MAX_PART_PRICE,
-  ]);
+  const [products, setProducts] = useState<PublicProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Filter state
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 0]);
+  const [priceFiltered, setPriceFiltered] = useState(false);
   const [categories, setCategories] = useState<string[]>([]);
   const [brands, setBrands] = useState<string[]>([]);
   const [statuses, setStatuses] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/api/bikes/products?limit=200`)
+      .then((r) => r.json())
+      .then((data) => {
+        const list: PublicProduct[] = data.products ?? [];
+        setProducts(list);
+        const maxPrice = list.reduce(
+          (m, p) => Math.max(m, p.sellingPrice ?? 0),
+          0,
+        );
+        setPriceRange([0, maxPrice]);
+      })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, []);
+
+  const maxPrice = useMemo(
+    () => products.reduce((m, p) => Math.max(m, p.sellingPrice ?? 0), 0),
+    [products],
+  );
+
+  const categoryOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(products.map((p) => p.category?.name).filter(Boolean)),
+      ).sort() as string[],
+    [products],
+  );
+
+  const brandOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(products.map((p) => p.brand?.name).filter(Boolean)),
+      ).sort() as string[],
+    [products],
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, priceRange, priceFiltered, categories, brands, statuses]);
 
   const q = search.toLowerCase();
-  const filtered = SPARE_PARTS.filter((p) => {
-    if (p.price < priceRange[0] || p.price > priceRange[1]) return false;
-    if (categories.length && !categories.includes(p.category)) return false;
-    if (brands.length && !brands.includes(p.brand)) return false;
-    if (statuses.length && !statuses.includes(p.status)) return false;
+  const filtered = products.filter((p) => {
+    const price = p.sellingPrice ?? 0;
+    if (priceFiltered && (price < priceRange[0] || price > priceRange[1]))
+      return false;
+    if (categories.length && !categories.includes(p.category?.name ?? ""))
+      return false;
+    if (brands.length && !brands.includes(p.brand?.name ?? "")) return false;
+    const status = getStatus(p.quantity, p.lowStockThreshold);
+    if (statuses.length && !statuses.includes(status)) return false;
     if (
       q &&
-      !`${p.name} ${p.brand} ${p.category} ${p.compatibility}`
+      !`${p.name} ${p.brand?.name ?? ""} ${p.category?.name ?? ""} ${p.description ?? ""}`
         .toLowerCase()
         .includes(q)
     )
       return false;
     return true;
   });
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginated = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   return (
     <section className="po-page">
@@ -193,7 +281,6 @@ export default function SparePartsPage() {
         <div className="po-page__body">
           {/* ── Sidebar Filters ── */}
           <aside className={`po-filter${filtersOpen ? " is-open" : ""}`}>
-            {/* Close button – mobile only */}
             <div className="po-filter__mobile-header">
               <span className="po-filter__mobile-title">Filters</span>
               <button
@@ -215,33 +302,42 @@ export default function SparePartsPage() {
             </div>
 
             {/* Price range */}
-            <RangeSlider
-              min={0}
-              max={MAX_PART_PRICE}
-              value={priceRange}
-              onChange={setPriceRange}
-            />
+            {maxPrice > 0 && (
+              <RangeSlider
+                min={0}
+                max={maxPrice}
+                value={priceRange}
+                onChange={(v) => {
+                  setPriceRange(v);
+                  setPriceFiltered(v[0] > 0 || v[1] < maxPrice);
+                }}
+              />
+            )}
 
             {/* Category */}
-            <CheckGroup
-              title="CATEGORY"
-              options={PART_CATEGORIES}
-              selected={categories}
-              onChange={setCategories}
-            />
+            {categoryOptions.length > 0 && (
+              <CheckGroup
+                title="CATEGORY"
+                options={categoryOptions}
+                selected={categories}
+                onChange={setCategories}
+              />
+            )}
 
             {/* Brand */}
-            <CheckGroup
-              title="BRAND"
-              options={PART_BRANDS}
-              selected={brands}
-              onChange={setBrands}
-            />
+            {brandOptions.length > 0 && (
+              <CheckGroup
+                title="BRAND"
+                options={brandOptions}
+                selected={brands}
+                onChange={setBrands}
+              />
+            )}
 
             {/* Availability */}
             <CheckGroup
               title="AVAILABILITY"
-              options={STATUS_OPTIONS}
+              options={[...STATUS_OPTIONS]}
               selected={statuses}
               onChange={setStatuses}
             />
@@ -249,64 +345,75 @@ export default function SparePartsPage() {
 
           {/* ── Product Grid ── */}
           <div className="po-grid">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <p className="po-grid__empty">Loading parts…</p>
+            ) : filtered.length === 0 ? (
               <p className="po-grid__empty">No parts match your filters.</p>
             ) : (
-              filtered.map((part) => (
-                <Link
-                  key={part.id}
-                  href={`/spare-parts/${part.id}`}
-                  className="po-card"
-                >
-                  <div className="po-card__image">
-                    <img
-                      src={part.image}
-                      alt={part.name}
-                      className="po-card__img"
-                    />
-                  </div>
-                  <div className="po-card__body">
-                    <span
-                      className={`po-card__badge${
-                        part.status === "Pre Order"
-                          ? " po-card__badge--preorder"
-                          : part.status === "Low Stock"
-                            ? " po-card__badge--low"
-                            : ""
-                      }`}
-                    >
-                      {part.status}
-                    </span>
-                    <h3 className="po-card__title">{part.name}</h3>
-                    <p className="sp-card__brand">{part.brand}</p>
-                    <div className="po-card__footer">
-                      <span className="po-card__price">
-                        Rs.&nbsp;{part.price.toLocaleString("en-LK")}.00
-                      </span>
-                      <button
-                        className="po-card__cart"
-                        aria-label="Enquire about this part"
-                      >
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                          <line x1="3" y1="6" x2="21" y2="6" />
-                          <path d="M16 10a4 4 0 01-8 0" />
-                        </svg>
-                      </button>
+              paginated.map((part) => {
+                const status = getStatus(part.quantity, part.lowStockThreshold);
+                return (
+                  <Link
+                    key={part.id}
+                    href={`/spare-parts/${part.id}`}
+                    className="po-card"
+                  >
+                    <div className="po-card__image">
+                      <img
+                        src={getImageSrc(part.images)}
+                        alt={part.name}
+                        className="po-card__img"
+                      />
                     </div>
-                  </div>
-                </Link>
-              ))
+                    <div className="po-card__body">
+                      <span
+                        className={`po-card__badge${
+                          status === "Out of Stock"
+                            ? " po-card__badge--preorder"
+                            : status === "Low Stock"
+                              ? " po-card__badge--low"
+                              : ""
+                        }`}
+                      >
+                        {status}
+                      </span>
+                      <h3 className="po-card__title">{part.name}</h3>
+                      <p className="sp-card__brand">{part.brand?.name ?? ""}</p>
+                      <div className="po-card__footer">
+                        <span className="po-card__price">
+                          Rs.&nbsp;
+                          {(part.sellingPrice ?? 0).toLocaleString("en-LK")}.00
+                        </span>
+                        <button
+                          className="po-card__cart"
+                          aria-label="Enquire about this part"
+                        >
+                          <svg
+                            width="14"
+                            height="14"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                          >
+                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                            <line x1="3" y1="6" x2="21" y2="6" />
+                            <path d="M16 10a4 4 0 01-8 0" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })
             )}
           </div>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </section>
   );

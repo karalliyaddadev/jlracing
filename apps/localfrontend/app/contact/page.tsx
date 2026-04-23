@@ -1,14 +1,102 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+
+const CMS_API_URL =
+  process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+interface FaqItem {
+  id: number;
+  question: string;
+  answer: string;
+  order: number;
+  isActive: boolean;
+}
+
+interface FaqCategory {
+  id: number;
+  title: string;
+  order: number;
+  isActive: boolean;
+  items: FaqItem[];
+}
 
 export default function ContactPage() {
   const [interest, setInterest] = useState<string[]>([]);
+  const [faqCategories, setFaqCategories] = useState<FaqCategory[]>([]);
+  const [faqLoading, setFaqLoading] = useState(true);
+  const [activeFaqTab, setActiveFaqTab] = useState<number | null>(null);
+  const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
+
+  // Form state
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formPhone, setFormPhone] = useState("");
+  const [formCity, setFormCity] = useState("");
+  const [formMessage, setFormMessage] = useState("");
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formSuccess, setFormSuccess] = useState(false);
+  const [formError, setFormError] = useState("");
+
+  useEffect(() => {
+    fetch(`${CMS_API_URL}/api/faq/active?site=LOCAL`)
+      .then((r) => (r.ok ? r.json() : []))
+      .then((data: FaqCategory[]) => {
+        setFaqCategories(data);
+        if (data.length > 0) setActiveFaqTab(data[0].id);
+      })
+      .catch(() => setFaqCategories([]))
+      .finally(() => setFaqLoading(false));
+  }, []);
+
+  const currentCat = faqCategories.find((c) => c.id === activeFaqTab) ?? null;
 
   const toggleInterest = (item: string) => {
     setInterest((prev) =>
       prev.includes(item) ? prev.filter((i) => i !== item) : [...prev, item],
     );
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+    setFormSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/api/contact-requests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formName,
+          email: formEmail,
+          phone: formPhone || undefined,
+          city: formCity || undefined,
+          interests: interest.join(", "),
+          message: formMessage || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(
+          (json as { message?: string }).message || "Submission failed",
+        );
+      }
+      setFormSuccess(true);
+      setFormName("");
+      setFormEmail("");
+      setFormPhone("");
+      setFormCity("");
+      setFormMessage("");
+      setInterest([]);
+    } catch (err) {
+      setFormError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.",
+      );
+    } finally {
+      setFormSubmitting(false);
+    }
   };
 
   return (
@@ -23,6 +111,75 @@ export default function ContactPage() {
             <br />
             and find the machine you deserve.
           </h1>
+        </div>
+      </section>
+
+      {/* ── FAQ Section ── */}
+      <section className="contact-faq">
+        <div className="contact-faq__inner">
+          <div className="contact-faq__header">
+            <span className="contact-faq__label">FAQ</span>
+            <h2 className="contact-faq__title">Frequently Asked Questions</h2>
+            <p className="contact-faq__subtitle">
+              Find quick answers to the most common questions about our bikes,
+              spare parts, pre-orders, pricing, and delivery.
+            </p>
+          </div>
+
+          {faqLoading ? (
+            <div className="contact-faq__loading">Loading…</div>
+          ) : faqCategories.length === 0 ? null : (
+            <>
+              <div className="contact-faq__tabs">
+                {faqCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    className={`contact-faq__tab ${activeFaqTab === cat.id ? "contact-faq__tab--active" : ""}`}
+                    onClick={() => {
+                      setActiveFaqTab(cat.id);
+                      setOpenFaqIndex(null);
+                    }}
+                  >
+                    {cat.title}
+                  </button>
+                ))}
+              </div>
+
+              <div className="contact-faq__list">
+                {currentCat?.items.map((item, idx) => (
+                  <div
+                    key={item.id}
+                    className={`contact-faq__item ${openFaqIndex === idx ? "contact-faq__item--open" : ""}`}
+                  >
+                    <button
+                      className="contact-faq__question"
+                      onClick={() =>
+                        setOpenFaqIndex(openFaqIndex === idx ? null : idx)
+                      }
+                    >
+                      <span>{item.question}</span>
+                      <svg
+                        className="contact-faq__chevron"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
+                    {openFaqIndex === idx && (
+                      <div className="contact-faq__answer">
+                        <p>{item.answer}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
       </section>
 
@@ -189,86 +346,124 @@ export default function ContactPage() {
               Fill the form below and our team will contact you soon.
             </p>
 
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-              }}
-            >
-              <div className="contact-form__row">
+            {formSuccess ? (
+              <div className="contact-form__success">
+                <svg
+                  width="40"
+                  height="40"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <polyline points="9 12 11 14 15 10" />
+                </svg>
+                <h3>Message Sent!</h3>
+                <p>Thank you! Our team will get back to you shortly.</p>
+                <button
+                  className="contact-form__submit"
+                  onClick={() => setFormSuccess(false)}
+                >
+                  Send Another
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleSubmit}>
+                <div className="contact-form__row">
+                  <div className="contact-form__group">
+                    <label className="contact-form__label">Full Name*</label>
+                    <input
+                      type="text"
+                      className="contact-form__input"
+                      placeholder="Enter Full Name"
+                      required
+                      value={formName}
+                      onChange={(e) => setFormName(e.target.value)}
+                    />
+                  </div>
+                  <div className="contact-form__group">
+                    <label className="contact-form__label">Email*</label>
+                    <input
+                      type="email"
+                      className="contact-form__input"
+                      placeholder="Enter Email Address"
+                      required
+                      value={formEmail}
+                      onChange={(e) => setFormEmail(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="contact-form__row">
+                  <div className="contact-form__group">
+                    <label className="contact-form__label">Phone</label>
+                    <input
+                      type="tel"
+                      className="contact-form__input"
+                      placeholder="Enter mobile number"
+                      value={formPhone}
+                      onChange={(e) => setFormPhone(e.target.value)}
+                    />
+                  </div>
+                  <div className="contact-form__group">
+                    <label className="contact-form__label">City</label>
+                    <input
+                      type="text"
+                      className="contact-form__input"
+                      placeholder="Enter your city"
+                      value={formCity}
+                      onChange={(e) => setFormCity(e.target.value)}
+                    />
+                  </div>
+                </div>
+
                 <div className="contact-form__group">
-                  <label className="contact-form__label">Full Name*</label>
-                  <input
-                    type="text"
-                    className="contact-form__input"
-                    placeholder="Enter Full Name"
-                    required
+                  <label className="contact-form__label">
+                    What are you looking for?
+                  </label>
+                  <div className="contact-form__chips">
+                    {["Bikes", "Spare Parts", "Pre Orders"].map((item) => (
+                      <button
+                        key={item}
+                        type="button"
+                        className={`contact-form__chip ${
+                          interest.includes(item)
+                            ? "contact-form__chip--active"
+                            : ""
+                        }`}
+                        onClick={() => toggleInterest(item)}
+                      >
+                        {item}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="contact-form__group">
+                  <label className="contact-form__label">More Info</label>
+                  <textarea
+                    className="contact-form__textarea"
+                    rows={5}
+                    placeholder="Tell us more about your requirement"
+                    value={formMessage}
+                    onChange={(e) => setFormMessage(e.target.value)}
                   />
                 </div>
-                <div className="contact-form__group">
-                  <label className="contact-form__label">Email*</label>
-                  <input
-                    type="email"
-                    className="contact-form__input"
-                    placeholder="Enter Email Address"
-                    required
-                  />
-                </div>
-              </div>
 
-              <div className="contact-form__row">
-                <div className="contact-form__group">
-                  <label className="contact-form__label">Phone</label>
-                  <input
-                    type="tel"
-                    className="contact-form__input"
-                    placeholder="Enter mobile number"
-                  />
-                </div>
-                <div className="contact-form__group">
-                  <label className="contact-form__label">City</label>
-                  <input
-                    type="text"
-                    className="contact-form__input"
-                    placeholder="Enter your city"
-                  />
-                </div>
-              </div>
+                {formError && (
+                  <p className="contact-form__error">{formError}</p>
+                )}
 
-              <div className="contact-form__group">
-                <label className="contact-form__label">
-                  What are you looking for?
-                </label>
-                <div className="contact-form__chips">
-                  {["Bikes", "Spare Parts", "Pre Orders"].map((item) => (
-                    <button
-                      key={item}
-                      type="button"
-                      className={`contact-form__chip ${
-                        interest.includes(item)
-                          ? "contact-form__chip--active"
-                          : ""
-                      }`}
-                      onClick={() => toggleInterest(item)}
-                    >
-                      {item}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="contact-form__group">
-                <label className="contact-form__label">More Info</label>
-                <textarea
-                  className="contact-form__textarea"
-                  rows={5}
-                  placeholder="Tell us more about your requirement"
-                />
-              </div>
-
-              <button type="submit" className="contact-form__submit">
-                Submit
-              </button>
-            </form>
+                <button
+                  type="submit"
+                  className="contact-form__submit"
+                  disabled={formSubmitting}
+                >
+                  {formSubmitting ? "Sending…" : "Submit"}
+                </button>
+              </form>
+            )}
           </div>
         </div>
       </section>

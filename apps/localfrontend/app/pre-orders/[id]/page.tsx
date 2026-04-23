@@ -1,16 +1,66 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { PRE_ORDER_BIKES } from "../data";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+type PreOrderImage = {
+  id: number;
+  url: string;
+  isPrimary: boolean;
+  sortOrder: number;
+};
+type PreOrderBike = {
+  id: number;
+  displayId: string;
+  brand: string;
+  model: string;
+  year?: number | null;
+  cc?: string | null;
+  colour?: string | null;
+  price?: number | null;
+  depositRequired?: string | null;
+  expectedArrival?: string | null;
+  status: string;
+  description?: string | null;
+  images: PreOrderImage[];
+};
 
 export default function PreOrderDetailPage() {
   const { id } = useParams();
-  const bike = PRE_ORDER_BIKES.find((b) => b.id === Number(id));
+  const [bike, setBike] = useState<PreOrderBike | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [activeThumb, setActiveThumb] = useState(0);
 
-  if (!bike) {
+  useEffect(() => {
+    if (!id) return;
+    fetch(`${BACKEND_URL}/api/pre-orders/${id}`)
+      .then((r) => {
+        if (r.status === 404) {
+          setNotFound(true);
+          return null;
+        }
+        return r.json();
+      })
+      .then((data) => {
+        if (data) setBike(data);
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <section className="detail-loader-wrap">
+        <span className="detail-loader__spinner" />
+      </section>
+    );
+  }
+
+  if (notFound || !bike) {
     return (
       <section className="bikedetail-notfound">
         <h2>Bike not found.</h2>
@@ -21,19 +71,24 @@ export default function PreOrderDetailPage() {
     );
   }
 
+  const displayStatus = bike.status === "in-stock" ? "In Stock" : "Pre Order";
+
   const specs = [
     { label: "Brand", value: bike.brand },
     { label: "Model", value: bike.model },
-    { label: "Year", value: String(bike.year) },
+    { label: "Year", value: bike.year ? String(bike.year) : null },
     { label: "Engine", value: bike.cc },
-    { label: "Color", value: bike.color },
-    { label: "Availability", value: bike.availability },
+    { label: "Color", value: bike.colour },
+    { label: "Availability", value: displayStatus },
     { label: "Expected Arrival", value: bike.expectedArrival },
     { label: "Deposit Required", value: bike.depositRequired },
-  ];
+  ].filter((s) => s.value);
 
-  // Three thumbnail images (same image repeated since these are placeholders)
-  const thumbs = [bike.image, bike.image, bike.image];
+  const sortedImages = [...(bike.images ?? [])].sort((a, b) => {
+    if (a.isPrimary && !b.isPrimary) return -1;
+    if (!a.isPrimary && b.isPrimary) return 1;
+    return a.sortOrder - b.sortOrder;
+  });
 
   return (
     <section className="bikedetail-page">
@@ -47,41 +102,65 @@ export default function PreOrderDetailPage() {
           {/* ── Left — Gallery ── */}
           <div className="bikedetail__gallery">
             <div className="bikedetail__main-img">
-              <img
-                src={thumbs[activeThumb]}
-                alt={`${bike.brand} ${bike.model}`}
-              />
-            </div>
-            <div className="bikedetail__thumbs">
-              {thumbs.map((img, i) => (
+              {sortedImages.length > 0 ? (
+                <img
+                  src={`${BACKEND_URL}${sortedImages[activeThumb]?.url ?? sortedImages[0].url}`}
+                  alt={`${bike.brand} ${bike.model}`}
+                />
+              ) : (
                 <div
-                  key={i}
-                  className={`bikedetail__thumb${activeThumb === i ? " bikedetail__thumb--active" : ""}`}
-                  onClick={() => setActiveThumb(i)}
+                  style={{
+                    width: "100%",
+                    height: 300,
+                    background: "#f0f0f0",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    borderRadius: 8,
+                    color: "#aaa",
+                  }}
                 >
-                  <img src={img} alt={`View ${i + 1}`} />
+                  No image available
                 </div>
-              ))}
+              )}
             </div>
+            {sortedImages.length > 1 && (
+              <div className="bikedetail__thumbs">
+                {sortedImages.map((img, i) => (
+                  <div
+                    key={img.id}
+                    className={`bikedetail__thumb${activeThumb === i ? " bikedetail__thumb--active" : ""}`}
+                    onClick={() => setActiveThumb(i)}
+                  >
+                    <img
+                      src={`${BACKEND_URL}${img.url}`}
+                      alt={`View ${i + 1}`}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* ── Right — Info ── */}
           <div className="bikedetail__info">
             {/* Status badge */}
             <span
-              className={`bikedetail__badge${bike.status === "Pre Order" ? " bikedetail__badge--preorder" : ""}`}
+              className={`bikedetail__badge${displayStatus === "Pre Order" ? " bikedetail__badge--preorder" : ""}`}
             >
-              {bike.status}
+              {displayStatus}
             </span>
 
             <h1 className="bikedetail__title">
               {bike.brand} {bike.model}
             </h1>
-            <p className="bikedetail__year">{bike.year} Model</p>
+            {bike.year && <p className="bikedetail__year">{bike.year} Model</p>}
 
-            <p className="bikedetail__price">
-              Rs.&nbsp;{bike.price.toLocaleString("en-LK")}.00
-            </p>
+            {bike.price != null && (
+              <p className="bikedetail__price">
+                Rs.&nbsp;{bike.price.toLocaleString("en-LK")}.00
+              </p>
+            )}
 
             <div className="bikedetail__divider" />
 
@@ -98,10 +177,12 @@ export default function PreOrderDetailPage() {
             <div className="bikedetail__divider" />
 
             {/* Description */}
-            <div className="bikedetail__desc">
-              <h3>About This Bike</h3>
-              <p>{bike.description}</p>
-            </div>
+            {bike.description && (
+              <div className="bikedetail__desc">
+                <h3>About This Bike</h3>
+                <p>{bike.description}</p>
+              </div>
+            )}
 
             {/* CTA Buttons */}
             <div className="bikedetail__actions">
@@ -130,23 +211,25 @@ export default function PreOrderDetailPage() {
             </div>
 
             {/* Deposit / Reserve note */}
-            <div className="po-detail__deposit-note">
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-              >
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="8" x2="12" y2="12" />
-                <line x1="12" y1="16" x2="12.01" y2="16" />
-              </svg>
-              Deposit required to reserve:{" "}
-              <strong>{bike.depositRequired}</strong>. Contact us to secure your
-              slot before stock runs out.
-            </div>
+            {bike.depositRequired && (
+              <div className="po-detail__deposit-note">
+                <svg
+                  width="15"
+                  height="15"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="8" x2="12" y2="12" />
+                  <line x1="12" y1="16" x2="12.01" y2="16" />
+                </svg>
+                Deposit required to reserve:{" "}
+                <strong>{bike.depositRequired}</strong>. Contact us to secure
+                your slot before stock runs out.
+              </div>
+            )}
           </div>
         </div>
       </div>

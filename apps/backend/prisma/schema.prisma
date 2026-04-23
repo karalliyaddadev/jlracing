@@ -222,6 +222,8 @@ model InventoryProduct {
   category           InventoryCategory       @relation(fields: [categoryId], references: [id], onDelete: Cascade)
   supplier           BikeSupplier?           @relation(fields: [supplierId], references: [id], onDelete: SetNull)
   name               String
+  partNumber         String?
+  compatibleWith     String?
   quantity           Int                     @default(0)
   soldQuantity       Int                     @default(0)
   lowStockThreshold  Int?
@@ -357,4 +359,62 @@ model PosInvoiceTerm {
 
   @@index([sortOrder])
   @@map("pos_invoice_terms")
+}
+
+// ── Pre Orders ────────────────────────────────────────────────────────────────
+
+model PreOrder {
+  id              Int             @id @default(autoincrement())
+  displayId       String          @unique
+  brand           String
+  model           String
+  year            Int?
+  cc              String?
+  colour          String?
+  price           Float?
+  depositRequired String?
+  expectedArrival String?
+  status          String          @default("pre-order")
+  description     String?
+  isPublished     Boolean         @default(true)
+  sortOrder       Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  images          PreOrderImage[]
+
+  @@index([status])
+  @@index([isPublished])
+  @@map("pre_orders")
+}
+
+model PreOrderImage {
+  id         Int      @id @default(autoincrement())
+  preOrderId Int
+  preOrder   PreOrder @relation(fields: [preOrderId], references: [id], onDelete: Cascade)
+  url        String
+  isPrimary  Boolean  @default(false)
+  sortOrder  Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  @@map("pre_order_images")
+}
+
+// ── Contact Requests ──────────────────────────────────────────────────────────
+
+model ContactRequest {
+  id        Int      @id @default(autoincrement())
+  displayId String   @unique
+  name      String
+  email     String
+  phone     String?
+  city      String?
+  interests String   @default("")
+  message   String?
+  status    String   @default("new")
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@map("contact_requests")
 }

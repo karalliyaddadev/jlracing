@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 
 interface SliderItem {
   id: number;
@@ -150,6 +151,24 @@ export default function ImageSlider() {
             </div>
           ))}
         </div>
+      </div>
+
+      <div className="slider-section__cta">
+        <Link href="/bikes" className="slider-section__cta-btn">
+          View All Bikes
+          <svg
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M5 12h14M12 5l7 7-7 7" />
+          </svg>
+        </Link>
       </div>
     </section>
   );
