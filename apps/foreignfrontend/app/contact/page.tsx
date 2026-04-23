@@ -5,6 +5,8 @@ import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from "react-icons/fa";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
+const API_URL =
+  process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
 
 /* ── Types ── */
 interface FaqItem {
@@ -52,6 +54,16 @@ export default function ContactPage() {
   const [activeCatId, setActiveCatId] = useState<number | null>(null);
   const [openIdx, setOpenIdx] = useState<number | null>(null);
 
+  // Form state
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formCountry, setFormCountry] = useState("");
+  const [formInquiry, setFormInquiry] = useState("");
+  const [formMessage, setFormMessage] = useState("");
+  const [formSubmitting, setFormSubmitting] = useState(false);
+  const [formSuccess, setFormSuccess] = useState(false);
+  const [formError, setFormError] = useState("");
+
   useEffect(() => {
     fetch(`${CMS_API_URL}/api/faq/active?site=FOREIGN`)
       .then((r) => (r.ok ? r.json() : []))
@@ -75,6 +87,45 @@ export default function ContactPage() {
   };
 
   const currentCat = faqCategories.find((c) => c.id === activeCatId) ?? null;
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+    setFormSubmitting(true);
+    try {
+      const res = await fetch(`${API_URL}/api/contact-requests`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: formName,
+          email: formEmail,
+          city: formCountry || undefined,
+          interests: formInquiry || undefined,
+          message: formMessage || undefined,
+        }),
+      });
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        throw new Error(
+          (json as { message?: string }).message || "Submission failed",
+        );
+      }
+      setFormSuccess(true);
+      setFormName("");
+      setFormEmail("");
+      setFormCountry("");
+      setFormInquiry("");
+      setFormMessage("");
+    } catch (err) {
+      setFormError(
+        err instanceof Error
+          ? err.message
+          : "Something went wrong. Please try again.",
+      );
+    } finally {
+      setFormSubmitting(false);
+    }
+  };
 
   return (
     <>
@@ -191,13 +242,25 @@ export default function ContactPage() {
               Fill out the form with your requirements and our team will get
               back to you with the right guidance for your vehicle import needs.
             </p>
-            <form className="cnt-form" onSubmit={(e) => e.preventDefault()}>
+            {formSuccess && (
+              <p className="cnt-form__success">
+                Thank you! Your message has been sent. We&apos;ll get back to
+                you soon.
+              </p>
+            )}
+            {formError && (
+              <p className="cnt-form__error">{formError}</p>
+            )}
+            <form className="cnt-form" onSubmit={handleSubmit}>
               <div className="cnt-form__field">
                 <label className="cnt-form__label">Full Name</label>
                 <input
                   className="cnt-form__input"
                   type="text"
                   placeholder="Your Full Name"
+                  required
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
                 />
               </div>
               <div className="cnt-form__field">
@@ -206,12 +269,19 @@ export default function ContactPage() {
                   className="cnt-form__input"
                   type="email"
                   placeholder="We'll get back to you here"
+                  required
+                  value={formEmail}
+                  onChange={(e) => setFormEmail(e.target.value)}
                 />
               </div>
               <div className="cnt-form__field">
                 <label className="cnt-form__label">Country</label>
                 <div className="cnt-form__select-wrap">
-                  <select className="cnt-form__select">
+                  <select
+                    className="cnt-form__select"
+                    value={formCountry}
+                    onChange={(e) => setFormCountry(e.target.value)}
+                  >
                     <option value="">Select your country</option>
                     <option>Afghanistan</option>
                     <option>Albania</option>
@@ -413,8 +483,12 @@ export default function ContactPage() {
               <div className="cnt-form__field">
                 <label className="cnt-form__label">Inquiry Type</label>
                 <div className="cnt-form__select-wrap">
-                  <select className="cnt-form__select">
-                    <option value="" disabled selected>
+                  <select
+                    className="cnt-form__select"
+                    value={formInquiry}
+                    onChange={(e) => setFormInquiry(e.target.value)}
+                  >
+                    <option value="" disabled>
                       Select Inquiry Type
                     </option>
                     <option>Vehicle Import</option>
@@ -430,10 +504,16 @@ export default function ContactPage() {
                   className="cnt-form__textarea"
                   rows={5}
                   placeholder="Tell Us How We Can Help"
+                  value={formMessage}
+                  onChange={(e) => setFormMessage(e.target.value)}
                 />
               </div>
-              <button type="submit" className="cnt-form__submit">
-                Send Message
+              <button
+                type="submit"
+                className="cnt-form__submit"
+                disabled={formSubmitting}
+              >
+                {formSubmitting ? "Sending…" : "Send Message"}
               </button>
             </form>
           </div>

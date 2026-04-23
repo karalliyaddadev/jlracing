@@ -156,7 +156,9 @@ export default function ImageSlider() {
                   <div
                     className="slider-card__bg"
                     style={{
-                      backgroundImage: item.image ? `url(${item.image})` : undefined,
+                      backgroundImage: item.image
+                        ? `url(${item.image})`
+                        : undefined,
                     }}
                   />
                 </div>
@@ -193,4 +195,3 @@ export default function ImageSlider() {
     </section>
   );
 }
-
