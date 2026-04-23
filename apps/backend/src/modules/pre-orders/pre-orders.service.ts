@@ -98,8 +98,11 @@ export async function listPublicPreOrders(query: {
   ]);
 
   return {
-    preOrders,
-    pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    data: preOrders,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
   };
 }
 
@@ -148,8 +151,11 @@ export async function listPreOrders(query: {
   ]);
 
   return {
-    preOrders,
-    pagination: { page, limit, total, pages: Math.ceil(total / limit) },
+    data: preOrders,
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
   };
 }
 
