@@ -47,12 +47,7 @@ const cards: PortalCard[] = [
   {
     key: "international",
     title: "International Website",
-    features: [
-      "Home Page- Downloadable pdf",
-      "Home Page- Video (16:9)",
-      "Bike Inventory",
-      "Spare Parts",
-    ],
+    features: ["Home Page- Video (16:9)", "Listing", "Gallery"],
     signInUrl: "",
     available: true,
   },
