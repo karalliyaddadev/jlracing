@@ -1,0 +1,252 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap");
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  font-family: "Inter", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Split container ── */
+.split-container {
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+}
+
+/* ── Each side panel ── */
+.split-panel {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  cursor: pointer;
+  transition: flex 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+  text-decoration: none;
+}
+
+.split-panel:hover {
+  flex: 1.4;
+}
+
+/* ── Background overlays ── */
+.split-panel--local {
+  background: #0a0a0a;
+}
+
+.split-panel--foreign {
+  background: #0d1117;
+}
+
+.split-panel__bg {
+  position: absolute;
+  inset: 0;
+  background-size: cover;
+  background-position: center;
+  opacity: 0.35;
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+.split-panel:hover .split-panel__bg {
+  opacity: 0.55;
+  transform: scale(1.04);
+}
+
+.split-panel--local .split-panel__bg {
+  background-image: url("/colombo.avif");
+}
+
+.split-panel--foreign .split-panel__bg {
+  background-image: url("/japan.jpg");
+}
+
+/* ── Gradient tint ── */
+.split-panel__tint {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.split-panel--local .split-panel__tint {
+  background: linear-gradient(135deg, rgba(220, 38, 38, 0.25) 0%, transparent 60%);
+}
+
+.split-panel--foreign .split-panel__tint {
+  background: linear-gradient(225deg, rgba(59, 130, 246, 0.25) 0%, transparent 60%);
+}
+
+/* ── Divider line ── */
+.split-divider {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  pointer-events: none;
+}
+
+.split-divider__line {
+  width: 1px;
+  height: 30vh;
+  background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.3), transparent);
+}
+
+.split-divider__logo {
+  width: 130px;
+  height: 130px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  padding: 16px;
+}
+
+/* ── Content ── */
+.split-panel__content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  padding: 40px;
+  text-align: center;
+}
+
+.split-panel__label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+  transition: color 0.3s ease;
+}
+
+.split-panel:hover .split-panel__label {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.split-panel__title {
+  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-weight: 900;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+  line-height: 1.05;
+}
+
+.split-panel--local .split-panel__title {
+  text-shadow: 0 0 40px rgba(220, 38, 38, 0.5);
+}
+
+.split-panel--foreign .split-panel__title {
+  text-shadow: 0 0 40px rgba(59, 130, 246, 0.5);
+}
+
+.split-panel__sub {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.45);
+  font-weight: 400;
+  max-width: 220px;
+  line-height: 1.6;
+}
+
+.split-panel__cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 28px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(8px);
+  transition: background 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+  margin-top: 8px;
+}
+
+.split-panel:hover .split-panel__cta {
+  transform: translateY(-2px);
+}
+
+.split-panel--local:hover .split-panel__cta {
+  background: rgba(220, 38, 38, 0.25);
+  border-color: rgba(220, 38, 38, 0.5);
+}
+
+.split-panel--foreign:hover .split-panel__cta {
+  background: rgba(59, 130, 246, 0.25);
+  border-color: rgba(59, 130, 246, 0.5);
+}
+
+.split-panel__arrow {
+  font-size: 16px;
+  transition: transform 0.3s ease;
+}
+
+.split-panel:hover .split-panel__arrow {
+  transform: translateX(4px);
+}
+
+/* ── Bottom badge ── */
+.split-panel__badge {
+  position: absolute;
+  bottom: 32px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.25);
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  z-index: 2;
+}
+
+/* ── Responsive ── */
+@media (max-width: 640px) {
+  .split-container {
+    flex-direction: column;
+  }
+
+  html,
+  body {
+    overflow-y: auto;
+  }
+
+  .split-panel:hover {
+    flex: 1.3;
+  }
+
+  .split-divider {
+    top: 50%;
+    left: 50%;
+    flex-direction: row;
+    transform: translate(-50%, -50%);
+  }
+
+  .split-divider__line {
+    width: 30vw;
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
+  }
+}

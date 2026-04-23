@@ -1,16 +1,78 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { SPARE_PARTS } from "../data";
+
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+
+interface ProductImage {
+  id: number;
+  url: string;
+  isPrimary: boolean;
+  sortOrder: number;
+}
+
+interface PublicProduct {
+  id: number;
+  displayId: string;
+  name: string;
+  brand: { id: number; name: string } | null;
+  category: { id: number; name: string } | null;
+  quantity: number;
+  lowStockThreshold: number | null;
+  sellingPrice: number | null;
+  description: string | null;
+  images: ProductImage[];
+}
+
+function getStatus(
+  quantity: number,
+  lowStockThreshold: number | null,
+): "In Stock" | "Low Stock" | "Out of Stock" {
+  if (quantity <= 0) return "Out of Stock";
+  if (lowStockThreshold != null && quantity <= lowStockThreshold)
+    return "Low Stock";
+  return "In Stock";
+}
+
+function getImageUrl(img: ProductImage): string {
+  return `${BACKEND_URL}${img.url}`;
+}
 
 export default function SparePartDetailPage() {
   const { id } = useParams();
-  const part = SPARE_PARTS.find((p) => p.id === Number(id));
+  const [part, setPart] = useState<PublicProduct | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
   const [activeThumb, setActiveThumb] = useState(0);
 
-  if (!part) {
+  useEffect(() => {
+    if (!id) return;
+    fetch(`${BACKEND_URL}/api/bikes/products/${id}`)
+      .then((r) => {
+        if (r.status === 404) {
+          setNotFound(true);
+          return null;
+        }
+        return r.json();
+      })
+      .then((data) => {
+        if (data) setPart(data);
+      })
+      .catch(() => setNotFound(true))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  if (loading) {
+    return (
+      <section className="detail-loader-wrap">
+        <span className="detail-loader__spinner" />
+      </section>
+    );
+  }
+
+  if (notFound || !part) {
     return (
       <section className="bikedetail-page">
         <div className="bikedetail-container">
@@ -25,14 +87,20 @@ export default function SparePartDetailPage() {
     );
   }
 
-  const thumbs = [part.image, part.image, part.image];
+  const status = getStatus(part.quantity, part.lowStockThreshold);
+  const thumbs =
+    part.images.length > 0
+      ? part.images.map(getImageUrl)
+      : ["/images/placeholder.png"];
 
   const specs = [
-    { label: "Brand", value: part.brand },
-    { label: "Category", value: part.category },
-    { label: "Part No.", value: part.partNumber },
-    { label: "Availability", value: part.status },
-    { label: "Compatibility", value: part.compatibility },
+    { label: "Part No.", value: part.displayId },
+    { label: "Brand", value: part.brand?.name ?? "—" },
+    { label: "Category", value: part.category?.name ?? "—" },
+    { label: "Availability", value: status },
+    ...(part.quantity > 0
+      ? [{ label: "In Stock", value: `${part.quantity} units` }]
+      : []),
   ];
 
   return (
@@ -50,40 +118,45 @@ export default function SparePartDetailPage() {
               <img src={thumbs[activeThumb]} alt={part.name} />
               <span
                 className={`bikedetail__badge${
-                  part.status === "Pre Order"
+                  status === "Out of Stock"
                     ? " bikedetail__badge--preorder"
-                    : part.status === "Low Stock"
+                    : status === "Low Stock"
                       ? " bikedetail__badge--low"
                       : ""
                 }`}
               >
-                {part.status}
+                {status}
               </span>
             </div>
 
-            <div className="bikedetail__thumbs">
-              {thumbs.map((src, i) => (
-                <button
-                  key={i}
-                  onClick={() => setActiveThumb(i)}
-                  className={`bikedetail__thumb${
-                    i === activeThumb ? " bikedetail__thumb--active" : ""
-                  }`}
-                >
-                  <img src={src} alt={`${part.name} view ${i + 1}`} />
-                </button>
-              ))}
-            </div>
+            {thumbs.length > 1 && (
+              <div className="bikedetail__thumbs">
+                {thumbs.map((src, i) => (
+                  <button
+                    key={i}
+                    onClick={() => setActiveThumb(i)}
+                    className={`bikedetail__thumb${
+                      i === activeThumb ? " bikedetail__thumb--active" : ""
+                    }`}
+                  >
+                    <img src={src} alt={`${part.name} view ${i + 1}`} />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* ── Info ── */}
           <div className="bikedetail__info">
-            <span className="bikedetail__badge">{part.category}</span>
+            <span className="bikedetail__badge">
+              {part.category?.name ?? ""}
+            </span>
             <h1 className="bikedetail__title">{part.name}</h1>
-            <p className="bikedetail__year">{part.brand}</p>
+            <p className="bikedetail__year">{part.brand?.name ?? ""}</p>
 
             <p className="bikedetail__price">
-              Rs.&nbsp;{part.price.toLocaleString("en-LK")}.00
+              Rs.&nbsp;
+              {(part.sellingPrice ?? 0).toLocaleString("en-LK")}.00
             </p>
 
             <div className="bikedetail__divider" />
@@ -101,10 +174,12 @@ export default function SparePartDetailPage() {
             <div className="bikedetail__divider" />
 
             {/* Description */}
-            <div className="bikedetail__desc">
-              <h3>About This Part</h3>
-              <p>{part.description}</p>
-            </div>
+            {part.description && (
+              <div className="bikedetail__desc">
+                <h3>About This Part</h3>
+                <p>{part.description}</p>
+              </div>
+            )}
 
             {/* CTA Buttons */}
             <div className="bikedetail__actions">

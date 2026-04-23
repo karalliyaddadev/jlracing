@@ -7,10 +7,7 @@ export default function AboutPage() {
     <>
       {/* ── Hero ── */}
       <section className="about-hero">
-        <div
-          className="about-hero__bg"
-          style={{ backgroundImage: "url('/images/about-hero.jpg')" }}
-        />
+        <div className="about-hero__bg" />
         <div className="about-hero__overlay" />
         <div className="about-hero__content">
           <span className="about-hero__label">About J L Racing</span>
@@ -58,8 +55,8 @@ export default function AboutPage() {
             </h2>
             <p>
               At JL Racing, we live and breathe motorcycles. For over three
-              decades, we&apos;ve been importing the bikes riders dream about —
-              fast, sleek, and built to thrill.
+              decades, we&apos;ve been importing the bikes riders dream about.
+              Fast, sleek, and built to thrill.
             </p>
             <p>
               From high-performance Japanese sports bikes to dependable everyday
@@ -67,15 +64,15 @@ export default function AboutPage() {
               authenticity, and excitement.
             </p>
             <p>
-              Whether you&apos;re browsing our showroom, pre-ordering a new
-              model, or picking up genuine spare parts, we&apos;re here to fuel
-              your passion for riding.
+              Whether you're browsing our showroom, pre-ordering a new model, or
+              picking up genuine spare parts, we're here to fuel your passion
+              for riding.
             </p>
           </div>
           <div className="about-story__image-wrap">
             <Image
-              src="https://images.pexels.com/photos/2611690/pexels-photo-2611690.jpeg?auto=compress&cs=tinysrgb&w=900"
-              alt="Motorcycles at JL Racing showroom"
+              src="/about/about-company.png"
+              alt="JL Racing showroom"
               fill
               className="about-story__image"
               sizes="(max-width: 768px) 100vw, 55vw"
@@ -110,8 +107,8 @@ export default function AboutPage() {
           <div className="about-founder__gallery">
             <div className="about-founder__img-wrap">
               <Image
-                src="https://images.pexels.com/photos/1715193/pexels-photo-1715193.jpeg?auto=compress&cs=tinysrgb&w=500"
-                alt="Motorcycle rider"
+                src="/about/chairman%201.jpeg"
+                alt="Jin Liyanage - Chairman"
                 fill
                 className="about-founder__img"
                 sizes="(max-width: 768px) 100vw, 30vw"
@@ -119,8 +116,8 @@ export default function AboutPage() {
             </div>
             <div className="about-founder__img-wrap">
               <Image
-                src="https://images.pexels.com/photos/2519374/pexels-photo-2519374.jpeg?auto=compress&cs=tinysrgb&w=500"
-                alt="Racing motorcycle"
+                src="/about/chairman%202.png"
+                alt="Jin Liyanage - Founder"
                 fill
                 className="about-founder__img"
                 sizes="(max-width: 768px) 100vw, 30vw"
@@ -128,8 +125,8 @@ export default function AboutPage() {
             </div>
             <div className="about-founder__img-wrap">
               <Image
-                src="https://images.pexels.com/photos/1119796/pexels-photo-1119796.jpeg?auto=compress&cs=tinysrgb&w=500"
-                alt="Motorcycle showroom"
+                src="/about/chairman%203.jpg"
+                alt="Jin Liyanage - JL Racing"
                 fill
                 className="about-founder__img"
                 sizes="(max-width: 768px) 100vw, 30vw"
@@ -181,27 +178,31 @@ export default function AboutPage() {
                 year: "1995",
                 title: "Liyanage and Sons Founded",
                 desc: "What started as a small family business was fueled by a love for motorcycles and a vision to bring world-class bikes to Sri Lankan riders.",
+                img: "/about/Milestone%20-%201995.png",
               },
               {
                 year: "2000s",
                 title: "Expanding Imports",
                 desc: "Introduced high-performance Japanese motorcycles to the local market, making the bikes riders dreamed about finally accessible.",
+                img: "/about/milestone%202000.jpg",
               },
               {
                 year: "2018",
                 title: "Rebranding as JL Racing",
                 desc: "Modernized the brand and expanded services to include pre-orders, genuine spare parts, and a wider range of bikes.",
+                img: "/about/Milestone%202018.jpg",
               },
               {
-                year: "2019–Present",
+                year: "2019\u2013Present",
                 title: "Growth & Local Leadership",
                 desc: "Became one of Sri Lanka's most trusted names for bikes, parts, and accessories, driven by rider passion and customer trust.",
+                img: "/about/Milestone%20-%202019.jpg",
               },
             ].map((m) => (
               <div key={m.year} className="about-milestone">
                 <div className="about-milestone__img-wrap">
                   <Image
-                    src="/images/about-hero.jpg"
+                    src={m.img}
                     alt={m.title}
                     fill
                     className="about-milestone__img"

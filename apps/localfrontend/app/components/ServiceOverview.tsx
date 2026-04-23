@@ -6,7 +6,7 @@
         <div className="services__image">
           <div
             className="services__image-bg"
-            style={{ backgroundImage: "url(/images/service-hero.jpg)" }}
+            style={{ backgroundImage: "url(/home/why-choose-us.png)" }}
           />
           <div className="services__image-overlay" />
           <div className="services__image-badge">
@@ -24,8 +24,8 @@
           <span className="services__label">OUR PROMISE</span>
           <h2 className="services__title">Why Choose Us</h2>
           <p className="services__subtitle">
-            We go beyond selling bikes — we build lasting trust through
-            transparency, quality, and a genuine passion for motorcycles.
+            Built on trust, driven by passion and committed to giving you the
+            best riding experience.
           </p>
 
           <div className="services__grid">

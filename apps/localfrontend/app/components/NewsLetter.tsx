@@ -3,13 +3,13 @@
 import { useState } from "react";
 
 const LOGOS = [
-  //   { name: "Yamaha", src: "/news-letter/yamaha.png" },
+  { name: "Yamaha", src: "/news-letter/yamaha.png" },
   { name: "Honda", src: "/news-letter/honda.png" },
   { name: "Kawasaki", src: "/news-letter/kawasaki.png" },
   { name: "Suzuki", src: "/news-letter/suzuki.png" },
   { name: "BMW", src: "/news-letter/bmw.png" },
   { name: "Ducati", src: "/news-letter/ducati.png" },
-  //   { name: "Harley-Davidson", src: "/news-letter/harley-davidson.jpg" },
+  { name: "Harley-Davidson", src: "/news-letter/harley-davidson.png" },
   { name: "Triumph", src: "/news-letter/triumph.png" },
 ];
 
@@ -29,7 +29,12 @@ export default function NewsLetter() {
         <div className="nl__content">
           <div className="nl__logos">
             {LOGOS.map((l) => (
-              <img key={l.name} src={l.src} alt={l.name} className="nl__logo" />
+              <img
+                key={l.name}
+                src={l.src}
+                alt={l.name}
+                className={`nl__logo${l.name === "Yamaha" ? " nl__logo--yamaha" : ""}`}
+              />
             ))}
           </div>
           <h2 className="nl__heading">Stay Tuned</h2>
@@ -63,7 +68,12 @@ export default function NewsLetter() {
       <div className="nl__mobile">
         <div className="nl__logos nl__logos--mobile">
           {LOGOS.map((l) => (
-            <img key={l.name} src={l.src} alt={l.name} className="nl__logo" />
+            <img
+              key={l.name}
+              src={l.src}
+              alt={l.name}
+              className={`nl__logo${l.name === "Yamaha" ? " nl__logo--yamaha" : ""}`}
+            />
           ))}
         </div>
         <h2 className="nl__heading">Stay Tuned</h2>

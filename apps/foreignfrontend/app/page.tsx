@@ -1,5 +1,6 @@
 import Link from "next/link";
 import HeroCarousel from "./components/HeroCarousel";
+import IntlVideoBanner from "./components/IntlVideoBanner";
 import TrustedBrands from "./components/TrustedBrands";
 import VehicleListings from "./components/VehicleListings";
 
@@ -44,9 +45,7 @@ export default function HomePage() {
       </section>
 
       {/* ── Video / Ship Banner ── */}
-      <section className="int-video">
-        <div className="int-video__bg" />
-      </section>
+      <IntlVideoBanner />
 
       {/* ── Features Section ── */}
       <section className="int-features">

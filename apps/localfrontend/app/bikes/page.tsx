@@ -1,19 +1,11 @@
-"use client";
+﻿"use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import { MOCK_BIKES } from "./data";
+import Pagination from "../components/Pagination";
 
-const BRANDS = [
-  "Yamaha",
-  "Honda",
-  "Suzuki",
-  "Triumph",
-  "BMW",
-  "Ducati",
-  "Harley Davidson",
-  "KTM",
-];
+const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+
 const CC_OPTIONS = [
   "Under 150cc",
   "150–250cc",
@@ -21,7 +13,56 @@ const CC_OPTIONS = [
   "400–600cc",
   "600cc +",
 ];
-const STATUS_OPTIONS = ["Brand New", "Used", "Reconditioned", "Pre-Order"];
+const STATUS_OPTIONS = ["Brand New", "Used", "Reconditioned"];
+const ITEMS_PER_PAGE = 6;
+
+interface VehicleImage {
+  id: number;
+  url: string;
+  isPrimary: boolean;
+  sortOrder: number;
+}
+
+interface PublicVehicle {
+  id: number;
+  displayId: string;
+  brand: { id: number; name: string };
+  model: { id: number; name: string };
+  colour: string;
+  engineCapacityCc: number | null;
+  year: number | null;
+  condition: string;
+  mileage: number;
+  sellingPrice: number | null;
+  description: string | null;
+  images: VehicleImage[];
+}
+
+function getCCBucket(cc: number | null): string {
+  if (cc === null || cc === 0) return "";
+  if (cc < 150) return "Under 150cc";
+  if (cc <= 250) return "150–250cc";
+  if (cc <= 400) return "250–400cc";
+  if (cc <= 600) return "400–600cc";
+  return "600cc +";
+}
+
+function mapCondition(c: string): string {
+  if (c === "brandnew") return "Brand New";
+  if (c === "reconditioned") return "Reconditioned";
+  return "Used";
+}
+
+function formatPrice(price: number | null): string {
+  if (price === null || price === 0) return "Contact for price";
+  return `Rs. ${price.toLocaleString("en-LK")}`;
+}
+
+function getPrimaryImage(images: VehicleImage[]): string | null {
+  if (!images.length) return null;
+  const primary = images.find((i) => i.isPrimary) ?? images[0];
+  return `${BACKEND_URL}${primary.url}`;
+}
 
 function RangeSlider({
   label,
@@ -107,6 +148,10 @@ function CheckGroup({
 }
 
 export default function BikesPage() {
+  const [vehicles, setVehicles] = useState<PublicVehicle[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000000]);
   const [yearRange, setYearRange] = useState<[number, number]>([2010, 2026]);
   const [mileageRange, setMileageRange] = useState<[number, number]>([
@@ -117,16 +162,86 @@ export default function BikesPage() {
   const [statuses, setStatuses] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setLoading(true);
+    fetch(`${BACKEND_URL}/api/bikes/vehicles?limit=200`)
+      .then((res) => {
+        if (!res.ok) throw new Error("Failed to fetch bikes");
+        return res.json();
+      })
+      .then((data) => {
+        setVehicles(data.vehicles ?? []);
+        setLoading(false);
+      })
+      .catch((err) => {
+        console.error(err);
+        setError("Could not load bikes. Please try again later.");
+        setLoading(false);
+      });
+  }, []);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, brands, ccOptions, statuses]);
+
+  // Derive unique brand names from fetched vehicles
+  const availableBrands = Array.from(
+    new Set(vehicles.map((v) => v.brand.name)),
+  ).sort();
 
   const q = search.toLowerCase();
-  const filtered = MOCK_BIKES.filter((b) => {
-    if (brands.length && !brands.includes(b.brand)) return false;
-    if (ccOptions.length && !ccOptions.includes(b.cc)) return false;
-    if (statuses.length && !statuses.includes(b.condition)) return false;
-    if (q && !`${b.brand} ${b.model} ${b.year}`.toLowerCase().includes(q))
+  const priceFiltered = priceRange[0] > 0 || priceRange[1] < 5000000;
+  const yearFiltered = yearRange[0] > 2010 || yearRange[1] < 2026;
+  const mileageFiltered = mileageRange[0] > 0 || mileageRange[1] < 100000;
+
+  const filtered = vehicles.filter((v) => {
+    if (priceFiltered) {
+      const price = v.sellingPrice ?? 0;
+      if (price < priceRange[0] || price > priceRange[1]) return false;
+    }
+
+    if (yearFiltered) {
+      const year = v.year ?? 0;
+      if (year && (year < yearRange[0] || year > yearRange[1])) return false;
+    }
+
+    if (mileageFiltered) {
+      if (
+        (v.mileage ?? 0) < mileageRange[0] ||
+        (v.mileage ?? 0) > mileageRange[1]
+      )
+        return false;
+    }
+
+    if (brands.length && !brands.includes(v.brand.name)) return false;
+
+    if (
+      ccOptions.length &&
+      !ccOptions.includes(getCCBucket(v.engineCapacityCc))
+    )
       return false;
+
+    if (statuses.length && !statuses.includes(mapCondition(v.condition)))
+      return false;
+
+    if (
+      q &&
+      !`${v.brand.name} ${v.model.name} ${v.year ?? ""}`
+        .toLowerCase()
+        .includes(q)
+    )
+      return false;
+
     return true;
   });
+
+  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
+  const paginated = filtered.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE,
+  );
 
   return (
     <section className="bikes-page">
@@ -137,11 +252,11 @@ export default function BikesPage() {
         />
       )}
       <div className="bikes-page__inner">
-        {/* ── Header ── */}
+        {/* â”€â”€ Header â”€â”€ */}
         <div className="bikes-page__header">
           <div className="bikes-page__header-row">
             <div>
-              <h1 className="bikes-page__title">Bikes</h1>
+              <h1 className="bikes-page__title">Stock</h1>
               <p className="bikes-page__subtitle">
                 Discover our collection of imported bikes, from sports machines
                 to everyday rides.
@@ -172,7 +287,7 @@ export default function BikesPage() {
                   onClick={() => setSearch("")}
                   aria-label="Clear search"
                 >
-                  ×
+                  Ã—
                 </button>
               )}
             </div>
@@ -199,9 +314,8 @@ export default function BikesPage() {
         </button>
 
         <div className="bikes-page__body">
-          {/* ── Sidebar Filters ── */}
+          {/* â”€â”€ Sidebar Filters â”€â”€ */}
           <aside className={`bikes-filter${filtersOpen ? " is-open" : ""}`}>
-            {/* Close button – mobile only */}
             <div className="po-filter__mobile-header">
               <span className="po-filter__mobile-title">Filters</span>
               <button
@@ -230,7 +344,7 @@ export default function BikesPage() {
             />
             <CheckGroup
               title="Brand"
-              options={BRANDS}
+              options={availableBrands}
               selected={brands}
               onChange={setBrands}
             />
@@ -262,34 +376,63 @@ export default function BikesPage() {
             />
           </aside>
 
-          {/* ── Product Grid ── */}
+          {/* â”€â”€ Product Grid â”€â”€ */}
           <div className="bikes-grid">
-            {filtered.length === 0 ? (
+            {loading ? (
+              <p className="bikes-grid__empty">Loading bikes…</p>
+            ) : error ? (
+              <p className="bikes-grid__empty">{error}</p>
+            ) : filtered.length === 0 ? (
               <p className="bikes-grid__empty">No bikes match your filters.</p>
             ) : (
-              filtered.map((bike) => (
-                <Link
-                  key={bike.id}
-                  href={`/bikes/${bike.id}`}
-                  className="bike-card"
-                >
-                  <div className="bike-card__image">
-                    <img src={bike.image} alt={`${bike.brand} ${bike.model}`} />
-                  </div>
-                  <div className="bike-card__body">
-                    <h3 className="bike-card__title">
-                      {bike.brand} {bike.model} {bike.year}
-                    </h3>
-                    <p className="bike-card__meta">
-                      {bike.cc}&nbsp;&nbsp;|&nbsp;&nbsp;{bike.condition}
-                    </p>
-                    <p className="bike-card__price">{bike.price}</p>
-                  </div>
-                </Link>
-              ))
+              paginated.map((vehicle) => {
+                const imgSrc = getPrimaryImage(vehicle.images);
+                return (
+                  <Link
+                    key={vehicle.id}
+                    href={`/bikes/${vehicle.id}`}
+                    className="bike-card"
+                  >
+                    <div className="bike-card__image">
+                      {imgSrc ? (
+                        <img
+                          src={imgSrc}
+                          alt={`${vehicle.brand.name} ${vehicle.model.name}`}
+                        />
+                      ) : (
+                        <div className="bike-card__no-image">No image</div>
+                      )}
+                    </div>
+                    <div className="bike-card__body">
+                      <h3 className="bike-card__title">
+                        {vehicle.brand.name} {vehicle.model.name}{" "}
+                        {vehicle.year ?? ""}
+                      </h3>
+                      <p className="bike-card__meta">
+                        {getCCBucket(vehicle.engineCapacityCc) ||
+                          (vehicle.engineCapacityCc
+                            ? `${vehicle.engineCapacityCc}cc`
+                            : "")}
+                        {vehicle.engineCapacityCc
+                          ? "\u00a0\u00a0|\u00a0\u00a0"
+                          : ""}
+                        {mapCondition(vehicle.condition)}
+                      </p>
+                      <p className="bike-card__price">
+                        {formatPrice(vehicle.sellingPrice)}
+                      </p>
+                    </div>
+                  </Link>
+                );
+              })
             )}
           </div>
         </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
       </div>
     </section>
   );

@@ -108,9 +108,6 @@ export default function VehicleListings() {
 
         {/* Footer row */}
         <div className="int-listings__footer">
-          <p className="int-listings__note">
-            <strong>Note :</strong>&nbsp; Explore more = Opens pdf in new tab
-          </p>
           <Link href="/listings" className="int-btn int-btn--primary">
             View All Listings
           </Link>
