@@ -53,21 +53,6 @@ const LOCAL_CONFIG: SiteConfig = {
           icon: "image",
         },
         { href: "/local/dashboard/video", label: "Video", icon: "play" },
-        {
-          href: "/local/dashboard/bikes",
-          label: "Bike Listings",
-          icon: "bike",
-        },
-        {
-          href: "/local/dashboard/spare-parts",
-          label: "Spare Parts",
-          icon: "cog",
-        },
-        {
-          href: "/local/dashboard/pre-orders",
-          label: "Pre Orders",
-          icon: "cart",
-        },
       ],
     },
     {
@@ -131,21 +116,6 @@ const INTERNATIONAL_CONFIG: SiteConfig = {
           href: "/international/dashboard/video",
           label: "Video Banner",
           icon: "play",
-        },
-        {
-          href: "/international/dashboard/pdf",
-          label: "Downloadable PDF",
-          icon: "file",
-        },
-        {
-          href: "/international/dashboard/bikes",
-          label: "Bike Inventory",
-          icon: "bike",
-        },
-        {
-          href: "/international/dashboard/spare-parts",
-          label: "Spare Parts",
-          icon: "cog",
         },
       ],
     },
