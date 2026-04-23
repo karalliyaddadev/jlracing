@@ -23,6 +23,7 @@ type Purchase = {
   itemType: "BIKE" | "INVENTORY";
   quantity: number;
   finalSellingPrice: number;
+  purchaseChannel?: "PERSONAL" | "LEASING";
   remainingAmount?: number;
   customer: { id: number };
 };
@@ -61,6 +62,14 @@ function formatCurrencyCompact(value: number) {
     notation: "compact",
     maximumFractionDigits: 1,
   }).format(Math.round(value));
+}
+
+function getRecognizedRevenue(purchase: Purchase) {
+  // Leasing revenue is recognized only after it is fully settled.
+  if (purchase.purchaseChannel === "LEASING" && (purchase.remainingAmount ?? 0) > 0) {
+    return 0;
+  }
+  return purchase.finalSellingPrice;
 }
 
 export default function DashboardPage() {
@@ -117,13 +126,14 @@ export default function DashboardPage() {
     const uniqueCustomers = new Set<number>();
 
     purchases.forEach((purchase) => {
-      totalRevenue += purchase.finalSellingPrice;
+      const recognizedRevenue = getRecognizedRevenue(purchase);
+      totalRevenue += recognizedRevenue;
       uniqueCustomers.add(purchase.customer.id);
       if ((purchase.remainingAmount ?? 0) > 0) openInvoices += 1;
 
       const purchasedAt = new Date(purchase.purchasedAt);
       if (dateKeyLocal(purchasedAt, "DAILY") === todayKey) {
-        todayRevenue += purchase.finalSellingPrice;
+        todayRevenue += recognizedRevenue;
         todaySoldUnits += purchase.quantity;
       }
     });
@@ -148,7 +158,7 @@ export default function DashboardPage() {
     purchases.forEach((purchase) => {
       const key = dateKeyLocal(new Date(purchase.purchasedAt), revenueMode);
       const current = map.get(key) ?? { revenue: 0, soldUnits: 0 };
-      current.revenue += purchase.finalSellingPrice;
+      current.revenue += getRecognizedRevenue(purchase);
       current.soldUnits += purchase.quantity;
       map.set(key, current);
     });

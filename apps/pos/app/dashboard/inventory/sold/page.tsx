@@ -4,12 +4,8 @@ import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
-import {
-  IconActivity,
-  IconInventory,
-  IconInvoice,
-  IconSupplier,
-} from "../../../lib/icons";
+import { exportTableToPdf } from "../../../lib/pdf-export";
+import { IconActivity, IconInventory, IconInvoice, IconSupplier } from "../../../lib/icons";
 
 type InventoryPurchase = {
   id: number;
@@ -86,6 +82,29 @@ export default function SoldInventoryPage() {
       purchases.reduce((sum, purchase) => sum + purchase.finalSellingPrice, 0),
     [purchases],
   );
+
+  const exportSoldInventoryPdf = () => {
+    exportTableToPdf({
+      fileName: "inventory-sold-report",
+      title: "Inventory Sold Report",
+      subtitle: "All sold inventory entries currently loaded in Sold Items tab",
+      rows: purchases,
+      columns: [
+        { header: "Invoice", value: (purchase) => `INV-${String(purchase.id).padStart(5, "0")}` },
+        { header: "Purchased At", value: (purchase) => new Date(purchase.purchasedAt).toLocaleString() },
+        { header: "Product ID", value: (purchase) => purchase.inventory?.displayId ?? "-" },
+        { header: "Product Name", value: (purchase) => purchase.inventory?.name ?? "-" },
+        { header: "Category", value: (purchase) => purchase.inventory?.category ?? "-" },
+        { header: "Brand", value: (purchase) => purchase.inventory?.brand ?? "-" },
+        { header: "Supplier", value: (purchase) => purchase.inventory?.supplier ?? "-" },
+        { header: "Customer", value: (purchase) => `${purchase.customer.firstName} ${purchase.customer.lastName}` },
+        { header: "Customer NIC", value: (purchase) => purchase.customer.nic },
+        { header: "Customer Mobile", value: (purchase) => purchase.customer.mobileNumber },
+        { header: "Qty", value: (purchase) => purchase.quantity },
+        { header: "Final Price", value: (purchase) => purchase.finalSellingPrice },
+      ],
+    });
+  };
 
   return (
     <div className="bm-page">
@@ -171,30 +190,10 @@ export default function SoldInventoryPage() {
       </div>
 
       <div className="bm-table-card">
-        <div
-          style={{
-            padding: "1rem",
-            borderBottom: "1px solid var(--panel-border)",
-            display: "flex",
-            gap: "0.75rem",
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <input
-            className="bm-input"
-            style={{ maxWidth: 420 }}
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by customer, NIC, product ID, name or brand"
-          />
-          <button
-            type="button"
-            className="btn-outline"
-            onClick={() => void loadData()}
-          >
-            Refresh
-          </button>
+        <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)", display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
+          <input className="bm-input" style={{ maxWidth: 420 }} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by customer, NIC, product ID, name or brand" />
+          <button type="button" className="btn-outline" onClick={() => void loadData()}>Refresh</button>
+          <button type="button" className="btn-outline" onClick={exportSoldInventoryPdf}>Export PDF</button>
         </div>
         <div className="data-table-wrap">
           <table className="data-table">

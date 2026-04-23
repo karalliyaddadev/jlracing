@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
+import { exportTableToPdf } from "../../lib/pdf-export";
 import { IconBike, IconInventory, IconActivity, IconInvoice } from "../../lib/icons";
 import CustomerPurchaseModal from "../../components/CustomerPurchaseModal";
 
@@ -1970,6 +1971,51 @@ export default function BikeInventoryPage() {
   const incompleteCount = statsSource.filter((v) => !v.fileNo || !v.registerNo).length;
   const lowStockGroups = groups.filter((group) => group.isLowStock);
 
+  const exportBikeInventoryPdf = () => {
+    exportTableToPdf({
+      fileName: "bike-inventory-report",
+      title: "Bike Inventory Report",
+      subtitle: "All available bikes currently loaded in Bike Inventory tab",
+      rows: statsSource,
+      columns: [
+        { header: "Display ID", value: (vehicle) => vehicle.displayId },
+        { header: "Brand", value: (vehicle) => vehicle.brand?.name ?? "-" },
+        { header: "Model", value: (vehicle) => vehicle.model?.name ?? "-" },
+        { header: "Supplier", value: (vehicle) => vehicle.supplier ? `${vehicle.supplier.name} (${vehicle.supplier.code})` : "-" },
+        { header: "Colour", value: (vehicle) => vehicle.colour },
+        { header: "Year", value: (vehicle) => vehicle.year ?? "-" },
+        { header: "Manufacture Date", value: (vehicle) => vehicle.manufactureDate ? new Date(vehicle.manufactureDate).toLocaleDateString() : "-" },
+        { header: "Condition", value: (vehicle) => vehicle.condition === "brandnew" ? "Brand New" : "Used" },
+        { header: "Mileage", value: (vehicle) => vehicle.mileage ?? "-" },
+        { header: "Engine Capacity (cc)", value: (vehicle) => vehicle.engineCapacityCc ?? "-" },
+        { header: "File No", value: (vehicle) => vehicle.fileNo ?? "-" },
+        { header: "Register No", value: (vehicle) => vehicle.registerNo ?? "-" },
+        { header: "Chassis No", value: (vehicle) => vehicle.chassisNo ?? "-" },
+        { header: "Engine No", value: (vehicle) => vehicle.engineNo ?? "-" },
+        { header: "Registration", value: (vehicle) => vehicle.registrationType === "registered" ? "Registered" : "Unregistered" },
+        { header: "Purchase Price", value: (vehicle) => vehicle.purchasePrice ?? "-" },
+        { header: "Tax Amount", value: (vehicle) => vehicle.taxAmount ?? "-" },
+        {
+          header: "Additional Expenses Total",
+          value: (vehicle) => (vehicle.expenses?.length
+            ? vehicle.expenses.reduce((sum, expense) => sum + (expense.amount ?? 0), 0)
+            : "-"),
+        },
+        {
+          header: "Expense Breakdown",
+          value: (vehicle) => vehicle.expenses?.length
+            ? vehicle.expenses.map((expense) => `${expense.description}: ${expense.amount}`).join(" | ")
+            : "-",
+        },
+        { header: "Selling Price", value: (vehicle) => vehicle.sellingPrice ?? "-" },
+        { header: "Status", value: (vehicle) => vehicle.status },
+        { header: "Image Count", value: (vehicle) => vehicle.images?.length ?? 0 },
+        { header: "Added At", value: (vehicle) => new Date(vehicle.createdAt).toLocaleString() },
+        { header: "Description", value: (vehicle) => vehicle.description ?? "-" },
+      ],
+    });
+  };
+
   const filteredModels = filters.brandId
     ? models.filter((m) => String(m.brandId) === filters.brandId)
     : models;
@@ -1994,7 +2040,10 @@ export default function BikeInventoryPage() {
             <p className="page-subtitle">{totalAvailable} bikes available in stock</p>
           </div>
         </div>
-        <button className="btn-accent" onClick={() => setShowAdd(true)}>+ Add Bike</button>
+        <div style={{ display: "flex", gap: "0.6rem", flexWrap: "wrap" }}>
+          <button type="button" className="btn-outline" onClick={exportBikeInventoryPdf}>Export PDF</button>
+          <button className="btn-accent" onClick={() => setShowAdd(true)}>+ Add Bike</button>
+        </div>
       </div>
 
       <div className="bm-stats-grid">

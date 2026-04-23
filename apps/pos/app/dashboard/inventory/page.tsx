@@ -11,12 +11,8 @@ import {
 } from "react";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
-import {
-  IconActivity,
-  IconInventory,
-  IconInvoice,
-  IconSupplier,
-} from "../../lib/icons";
+import { exportTableToPdf } from "../../lib/pdf-export";
+import { IconActivity, IconInventory, IconInvoice, IconSupplier } from "../../lib/icons";
 import CustomerPurchaseModal from "../../components/CustomerPurchaseModal";
 
 type ProductBrand = { id: number; name: string; _count?: { products: number } };
@@ -1646,6 +1642,31 @@ export default function InventoryPage() {
   );
   const lowStockCount = lowStockProducts.length;
 
+  const exportInventoryPdf = () => {
+    exportTableToPdf({
+      fileName: "inventory-available-report",
+      title: "Inventory Available Report",
+      subtitle: "All inventory items currently loaded in Inventory tab",
+      rows: products,
+      columns: [
+        { header: "Display ID", value: (product) => product.displayId },
+        { header: "Product Name", value: (product) => product.name },
+        { header: "Category", value: (product) => product.category.name },
+        { header: "Brand", value: (product) => product.brand.name },
+        { header: "Supplier", value: (product) => product.supplier ? `${product.supplier.name} (${product.supplier.code})` : "-" },
+        { header: "In Stock", value: (product) => product.quantity },
+        { header: "Sold Qty", value: (product) => product.soldQuantity ?? 0 },
+        { header: "Purchase Price", value: (product) => product.purchasePrice ?? "-" },
+        { header: "Tax Paid", value: (product) => product.taxPaid ?? "-" },
+        { header: "Additional Expenses", value: (product) => product.additionalExpenses ?? "-" },
+        { header: "Selling Price", value: (product) => product.sellingPrice ?? "-" },
+        { header: "Low Stock Threshold", value: (product) => product.lowStockThreshold ?? 0 },
+        { header: "Last Sold At", value: (product) => product.lastSoldAt ? new Date(product.lastSoldAt).toLocaleString() : "-" },
+        { header: "Description", value: (product) => product.description ?? "-" },
+      ],
+    });
+  };
+
   const removeProduct = async (id: number) => {
     if (!window.confirm("Delete this inventory product?")) return;
     const response = await fetch(`${base}/products/${id}`, {
@@ -1806,30 +1827,10 @@ export default function InventoryPage() {
       </div>
 
       <div className="bm-table-card">
-        <div
-          style={{
-            padding: "1rem",
-            borderBottom: "1px solid var(--panel-border)",
-            display: "flex",
-            gap: "0.75rem",
-            alignItems: "center",
-            flexWrap: "wrap",
-          }}
-        >
-          <input
-            className="bm-input"
-            style={{ maxWidth: 420 }}
-            value={search}
-            onChange={(event) => setSearch(event.target.value)}
-            placeholder="Search by spare part name, part number, category, brand, compatible models"
-          />
-          <button
-            type="button"
-            className="btn-outline"
-            onClick={() => void loadData()}
-          >
-            Refresh
-          </button>
+        <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)", display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
+          <input className="bm-input" style={{ maxWidth: 420 }} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by product, category, brand, supplier or description" />
+          <button type="button" className="btn-outline" onClick={() => void loadData()}>Refresh</button>
+          <button type="button" className="btn-outline" onClick={exportInventoryPdf}>Export PDF</button>
         </div>
         <div className="data-table-wrap">
           <table className="data-table">
