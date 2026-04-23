@@ -1,6 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import multer from "multer";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../generated/prisma";
 import { AppError } from "../utils/errors";
 import { env } from "../../config/env";
 

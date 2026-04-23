@@ -3,21 +3,25 @@ import Link from "next/link";
 const MILESTONES = [
   {
     icon: "/about/bike-gold.png",
+    bgImage: "/about/life-long-rider.jpg",
     title: "Lifelong Rider & Racing Enthusiast",
     desc: "Passionate about motorcycles and motorsports since childhood.",
   },
   {
     icon: "/about/building-gold.png",
+    bgImage: "/about/family-business-leadership.png",
     title: "Family Business Leadership",
     desc: "Took over and managed the family business in Sri Lanka.",
   },
   {
     icon: "/about/chart-gold.png",
+    bgImage: "/about/jl-racing-growth.jpg",
     title: "JL Racing Growth",
     desc: "Scaled JL Racing into Sri Lanka\u2019s most trusted high-performance motorcycle dealership.",
   },
   {
     icon: "/about/globe-gold.png",
+    bgImage: "/about/global-vision.jpg",
     title: "Global Vision",
     desc: "Founded JLR International to provide smooth and genuine vehicle import services worldwide.",
   },
@@ -192,14 +196,35 @@ export default function AboutPage() {
                 continue to drive the company&apos;s global expansion.
               </p>
             </div>
-            <div className="abt-chairman__img-wrap">
-              {/* Chairman image placeholder — replace src when available */}
-              <div className="abt-chairman__img-placeholder" />
+            <div className="abt-chairman__photos">
+              <div className="abt-chairman__photo abt-chairman__photo--main">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/about/chairman%201.jpeg"
+                  alt="Chairman Jin Liyanage"
+                />
+              </div>
+              <div className="abt-chairman__photo-stack">
+                <div className="abt-chairman__photo">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/about/chairman%202.png"
+                    alt="Chairman Jin Liyanage"
+                  />
+                </div>
+                <div className="abt-chairman__photo">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src="/about/chairman%203.jpg"
+                    alt="Chairman Jin Liyanage"
+                  />
+                </div>
+              </div>
             </div>
           </div>
 
           <p className="abt-chairman__milestone-title">
-            <em>Key Milestones That Shaped His Journey and Vision</em>
+            Key Milestones That Shaped His Journey and Vision
           </p>
         </div>
       </section>
@@ -209,7 +234,10 @@ export default function AboutPage() {
         <div className="abt-milestones__grid">
           {MILESTONES.map((m) => (
             <div key={m.title} className="abt-ms-card">
-              <div className="abt-ms-card__bg" />
+              <div
+                className="abt-ms-card__bg"
+                style={{ backgroundImage: `url('${m.bgImage}')` }}
+              />
               <div className="abt-ms-card__overlay" />
               <div className="abt-ms-card__body">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
