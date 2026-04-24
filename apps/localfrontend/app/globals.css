@@ -330,6 +330,27 @@ button {
   transform: translateX(0%);
 }
 
+/* Responsive image variants */
+.hero__slide--mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hero__slide--desktop {
+    display: none;
+  }
+
+  .hero__slide--mobile {
+    display: block;
+  }
+
+  .hero {
+    margin-top: calc(var(--header-h) + var(--announce-h));
+    height: calc(100vh - var(--header-h) - var(--announce-h));
+    min-height: 400px;
+  }
+}
+
 /* Single gradient overlay — purely decorative, never intercepts pointer events */
 .hero__overlay {
   position: absolute;
@@ -764,6 +785,14 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+}
+
+@supports (height: 100dvh) {
+  .video-banner,
+  .video-banner__inner {
+    min-height: 100dvh;
+  }
 }
 
 .video-banner__poster {
@@ -860,48 +889,6 @@ button {
   letter-spacing: 0.15em;
   text-transform: uppercase;
   color: var(--text-on-dark-muted);
-}
-
-/* Stats row at the bottom */
-.video-banner__stats {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 3rem;
-  padding: 2.5rem 2rem;
-  background: linear-gradient(180deg, transparent 0%, rgba(5, 5, 5, 0.95) 100%);
-}
-
-.video-banner__stat {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 0.25rem;
-}
-
-.video-banner__stat-num {
-  font-size: clamp(1.6rem, 3vw, 2.2rem);
-  font-weight: 900;
-  color: #fff;
-}
-
-.video-banner__stat-label {
-  font-size: 0.7rem;
-  font-weight: 600;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-on-dark-muted);
-}
-
-.video-banner__stat-divider {
-  width: 1px;
-  height: 40px;
-  background: var(--border-dark);
 }
 
 /* Video Player */
@@ -2282,6 +2269,12 @@ button {
   border-radius: var(--radius-lg);
   overflow: hidden;
   background: var(--bg-dark-tertiary);
+}
+
+@media (max-width: 768px) {
+  .about-founder__img-wrap {
+    aspect-ratio: 4 / 3;
+  }
 }
 
 .about-founder__img {
@@ -4317,10 +4310,6 @@ button {
     grid-template-columns: repeat(2, 1fr);
   }
 
-  .video-banner__stats {
-    gap: 1.5rem;
-  }
-
   .about-story__container {
     grid-template-columns: 1fr;
     gap: 3rem;
@@ -4332,7 +4321,7 @@ button {
   }
 
   .about-founder__gallery {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr;
   }
 }
 
@@ -4424,7 +4413,7 @@ button {
   }
 
   .about-founder__gallery {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: 1fr;
   }
 
   .about-vm__container {
@@ -4498,15 +4487,6 @@ button {
     flex-direction: column;
     align-items: flex-start;
     gap: 1.25rem;
-  }
-
-  .video-banner__stats {
-    flex-wrap: wrap;
-    gap: 1.5rem;
-  }
-
-  .video-banner__stat-divider {
-    display: none;
   }
 
   .video-banner,
@@ -4609,10 +4589,6 @@ button {
   .video-banner,
   .video-banner__inner {
     min-height: 55vh;
-  }
-
-  .video-banner__stat-num {
-    font-size: 1.4rem;
   }
 
   .bikes-grid {
