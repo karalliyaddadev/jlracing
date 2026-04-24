@@ -26,6 +26,8 @@ type Purchase = {
   purchaseChannel?: "PERSONAL" | "LEASING";
   remainingAmount?: number;
   customer: { id: number };
+  bike?: { id: number } | null;
+  inventory?: { id: number } | null;
 };
 
 type InventoryProduct = {
@@ -95,6 +97,32 @@ function clampMoney(value: number) {
   return Math.round(value * 100) / 100;
 }
 
+function isDateWithinRange(iso: string | null | undefined, from: string, to: string) {
+  if (!iso) return false;
+
+  const value = new Date(iso).getTime();
+  if (Number.isNaN(value)) return false;
+
+  if (from) {
+    const fromValue = new Date(`${from}T00:00:00`).getTime();
+    if (value < fromValue) return false;
+  }
+
+  if (to) {
+    const toValue = new Date(`${to}T23:59:59.999`).getTime();
+    if (value > toValue) return false;
+  }
+
+  return true;
+}
+
+function formatDateRangeLabel(from: string, to: string) {
+  if (from && to) return `${from} to ${to}`;
+  if (from) return `From ${from}`;
+  if (to) return `Up to ${to}`;
+  return "All dates";
+}
+
 export default function DashboardPage() {
   const { admin, token } = useAdmin();
   const router = useRouter();
@@ -107,6 +135,8 @@ export default function DashboardPage() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [products, setProducts] = useState<InventoryProduct[]>([]);
   const [vehicles, setVehicles] = useState<VehicleSummary[]>([]);
+  const [financeDateFrom, setFinanceDateFrom] = useState("");
+  const [financeDateTo, setFinanceDateTo] = useState("");
 
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
@@ -143,39 +173,64 @@ export default function DashboardPage() {
     void loadDashboardData();
   }, [loadDashboardData]);
 
-  const derivedTaxes = useMemo(() => {
-    const inventoryTax = products.reduce((sum, product) => {
-      const soldQuantity = Math.max(0, product.soldQuantity ?? 0);
-      const taxPerUnit = Math.max(0, product.taxPaid ?? 0);
-      return sum + taxPerUnit * soldQuantity;
+  const financeDateRangeInvalid = Boolean(
+    financeDateFrom && financeDateTo && financeDateFrom > financeDateTo,
+  );
+
+  const financeDateRangeLabel = useMemo(
+    () => formatDateRangeLabel(financeDateFrom, financeDateTo),
+    [financeDateFrom, financeDateTo],
+  );
+
+  const productsById = useMemo(
+    () => new Map(products.map((product) => [product.id, product])),
+    [products],
+  );
+
+  const vehiclesById = useMemo(
+    () => new Map(vehicles.map((vehicle) => [vehicle.id, vehicle])),
+    [vehicles],
+  );
+
+  const filteredFinancePurchases = useMemo(() => {
+    if (financeDateRangeInvalid) return [];
+    return purchases.filter((purchase) =>
+      isDateWithinRange(purchase.purchasedAt, financeDateFrom, financeDateTo),
+    );
+  }, [financeDateFrom, financeDateRangeInvalid, financeDateTo, purchases]);
+
+  const activeTaxes = useMemo(() => {
+    const total = filteredFinancePurchases.reduce((sum, purchase) => {
+      if (purchase.itemType === "INVENTORY") {
+        const productId = purchase.inventory?.id;
+        const product = productId ? productsById.get(productId) : undefined;
+        return sum + Math.max(0, product?.taxPaid ?? 0) * Math.max(0, purchase.quantity);
+      }
+
+      const bikeId = purchase.bike?.id;
+      const bike = bikeId ? vehiclesById.get(bikeId) : undefined;
+      return sum + Math.max(0, bike?.taxAmount ?? 0);
     }, 0);
 
-    const bikeTax = vehicles.reduce((sum, vehicle) => {
-      if (vehicle.status !== "sold") return sum;
-      return sum + Math.max(0, vehicle.taxAmount ?? 0);
-    }, 0);
+    return clampMoney(total);
+  }, [filteredFinancePurchases, productsById, vehiclesById]);
 
-    return clampMoney(inventoryTax + bikeTax);
-  }, [products, vehicles]);
+  const activeOtherCosts = useMemo(() => {
+    const total = filteredFinancePurchases.reduce((sum, purchase) => {
+      if (purchase.itemType === "INVENTORY") {
+        const productId = purchase.inventory?.id;
+        const product = productId ? productsById.get(productId) : undefined;
+        return sum + Math.max(0, product?.additionalExpenses ?? 0) * Math.max(0, purchase.quantity);
+      }
 
-  const derivedOtherCosts = useMemo(() => {
-    const inventoryCosts = products.reduce((sum, product) => {
-      const soldQuantity = Math.max(0, product.soldQuantity ?? 0);
-      const extraPerUnit = Math.max(0, product.additionalExpenses ?? 0);
-      return sum + extraPerUnit * soldQuantity;
-    }, 0);
-
-    const bikeCosts = vehicles.reduce((sum, vehicle) => {
-      if (vehicle.status !== "sold") return sum;
-      const expenses = vehicle.expenses ?? [];
+      const bikeId = purchase.bike?.id;
+      const bike = bikeId ? vehiclesById.get(bikeId) : undefined;
+      const expenses = bike?.expenses ?? [];
       return sum + expenses.reduce((innerSum, item) => innerSum + Math.max(0, item.amount), 0);
     }, 0);
 
-    return clampMoney(inventoryCosts + bikeCosts);
-  }, [products, vehicles]);
-
-  const activeTaxes = derivedTaxes;
-  const activeOtherCosts = derivedOtherCosts;
+    return clampMoney(total);
+  }, [filteredFinancePurchases, productsById, vehiclesById]);
 
   const financialSummary = useMemo(() => {
     const now = new Date();
@@ -188,7 +243,7 @@ export default function DashboardPage() {
     let leasingOutstanding = 0;
     let nonLeasingOutstanding = 0;
 
-    purchases.forEach((purchase) => {
+    filteredFinancePurchases.forEach((purchase) => {
       const settledRevenue = getSettledRevenue(purchase);
       const remaining = Math.max(0, purchase.remainingAmount ?? 0);
       totalRevenue += settledRevenue;
@@ -219,7 +274,12 @@ export default function DashboardPage() {
       leasingOutstanding,
       grossProfit,
     };
-  }, [activeOtherCosts, activeTaxes, purchases]);
+  }, [activeOtherCosts, activeTaxes, filteredFinancePurchases]);
+
+  const allTimeRevenue = useMemo(
+    () => clampMoney(purchases.reduce((sum, purchase) => sum + getSettledRevenue(purchase), 0)),
+    [purchases],
+  );
 
   const totals = useMemo(() => {
     const now = new Date();
@@ -248,14 +308,14 @@ export default function DashboardPage() {
     }).length;
 
     return {
-      totalRevenue: financialSummary.totalRevenue,
+      totalRevenue: allTimeRevenue,
       todayRevenue,
       todaySoldUnits,
       openInvoices,
       activeUsers: uniqueCustomers.size,
       lowStockAlerts,
     };
-  }, [financialSummary.totalRevenue, products, purchases]);
+  }, [allTimeRevenue, products, purchases]);
 
   const groupedRevenue = useMemo(() => {
     const map = new Map<string, { revenue: number; soldUnits: number }>();
@@ -427,13 +487,15 @@ export default function DashboardPage() {
   <body>
     <div class="header">
       <h1 class="title">JL Racing Finance Report</h1>
-      <div class="subtitle">Daily and monthly revenue summary with outstanding, taxes, costs, and gross profit.</div>
-      <div class="meta">Generated: ${generatedAt}</div>
+      <div class="subtitle">Finance summary for ${financeDateRangeLabel}.</div>
+      <div class="meta">Generated: ${generatedAt} | Matching invoices: ${filteredFinancePurchases.length}</div>
     </div>
     <div class="grid">
-      <div class="card"><div class="label">Daily Revenue</div><div class="value">LKR ${formatCurrency(financialSummary.dailyRevenue)}</div></div>
-      <div class="card"><div class="label">Monthly Revenue</div><div class="value">LKR ${formatCurrency(financialSummary.monthlyRevenue)}</div></div>
       <div class="card"><div class="label">Total Revenue</div><div class="value">LKR ${formatCurrency(financialSummary.totalRevenue)}</div></div>
+      <div class="card"><div class="label">Total Outstanding</div><div class="value">LKR ${formatCurrency(financialSummary.totalOutstanding)}</div></div>
+      <div class="card"><div class="label">Leasing Outstanding</div><div class="value">LKR ${formatCurrency(financialSummary.leasingOutstanding)}</div></div>
+      <div class="card"><div class="label">Taxes</div><div class="value">LKR ${formatCurrency(activeTaxes)}</div></div>
+      <div class="card"><div class="label">Other Costs</div><div class="value">LKR ${formatCurrency(activeOtherCosts)}</div></div>
       <div class="card"><div class="label">Gross Profit</div><div class="value">LKR ${formatCurrency(financialSummary.grossProfit)}</div></div>
     </div>
 
@@ -447,6 +509,7 @@ export default function DashboardPage() {
         </tr>
       </thead>
       <tbody>
+        <tr><td>Date Range</td><td>${financeDateRangeLabel}</td><td>Selected dashboard finance filter</td></tr>
         <tr><td>Total Outstanding</td><td>${formatCurrency(financialSummary.totalOutstanding)}</td><td>Open invoice balances</td></tr>
         <tr><td>Leasing Outstanding</td><td>${formatCurrency(financialSummary.leasingOutstanding)}</td><td>Open leasing balances</td></tr>
         <tr><td>Taxes</td><td>${formatCurrency(activeTaxes)}</td><td>Sold bikes + sold inventory tax totals</td></tr>
@@ -505,7 +568,12 @@ export default function DashboardPage() {
           <p className="dash-welcome-sub">Here&apos;s what&apos;s happening at JL Racing today.</p>
         </div>
         <div className="dash-welcome-actions">
-          <button type="button" className="btn-outline" onClick={exportFinanceReportPdf}>
+          <button
+            type="button"
+            className="btn-outline"
+            onClick={exportFinanceReportPdf}
+            disabled={financeDateRangeInvalid}
+          >
             <IconInvoice /> Print Finance PDF
           </button>
           <button type="button" className="btn-outline" onClick={() => router.push("/dashboard/invoices")}>
@@ -518,6 +586,55 @@ export default function DashboardPage() {
       </div>
 
       {error && <div className="bm-alert bm-alert-error">{error}</div>}
+
+      <div className="finance-controls-panel">
+        <div className="finance-control-row">
+          <label className="finance-control-label" htmlFor="finance-date-from">
+            From date
+          </label>
+          <input
+            id="finance-date-from"
+            type="date"
+            className="bm-input"
+            value={financeDateFrom}
+            onChange={(event) => setFinanceDateFrom(event.target.value)}
+          />
+        </div>
+        <div className="finance-control-row">
+          <label className="finance-control-label" htmlFor="finance-date-to">
+            To date
+          </label>
+          <input
+            id="finance-date-to"
+            type="date"
+            className="bm-input"
+            value={financeDateTo}
+            onChange={(event) => setFinanceDateTo(event.target.value)}
+          />
+        </div>
+        <div className="finance-equations">
+          {financeDateRangeInvalid && (
+            <div className="bm-alert bm-alert-error">
+              From date must be earlier than or equal to the to date.
+            </div>
+          )}
+          <span>Showing finance cards for {financeDateRangeLabel}.</span>
+          <span>{filteredFinancePurchases.length} invoice(s) matched the selected range.</span>
+          <div style={{ display: "flex", gap: "0.65rem", flexWrap: "wrap", marginTop: "0.35rem" }}>
+            <button
+              type="button"
+              className="btn-outline"
+              onClick={() => {
+                setFinanceDateFrom("");
+                setFinanceDateTo("");
+              }}
+              disabled={!financeDateFrom && !financeDateTo}
+            >
+              Clear Dates
+            </button>
+          </div>
+        </div>
+      </div>
 
       <div className="finance-cards-grid">
         {[
@@ -539,12 +656,12 @@ export default function DashboardPage() {
           {
             label: "Taxes",
             value: `LKR ${formatCurrency(activeTaxes)}`,
-            hint: "Auto from sold records",
+            hint: `Auto from sales in ${financeDateRangeLabel.toLowerCase()}`,
           },
           {
             label: "Other Costs",
             value: `LKR ${formatCurrency(activeOtherCosts)}`,
-            hint: "Auto from sold records",
+            hint: `Auto from sales in ${financeDateRangeLabel.toLowerCase()}`,
           },
           {
             label: "Gross Profit",

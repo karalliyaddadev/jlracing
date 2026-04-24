@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import Image from "next/image";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
+import { exportTableToPdf } from "../../lib/pdf-export";
 import { IconPreOrders, IconContactRequests, IconEdit, IconPlus, IconClose, IconInventory, IconActivity, IconInvoice, IconUsers } from "../../lib/icons";
 
 // ──────────────────── TYPES ────────────────────────
@@ -104,6 +105,13 @@ function formatDate(iso: string) {
   });
 }
 
+function formatDateRangeLabel(from: string, to: string) {
+  if (from && to) return `${from} to ${to}`;
+  if (from) return `From ${from}`;
+  if (to) return `Up to ${to}`;
+  return "All created dates";
+}
+
 // ──────────────────── MAIN COMPONENT ────────────────────────
 
 export default function PreOrdersRequestsPage() {
@@ -121,6 +129,8 @@ export default function PreOrdersRequestsPage() {
   const [preOrderError, setPreOrderError] = useState<string | null>(null);
   const [preOrderSearch, setPreOrderSearch] = useState("");
   const [preOrderStatusFilter, setPreOrderStatusFilter] = useState("");
+  const [preOrderDateFrom, setPreOrderDateFrom] = useState("");
+  const [preOrderDateTo, setPreOrderDateTo] = useState("");
   const [preOrderPage, setPreOrderPage] = useState(1);
 
   const [showPreOrderModal, setShowPreOrderModal] = useState(false);
@@ -576,10 +586,49 @@ export default function PreOrdersRequestsPage() {
 
   // ────────────────── PRE-ORDER STATS ──────────────────
 
-  const totalPreOrder = preOrders.filter((p) => p.status === "pre-order").length;
-  const totalInStock = preOrders.filter((p) => p.status === "in-stock").length;
-  const totalPublished = preOrders.filter((p) => p.isPublished).length;
+  const filteredPreOrders = useMemo(() => {
+    return preOrders.filter((preOrder) => {
+      const createdAt = new Date(preOrder.createdAt).getTime();
+      if (Number.isNaN(createdAt)) return false;
+
+      if (preOrderDateFrom) {
+        const fromBoundary = new Date(`${preOrderDateFrom}T00:00:00`).getTime();
+        if (createdAt < fromBoundary) return false;
+      }
+
+      if (preOrderDateTo) {
+        const toBoundary = new Date(`${preOrderDateTo}T23:59:59.999`).getTime();
+        if (createdAt > toBoundary) return false;
+      }
+
+      return true;
+    });
+  }, [preOrders, preOrderDateFrom, preOrderDateTo]);
+
+  const totalPreOrder = filteredPreOrders.filter((p) => p.status === "pre-order").length;
+  const totalInStock = filteredPreOrders.filter((p) => p.status === "in-stock").length;
+  const totalPublished = filteredPreOrders.filter((p) => p.isPublished).length;
   const totalPreOrderPages = Math.ceil(total / PREORDER_LIMIT);
+  const hasPreOrderDateFilter = Boolean(preOrderDateFrom || preOrderDateTo);
+
+  const exportFilteredPreOrdersPdf = useCallback(() => {
+    exportTableToPdf({
+      fileName: "pre-orders-report",
+      title: "Pre Orders Report",
+      subtitle: `Created date filter: ${formatDateRangeLabel(preOrderDateFrom, preOrderDateTo)}`,
+      rows: filteredPreOrders,
+      columns: [
+        { header: "Display ID", value: (preOrder) => preOrder.displayId },
+        { header: "Created Date", value: (preOrder) => formatDate(preOrder.createdAt) },
+        { header: "Brand", value: (preOrder) => preOrder.brand },
+        { header: "Model", value: (preOrder) => preOrder.model },
+        { header: "Year", value: (preOrder) => preOrder.year ?? "-" },
+        { header: "Status", value: (preOrder) => preOrder.status === "pre-order" ? "Pre-order" : "In Stock" },
+        { header: "Published", value: (preOrder) => preOrder.isPublished ? "Yes" : "No" },
+        { header: "Price", value: (preOrder) => preOrder.price != null ? preOrder.price.toLocaleString() : "-" },
+      ],
+    });
+  }, [filteredPreOrders, preOrderDateFrom, preOrderDateTo]);
 
   return (
     <div className="bm-page">
@@ -625,6 +674,45 @@ export default function PreOrdersRequestsPage() {
             </button>
           </div>
 
+          <div className="bm-table-card stats-filter-card">
+            <div className="filter-bar">
+              <input
+                type="date"
+                className="bm-input"
+                value={preOrderDateFrom}
+                onChange={(e) => setPreOrderDateFrom(e.target.value)}
+              />
+              <input
+                type="date"
+                className="bm-input"
+                value={preOrderDateTo}
+                onChange={(e) => setPreOrderDateTo(e.target.value)}
+              />
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={exportFilteredPreOrdersPdf}
+                disabled={preOrderLoading || filteredPreOrders.length === 0}
+              >
+                Export PDF
+              </button>
+              <button
+                type="button"
+                className="btn-outline"
+                onClick={() => {
+                  setPreOrderDateFrom("");
+                  setPreOrderDateTo("");
+                }}
+                disabled={!hasPreOrderDateFilter}
+              >
+                Clear Dates
+              </button>
+            </div>
+            <div className="stats-filter-meta">
+              Showing {filteredPreOrders.length} pre-orders for {formatDateRangeLabel(preOrderDateFrom, preOrderDateTo)}.
+            </div>
+          </div>
+
           {/* Stats */}
           <div className="bm-stats-grid">
             <div className="bm-stat-card bm-stat-card-soft">
@@ -666,8 +754,8 @@ export default function PreOrdersRequestsPage() {
                 </span>
                 <span className="bm-stat-label">Total</span>
               </div>
-              <div className="bm-stat-value">{total}</div>
-              <span className="bm-stat-sub">All pre-orders</span>
+              <div className="bm-stat-value">{filteredPreOrders.length}</div>
+              <span className="bm-stat-sub">Matching created date range</span>
             </div>
           </div>
 
@@ -700,6 +788,8 @@ export default function PreOrdersRequestsPage() {
                 onClick={() => {
                   setPreOrderSearch("");
                   setPreOrderStatusFilter("");
+                  setPreOrderDateFrom("");
+                  setPreOrderDateTo("");
                   setPreOrderPage(1);
                 }}
               >
@@ -1762,6 +1852,15 @@ export default function PreOrdersRequestsPage() {
         .filter-bar .bm-input {
           flex: 1;
           min-width: 200px;
+        }
+        .stats-filter-card {
+          margin-bottom: 1rem;
+          overflow: hidden;
+        }
+        .stats-filter-meta {
+          padding: 0 1rem 1rem;
+          color: var(--text-secondary);
+          font-size: 0.875rem;
         }
         .preorders-grid {
           display: grid;
