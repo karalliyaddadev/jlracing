@@ -351,6 +351,19 @@ button {
   pointer-events: none;
 }
 
+.hero__slide--mobile {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .hero__slide--desktop {
+    display: none;
+  }
+  .hero__slide--mobile {
+    display: block;
+  }
+}
+
 .hero__overlay {
   position: absolute;
   inset: 0;
@@ -1247,7 +1260,7 @@ button {
   }
 
   .int-video {
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 9;
     max-height: 320px;
   }
 }
@@ -1255,6 +1268,10 @@ button {
 @media (max-width: 480px) {
   .int-cta__heading {
     font-size: 1.3rem;
+  }
+  .int-video {
+    aspect-ratio: 16 / 9;
+    max-height: 240px;
   }
 }
 
