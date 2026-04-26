@@ -2,12 +2,42 @@
 
 import { useState } from "react";
 
+const CMS_API_URL =
+  process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
+
 export default function NewsLetter() {
   const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [message, setMessage] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setEmail("");
+    setStatus("loading");
+    setMessage("");
+    try {
+      const res = await fetch(`${CMS_API_URL}/api/newsletter/subscribe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setStatus("error");
+        setMessage(
+          (data?.message as string) || "Something went wrong. Please try again."
+        );
+      } else {
+        setStatus("success");
+        setMessage("You're subscribed! Welcome aboard.");
+        setEmail("");
+      }
+    } catch (err) {
+      void err;
+      setStatus("error");
+      setMessage("Network error. Please try again.");
+    }
   };
 
   return (
@@ -36,8 +66,14 @@ export default function NewsLetter() {
               setEmail(e.target.value)
             }
             required
+            disabled={status === "loading" || status === "success"}
           />
-          <button type="submit" className="int-nl__btn" aria-label="Subscribe">
+          <button
+            type="submit"
+            className="int-nl__btn"
+            aria-label="Subscribe"
+            disabled={status === "loading" || status === "success"}
+          >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/images/Button.png"
@@ -46,6 +82,19 @@ export default function NewsLetter() {
             />
           </button>
         </form>
+
+        {message && (
+          <p
+            className={
+              status === "error"
+                ? "int-nl__feedback int-nl__feedback--error"
+                : "int-nl__feedback int-nl__feedback--success"
+            }
+          >
+            {message}
+          </p>
+        )}
+
         <div className="int-nl__checks">
           <span>
             <svg

@@ -765,8 +765,7 @@ button {
 .video-banner {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
-  max-height: 640px;
+  height: clamp(220px, 56.25vw, 680px);
   overflow: hidden;
   background: #050505;
 }
@@ -799,20 +798,6 @@ button {
   pointer-events: none;
 }
 
-/* ── Mobile Responsive ── */
-@media (max-width: 768px) {
-  .video-banner {
-    aspect-ratio: 16 / 9;
-    max-height: 320px;
-  }
-}
-
-@media (max-width: 480px) {
-  .video-banner {
-    aspect-ratio: 16 / 9;
-    max-height: 240px;
-  }
-}
 
 /* ═══════════════════════════════════════════════════════════
    BRAND LOGOS
@@ -1679,6 +1664,26 @@ button {
   .nl__mobile .nl__form {
     max-width: 100%;
   }
+}
+
+.nl__feedback {
+  font-size: 0.82rem;
+  font-weight: 500;
+  padding: 0.5rem 0.85rem;
+  border-radius: 7px;
+  margin-top: 0.5rem;
+}
+
+.nl__feedback--success {
+  color: #4ade80;
+  background: rgba(74, 222, 128, 0.1);
+  border: 1px solid rgba(74, 222, 128, 0.25);
+}
+
+.nl__feedback--error {
+  color: #f87171;
+  background: rgba(248, 113, 113, 0.1);
+  border: 1px solid rgba(248, 113, 113, 0.25);
 }
 
 /* ═══════════════════════════════════════════════════════════

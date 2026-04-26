@@ -64,6 +64,16 @@ const LOCAL_CONFIG: SiteConfig = {
       ],
     },
     {
+      group: "Subscribers",
+      items: [
+        {
+          href: "/local/dashboard/newsletter",
+          label: "Newsletter",
+          icon: "mail",
+        },
+      ],
+    },
+    {
       group: "Settings",
       items: [
         {
@@ -131,6 +141,16 @@ const INTERNATIONAL_CONFIG: SiteConfig = {
           href: "/international/dashboard/faq",
           label: "FAQ",
           icon: "help",
+        },
+      ],
+    },
+    {
+      group: "Subscribers",
+      items: [
+        {
+          href: "/international/dashboard/newsletter",
+          label: "Newsletter",
+          icon: "mail",
         },
       ],
     },

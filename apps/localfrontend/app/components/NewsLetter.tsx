@@ -2,6 +2,9 @@
 
 import { useState } from "react";
 
+const CMS_API_URL =
+  process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
+
 const LOGOS = [
   { name: "Yamaha", src: "/news-letter/yamaha.png" },
   { name: "Honda", src: "/news-letter/honda.png" },
@@ -15,11 +18,50 @@ const LOGOS = [
 
 export default function NewsLetter() {
   const [email, setEmail] = useState("");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
+  const [message, setMessage] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setEmail("");
+    setStatus("loading");
+    setMessage("");
+    try {
+      const res = await fetch(`${CMS_API_URL}/api/newsletter/subscribe`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setStatus("error");
+        setMessage(
+          (data?.message as string) || "Something went wrong. Please try again."
+        );
+      } else {
+        setStatus("success");
+        setMessage("You're subscribed! Welcome aboard.");
+        setEmail("");
+      }
+    } catch (err) {
+      void err;
+      setStatus("error");
+      setMessage("Network error. Please try again.");
+    }
   };
+
+  const feedbackEl = message ? (
+    <p
+      className={
+        status === "error"
+          ? "nl__feedback nl__feedback--error"
+          : "nl__feedback nl__feedback--success"
+      }
+    >
+      {message}
+    </p>
+  ) : null;
 
   return (
     <section className="nl">
@@ -52,8 +94,14 @@ export default function NewsLetter() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              disabled={status === "loading" || status === "success"}
             />
-            <button type="submit" className="nl__btn" aria-label="Subscribe">
+            <button
+              type="submit"
+              className="nl__btn"
+              aria-label="Subscribe"
+              disabled={status === "loading" || status === "success"}
+            >
               <img
                 src="/news-letter/button.png"
                 alt="Subscribe"
@@ -61,6 +109,7 @@ export default function NewsLetter() {
               />
             </button>
           </form>
+          {feedbackEl}
         </div>
       </div>
 
@@ -92,8 +141,14 @@ export default function NewsLetter() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
+            disabled={status === "loading" || status === "success"}
           />
-          <button type="submit" className="nl__btn" aria-label="Subscribe">
+          <button
+            type="submit"
+            className="nl__btn"
+            aria-label="Subscribe"
+            disabled={status === "loading" || status === "success"}
+          >
             <img
               src="/news-letter/button.png"
               alt="Subscribe"
@@ -101,6 +156,7 @@ export default function NewsLetter() {
             />
           </button>
         </form>
+        {feedbackEl}
       </div>
     </section>
   );
