@@ -158,3 +158,15 @@ model FaqItem {
 
   @@map("faq_items")
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Newsletter Subscribers
+// ─────────────────────────────────────────────────────────────────────────────
+
+model NewsletterSubscriber {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  @@map("newsletter_subscribers")
+}

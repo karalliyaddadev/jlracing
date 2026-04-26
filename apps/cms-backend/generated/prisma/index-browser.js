@@ -218,6 +218,12 @@ exports.Prisma.FaqItemScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.NewsletterSubscriberScalarFieldEnum = {
+  id: 'id',
+  email: 'email',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -245,7 +251,8 @@ exports.Prisma.ModelName = {
   BlogPost: 'BlogPost',
   ForeignListing: 'ForeignListing',
   FaqCategory: 'FaqCategory',
-  FaqItem: 'FaqItem'
+  FaqItem: 'FaqItem',
+  NewsletterSubscriber: 'NewsletterSubscriber'
 };
 
 /**

@@ -1,43 +1,50 @@
 import HeroCarousel from "./components/HeroCarousel";
-import ImageSlider from "./components/ImageSlider";
 import VideoBanner from "./components/VideoBanner";
 import BrandLogos from "./components/BrandLogos";
 import WhatWeHave from "./components/WhatWeHave";
-import Testimonials from "./components/Testimonials";
+import ImageSlider from "./components/ImageSlider";
 import ServiceOverview from "./components/ServiceOverview";
-import ListingOverview from "./components/ListingOverview";
+import Testimonials from "./components/Testimonials";
 import Link from "next/link";
+import FadeIn from "./components/FadeIn";
 
 export default function HomePage() {
   return (
     <>
-      {/* ── Hero Carousel ── */}
+      {/* ── Hero — no animation (above the fold) ── */}
       <HeroCarousel />
 
-      {/* ── Video / Credibility Banner ── */}
+      {/* ── Video Banner — no animation (media element) ── */}
       <VideoBanner />
 
       {/* ── Brand Logos ── */}
-      <BrandLogos />
+      <FadeIn style={{ width: "100%" }}>
+        <BrandLogos />
+      </FadeIn>
 
       {/* ── What We Have ── */}
-      <WhatWeHave />
+      <FadeIn style={{ width: "100%" }}>
+        <WhatWeHave />
+      </FadeIn>
 
       {/* ── Featured Slider ── */}
-      <ImageSlider />
+      <FadeIn style={{ width: "100%" }}>
+        <ImageSlider />
+      </FadeIn>
 
       {/* ── Service Overview ── */}
-      <ServiceOverview />
+      <FadeIn style={{ width: "100%" }}>
+        <ServiceOverview />
+      </FadeIn>
 
       {/* ── Testimonials ── */}
-      <Testimonials />
-
-      {/* ── Listing Overview ── */}
-      {/* <ListingOverview /> */}
+      <FadeIn style={{ width: "100%" }} delay={0.05}>
+        <Testimonials />
+      </FadeIn>
 
       {/* ── CTA Banner ── */}
       <section className="cta-banner">
-        <div className="cta-banner__content">
+        <FadeIn className="cta-banner__content">
           <h2 className="cta-banner__title">
             Ready to Find Your Perfect Ride?
           </h2>
@@ -58,7 +65,7 @@ export default function HomePage() {
               Pre-Order Now
             </Link>
           </div>
-        </div>
+        </FadeIn>
       </section>
     </>
   );
