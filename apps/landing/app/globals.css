@@ -249,4 +249,10 @@ body {
     height: 1px;
     background: linear-gradient(to right, transparent, rgba(255,255,255,0.3), transparent);
   }
+
+  .split-divider__logo {
+    width: 72px;
+    height: 72px;
+    padding: 10px;
+  }
 }
