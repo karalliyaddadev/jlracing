@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { IconInvoice, IconUsers } from "../../lib/icons";
+import { readApiData } from "../../lib/api";
 
 type Purchase = {
   id: number;
@@ -90,54 +92,36 @@ type InvoiceTerm = {
 
 export default function InvoicesPage() {
   const { token } = useAdmin();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [invoices, setInvoices] = useState<Purchase[]>([]);
-  const [invoiceTerms, setInvoiceTerms] = useState<InvoiceTerm[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
-  const loadInvoices = useCallback(async () => {
-    if (!token) return;
-    setLoading(true);
-    setError(null);
+  const invoicesQuery = useQuery({
+    queryKey: ["pos", "invoices", token],
+    enabled: Boolean(token),
+    queryFn: async (): Promise<Purchase[]> => {
+      const response = await fetch(`${base}/purchases?page=1&limit=500`, { headers: auth, cache: "no-store" });
+      const payload = await readApiData<{ purchases?: Purchase[] }>(response, "Failed to load invoices");
+      return payload.purchases ?? [];
+    },
+  });
 
-    try {
-      const searchParam = search.trim() ? `&search=${encodeURIComponent(search.trim())}` : "";
-      const response = await fetch(`${base}/purchases?page=1&limit=500${searchParam}`, { headers: auth, cache: "no-store" });
-      const payload = await response.json() as { data?: { purchases?: Purchase[] }; message?: string };
-      if (!response.ok) throw new Error(payload.message ?? "Failed to load invoices");
-      setInvoices(payload.data?.purchases ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load invoices");
-    } finally {
-      setLoading(false);
-    }
-  }, [auth, base, search, token]);
-
-  useEffect(() => {
-    void loadInvoices();
-  }, [loadInvoices]);
-
-  const loadInvoiceTerms = useCallback(async () => {
-    if (!token) return;
-
-    try {
+  const invoiceTermsQuery = useQuery({
+    queryKey: ["pos", "invoice-terms", token],
+    enabled: Boolean(token),
+    queryFn: async (): Promise<InvoiceTerm[]> => {
       const response = await fetch(`${base}/invoice-terms`, { headers: auth, cache: "no-store" });
-      const payload = await response.json() as { data?: { terms?: InvoiceTerm[] }; message?: string };
-      if (!response.ok) throw new Error(payload.message ?? "Failed to load invoice terms");
-      setInvoiceTerms(payload.data?.terms ?? []);
-    } catch {
-      setInvoiceTerms([]);
-    }
-  }, [auth, base, token]);
+      const payload = await readApiData<{ terms?: InvoiceTerm[] }>(response, "Failed to load invoice terms");
+      return payload.terms ?? [];
+    },
+  });
 
-  useEffect(() => {
-    void loadInvoiceTerms();
-  }, [loadInvoiceTerms]);
+  const invoices: Purchase[] = invoicesQuery.data ?? [];
+  const invoiceTerms: InvoiceTerm[] = invoiceTermsQuery.data ?? [];
+  const loading = invoicesQuery.isPending;
+  const error = invoicesQuery.error instanceof Error ? invoicesQuery.error.message : null;
 
   const getPurchaseItemMeta = useCallback((entry: Purchase) => {
     if (entry.itemType === "BIKE" && entry.bike) {
@@ -176,7 +160,7 @@ export default function InvoicesPage() {
     const grouped = new Map<string, Purchase[]>();
 
     const heuristicCounts = new Map<string, number>();
-    invoices.forEach((entry) => {
+    invoices.forEach((entry: Purchase) => {
       if (entry.invoiceGroupCode?.trim()) return;
       if (entry.itemType !== "BIKE") return;
       const secondBucket = Math.floor(new Date(entry.purchasedAt).getTime() / 1000);
@@ -184,7 +168,7 @@ export default function InvoicesPage() {
       heuristicCounts.set(key, (heuristicCounts.get(key) ?? 0) + 1);
     });
 
-    invoices.forEach((entry) => {
+    invoices.forEach((entry: Purchase) => {
       const groupCode = entry.invoiceGroupCode?.trim();
       const secondBucket = Math.floor(new Date(entry.purchasedAt).getTime() / 1000);
       const heuristicKey = `${entry.customer.id}:${secondBucket}`;
@@ -259,16 +243,51 @@ export default function InvoicesPage() {
     return rows;
   }, [getPaymentLabel, getPurchaseItemMeta, invoices, isDownPaymentEntry]);
 
+  const filteredInvoiceRows = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    if (!needle) return invoiceRows;
+
+    return invoiceRows.filter((invoice: InvoiceRow) => {
+      const searchableValues = [
+        invoice.invoiceLabel,
+        invoice.customer.firstName,
+        invoice.customer.lastName,
+        invoice.customer.nic,
+        invoice.customer.mobileNumber,
+        invoice.customer.address,
+        invoice.customer.province,
+        invoice.customer.district,
+        invoice.itemTitle,
+        invoice.itemSubtitle,
+        invoice.paymentTypeText,
+        invoice.purchaseModeText,
+        ...invoice.entries.flatMap((entry) => [
+          String(entry.id),
+          entry.customer.nic,
+          entry.customer.mobileNumber,
+          entry.bike?.displayId,
+          entry.bike?.brand,
+          entry.bike?.model,
+          entry.inventory?.displayId,
+          entry.inventory?.name,
+          entry.inventory?.brand,
+        ]),
+      ];
+
+      return searchableValues.some((value) => value?.toLowerCase().includes(needle));
+    });
+  }, [invoiceRows, search]);
+
   const totalInvoiceAmount = useMemo(
     () => invoiceRows.reduce((sum, invoice) => sum + invoice.finalSellingPrice, 0),
     [invoiceRows]
   );
 
-  const activeInvoiceTerms = useMemo(() => {
+  const activeInvoiceTerms = useMemo((): string[] => {
     return invoiceTerms
-      .filter((term) => term.isActive)
-      .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
-      .map((term) => term.text);
+      .filter((term: InvoiceTerm) => term.isActive)
+      .sort((a: InvoiceTerm, b: InvoiceTerm) => a.sortOrder - b.sortOrder || a.id - b.id)
+      .map((term: InvoiceTerm) => term.text);
   }, [invoiceTerms]);
 
   const getInvoiceGrandTotal = (invoice: InvoiceRow) => invoice.finalSellingPrice + invoice.registrationFeeTotal;
@@ -309,7 +328,9 @@ export default function InvoicesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button type="button" className="btn-outline" onClick={() => void loadInvoices()}>Refresh</button>
+          <button type="button" className="btn-outline" onClick={() => void invoicesQuery.refetch()}>
+            Refresh
+          </button>
         </div>
 
         <div className="data-table-wrap">
@@ -326,8 +347,8 @@ export default function InvoicesPage() {
             </thead>
             <tbody>
               {loading && <tr><td colSpan={6} className="bm-table-empty">Loading invoices...</td></tr>}
-              {!loading && invoiceRows.length === 0 && <tr><td colSpan={6} className="bm-table-empty">No invoices found.</td></tr>}
-              {!loading && invoiceRows.map((invoice) => (
+              {!loading && filteredInvoiceRows.length === 0 && <tr><td colSpan={6} className="bm-table-empty">No invoices found.</td></tr>}
+              {!loading && filteredInvoiceRows.map((invoice) => (
                 <tr key={invoice.key}>
                   <td>{invoice.invoiceLabel}</td>
                   <td>{new Date(invoice.purchasedAt).toLocaleString()}</td>
