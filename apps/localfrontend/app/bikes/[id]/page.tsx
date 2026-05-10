@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import ImageLightbox from "../../components/ImageLightbox";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
@@ -45,6 +46,7 @@ export default function BikeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -118,7 +120,10 @@ export default function BikeDetailPage() {
         <div className="bikedetail__layout">
           {/* Left — Image */}
           <div className="bikedetail__gallery">
-            <div className="bikedetail__main-img">
+            <div
+              className="bikedetail__main-img"
+              onClick={() => images.length > 0 && setLightboxIndex(activeImg)}
+            >
               {images.length > 0 ? (
                 <img
                   src={images[activeImg]}
@@ -208,6 +213,14 @@ export default function BikeDetailPage() {
           </div>
         </div>
       </div>
+      {lightboxIndex !== null && (
+        <ImageLightbox
+          images={images}
+          index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onChange={(i) => { setLightboxIndex(i); setActiveImg(i); }}
+        />
+      )}
     </section>
   );
 }

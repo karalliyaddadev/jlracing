@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Pagination from "../components/Pagination";
 
@@ -94,13 +94,24 @@ export default function PreOrdersPage() {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
 
+  const dynamicMax = useMemo(() => {
+    const prices = allBikes
+      .map((b) => b.price)
+      .filter((p): p is number => p != null);
+    return prices.length > 0 ? Math.max(...prices) : MAX_PRICE;
+  }, [allBikes]);
+
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/pre-orders`)
       .then((r) => r.json())
-      .then((data) => setAllBikes(data.preOrders ?? []))
+      .then((data) => setAllBikes(data.data ?? []))
       .catch(() => setAllBikes([]))
       .finally(() => setLoadingBikes(false));
   }, []);
+
+  useEffect(() => {
+    setPriceRange([0, dynamicMax]);
+  }, [dynamicMax]);
 
   useEffect(() => {
     setCurrentPage(1);
@@ -231,7 +242,7 @@ export default function PreOrdersPage() {
             {/* Price range */}
             <RangeSlider
               min={0}
-              max={MAX_PRICE}
+              max={dynamicMax}
               value={priceRange}
               onChange={setPriceRange}
             />
