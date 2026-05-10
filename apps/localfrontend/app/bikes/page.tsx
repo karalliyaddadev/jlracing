@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Pagination from "../components/Pagination";
 
@@ -153,7 +153,7 @@ export default function BikesPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000000]);
-  const [yearRange, setYearRange] = useState<[number, number]>([2010, 2026]);
+  const [yearRange, setYearRange] = useState<[number, number]>([2010, new Date().getFullYear()]);
   const [mileageRange, setMileageRange] = useState<[number, number]>([
     0, 100000,
   ]);
@@ -182,6 +182,20 @@ export default function BikesPage() {
       });
   }, []);
 
+  const dynamicMinYear = useMemo(() => {
+    const years = vehicles.map((v) => v.year).filter((y): y is number => y != null);
+    return years.length > 0 ? Math.min(...years) : 2010;
+  }, [vehicles]);
+
+  const dynamicMaxYear = useMemo(() => {
+    const years = vehicles.map((v) => v.year).filter((y): y is number => y != null);
+    return years.length > 0 ? Math.max(...years) : new Date().getFullYear();
+  }, [vehicles]);
+
+  useEffect(() => {
+    setYearRange([dynamicMinYear, dynamicMaxYear]);
+  }, [dynamicMinYear, dynamicMaxYear]);
+
   useEffect(() => {
     setCurrentPage(1);
   }, [search, brands, ccOptions, statuses]);
@@ -193,7 +207,7 @@ export default function BikesPage() {
 
   const q = search.toLowerCase();
   const priceFiltered = priceRange[0] > 0 || priceRange[1] < 5000000;
-  const yearFiltered = yearRange[0] > 2010 || yearRange[1] < 2026;
+  const yearFiltered = yearRange[0] > dynamicMinYear || yearRange[1] < dynamicMaxYear;
   const mileageFiltered = mileageRange[0] > 0 || mileageRange[1] < 100000;
 
   const filtered = vehicles.filter((v) => {
@@ -350,8 +364,8 @@ export default function BikesPage() {
             />
             <RangeSlider
               label="Year"
-              min={2010}
-              max={2026}
+              min={dynamicMinYear}
+              max={dynamicMaxYear}
               value={yearRange}
               onChange={setYearRange}
             />
