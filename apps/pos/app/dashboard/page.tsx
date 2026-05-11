@@ -1,12 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAdmin } from "../components/AdminContext";
 import { Donut } from "../components/charts/Donut";
 import { SparkBar } from "../components/charts/SparkBar";
 import { AreaChart } from "../components/charts/AreaChart";
 import { useRouter } from "next/navigation";
 import { API_URL } from "../lib/constants";
+import { readApiData } from "../lib/api";
 import {
   IconRevenue,
   IconUsers,
@@ -123,55 +125,86 @@ function formatDateRangeLabel(from: string, to: string) {
   return "All dates";
 }
 
+function formatDisplayDate(value: string) {
+  if (!value) return "All dates";
+  const parsed = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) return value;
+  return parsed.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+}
+
+function formatDisplayDateRange(from: string, to: string) {
+  if (from && to) return `${formatDisplayDate(from)} to ${formatDisplayDate(to)}`;
+  if (from) return `From ${formatDisplayDate(from)}`;
+  if (to) return `Up to ${formatDisplayDate(to)}`;
+  return "All dates";
+}
+
 export default function DashboardPage() {
   const { admin, token } = useAdmin();
   const router = useRouter();
   const hour = new Date().getHours();
   const greeting = hour < 12 ? "morning" : hour < 17 ? "afternoon" : "evening";
 
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [revenueMode, setRevenueMode] = useState<RevenueViewMode>("MONTHLY");
-  const [purchases, setPurchases] = useState<Purchase[]>([]);
-  const [products, setProducts] = useState<InventoryProduct[]>([]);
-  const [vehicles, setVehicles] = useState<VehicleSummary[]>([]);
   const [financeDateFrom, setFinanceDateFrom] = useState("");
   const [financeDateTo, setFinanceDateTo] = useState("");
 
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
-  const loadDashboardData = useCallback(async () => {
-    if (!token) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const [purchasesRes, productsRes, vehiclesRes] = await Promise.all([
-        fetch(`${API_URL}/api/pos/user-management/purchases?page=1&limit=500`, { headers: auth, cache: "no-store" }),
-        fetch(`${API_URL}/api/pos/bike-management/products?page=1&limit=500`, { headers: auth, cache: "no-store" }),
-        fetch(`${API_URL}/api/pos/bike-management/vehicles?limit=5000`, { headers: auth, cache: "no-store" }),
-      ]);
+  const purchasesQuery = useQuery({
+    queryKey: ["pos", "dashboard", "purchases", token],
+    enabled: Boolean(token),
+    queryFn: async () => {
+      const response = await fetch(`${API_URL}/api/pos/user-management/purchases?page=1&limit=500`, {
+        headers: auth,
+        cache: "no-store",
+      });
+      const payload = await readApiData<{ purchases?: Purchase[] }>(response, "Failed to load purchases");
+      return payload.purchases ?? [];
+    },
+  });
 
-      const purchasesJson = await purchasesRes.json() as { data?: { purchases?: Purchase[] }; message?: string };
-      const productsJson = await productsRes.json() as { data?: { products?: InventoryProduct[] }; message?: string };
-      const vehiclesJson = await vehiclesRes.json() as { data?: { vehicles?: VehicleSummary[] }; message?: string };
+  const productsQuery = useQuery({
+    queryKey: ["pos", "dashboard", "products", token],
+    enabled: Boolean(token),
+    queryFn: async () => {
+      const response = await fetch(`${API_URL}/api/pos/bike-management/products?page=1&limit=500`, {
+        headers: auth,
+        cache: "no-store",
+      });
+      const payload = await readApiData<{ products?: InventoryProduct[] }>(response, "Failed to load inventory summary");
+      return payload.products ?? [];
+    },
+  });
 
-      if (!purchasesRes.ok) throw new Error(purchasesJson.message ?? "Failed to load purchases");
-      if (!productsRes.ok) throw new Error(productsJson.message ?? "Failed to load inventory summary");
-      if (!vehiclesRes.ok) throw new Error(vehiclesJson.message ?? "Failed to load bike summary");
+  const vehiclesQuery = useQuery({
+    queryKey: ["pos", "dashboard", "vehicles", token],
+    enabled: Boolean(token),
+    queryFn: async () => {
+      const response = await fetch(`${API_URL}/api/pos/bike-management/vehicles?limit=5000`, {
+        headers: auth,
+        cache: "no-store",
+      });
+      const payload = await readApiData<{ vehicles?: VehicleSummary[] }>(response, "Failed to load bike summary");
+      return payload.vehicles ?? [];
+    },
+  });
 
-      setPurchases(purchasesJson.data?.purchases ?? []);
-      setProducts(productsJson.data?.products ?? []);
-      setVehicles(vehiclesJson.data?.vehicles ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load dashboard data");
-    } finally {
-      setLoading(false);
-    }
-  }, [auth, token]);
-
-  useEffect(() => {
-    void loadDashboardData();
-  }, [loadDashboardData]);
+  const purchases: Purchase[] = purchasesQuery.data ?? [];
+  const products: InventoryProduct[] = productsQuery.data ?? [];
+  const vehicles: VehicleSummary[] = vehiclesQuery.data ?? [];
+  const loading = purchasesQuery.isPending || productsQuery.isPending || vehiclesQuery.isPending;
+  const error = purchasesQuery.error instanceof Error
+    ? purchasesQuery.error.message
+    : productsQuery.error instanceof Error
+      ? productsQuery.error.message
+      : vehiclesQuery.error instanceof Error
+        ? vehiclesQuery.error.message
+        : null;
 
   const financeDateRangeInvalid = Boolean(
     financeDateFrom && financeDateTo && financeDateFrom > financeDateTo,
@@ -183,24 +216,24 @@ export default function DashboardPage() {
   );
 
   const productsById = useMemo(
-    () => new Map(products.map((product) => [product.id, product])),
+    () => new Map(products.map((product: InventoryProduct) => [product.id, product])),
     [products],
   );
 
   const vehiclesById = useMemo(
-    () => new Map(vehicles.map((vehicle) => [vehicle.id, vehicle])),
+    () => new Map(vehicles.map((vehicle: VehicleSummary) => [vehicle.id, vehicle])),
     [vehicles],
   );
 
   const filteredFinancePurchases = useMemo(() => {
     if (financeDateRangeInvalid) return [];
-    return purchases.filter((purchase) =>
+    return purchases.filter((purchase: Purchase) =>
       isDateWithinRange(purchase.purchasedAt, financeDateFrom, financeDateTo),
     );
   }, [financeDateFrom, financeDateRangeInvalid, financeDateTo, purchases]);
 
   const activeTaxes = useMemo(() => {
-    const total = filteredFinancePurchases.reduce((sum, purchase) => {
+    const total = filteredFinancePurchases.reduce((sum: number, purchase: Purchase) => {
       if (purchase.itemType === "INVENTORY") {
         const productId = purchase.inventory?.id;
         const product = productId ? productsById.get(productId) : undefined;
@@ -216,7 +249,7 @@ export default function DashboardPage() {
   }, [filteredFinancePurchases, productsById, vehiclesById]);
 
   const activeOtherCosts = useMemo(() => {
-    const total = filteredFinancePurchases.reduce((sum, purchase) => {
+    const total = filteredFinancePurchases.reduce((sum: number, purchase: Purchase) => {
       if (purchase.itemType === "INVENTORY") {
         const productId = purchase.inventory?.id;
         const product = productId ? productsById.get(productId) : undefined;
@@ -243,7 +276,7 @@ export default function DashboardPage() {
     let leasingOutstanding = 0;
     let nonLeasingOutstanding = 0;
 
-    filteredFinancePurchases.forEach((purchase) => {
+    filteredFinancePurchases.forEach((purchase: Purchase) => {
       const settledRevenue = getSettledRevenue(purchase);
       const remaining = Math.max(0, purchase.remainingAmount ?? 0);
       totalRevenue += settledRevenue;
@@ -277,7 +310,7 @@ export default function DashboardPage() {
   }, [activeOtherCosts, activeTaxes, filteredFinancePurchases]);
 
   const allTimeRevenue = useMemo(
-    () => clampMoney(purchases.reduce((sum, purchase) => sum + getSettledRevenue(purchase), 0)),
+    () => clampMoney(purchases.reduce((sum: number, purchase: Purchase) => sum + getSettledRevenue(purchase), 0)),
     [purchases],
   );
 
@@ -290,7 +323,7 @@ export default function DashboardPage() {
     let openInvoices = 0;
     const uniqueCustomers = new Set<number>();
 
-    purchases.forEach((purchase) => {
+    purchases.forEach((purchase: Purchase) => {
       const settledRevenue = getSettledRevenue(purchase);
       uniqueCustomers.add(purchase.customer.id);
       if ((purchase.remainingAmount ?? 0) > 0) openInvoices += 1;
@@ -302,7 +335,7 @@ export default function DashboardPage() {
       }
     });
 
-    const lowStockAlerts = products.filter((product) => {
+    const lowStockAlerts = products.filter((product: InventoryProduct) => {
       const threshold = product.lowStockThreshold ?? 0;
       return threshold > 0 && product.quantity <= threshold;
     }).length;
@@ -319,7 +352,7 @@ export default function DashboardPage() {
 
   const groupedRevenue = useMemo(() => {
     const map = new Map<string, { revenue: number; soldUnits: number }>();
-    purchases.forEach((purchase) => {
+    purchases.forEach((purchase: Purchase) => {
       const key = dateKeyLocal(new Date(purchase.purchasedAt), revenueMode);
       const current = map.get(key) ?? { revenue: 0, soldUnits: 0 };
       current.revenue += getSettledRevenue(purchase);
@@ -361,12 +394,12 @@ export default function DashboardPage() {
   );
 
   const bikeSalesCount = useMemo(
-    () => purchases.filter((purchase) => purchase.itemType === "BIKE").length,
+    () => purchases.filter((purchase: Purchase) => purchase.itemType === "BIKE").length,
     [purchases]
   );
 
   const inventorySalesCount = useMemo(
-    () => purchases.filter((purchase) => purchase.itemType === "INVENTORY").length,
+    () => purchases.filter((purchase: Purchase) => purchase.itemType === "INVENTORY").length,
     [purchases]
   );
 
@@ -374,13 +407,13 @@ export default function DashboardPage() {
   const bikeShare = totalSalesCount > 0 ? Math.round((bikeSalesCount / totalSalesCount) * 100) : 0;
   const inventoryShare = totalSalesCount > 0 ? Math.round((inventorySalesCount / totalSalesCount) * 100) : 0;
   const settledShare = totalSalesCount > 0
-    ? Math.round((purchases.filter((purchase) => (purchase.remainingAmount ?? 0) <= 0).length / totalSalesCount) * 100)
+    ? Math.round((purchases.filter((purchase: Purchase) => (purchase.remainingAmount ?? 0) <= 0).length / totalSalesCount) * 100)
     : 0;
   const pendingShare = Math.max(0, 100 - settledShare);
 
   const recentActivity = useMemo(
     () => [...purchases]
-      .sort((a, b) => +new Date(b.purchasedAt) - +new Date(a.purchasedAt))
+      .sort((a: Purchase, b: Purchase) => +new Date(b.purchasedAt) - +new Date(a.purchasedAt))
       .slice(0, 6),
     [purchases]
   );
@@ -399,124 +432,371 @@ export default function DashboardPage() {
     if (typeof window === "undefined") return;
 
     const generatedAt = new Date().toLocaleString();
+    const reportDateRange = formatDisplayDateRange(financeDateFrom, financeDateTo);
+    const reportNumber = `#${String(purchases.length).padStart(4, "0")}`;
+    const reportDate = new Date().toLocaleDateString("en-GB");
+    const rowDescriptions: Record<string, string> = {
+      "Total Revenue": "Settled revenue in the selected range",
+      Taxes: "Vehicle tax and inventory tax totals",
+      "Other Costs": "Vehicle expenses and inventory extras",
+      "Gross Profit": "Total Revenue - (Taxes + Other Costs)",
+      "Total Outstanding": "Unsettled balances in the selected range",
+      "Leasing Outstanding": "Outstanding leasing balances only",
+    };
+    const rows = [
+      {
+        label: "Total Revenue",
+        totalPrice: `LKR ${formatCurrency(financialSummary.totalRevenue)}`,
+      },
+      {
+        label: "Taxes",
+        totalPrice: `LKR ${formatCurrency(activeTaxes)}`,
+      },
+      {
+        label: "Other Costs",
+        totalPrice: `LKR ${formatCurrency(activeOtherCosts)}`,
+      },
+      {
+        label: "Gross Profit",
+        totalPrice: `LKR ${formatCurrency(financialSummary.grossProfit)}`,
+      },
+      {
+        label: "Total Outstanding",
+        totalPrice: `LKR ${formatCurrency(financialSummary.totalOutstanding)}`,
+      },
+      {
+        label: "Leasing Outstanding",
+        totalPrice: `LKR ${formatCurrency(financialSummary.leasingOutstanding)}`,
+      },
+    ];
     const html = `
 <!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>dashboard-finance-report-${dateKeyLocal(new Date(), "DAILY")}</title>
+    <title>JL Racing Finance Report ${dateKeyLocal(new Date(), "DAILY")}</title>
     <style>
-      @page { size: A4 portrait; margin: 14mm; }
+      @page { size: A4 portrait; margin: 6mm; }
       * { box-sizing: border-box; }
       body {
         margin: 0;
-        font-family: "Segoe UI", Arial, sans-serif;
-        color: #111827;
-        background: #ffffff;
+        font-family: Arial, Helvetica, sans-serif;
+        color: #111;
+        background: #fff;
+      }
+      .sheet {
+        width: 100%;
+        max-width: 198mm;
+        margin: 0 auto;
+        background: #fff;
+        border: 1px solid #d5d5d5;
       }
       .header {
-        border-bottom: 2px solid #d4af37;
-        padding-bottom: 10px;
-        margin-bottom: 14px;
+        background: #000;
+        color: #caa24a;
+        text-align: center;
+        padding: 12px 16px 10px;
+        break-inside: avoid;
+        page-break-inside: avoid;
       }
-      .title {
-        margin: 0;
-        font-size: 22px;
+      .logo {
+        width: 110px;
+        height: auto;
+        display: block;
+        margin: 0 auto 6px;
+      }
+      .brand {
+        font-size: 14px;
         font-weight: 700;
+        line-height: 1.3;
+        letter-spacing: 0.01em;
+        margin: 0;
       }
-      .subtitle {
+      .brand-title {
+        margin: 0;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.35;
+      }
+      .brand-address {
+        margin: 0;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1.35;
+      }
+      .content {
+        padding: 12px 12px 10px;
+      }
+      .top-row {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 10px;
+        align-items: start;
+        margin-bottom: 10px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .invoice-number {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0 0 6px;
+      }
+      .invoice-label {
+        font-size: 12px;
+        font-weight: 700;
+        margin: 0;
+      }
+      .invoice-subtext {
+        display: block;
         margin-top: 4px;
         font-size: 12px;
-        color: #4b5563;
+        line-height: 1.35;
       }
-      .meta {
-        margin-top: 4px;
-        font-size: 11px;
-        color: #6b7280;
-      }
-      .grid {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 10px;
-        margin-bottom: 14px;
-      }
-      .card {
-        border: 1px solid #d1d5db;
-        border-radius: 8px;
-        padding: 10px;
-      }
-      .label {
-        font-size: 11px;
-        color: #6b7280;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-      }
-      .value {
-        margin-top: 6px;
-        font-size: 24px;
+      .report-date {
+        font-size: 14px;
         font-weight: 700;
+        margin: 0;
+        text-align: right;
+        white-space: nowrap;
+      }
+      .report-pill {
+        display: inline-block;
+        margin-top: 6px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: #111;
+        color: #fff;
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.03em;
+      }
+      .divider {
+        height: 10px;
+        background: #000;
+        margin: 10px 0 8px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .meta-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .meta-card {
+        border: 1px solid #d1d1d1;
+        background: #f6f6f6;
+        padding: 8px 10px;
+      }
+      .meta-label {
+        font-size: 10px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #666;
+        font-weight: 700;
+        margin: 0 0 4px;
+      }
+      .meta-value {
+        margin: 0;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 1.35;
+      }
+      .table-wrap {
+        background: #fff;
+        break-inside: avoid;
+        page-break-inside: avoid;
       }
       .table {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 4px;
+        table-layout: fixed;
       }
-      .table th {
-        background: #f3f4f6;
-        border: 1px solid #d1d5db;
+      .table thead th {
         text-align: left;
-        font-size: 11px;
         padding: 7px 8px;
-      }
-      .table td {
-        border: 1px solid #e5e7eb;
+        border-bottom: 2px solid #999;
         font-size: 11px;
-        padding: 7px 8px;
-      }
-      .section-title {
-        margin-top: 10px;
-        margin-bottom: 6px;
-        font-size: 12px;
-        text-transform: uppercase;
-        letter-spacing: 0.05em;
-        color: #374151;
         font-weight: 700;
+      }
+      .table tbody td {
+        padding: 8px 8px;
+        border-bottom: 1px solid #d3d3d3;
+        vertical-align: top;
+        font-size: 11px;
+      }
+      .table tbody tr:nth-child(even) td {
+        background: #f6f6f6;
+      }
+      .desc strong {
+        display: block;
+        font-size: 12px;
+        line-height: 1.25;
+        margin-bottom: 2px;
+      }
+      .desc span {
+        display: block;
+        color: #666;
+        font-size: 10px;
+        line-height: 1.35;
+      }
+      .amount {
+        white-space: nowrap;
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+      }
+      .amount {
+        width: 160px;
+      }
+      .desc-col {
+        width: auto;
+      }
+      .summary-block {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 10px;
+        margin-top: 10px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .summary-label {
+        text-align: right;
+        font-size: 13px;
+        font-weight: 700;
+        color: #333;
+        padding-right: 6px;
+      }
+      .summary-total {
+        background: #000;
+        color: #fff;
+        padding: 8px 14px;
+        min-width: 170px;
+        text-align: center;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .footer-note {
+        margin-top: 10px;
+        font-size: 10px;
+        color: #555;
+        line-height: 1.45;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .terms {
+        margin-top: 10px;
+        padding: 8px 10px;
+        border: 1px solid #cfcfcf;
+        background: #f7f7f7;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
+      .terms h3 {
+        margin: 0 0 6px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .terms ul {
+        margin: 0;
+        padding-left: 16px;
+      }
+      .terms li {
+        margin: 0 0 3px;
+        font-size: 10px;
+        line-height: 1.4;
+      }
+      @media print {
+        body {
+          background: #fff;
+        }
+        .sheet {
+          border: none;
+          max-width: none;
+          width: 100%;
+          margin: 0;
+        }
       }
     </style>
   </head>
   <body>
-    <div class="header">
-      <h1 class="title">JL Racing Finance Report</h1>
-      <div class="subtitle">Finance summary for ${financeDateRangeLabel}.</div>
-      <div class="meta">Generated: ${generatedAt} | Matching invoices: ${filteredFinancePurchases.length}</div>
-    </div>
-    <div class="grid">
-      <div class="card"><div class="label">Total Revenue</div><div class="value">LKR ${formatCurrency(financialSummary.totalRevenue)}</div></div>
-      <div class="card"><div class="label">Total Outstanding</div><div class="value">LKR ${formatCurrency(financialSummary.totalOutstanding)}</div></div>
-      <div class="card"><div class="label">Leasing Outstanding</div><div class="value">LKR ${formatCurrency(financialSummary.leasingOutstanding)}</div></div>
-      <div class="card"><div class="label">Taxes</div><div class="value">LKR ${formatCurrency(activeTaxes)}</div></div>
-      <div class="card"><div class="label">Other Costs</div><div class="value">LKR ${formatCurrency(activeOtherCosts)}</div></div>
-      <div class="card"><div class="label">Gross Profit</div><div class="value">LKR ${formatCurrency(financialSummary.grossProfit)}</div></div>
-    </div>
+    <div class="sheet">
+      <div class="header">
+        <img src="/landing/logo.jpg" alt="JL Racing" class="logo" />
+        <p class="brand">JL Racing</p>
+        <p class="brand-title">Importers, Exporters & Dealers Of Motorcycles, Motor Vehicles, Machineries & Other</p>
+        <p class="brand-title">Motorized Equipments With Spare Parts.</p>
+        <p class="brand-address">No:154, Puttalam Road, Kurunegala, Sri Lanka, Kurunegala</p>
+      </div>
 
-    <div class="section-title">Finance Details</div>
-    <table class="table">
-      <thead>
-        <tr>
-          <th>Metric</th>
-          <th>Amount (LKR)</th>
-          <th>Source</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr><td>Date Range</td><td>${financeDateRangeLabel}</td><td>Selected dashboard finance filter</td></tr>
-        <tr><td>Total Outstanding</td><td>${formatCurrency(financialSummary.totalOutstanding)}</td><td>Open invoice balances</td></tr>
-        <tr><td>Leasing Outstanding</td><td>${formatCurrency(financialSummary.leasingOutstanding)}</td><td>Open leasing balances</td></tr>
-        <tr><td>Taxes</td><td>${formatCurrency(activeTaxes)}</td><td>Sold bikes + sold inventory tax totals</td></tr>
-        <tr><td>Other Costs</td><td>${formatCurrency(activeOtherCosts)}</td><td>Sold bikes expenses + sold inventory extra costs</td></tr>
-        <tr><td>Gross Profit</td><td>${formatCurrency(financialSummary.grossProfit)}</td><td>Total Revenue - (Taxes + Other Costs)</td></tr>
-      </tbody>
-    </table>
+      <div class="content">
+        <div class="top-row">
+          <div>
+            <p class="invoice-number">Finance Report ${reportNumber}</p>
+            <p class="invoice-label">Report Range: <span class="invoice-subtext">${reportDateRange}</span></p>
+            <span class="report-pill">Generated at ${generatedAt}</span>
+          </div>
+          <div>
+            <p class="report-date">Date: ${reportDate}</p>
+          </div>
+        </div>
+
+        <div class="meta-grid">
+          <div class="meta-card">
+            <p class="meta-label">Report Scope</p>
+            <p class="meta-value">JL Racing Dashboard Finance Summary</p>
+          </div>
+          <div class="meta-card">
+            <p class="meta-label">Selected Range</p>
+            <p class="meta-value">${reportDateRange}</p>
+          </div>
+          <div class="meta-card">
+            <p class="meta-label">Matched Invoices</p>
+            <p class="meta-value">${filteredFinancePurchases.length}</p>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Description</th>
+                <th class="amount">Total Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows.map((row) => `
+                <tr>
+                  <td class="desc desc-col"><strong>${row.label}</strong><span>${rowDescriptions[row.label] ?? "Finance summary item"}</span></td>
+                  <td class="amount">${row.totalPrice}</td>
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="summary-block">
+          <div class="summary-label">Total</div>
+          <div class="summary-total">LKR ${formatCurrency(financialSummary.totalRevenue)}</div>
+        </div>
+
+        <div class="terms">
+          <h3>Finance Notes</h3>
+          <ul>
+            <li>Selected range: ${reportDateRange}</li>
+            <li>Generated from the JL Racing dashboard finance summary</li>
+            <li>Outstanding balances: LKR ${formatCurrency(financialSummary.totalOutstanding)} | Leasing: LKR ${formatCurrency(financialSummary.leasingOutstanding)}</li>
+          </ul>
+        </div>
+
+        <div class="footer-note">This document is formatted for print and PDF export from the dashboard. ${generatedAt}</div>
+      </div>
+    </div>
   </body>
 </html>`;
 

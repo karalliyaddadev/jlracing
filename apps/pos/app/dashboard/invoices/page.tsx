@@ -1,9 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { IconInvoice, IconUsers } from "../../lib/icons";
+import { readApiData } from "../../lib/api";
+import { exportInvoiceToPdf } from "../../lib/pdf-export";
 
 type Purchase = {
   id: number;
@@ -90,54 +93,36 @@ type InvoiceTerm = {
 
 export default function InvoicesPage() {
   const { token } = useAdmin();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [invoices, setInvoices] = useState<Purchase[]>([]);
-  const [invoiceTerms, setInvoiceTerms] = useState<InvoiceTerm[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
-  const loadInvoices = useCallback(async () => {
-    if (!token) return;
-    setLoading(true);
-    setError(null);
+  const invoicesQuery = useQuery({
+    queryKey: ["pos", "invoices", token],
+    enabled: Boolean(token),
+    queryFn: async (): Promise<Purchase[]> => {
+      const response = await fetch(`${base}/purchases?page=1&limit=500`, { headers: auth, cache: "no-store" });
+      const payload = await readApiData<{ purchases?: Purchase[] }>(response, "Failed to load invoices");
+      return payload.purchases ?? [];
+    },
+  });
 
-    try {
-      const searchParam = search.trim() ? `&search=${encodeURIComponent(search.trim())}` : "";
-      const response = await fetch(`${base}/purchases?page=1&limit=500${searchParam}`, { headers: auth, cache: "no-store" });
-      const payload = await response.json() as { data?: { purchases?: Purchase[] }; message?: string };
-      if (!response.ok) throw new Error(payload.message ?? "Failed to load invoices");
-      setInvoices(payload.data?.purchases ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load invoices");
-    } finally {
-      setLoading(false);
-    }
-  }, [auth, base, search, token]);
-
-  useEffect(() => {
-    void loadInvoices();
-  }, [loadInvoices]);
-
-  const loadInvoiceTerms = useCallback(async () => {
-    if (!token) return;
-
-    try {
+  const invoiceTermsQuery = useQuery({
+    queryKey: ["pos", "invoice-terms", token],
+    enabled: Boolean(token),
+    queryFn: async (): Promise<InvoiceTerm[]> => {
       const response = await fetch(`${base}/invoice-terms`, { headers: auth, cache: "no-store" });
-      const payload = await response.json() as { data?: { terms?: InvoiceTerm[] }; message?: string };
-      if (!response.ok) throw new Error(payload.message ?? "Failed to load invoice terms");
-      setInvoiceTerms(payload.data?.terms ?? []);
-    } catch {
-      setInvoiceTerms([]);
-    }
-  }, [auth, base, token]);
+      const payload = await readApiData<{ terms?: InvoiceTerm[] }>(response, "Failed to load invoice terms");
+      return payload.terms ?? [];
+    },
+  });
 
-  useEffect(() => {
-    void loadInvoiceTerms();
-  }, [loadInvoiceTerms]);
+  const invoices: Purchase[] = invoicesQuery.data ?? [];
+  const invoiceTerms: InvoiceTerm[] = invoiceTermsQuery.data ?? [];
+  const loading = invoicesQuery.isPending;
+  const error = invoicesQuery.error instanceof Error ? invoicesQuery.error.message : null;
 
   const getPurchaseItemMeta = useCallback((entry: Purchase) => {
     if (entry.itemType === "BIKE" && entry.bike) {
@@ -176,7 +161,7 @@ export default function InvoicesPage() {
     const grouped = new Map<string, Purchase[]>();
 
     const heuristicCounts = new Map<string, number>();
-    invoices.forEach((entry) => {
+    invoices.forEach((entry: Purchase) => {
       if (entry.invoiceGroupCode?.trim()) return;
       if (entry.itemType !== "BIKE") return;
       const secondBucket = Math.floor(new Date(entry.purchasedAt).getTime() / 1000);
@@ -184,7 +169,7 @@ export default function InvoicesPage() {
       heuristicCounts.set(key, (heuristicCounts.get(key) ?? 0) + 1);
     });
 
-    invoices.forEach((entry) => {
+    invoices.forEach((entry: Purchase) => {
       const groupCode = entry.invoiceGroupCode?.trim();
       const secondBucket = Math.floor(new Date(entry.purchasedAt).getTime() / 1000);
       const heuristicKey = `${entry.customer.id}:${secondBucket}`;
@@ -259,19 +244,187 @@ export default function InvoicesPage() {
     return rows;
   }, [getPaymentLabel, getPurchaseItemMeta, invoices, isDownPaymentEntry]);
 
+  const filteredInvoiceRows = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    if (!needle) return invoiceRows;
+
+    return invoiceRows.filter((invoice: InvoiceRow) => {
+      const searchableValues = [
+        invoice.invoiceLabel,
+        invoice.customer.firstName,
+        invoice.customer.lastName,
+        invoice.customer.nic,
+        invoice.customer.mobileNumber,
+        invoice.customer.address,
+        invoice.customer.province,
+        invoice.customer.district,
+        invoice.itemTitle,
+        invoice.itemSubtitle,
+        invoice.paymentTypeText,
+        invoice.purchaseModeText,
+        ...invoice.entries.flatMap((entry) => [
+          String(entry.id),
+          entry.customer.nic,
+          entry.customer.mobileNumber,
+          entry.bike?.displayId,
+          entry.bike?.brand,
+          entry.bike?.model,
+          entry.inventory?.displayId,
+          entry.inventory?.name,
+          entry.inventory?.brand,
+        ]),
+      ];
+
+      return searchableValues.some((value) => value?.toLowerCase().includes(needle));
+    });
+  }, [invoiceRows, search]);
+
   const totalInvoiceAmount = useMemo(
     () => invoiceRows.reduce((sum, invoice) => sum + invoice.finalSellingPrice, 0),
     [invoiceRows]
   );
 
-  const activeInvoiceTerms = useMemo(() => {
+  const activeInvoiceTerms = useMemo((): string[] => {
     return invoiceTerms
-      .filter((term) => term.isActive)
-      .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
-      .map((term) => term.text);
+      .filter((term: InvoiceTerm) => term.isActive)
+      .sort((a: InvoiceTerm, b: InvoiceTerm) => a.sortOrder - b.sortOrder || a.id - b.id)
+      .map((term: InvoiceTerm) => term.text);
   }, [invoiceTerms]);
 
   const getInvoiceGrandTotal = (invoice: InvoiceRow) => invoice.finalSellingPrice + invoice.registrationFeeTotal;
+
+  const generateInvoiceHtml = (invoice: InvoiceRow): string => {
+    const invoiceNumber = String(Math.min(...invoice.entries.map((entry) => entry.id))).padStart(4, "0");
+    
+    const entryRowsHtml = invoice.entries.map((entry) => {
+      const itemMeta = getPurchaseItemMeta(entry);
+      const hasBike = entry.itemType === "BIKE" && !!entry.bike;
+      const unitPrice = entry.quantity > 0 ? entry.finalSellingPrice / entry.quantity : entry.finalSellingPrice;
+      
+      return `
+        <tr>
+          <td class="invoice-desc-cell" style="padding: 8px; vertical-align: top;">
+            <strong style="display: block; font-size: 12px; line-height: 1.25; margin-bottom: 2px;">${itemMeta.title}</strong>
+            <span style="display: block; color: #666; font-size: 10px; line-height: 1.35;">${itemMeta.subtitle}</span>
+            ${hasBike ? `<span style="display: block; color: #4f4f4f; font-size: 10px; line-height: 1.35; margin-top: 2px;">Chassis No: ${entry.bike?.chassisNo ?? "-"} | Engine No: ${entry.bike?.engineNo ?? "-"} | Registration: ${entry.bike?.registrationType ?? "-"}</span>` : ""}
+          </td>
+          <td class="invoice-col-qty" style="padding: 8px; text-align: center; font-variant-numeric: tabular-nums;">${entry.quantity}</td>
+          <td class="invoice-col-amount" style="padding: 8px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap;">Rs. ${unitPrice.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+          <td class="invoice-col-amount" style="padding: 8px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap;">Rs. ${entry.finalSellingPrice.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+        </tr>
+      `;
+    }).join("");
+
+    const regFeesHtml = invoice.entries
+      .filter((entry) => entry.hasRegistrationFee && (entry.registrationFeeAmount ?? 0) > 0)
+      .map((entry) => `
+        <tr style="background: #f0f0f0;">
+          <td class="invoice-desc-cell" style="padding: 8px; vertical-align: top;">Registration Fee${entry.bike ? ` - ${entry.bike.brand} ${entry.bike.model}` : ""}</td>
+          <td class="invoice-col-qty" style="padding: 8px; text-align: center;">${entry.quantity}</td>
+          <td class="invoice-col-amount" style="padding: 8px; text-align: right;">Rs. ${(entry.registrationFeeAmount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+          <td class="invoice-col-amount" style="padding: 8px; text-align: right;">Rs. ${((entry.registrationFeeAmount ?? 0) * entry.quantity).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+        </tr>
+      `)
+      .join("");
+
+    const leasingHtml = invoice.entries.some((entry) => entry.purchaseChannel === "LEASING") ? `
+      <tr>
+        <td class="invoice-desc-cell" style="padding: 8px;">
+          Leasing Partner${invoice.entries.find((entry) => entry.purchaseChannel === "LEASING")?.leasingCompany?.name ? ` - ${invoice.entries.find((entry) => entry.purchaseChannel === "LEASING")?.leasingCompany?.name}` : ""}
+        </td>
+        <td class="invoice-col-qty" style="padding: 8px;"></td>
+        <td class="invoice-col-amount" style="padding: 8px;"></td>
+        <td class="invoice-col-amount" style="padding: 8px;"></td>
+      </tr>
+      <tr>
+        <td class="invoice-desc-cell" style="padding: 8px;">Leasing Amount</td>
+        <td class="invoice-col-qty" style="padding: 8px;"></td>
+        <td class="invoice-col-amount" style="padding: 8px; text-align: right;">Rs. ${invoice.entries.reduce((sum, entry) => sum + (entry.leasingFinancedAmount ?? 0), 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+        <td class="invoice-col-amount" style="padding: 8px;"></td>
+      </tr>
+    ` : "";
+
+    const termsHtml = activeInvoiceTerms.length > 0 ? `
+      <div style="margin: 10px 0 0; padding: 8px 10px; border: 1px solid #cfcfcf; background: #f7f7f7;">
+        <h3 style="margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;">Terms & Conditions</h3>
+        <ul style="margin: 0; padding-left: 16px;">
+          ${activeInvoiceTerms.map((term) => `<li style="margin: 0 0 3px; font-size: 10px; line-height: 1.4;">${term}</li>`).join("")}
+        </ul>
+      </div>
+    ` : "";
+
+    return `
+      <div class="invoice-paper" style="width: 100%; max-width: 198mm; margin: 0 auto; background: #fff;">
+        <header class="invoice-paper-header" style="background: #000; color: #caa24a; text-align: center; padding: 12px 16px 10px;">
+          <img src="/landing/logo.jpg" alt="JL Racing" class="invoice-brand-logo" style="width: 110px; height: auto; display: block; margin: 0 auto 6px;" />
+          <p class="invoice-brand-line" style="margin: 0; font-size: 14px; font-weight: 700; line-height: 1.3; letter-spacing: 0.01em;">JL Racing</p>
+          <p class="invoice-brand-line" style="margin: 0; font-size: 11px; font-weight: 700; line-height: 1.35;">Importers, Exporters & Dealers Of Motorcycles, Motor Vehicles, Machineries & Other</p>
+          <p class="invoice-brand-line" style="margin: 0; font-size: 11px; font-weight: 700; line-height: 1.35;">Motorized Equipments With Spare Parts.</p>
+          <p class="invoice-brand-address" style="margin: 0; font-size: 11px; font-weight: 700; line-height: 1.35;">No:154, Puttalam Road, Kurunegala, Sri Lanka, Kurunegala</p>
+        </header>
+
+        <section class="invoice-paper-body" style="padding: 12px;">
+          <div class="invoice-meta-row" style="display: flex; justify-content: space-between; align-items: center; font-size: 1.05rem; margin-bottom: 1rem;">
+            <strong>Invoice No: #${invoiceNumber}</strong>
+            <strong>Date: ${new Date(invoice.purchasedAt).toLocaleDateString("en-GB")}</strong>
+          </div>
+
+          <div class="invoice-customer-block" style="display: flex; flex-direction: column; gap: 4px; font-size: 14px; margin-bottom: 10px;">
+            <strong>${invoice.customer.firstName} ${invoice.customer.lastName}</strong>
+            <span>${invoice.customer.address}</span>
+            <span>${invoice.customer.district}</span>
+          </div>
+
+          <div class="invoice-divider" style="height: 10px; background: #000; margin: 10px 0 8px;"></div>
+
+          <table class="invoice-print-table" style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 12px;">
+            <thead>
+              <tr>
+                <th class="invoice-col-desc" style="text-align: left; border-bottom: 2px solid #999; padding: 7px 8px; font-size: 11px; font-weight: 700;">Description</th>
+                <th class="invoice-col-qty" style="text-align: center; border-bottom: 2px solid #999; padding: 7px 8px; font-size: 11px; font-weight: 700;">Qty</th>
+                <th class="invoice-col-amount" style="text-align: right; border-bottom: 2px solid #999; padding: 7px 8px; font-size: 11px; font-weight: 700;">Unit Price</th>
+                <th class="invoice-col-amount" style="text-align: right; border-bottom: 2px solid #999; padding: 7px 8px; font-size: 11px; font-weight: 700;">Total Price</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${entryRowsHtml}
+              ${regFeesHtml}
+              ${leasingHtml}
+              <tr>
+                <td class="invoice-desc-cell" style="padding: 8px; border-bottom: none;">Advance</td>
+                <td class="invoice-col-qty" style="padding: 8px; border-bottom: none;"></td>
+                <td class="invoice-col-amount" style="padding: 8px; border-bottom: none; text-align: right;">Rs. ${invoice.downPaymentAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+                <td class="invoice-col-amount" style="padding: 8px; border-bottom: none;"></td>
+              </tr>
+              <tr>
+                <td class="invoice-desc-cell" style="padding: 8px; border-bottom: none; padding-top: 8px; font-weight: 700;">Balance</td>
+                <td class="invoice-col-qty" style="padding: 8px; border-bottom: none;"></td>
+                <td class="invoice-col-amount" style="padding: 8px; border-bottom: none; text-align: right;">Rs. ${invoice.remainingAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+                <td class="invoice-col-amount" style="padding: 8px; border-bottom: none;"></td>
+              </tr>
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" style="text-align: right; font-weight: 700; color: #333; padding-right: 8px; padding: 8px;">Total</td>
+                <td class="invoice-total-value" style="background: #000; color: #fff; font-weight: 700; text-align: center; min-width: 170px; padding: 8px;">Rs. ${getInvoiceGrandTotal(invoice).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
+              </tr>
+            </tfoot>
+          </table>
+
+          <div class="invoice-bank-block" style="margin: 10px 0 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px;">
+            <strong>Bank Details</strong>
+            <span>019010033205</span>
+            <span>JL Racing</span>
+            <span>HNB</span>
+          </div>
+
+          ${termsHtml}
+
+          <p class="invoice-support-note" style="margin-top: 10px; text-align: right; font-style: italic; font-size: 12px;">If you have any questions concerning this invoice, please contact us at <strong>071 791 0091</strong></p>
+        </section>
+      </div>
+    `;
+  };
 
   return (
     <div className="bm-page">
@@ -309,7 +462,9 @@ export default function InvoicesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button type="button" className="btn-outline" onClick={() => void loadInvoices()}>Refresh</button>
+          <button type="button" className="btn-outline" onClick={() => void invoicesQuery.refetch()}>
+            Refresh
+          </button>
         </div>
 
         <div className="data-table-wrap">
@@ -326,8 +481,8 @@ export default function InvoicesPage() {
             </thead>
             <tbody>
               {loading && <tr><td colSpan={6} className="bm-table-empty">Loading invoices...</td></tr>}
-              {!loading && invoiceRows.length === 0 && <tr><td colSpan={6} className="bm-table-empty">No invoices found.</td></tr>}
-              {!loading && invoiceRows.map((invoice) => (
+              {!loading && filteredInvoiceRows.length === 0 && <tr><td colSpan={6} className="bm-table-empty">No invoices found.</td></tr>}
+              {!loading && filteredInvoiceRows.map((invoice) => (
                 <tr key={invoice.key}>
                   <td>{invoice.invoiceLabel}</td>
                   <td>{new Date(invoice.purchasedAt).toLocaleString()}</td>
@@ -482,7 +637,18 @@ export default function InvoicesPage() {
             </div>
 
             <div className="bm-modal-actions" style={{ marginTop: "1rem" }}>
-              <button type="button" className="btn-accent" onClick={() => window.print()}>Print Invoice</button>
+              <button 
+                type="button" 
+                className="btn-accent" 
+                onClick={() => {
+                  if (!selectedInvoice) return;
+                  const invoiceNumber = String(Math.min(...selectedInvoice.entries.map((entry) => entry.id))).padStart(4, "0");
+                  const invoiceHtml = generateInvoiceHtml(selectedInvoice);
+                  exportInvoiceToPdf(invoiceHtml, invoiceNumber);
+                }}
+              >
+                Print Invoice
+              </button>
               <button type="button" className="btn-outline" onClick={() => setSelectedInvoice(null)}>Close</button>
             </div>
           </div>

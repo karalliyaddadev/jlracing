@@ -47,7 +47,6 @@ const BREADCRUMBS: Record<string, string> = {
   "/dashboard/inventory": "Inventory Management - Inventory",
   "/dashboard/inventory/sold": "Inventory Management - Sold Items",
   "/dashboard/inventory/manage": "Inventory Management - Manage Data",
-  "/dashboard/access":    "Access Management",
   "/dashboard/suppliers": "Supplier Management",
   "/dashboard/bikes":     "Bike Management - Inventory",
   "/dashboard/bikes/sold": "Bike Management - Sold Bikes",

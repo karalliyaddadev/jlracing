@@ -1,9 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
 import { IconInvoice } from "../../../lib/icons";
+import { readApiData } from "../../../lib/api";
 
 type InvoiceTerm = {
   id: number;
@@ -16,11 +18,8 @@ type InvoiceTerm = {
 
 export default function InvoiceTermsPage() {
   const { token } = useAdmin();
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
-  const [terms, setTerms] = useState<InvoiceTerm[]>([]);
 
   const [newText, setNewText] = useState("");
   const [newSortOrder, setNewSortOrder] = useState("");
@@ -33,27 +32,87 @@ export default function InvoiceTermsPage() {
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
+  const queryClient = useQueryClient();
 
-  const loadTerms = useCallback(async () => {
-    if (!token) return;
-    setLoading(true);
-    setError(null);
+  const termsQueryKey = useMemo(() => ["pos", "invoice-terms", token] as const, [token]);
 
-    try {
+  const termsQuery = useQuery({
+    queryKey: termsQueryKey,
+    enabled: Boolean(token),
+    queryFn: async () => {
       const response = await fetch(`${base}/invoice-terms`, { headers: auth, cache: "no-store" });
-      const payload = await response.json() as { data?: { terms?: InvoiceTerm[] }; message?: string };
-      if (!response.ok) throw new Error(payload.message ?? "Failed to load invoice terms");
-      setTerms(payload.data?.terms ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load invoice terms");
-    } finally {
-      setLoading(false);
-    }
-  }, [auth, base, token]);
+      const payload = await readApiData<{ terms?: InvoiceTerm[] }>(response, "Failed to load invoice terms");
+      return payload.terms ?? [];
+    },
+  });
 
-  useEffect(() => {
-    void loadTerms();
-  }, [loadTerms]);
+  const createTermMutation = useMutation({
+    mutationFn: async (input: { text: string; sortOrder?: number; isActive: boolean }) => {
+      const response = await fetch(`${base}/invoice-terms`, {
+        method: "POST",
+        headers: { ...auth, "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      const payload = await response.json() as { message?: string };
+      if (!response.ok) throw new Error(payload.message ?? "Failed to add term");
+    },
+    onSuccess: async () => {
+      resetCreateForm();
+      setSuccess("Term added");
+      await queryClient.invalidateQueries({ queryKey: termsQueryKey });
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "Failed to add term");
+    },
+  });
+
+  const updateTermMutation = useMutation({
+    mutationFn: async (input: { id: number; text: string; sortOrder?: number; isActive: boolean }) => {
+      const response = await fetch(`${base}/invoice-terms/${input.id}`, {
+        method: "PATCH",
+        headers: { ...auth, "Content-Type": "application/json" },
+        body: JSON.stringify({
+          text: input.text,
+          sortOrder: input.sortOrder,
+          isActive: input.isActive,
+        }),
+      });
+      const payload = await response.json() as { message?: string };
+      if (!response.ok) throw new Error(payload.message ?? "Failed to update term");
+    },
+    onSuccess: async () => {
+      stopEdit();
+      setSuccess("Term updated");
+      await queryClient.invalidateQueries({ queryKey: termsQueryKey });
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "Failed to update term");
+    },
+  });
+
+  const deleteTermMutation = useMutation({
+    mutationFn: async (termId: number) => {
+      const response = await fetch(`${base}/invoice-terms/${termId}`, {
+        method: "DELETE",
+        headers: auth,
+      });
+      const payload = await response.json() as { message?: string };
+      if (!response.ok) throw new Error(payload.message ?? "Failed to delete term");
+    },
+    onSuccess: async (_, termId) => {
+      if (editId === termId) stopEdit();
+      setSuccess("Term deleted");
+      await queryClient.invalidateQueries({ queryKey: termsQueryKey });
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : "Failed to delete term");
+    },
+  });
+
+  const loading = termsQuery.isPending;
+  const saving = createTermMutation.isPending || updateTermMutation.isPending || deleteTermMutation.isPending;
+  const queryError = termsQuery.error instanceof Error ? termsQuery.error.message : null;
+  const visibleError = error ?? queryError;
 
   const resetCreateForm = () => {
     setNewText("");
@@ -82,31 +141,13 @@ export default function InvoiceTermsPage() {
       return;
     }
 
-    setSaving(true);
     setError(null);
     setSuccess(null);
-
-    try {
-      const response = await fetch(`${base}/invoice-terms`, {
-        method: "POST",
-        headers: { ...auth, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text,
-          sortOrder: newSortOrder.trim() ? Number(newSortOrder) : undefined,
-          isActive: newIsActive,
-        }),
-      });
-      const payload = await response.json() as { message?: string };
-      if (!response.ok) throw new Error(payload.message ?? "Failed to add term");
-
-      resetCreateForm();
-      setSuccess("Term added");
-      await loadTerms();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to add term");
-    } finally {
-      setSaving(false);
-    }
+    createTermMutation.mutate({
+      text,
+      sortOrder: newSortOrder.trim() ? Number(newSortOrder) : undefined,
+      isActive: newIsActive,
+    });
   };
 
   const handleUpdate = async () => {
@@ -117,57 +158,23 @@ export default function InvoiceTermsPage() {
       return;
     }
 
-    setSaving(true);
     setError(null);
     setSuccess(null);
-
-    try {
-      const response = await fetch(`${base}/invoice-terms/${editId}`, {
-        method: "PATCH",
-        headers: { ...auth, "Content-Type": "application/json" },
-        body: JSON.stringify({
-          text,
-          sortOrder: editSortOrder.trim() ? Number(editSortOrder) : undefined,
-          isActive: editIsActive,
-        }),
-      });
-      const payload = await response.json() as { message?: string };
-      if (!response.ok) throw new Error(payload.message ?? "Failed to update term");
-
-      stopEdit();
-      setSuccess("Term updated");
-      await loadTerms();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to update term");
-    } finally {
-      setSaving(false);
-    }
+    updateTermMutation.mutate({
+      id: editId,
+      text,
+      sortOrder: editSortOrder.trim() ? Number(editSortOrder) : undefined,
+      isActive: editIsActive,
+    });
   };
 
   const handleDelete = async (termId: number) => {
     const confirmed = window.confirm("Delete this term and condition?");
     if (!confirmed) return;
 
-    setSaving(true);
     setError(null);
     setSuccess(null);
-
-    try {
-      const response = await fetch(`${base}/invoice-terms/${termId}`, {
-        method: "DELETE",
-        headers: auth,
-      });
-      const payload = await response.json() as { message?: string };
-      if (!response.ok) throw new Error(payload.message ?? "Failed to delete term");
-
-      if (editId === termId) stopEdit();
-      setSuccess("Term deleted");
-      await loadTerms();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to delete term");
-    } finally {
-      setSaving(false);
-    }
+    deleteTermMutation.mutate(termId);
   };
 
   return (
@@ -182,7 +189,7 @@ export default function InvoiceTermsPage() {
         </div>
       </div>
 
-      {error && <div className="bm-alert bm-alert-error">{error}</div>}
+      {visibleError && <div className="bm-alert bm-alert-error">{visibleError}</div>}
       {success && <div className="bm-alert bm-alert-success">{success}</div>}
 
       <div className="bm-table-card" style={{ marginBottom: "1rem" }}>
@@ -234,10 +241,10 @@ export default function InvoiceTermsPage() {
               {loading && (
                 <tr><td colSpan={4} className="bm-table-empty">Loading terms...</td></tr>
               )}
-              {!loading && terms.length === 0 && (
+              {!loading && (termsQuery.data ?? []).length === 0 && (
                 <tr><td colSpan={4} className="bm-table-empty">No terms found.</td></tr>
               )}
-              {!loading && terms.map((term) => {
+              {!loading && (termsQuery.data ?? []).map((term) => {
                 const isEditing = editId === term.id;
                 return (
                   <tr key={term.id}>
