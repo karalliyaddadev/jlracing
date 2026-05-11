@@ -91,6 +91,28 @@ type InvoiceTerm = {
   isActive: boolean;
 };
 
+type InvoiceAccount = {
+  id: number;
+  accountHolder: string;
+  accountNumber: string;
+  bankName: string;
+  branchName?: string | null;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+const HTML_ENTITY_MAP: Record<string, string> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  "\"": "&quot;",
+  "'": "&#39;",
+};
+
+function escapeInvoiceHtml(value: string | number | null | undefined) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => HTML_ENTITY_MAP[char] ?? char);
+}
+
 export default function InvoicesPage() {
   const { token } = useAdmin();
   const [search, setSearch] = useState("");
@@ -119,10 +141,29 @@ export default function InvoicesPage() {
     },
   });
 
+  const invoiceAccountsQuery = useQuery({
+    queryKey: ["pos", "invoice-accounts", token],
+    enabled: Boolean(token),
+    queryFn: async (): Promise<InvoiceAccount[]> => {
+      const response = await fetch(`${base}/invoice-accounts`, { headers: auth, cache: "no-store" });
+      const payload = await readApiData<{ accounts?: InvoiceAccount[] }>(response, "Failed to load invoice account details");
+      return payload.accounts ?? [];
+    },
+  });
+
   const invoices: Purchase[] = invoicesQuery.data ?? [];
   const invoiceTerms: InvoiceTerm[] = invoiceTermsQuery.data ?? [];
+  const invoiceAccounts: InvoiceAccount[] = invoiceAccountsQuery.data ?? [];
   const loading = invoicesQuery.isPending;
   const error = invoicesQuery.error instanceof Error ? invoicesQuery.error.message : null;
+  const supportError =
+    invoiceAccountsQuery.error instanceof Error
+      ? invoiceAccountsQuery.error.message
+      : invoiceTermsQuery.error instanceof Error
+        ? invoiceTermsQuery.error.message
+        : null;
+  const visibleError = error ?? supportError;
+  const invoiceSupportLoading = invoiceTermsQuery.isPending || invoiceAccountsQuery.isPending;
 
   const getPurchaseItemMeta = useCallback((entry: Purchase) => {
     if (entry.itemType === "BIKE" && entry.bike) {
@@ -291,6 +332,12 @@ export default function InvoicesPage() {
       .map((term: InvoiceTerm) => term.text);
   }, [invoiceTerms]);
 
+  const activeInvoiceAccounts = useMemo((): InvoiceAccount[] => {
+    return invoiceAccounts
+      .filter((account: InvoiceAccount) => account.isActive)
+      .sort((a: InvoiceAccount, b: InvoiceAccount) => a.sortOrder - b.sortOrder || a.id - b.id);
+  }, [invoiceAccounts]);
+
   const getInvoiceGrandTotal = (invoice: InvoiceRow) => invoice.finalSellingPrice + invoice.registrationFeeTotal;
 
   const generateInvoiceHtml = (invoice: InvoiceRow): string => {
@@ -344,11 +391,24 @@ export default function InvoicesPage() {
       </tr>
     ` : "";
 
+    const bankDetailsHtml = activeInvoiceAccounts.length > 0 ? `
+      <div class="invoice-bank-block" style="margin: 10px 0 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px;">
+        <strong>Bank Details</strong>
+        ${activeInvoiceAccounts.map((account) => `
+          <div class="invoice-bank-account" style="display: flex; flex-direction: column; gap: 2px; margin-top: 2px;">
+            <span>Account No: ${escapeInvoiceHtml(account.accountNumber)}</span>
+            <span>Account Name: ${escapeInvoiceHtml(account.accountHolder)}</span>
+            <span>Bank: ${escapeInvoiceHtml(account.bankName)}${account.branchName ? ` - ${escapeInvoiceHtml(account.branchName)}` : ""}</span>
+          </div>
+        `).join("")}
+      </div>
+    ` : "";
+
     const termsHtml = activeInvoiceTerms.length > 0 ? `
       <div style="margin: 10px 0 0; padding: 8px 10px; border: 1px solid #cfcfcf; background: #f7f7f7;">
         <h3 style="margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;">Terms & Conditions</h3>
         <ul style="margin: 0; padding-left: 16px;">
-          ${activeInvoiceTerms.map((term) => `<li style="margin: 0 0 3px; font-size: 10px; line-height: 1.4;">${term}</li>`).join("")}
+          ${activeInvoiceTerms.map((term) => `<li style="margin: 0 0 3px; font-size: 10px; line-height: 1.4;">${escapeInvoiceHtml(term)}</li>`).join("")}
         </ul>
       </div>
     ` : "";
@@ -411,12 +471,7 @@ export default function InvoicesPage() {
             </tfoot>
           </table>
 
-          <div class="invoice-bank-block" style="margin: 10px 0 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px;">
-            <strong>Bank Details</strong>
-            <span>019010033205</span>
-            <span>JL Racing</span>
-            <span>HNB</span>
-          </div>
+          ${bankDetailsHtml}
 
           ${termsHtml}
 
@@ -438,7 +493,7 @@ export default function InvoicesPage() {
         </div>
       </div>
 
-      {error && <div className="bm-alert bm-alert-error">{error}</div>}
+      {visibleError && <div className="bm-alert bm-alert-error">{visibleError}</div>}
 
       <div className="bm-stats-grid" style={{ marginBottom: "1rem" }}>
         <div className="bm-stat-card bm-stat-card-soft">
@@ -614,12 +669,18 @@ export default function InvoicesPage() {
                   </tfoot>
                 </table>
 
-                <div className="invoice-bank-block">
-                  <strong>Bank Details</strong>
-                  <span>019010033205</span>
-                  <span>JL Racing</span>
-                  <span>HNB</span>
-                </div>
+                {activeInvoiceAccounts.length > 0 && (
+                  <div className="invoice-bank-block">
+                    <strong>Bank Details</strong>
+                    {activeInvoiceAccounts.map((account) => (
+                      <div className="invoice-bank-account" key={account.id}>
+                        <span>Account No: {account.accountNumber}</span>
+                        <span>Account Name: {account.accountHolder}</span>
+                        <span>Bank: {account.bankName}{account.branchName ? ` - ${account.branchName}` : ""}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
 
                 {activeInvoiceTerms.length > 0 && (
                   <>
@@ -640,6 +701,7 @@ export default function InvoicesPage() {
               <button 
                 type="button" 
                 className="btn-accent" 
+                disabled={invoiceSupportLoading}
                 onClick={() => {
                   if (!selectedInvoice) return;
                   const invoiceNumber = String(Math.min(...selectedInvoice.entries.map((entry) => entry.id))).padStart(4, "0");
@@ -647,7 +709,7 @@ export default function InvoicesPage() {
                   exportInvoiceToPdf(invoiceHtml, invoiceNumber);
                 }}
               >
-                Print Invoice
+                {invoiceSupportLoading ? "Preparing Invoice..." : "Print Invoice"}
               </button>
               <button type="button" className="btn-outline" onClick={() => setSelectedInvoice(null)}>Close</button>
             </div>

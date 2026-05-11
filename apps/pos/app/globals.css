@@ -3119,6 +3119,13 @@ html[data-theme="dark"] .bm-setting-panel {
   max-width: 220px;
 }
 
+.invoice-account-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0.75rem;
+  align-items: center;
+}
+
 .invoice-terms-textarea {
   min-height: 90px;
   resize: vertical;
@@ -3320,6 +3327,18 @@ html[data-theme="dark"] .bm-setting-panel {
   font-size: 1.02rem;
 }
 
+.invoice-bank-account {
+  display: flex;
+  flex-direction: column;
+  gap: 0.16rem;
+}
+
+.invoice-bank-account + .invoice-bank-account {
+  margin-top: 0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid #d4d4d4;
+}
+
 .invoice-paper-terms {
   margin: 0.7rem 0 0;
   padding-left: 1.1rem;
@@ -3470,4 +3489,3 @@ html[data-theme="dark"] .bm-setting-panel {
     border: 1px solid #000;
   }
 }
-

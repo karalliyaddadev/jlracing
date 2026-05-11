@@ -2,6 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { sendCreated, sendSuccess } from "../../common/utils/response";
 import { AppError, validate } from "../../common/utils/errors";
 import {
+  createInvoiceAccountSchema,
   createLeasingCompanySchema,
   createPurchaseSchema,
   createInvoiceTermSchema,
@@ -9,6 +10,7 @@ import {
   purchaseQuerySchema,
   posUserQuerySchema,
   settlePurchaseSchema,
+  updateInvoiceAccountSchema,
   updateLeasingCompanySchema,
   updateInvoiceTermSchema,
   updatePosUserSchema,
@@ -126,6 +128,43 @@ export async function settlePurchase(req: Request, res: Response, next: NextFunc
       res,
       await service.settlePurchase(id, purchaseId, dto)
     );
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function getInvoiceAccounts(_req: Request, res: Response, next: NextFunction) {
+  try {
+    return sendSuccess(res, await service.listInvoiceAccounts());
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function createInvoiceAccount(req: Request, res: Response, next: NextFunction) {
+  try {
+    const dto = validate(createInvoiceAccountSchema, req.body);
+    return sendCreated(res, await service.createInvoiceAccount(dto));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function updateInvoiceAccount(req: Request, res: Response, next: NextFunction) {
+  try {
+    const dto = validate(updateInvoiceAccountSchema, req.body);
+    const accountId = parsePositiveIntParam("accountId", req.params.accountId);
+    return sendSuccess(res, await service.updateInvoiceAccount(accountId, dto));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function deleteInvoiceAccount(req: Request, res: Response, next: NextFunction) {
+  try {
+    const accountId = parsePositiveIntParam("accountId", req.params.accountId);
+    await service.deleteInvoiceAccount(accountId);
+    return sendSuccess(res, { message: "Invoice account deleted" });
   } catch (error) {
     return next(error);
   }

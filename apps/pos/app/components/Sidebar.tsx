@@ -91,6 +91,11 @@ const INVENTORY_SUB_ITEMS = [
 const INVOICE_SUB_ITEMS = [
   { key: "invoice-list", label: "Invoices", href: "/dashboard/invoices" },
   {
+    key: "invoice-accounts",
+    label: "Account Details",
+    href: "/dashboard/invoices/accounts",
+  },
+  {
     key: "invoice-terms",
     label: "Terms & Conditions",
     href: "/dashboard/invoices/terms",

@@ -2,6 +2,7 @@ import { Prisma } from "../../generated/prisma";
 import { prisma } from "../../database/prisma.client";
 import { AppError } from "../../common/utils/errors";
 import type {
+  CreateInvoiceAccountDto,
   CreateLeasingCompanyDto,
   CreateInvoiceTermDto,
   CreatePurchaseDto,
@@ -9,6 +10,7 @@ import type {
   PurchaseQueryDto,
   PosUserQueryDto,
   SettlePurchaseDto,
+  UpdateInvoiceAccountDto,
   UpdateLeasingCompanyDto,
   UpdateInvoiceTermDto,
   UpdatePosUserDto,
@@ -55,6 +57,11 @@ function roundCurrency(value: number) {
   return Math.round(value * 100) / 100;
 }
 
+function nullableTrimmedText(value?: string | null) {
+  const normalized = value?.trim();
+  return normalized && normalized.length > 0 ? normalized : null;
+}
+
 function resolvePaymentDetails(finalSellingPrice: number, paymentType: "DIRECT" | "DOWNPAYMENT", downPaymentAmount?: number) {
   if (paymentType === "DIRECT") {
     return {
@@ -85,6 +92,17 @@ function getPurchaseModelClient(db: any) {
   if (!model) {
     throw new AppError(
       "Purchase model is unavailable. Run 'npm run db:generate' in apps/backend and restart the backend server.",
+      500
+    );
+  }
+  return model;
+}
+
+function getInvoiceAccountModelClient(db: any) {
+  const model = db?.posInvoiceAccount;
+  if (!model) {
+    throw new AppError(
+      "Invoice account model is unavailable. Run 'npm run db:generate' in apps/backend and restart the backend server.",
       500
     );
   }
@@ -1203,6 +1221,82 @@ export async function settlePurchase(customerId: number, purchaseId: number, dto
     settlementStatus: totalRemainingAfter > 0 ? "TO_SETTLE" : "SETTLED",
     updatedEntries: refreshed,
   };
+}
+
+export async function listInvoiceAccounts() {
+  const model = getInvoiceAccountModelClient(prisma as any);
+  const accounts = await model.findMany({
+    orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+  });
+
+  return {
+    accounts,
+  };
+}
+
+export async function createInvoiceAccount(dto: CreateInvoiceAccountDto) {
+  const model = getInvoiceAccountModelClient(prisma as any);
+  const maxSortOrderRow = await model.findFirst({
+    orderBy: { sortOrder: "desc" },
+    select: { sortOrder: true },
+  });
+
+  try {
+    return await model.create({
+      data: {
+        accountHolder: dto.accountHolder,
+        accountNumber: dto.accountNumber,
+        bankName: dto.bankName,
+        branchName: nullableTrimmedText(dto.branchName),
+        sortOrder: dto.sortOrder ?? (maxSortOrderRow?.sortOrder ?? 0) + 1,
+        isActive: dto.isActive ?? true,
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      throw AppError.conflict("Invoice account already exists");
+    }
+    throw error;
+  }
+}
+
+export async function updateInvoiceAccount(accountId: number, dto: UpdateInvoiceAccountDto) {
+  const model = getInvoiceAccountModelClient(prisma as any);
+
+  try {
+    return await model.update({
+      where: { id: accountId },
+      data: {
+        ...(dto.accountHolder != null ? { accountHolder: dto.accountHolder } : {}),
+        ...(dto.accountNumber != null ? { accountNumber: dto.accountNumber } : {}),
+        ...(dto.bankName != null ? { bankName: dto.bankName } : {}),
+        ...(dto.branchName !== undefined ? { branchName: nullableTrimmedText(dto.branchName) } : {}),
+        ...(dto.sortOrder != null ? { sortOrder: dto.sortOrder } : {}),
+        ...(dto.isActive != null ? { isActive: dto.isActive } : {}),
+      },
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      throw AppError.notFound("Invoice account not found");
+    }
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      throw AppError.conflict("Invoice account already exists");
+    }
+    throw error;
+  }
+}
+
+export async function deleteInvoiceAccount(accountId: number) {
+  const model = getInvoiceAccountModelClient(prisma as any);
+
+  try {
+    await model.delete({ where: { id: accountId } });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
+      throw AppError.notFound("Invoice account not found");
+    }
+    throw error;
+  }
 }
 
 export async function listInvoiceTerms() {

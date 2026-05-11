@@ -121,6 +121,20 @@ export const settlePurchaseSchema = z.object({
   amount: z.number().min(0.01, "Settlement amount must be greater than 0"),
 });
 
+export const createInvoiceAccountSchema = z.object({
+  accountHolder: z.string().trim().min(1, "Account holder is required").max(160, "Account holder is too long"),
+  accountNumber: z.string().trim().min(1, "Account number is required").max(80, "Account number is too long"),
+  bankName: z.string().trim().min(1, "Bank name is required").max(120, "Bank name is too long"),
+  branchName: z.string().trim().max(120, "Branch name is too long").optional(),
+  sortOrder: z.coerce.number().int().min(1).max(9999).optional(),
+  isActive: z.coerce.boolean().optional().default(true),
+});
+
+export const updateInvoiceAccountSchema = createInvoiceAccountSchema.partial().refine(
+  (data) => Object.keys(data).length > 0,
+  { message: "At least one field is required" }
+);
+
 export const createInvoiceTermSchema = z.object({
   text: z.string().trim().min(1, "Term text is required").max(800, "Term text is too long"),
   sortOrder: z.coerce.number().int().min(1).max(9999).optional(),
@@ -138,6 +152,8 @@ export type PosUserQueryDto = z.infer<typeof posUserQuerySchema>;
 export type CreatePurchaseDto = z.infer<typeof createPurchaseSchema>;
 export type PurchaseQueryDto = z.infer<typeof purchaseQuerySchema>;
 export type SettlePurchaseDto = z.infer<typeof settlePurchaseSchema>;
+export type CreateInvoiceAccountDto = z.infer<typeof createInvoiceAccountSchema>;
+export type UpdateInvoiceAccountDto = z.infer<typeof updateInvoiceAccountSchema>;
 export type CreateInvoiceTermDto = z.infer<typeof createInvoiceTermSchema>;
 export type UpdateInvoiceTermDto = z.infer<typeof updateInvoiceTermSchema>;
 export type CreateLeasingCompanyDto = z.infer<typeof createLeasingCompanySchema>;
