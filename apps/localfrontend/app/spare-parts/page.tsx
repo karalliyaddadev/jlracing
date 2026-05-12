@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Pagination from "../components/Pagination";
+import FadeIn from "../components/FadeIn";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 const ITEMS_PER_PAGE = 6;
@@ -215,7 +216,7 @@ export default function SparePartsPage() {
 
       <div className="po-page__inner">
         {/* ── Page Header ── */}
-        <div className="po-page__header">
+        <FadeIn className="po-page__header">
           <div className="po-page__header-left">
             <h1 className="po-page__title">Spare Parts</h1>
             <p className="po-page__subtitle">
@@ -256,7 +257,7 @@ export default function SparePartsPage() {
               )}
             </div>
           </div>
-        </div>
+        </FadeIn>
 
         <hr className="po-page__divider" />
 
@@ -350,11 +351,11 @@ export default function SparePartsPage() {
             ) : filtered.length === 0 ? (
               <p className="po-grid__empty">No parts match your filters.</p>
             ) : (
-              paginated.map((part) => {
+              paginated.map((part, i) => {
                 const status = getStatus(part.quantity, part.lowStockThreshold);
                 return (
+                  <FadeIn key={`${currentPage}-${part.id}`} delay={i * 0.07}>
                   <Link
-                    key={part.id}
                     href={`/spare-parts/${part.id}`}
                     className="po-card"
                   >
@@ -404,6 +405,7 @@ export default function SparePartsPage() {
                       </div>
                     </div>
                   </Link>
+                  </FadeIn>
                 );
               })
             )}

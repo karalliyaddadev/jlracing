@@ -110,22 +110,39 @@ model BlogPost {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Foreign Listings  (Brand / Model / Year / Price / PDF)
+// Foreign Listings  (2-Wheelers / Automobiles / Heavy Machinery)
 // ─────────────────────────────────────────────────────────────────────────────
 
 model ForeignListing {
-  id        Int      @id @default(autoincrement())
-  brand     String
-  model     String
-  year      Int
-  price     Float
-  pdfUrl    String
-  category  String   @default("2-Wheelers") // "2-Wheelers" | "Automobiles" | "Heavy Machinery"
-  isActive  Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          Int                   @id @default(autoincrement())
+  brand       String
+  model       String
+  year        Int?
+  price       Float?
+  category    String                @default("2-Wheelers") // "2-Wheelers" | "Automobiles" | "Heavy Machinery"
+  condition   String                @default("used") // "brandnew" | "reconditioned" | "used"
+  mileage     Int                   @default(0)
+  colour      String?
+  engineCc    Int?
+  description String?               @db.Text
+  isActive    Boolean               @default(true)
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  images      ForeignListingImage[]
 
   @@map("foreign_listings")
+}
+
+model ForeignListingImage {
+  id        Int            @id @default(autoincrement())
+  listingId Int
+  listing   ForeignListing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  url       String
+  isPrimary Boolean        @default(false)
+  sortOrder Int            @default(0)
+  createdAt DateTime       @default(now())
+
+  @@map("foreign_listing_images")
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

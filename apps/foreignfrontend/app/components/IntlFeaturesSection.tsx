@@ -27,10 +27,10 @@ export default function IntlFeaturesSection() {
         {/* Left copy — slides in from left */}
         <motion.div
           className="int-features__copy"
-          initial={{ opacity: 0, x: -40 }}
+          initial={{ opacity: 0, x: -18 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true, amount: 0.2 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
+          transition={{ duration: 0.42, ease: "easeOut" }}
         >
           <span className="int-pill">
             <span className="int-pill__plain">Global Vehicle</span>
@@ -48,10 +48,10 @@ export default function IntlFeaturesSection() {
             <motion.div
               key={card.title}
               className="int-feat-card"
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 18 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true, amount: 0.2 }}
-              transition={{ duration: 0.55, delay: i * 0.15, ease: "easeOut" }}
+              transition={{ duration: 0.42, delay: i * 0.1, ease: "easeOut" }}
             >
               <div className="int-feat-card__img-wrap">
                 <img

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import FadeIn from "../components/FadeIn";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
@@ -117,14 +118,14 @@ export default function ContactPage() {
       {/* ── FAQ Section ── */}
       <section className="contact-faq">
         <div className="contact-faq__inner">
-          <div className="contact-faq__header">
+          <FadeIn className="contact-faq__header">
             <span className="contact-faq__label">FAQ</span>
             <h2 className="contact-faq__title">Frequently Asked Questions</h2>
             <p className="contact-faq__subtitle">
               Find quick answers to the most common questions about our bikes,
               spare parts, pre-orders, pricing, and delivery.
             </p>
-          </div>
+          </FadeIn>
 
           {faqLoading ? (
             <div className="contact-faq__loading">Loading…</div>
@@ -187,7 +188,7 @@ export default function ContactPage() {
       <section className="contact-body">
         <div className="contact-body__container">
           {/* ── Left: Info Panel ── */}
-          <div className="contact-info">
+          <FadeIn className="contact-info" direction="left">
             <h2 className="contact-info__title">
               Let&apos;s Get Down to Business
             </h2>
@@ -342,10 +343,10 @@ export default function ContactPage() {
                 </svg>
               </a>
             </div>
-          </div>
+          </FadeIn>
 
           {/* ── Right: Contact Form ── */}
-          <div className="contact-form">
+          <FadeIn className="contact-form" direction="right">
             <h2 className="contact-form__title">Send Us a Message</h2>
             <p className="contact-form__desc">
               Fill the form below and our team will contact you soon.
@@ -469,16 +470,18 @@ export default function ContactPage() {
                 </button>
               </form>
             )}
-          </div>
+          </FadeIn>
         </div>
       </section>
 
       {/* ── Map Section ── */}
       <section className="contact-map">
-        <h2 className="contact-map__title">Visit Our Showroom</h2>
-        <p className="contact-map__subtitle">
-          Find our location easily using the map below.
-        </p>
+        <FadeIn>
+          <h2 className="contact-map__title">Visit Our Showroom</h2>
+          <p className="contact-map__subtitle">
+            Find our location easily using the map below.
+          </p>
+        </FadeIn>
         <div className="contact-map__embed">
           <iframe
             title="JL Racing Location"

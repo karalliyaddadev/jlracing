@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Pagination from "../components/Pagination";
+import FadeIn from "../components/FadeIn";
 
 const MAX_PRICE = 3_000_000;
 const ITEMS_PER_PAGE = 6;
@@ -153,7 +154,7 @@ export default function PreOrdersPage() {
 
       <div className="po-page__inner">
         {/* ── Page Header ── */}
-        <div className="po-page__header">
+        <FadeIn className="po-page__header">
           <div className="po-page__header-left">
             <h1 className="po-page__title">Pre Orders</h1>
             <p className="po-page__subtitle">
@@ -193,7 +194,7 @@ export default function PreOrdersPage() {
               )}
             </div>
           </div>
-        </div>
+        </FadeIn>
 
         <hr className="po-page__divider" />
 
@@ -273,12 +274,12 @@ export default function PreOrdersPage() {
             ) : filtered.length === 0 ? (
               <p className="po-grid__empty">No bikes match your filters.</p>
             ) : (
-              paginated.map((bike) => {
+              paginated.map((bike, i) => {
                 const imgSrc = getPrimaryImageSrc(bike.images);
                 const displayStatus = getStatusDisplay(bike.status);
                 return (
+                  <FadeIn key={`${currentPage}-${bike.id}`} delay={i * 0.07}>
                   <Link
-                    key={bike.id}
                     href={`/pre-orders/${bike.id}`}
                     className="po-card"
                   >
@@ -348,6 +349,7 @@ export default function PreOrdersPage() {
                       </div>
                     </div>
                   </Link>
+                  </FadeIn>
                 );
               })
             )}

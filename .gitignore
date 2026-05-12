@@ -231,3 +231,4 @@ apps/backend/Dockerfile
 apps/frontend/Dockerfile
 docker-compose.yml
 uploads/
+.claude

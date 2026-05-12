@@ -105,7 +105,9 @@ export default function PreOrderDetailPage() {
           <div className="bikedetail__gallery">
             <div
               className="bikedetail__main-img"
-              onClick={() => sortedImages.length > 0 && setLightboxIndex(activeThumb)}
+              onClick={() =>
+                sortedImages.length > 0 && setLightboxIndex(activeThumb)
+              }
             >
               {sortedImages.length > 0 ? (
                 <img
@@ -198,7 +200,7 @@ export default function PreOrderDetailPage() {
                 Inquire / Pre-Order
               </Link>
               <a
-                href="https://wa.me/94701234567"
+                href="https://wa.me/94717910091"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bikedetail__btn bikedetail__btn--whatsapp"
@@ -243,7 +245,10 @@ export default function PreOrderDetailPage() {
           images={sortedImages.map((img) => `${BACKEND_URL}${img.url}`)}
           index={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
-          onChange={(i) => { setLightboxIndex(i); setActiveThumb(i); }}
+          onChange={(i) => {
+            setLightboxIndex(i);
+            setActiveThumb(i);
+          }}
         />
       )}
     </section>

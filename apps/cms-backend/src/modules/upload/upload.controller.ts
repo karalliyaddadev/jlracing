@@ -252,6 +252,37 @@ export class UploadController {
     };
   }
 
+  // ── Foreign listing image upload — saves to uploads/foreign/listings/ ──
+  @Post("listing-image")
+  @UseInterceptors(
+    FileInterceptor("file", {
+      storage: buildStorage("foreign/listings"),
+      fileFilter: (_req, file, cb) => {
+        if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(
+            new BadRequestException(
+              "Only image files (jpeg, png, webp, avif) are allowed",
+            ),
+            false,
+          );
+        }
+      },
+      limits: { fileSize: 20 * 1024 * 1024 }, // 20 MB
+    }),
+  )
+  uploadListingImage(@UploadedFile() file: Express.Multer.File) {
+    if (!file) throw new BadRequestException("No file provided");
+    return {
+      url: `/uploads/foreign/listings/${file.filename}`,
+      filename: file.filename,
+      originalName: file.originalname,
+      size: file.size,
+      mimeType: file.mimetype,
+    };
+  }
+
   // ── Hero image upload — saves to uploads/local/hero/ ──
   @Post("hero-image")
   @UseInterceptors(

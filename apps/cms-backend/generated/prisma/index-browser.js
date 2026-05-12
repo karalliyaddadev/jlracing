@@ -190,11 +190,24 @@ exports.Prisma.ForeignListingScalarFieldEnum = {
   model: 'model',
   year: 'year',
   price: 'price',
-  pdfUrl: 'pdfUrl',
   category: 'category',
+  condition: 'condition',
+  mileage: 'mileage',
+  colour: 'colour',
+  engineCc: 'engineCc',
+  description: 'description',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.ForeignListingImageScalarFieldEnum = {
+  id: 'id',
+  listingId: 'listingId',
+  url: 'url',
+  isPrimary: 'isPrimary',
+  sortOrder: 'sortOrder',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.FaqCategoryScalarFieldEnum = {
@@ -250,6 +263,7 @@ exports.Prisma.ModelName = {
   GalleryItem: 'GalleryItem',
   BlogPost: 'BlogPost',
   ForeignListing: 'ForeignListing',
+  ForeignListingImage: 'ForeignListingImage',
   FaqCategory: 'FaqCategory',
   FaqItem: 'FaqItem',
   NewsletterSubscriber: 'NewsletterSubscriber'

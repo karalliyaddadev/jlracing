@@ -1,4 +1,5 @@
 import Link from "next/link";
+import FadeIn from "../components/FadeIn";
 
 const MILESTONES = [
   {
@@ -17,7 +18,7 @@ const MILESTONES = [
     icon: "/about/chart-gold.png",
     bgImage: "/about/jl-racing-growth.jpg",
     title: "JL Racing Growth",
-    desc: "Scaled JL Racing into Sri Lanka\u2019s most trusted high-performance motorcycle dealership.",
+    desc: "Scaled JL Racing into Sri Lanka’s most trusted high-performance motorcycle dealership.",
   },
   {
     icon: "/about/globe-gold.png",
@@ -63,7 +64,7 @@ const AUCTION_LOGOS = [
 export default function AboutPage() {
   return (
     <>
-      {/* ── Hero ── */}
+      {/* ── Hero — no animation (above the fold) ── */}
       <section className="abt-hero">
         <div className="abt-hero__bg" />
         <div className="abt-hero__overlay" />
@@ -78,8 +79,7 @@ export default function AboutPage() {
       {/* ── Our Company ── */}
       <section className="abt-company">
         <div className="abt-company__inner">
-          {/* Top centered */}
-          <div className="abt-company__top">
+          <FadeIn className="abt-company__top">
             <span className="abt-grad-pill">
               <span className="abt-grad-pill__text">
                 <span className="abt-grad-text">Our Company</span>
@@ -89,12 +89,10 @@ export default function AboutPage() {
               Connecting the world with trusted Japanese vehicles, motorcycles,
               and machinery
             </h2>
-          </div>
+          </FadeIn>
 
-          {/* Two-column body */}
           <div className="abt-company__body">
-            {/* Left: text */}
-            <div className="abt-company__text">
+            <FadeIn className="abt-company__text" direction="left" delay={0.1}>
               <p>
                 Founded in 2018 in Japan, JLR International was established with
                 a clear vision: to connect the world with high-quality Japanese
@@ -113,10 +111,9 @@ export default function AboutPage() {
                 Our commitment is to ensure reliability, transparency, and
                 quality in every shipment.
               </p>
-            </div>
+            </FadeIn>
 
-            {/* Right: group image with caption */}
-            <div className="abt-company__img-wrap">
+            <FadeIn className="abt-company__img-wrap" direction="right" delay={0.2}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/about/group-img.jpg"
@@ -132,7 +129,7 @@ export default function AboutPage() {
                 </Link>
                 .
               </div>
-            </div>
+            </FadeIn>
           </div>
         </div>
       </section>
@@ -140,24 +137,26 @@ export default function AboutPage() {
       {/* ── Auctions ── */}
       <section className="abt-auctions">
         <div className="abt-auctions__inner">
-          <span className="abt-grad-pill">
-            <span className="abt-grad-pill__text">
-              <span className="abt-grad-text">Auctions</span>
+          <FadeIn>
+            <span className="abt-grad-pill">
+              <span className="abt-grad-pill__text">
+                <span className="abt-grad-text">Auctions</span>
+              </span>
             </span>
-          </span>
-          <h2 className="abt-auctions__heading">
-            Licensed access to top Japanese auction houses
-          </h2>
+            <h2 className="abt-auctions__heading">
+              Licensed access to top Japanese auction houses
+            </h2>
+          </FadeIn>
           <div className="abt-auctions__grid">
-            {AUCTION_LOGOS.map((logo) => (
-              <div key={logo.alt} className="abt-auctions__logo-card">
+            {AUCTION_LOGOS.map((logo, i) => (
+              <FadeIn key={logo.alt} className="abt-auctions__logo-card" delay={i * 0.07}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={logo.src}
                   alt={logo.alt}
                   className="abt-auctions__logo-img"
                 />
-              </div>
+              </FadeIn>
             ))}
           </div>
         </div>
@@ -166,8 +165,7 @@ export default function AboutPage() {
       {/* ── Chairman ── */}
       <section className="abt-chairman">
         <div className="abt-chairman__inner">
-          {/* Top centered */}
-          <div className="abt-chairman__top">
+          <FadeIn className="abt-chairman__top">
             <span className="abt-grad-pill">
               <span className="abt-grad-pill__text">
                 <span className="abt-grad-text">Chairman</span>
@@ -178,11 +176,10 @@ export default function AboutPage() {
               who built Sri Lanka&apos;s top bike dealership and now leads JLR
               International globally.
             </h2>
-          </div>
+          </FadeIn>
 
-          {/* Two-column body */}
           <div className="abt-chairman__body">
-            <div className="abt-chairman__text">
+            <FadeIn className="abt-chairman__text" direction="left" delay={0.1}>
               <p>
                 Our chairman, Jin Liyanage, is a lifelong rider and racing
                 enthusiast with a deep passion for high-capacity motorcycles. He
@@ -195,8 +192,8 @@ export default function AboutPage() {
                 service. His expertise, dedication, and commitment to quality
                 continue to drive the company&apos;s global expansion.
               </p>
-            </div>
-            <div className="abt-chairman__photos">
+            </FadeIn>
+            <FadeIn className="abt-chairman__photos" direction="right" delay={0.2}>
               <div className="abt-chairman__photo abt-chairman__photo--main">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
@@ -220,20 +217,22 @@ export default function AboutPage() {
                   />
                 </div>
               </div>
-            </div>
+            </FadeIn>
           </div>
 
-          <p className="abt-chairman__milestone-title">
-            Key Milestones That Shaped His Journey and Vision
-          </p>
+          <FadeIn>
+            <p className="abt-chairman__milestone-title">
+              Key Milestones That Shaped His Journey and Vision
+            </p>
+          </FadeIn>
         </div>
       </section>
 
       {/* ── Milestones ── */}
       <section className="abt-milestones">
         <div className="abt-milestones__grid">
-          {MILESTONES.map((m) => (
-            <div key={m.title} className="abt-ms-card">
+          {MILESTONES.map((m, i) => (
+            <FadeIn key={m.title} className="abt-ms-card" delay={i * 0.1}>
               <div
                 className="abt-ms-card__bg"
                 style={{ backgroundImage: `url('${m.bgImage}')` }}
@@ -247,7 +246,7 @@ export default function AboutPage() {
                   <p className="abt-ms-card__desc">{m.desc}</p>
                 </div>
               </div>
-            </div>
+            </FadeIn>
           ))}
         </div>
       </section>
@@ -255,7 +254,7 @@ export default function AboutPage() {
       {/* ── Values ── */}
       <section className="abt-values">
         <div className="abt-values__inner">
-          <div className="abt-values__top">
+          <FadeIn className="abt-values__top">
             <span className="abt-grad-pill">
               <span className="abt-grad-pill__text">
                 <span className="abt-grad-text">Values</span>
@@ -266,10 +265,10 @@ export default function AboutPage() {
               guide every interaction, ensuring our clients receive world-class
               Japanese products and service.
             </h2>
-          </div>
+          </FadeIn>
           <div className="abt-values__grid">
-            {VALUES.map((v) => (
-              <div key={v.title} className="abt-val-card">
+            {VALUES.map((v, i) => (
+              <FadeIn key={v.title} className="abt-val-card" delay={i * 0.1}>
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={v.icon}
@@ -278,7 +277,7 @@ export default function AboutPage() {
                 />
                 <h3 className="abt-val-card__title">{v.title}</h3>
                 <p className="abt-val-card__desc">{v.desc}</p>
-              </div>
+              </FadeIn>
             ))}
           </div>
         </div>
@@ -288,7 +287,7 @@ export default function AboutPage() {
       <section className="int-cta">
         <div className="int-cta__bg" />
         <div className="int-cta__overlay" />
-        <div className="int-cta__content">
+        <FadeIn className="int-cta__content">
           <span className="int-pill">
             <span className="int-pill__plain">Start Your</span>
             <span className="int-pill__gold">Order</span>
@@ -305,7 +304,7 @@ export default function AboutPage() {
               Contact Us
             </Link>
           </div>
-        </div>
+        </FadeIn>
       </section>
     </>
   );

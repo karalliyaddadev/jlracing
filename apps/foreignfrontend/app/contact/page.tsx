@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from "react-icons/fa";
+import FadeIn from "../components/FadeIn";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
@@ -143,7 +144,7 @@ export default function ContactPage() {
       {/* ── FAQ ── */}
       <section className="cnt-faq">
         <div className="cnt-faq__inner">
-          <div className="cnt-faq__card">
+          <FadeIn className="cnt-faq__card">
             <div className="cnt-faq__card-bg" />
             <div className="cnt-faq__card-overlay" />
             <div className="cnt-faq__card-content">
@@ -222,8 +223,7 @@ export default function ContactPage() {
               </p>
             </div>
             {/* /.cnt-faq__card-content */}
-          </div>
-          {/* /.cnt-faq__card */}
+          </FadeIn>
         </div>
         {/* /.cnt-faq__inner */}
       </section>
@@ -232,7 +232,7 @@ export default function ContactPage() {
       <section className="cnt-section" id="contact-form">
         <div className="cnt-card">
           {/* Left: Form */}
-          <div className="cnt-form-col">
+          <FadeIn className="cnt-form-col" direction="left">
             <span className="cnt-form__pill">Get In Touch</span>
             <h2 className="cnt-form__heading">
               Send your Inquiry, Our Team will Assist You.
@@ -513,10 +513,10 @@ export default function ContactPage() {
                 {formSubmitting ? "Sending…" : "Send Message"}
               </button>
             </form>
-          </div>
+          </FadeIn>
 
           {/* Right: Map + Info */}
-          <div className="cnt-map-col">
+          <FadeIn className="cnt-map-col" direction="right" delay={0.15}>
             <div className="cnt-map__frame-wrap">
               <iframe
                 className="cnt-map__iframe"
@@ -538,17 +538,17 @@ export default function ContactPage() {
               </div>
             </div>
             <div className="cnt-info-grid">
-              {CONTACT_INFO.map((info) => (
-                <div key={info.label} className="cnt-info-item">
+              {CONTACT_INFO.map((info, i) => (
+                <FadeIn key={info.label} className="cnt-info-item" delay={0.3 + i * 0.08}>
                   <info.Icon className="cnt-info-item__icon" />
                   <div>
                     <p className="cnt-info-item__label">{info.label}</p>
                     <p className="cnt-info-item__value">{info.value}</p>
                   </div>
-                </div>
+                </FadeIn>
               ))}
             </div>
-          </div>
+          </FadeIn>
         </div>
       </section>
     </>
