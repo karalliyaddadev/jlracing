@@ -18,7 +18,7 @@ import { UpdateForeignListingDto } from "./dto/update-foreign-listing.dto";
 export class ListingsController {
   constructor(private listingsService: ListingsService) {}
 
-  // Public: active listings for frontends (paginated)
+  // Public: active listings for foreignfrontend (paginated, returns "vehicles" key)
   @Public()
   @Get("active")
   async getActive(
@@ -28,12 +28,12 @@ export class ListingsController {
   ) {
     const p = parseInt(page, 10);
     const l = parseInt(limit, 10);
-    const [items, total] = await Promise.all([
+    const [vehicles, total] = await Promise.all([
       this.listingsService.findActive(category, p, l),
       this.listingsService.countActive(category),
     ]);
     return {
-      items,
+      vehicles,
       total,
       page: p,
       limit: l,
@@ -41,15 +41,17 @@ export class ListingsController {
     };
   }
 
-  // Admin: all listings
-  @Get()
-  findAll(@Query("category") category?: string) {
-    return this.listingsService.findAll(category);
-  }
-
+  // Public: single listing by id (for detail page)
+  @Public()
   @Get(":id")
   findOne(@Param("id", ParseIntPipe) id: number) {
     return this.listingsService.findOne(id);
+  }
+
+  // Admin: all listings (with optional category filter)
+  @Get()
+  findAll(@Query("category") category?: string) {
+    return this.listingsService.findAll(category);
   }
 
   @Post()
@@ -68,5 +70,36 @@ export class ListingsController {
   @Delete(":id")
   remove(@Param("id", ParseIntPipe) id: number) {
     return this.listingsService.remove(id);
+  }
+
+  // ── Image management ──────────────────────────────────────────────────────
+
+  @Post(":id/images")
+  addImage(
+    @Param("id", ParseIntPipe) id: number,
+    @Body() body: { url: string; isPrimary?: boolean; sortOrder?: number },
+  ) {
+    return this.listingsService.addImage(
+      id,
+      body.url,
+      body.isPrimary ?? false,
+      body.sortOrder ?? 0,
+    );
+  }
+
+  @Delete(":id/images/:imageId")
+  removeImage(
+    @Param("id", ParseIntPipe) _listingId: number,
+    @Param("imageId", ParseIntPipe) imageId: number,
+  ) {
+    return this.listingsService.removeImage(imageId);
+  }
+
+  @Patch(":id/images/:imageId/primary")
+  setPrimary(
+    @Param("id", ParseIntPipe) listingId: number,
+    @Param("imageId", ParseIntPipe) imageId: number,
+  ) {
+    return this.listingsService.setPrimaryImage(listingId, imageId);
   }
 }

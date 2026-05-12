@@ -5,7 +5,7 @@ import {
   IsOptional,
   IsString,
 } from "class-validator";
-import { SiteType } from "@prisma/client";
+import { SiteType } from "../../../../generated/prisma";
 
 export class CreateVideoBannerDto {
   @IsEnum(SiteType)

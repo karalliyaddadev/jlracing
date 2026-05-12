@@ -1102,6 +1102,76 @@ html[data-theme="dark"] .bm-btn-ghost {
   font-size: 0.82rem;
 }
 
+.finance-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.finance-card {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 0.9rem 1rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.finance-card-label {
+  font-size: 0.76rem;
+  color: var(--text-soft);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.finance-card-value {
+  font-size: 1.3rem;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.finance-card-hint {
+  font-size: 0.74rem;
+  color: var(--text-xsoft);
+}
+
+.finance-controls-panel {
+  background: var(--panel);
+  border: 1px solid var(--panel-border);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  box-shadow: var(--shadow-sm);
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem 1rem;
+  align-items: end;
+}
+
+.finance-control-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.finance-control-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-soft);
+}
+
+.finance-equations {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.78rem;
+  color: var(--text-soft);
+  line-height: 1.45;
+}
+
 /* Charts row */
 .dash-charts-row {
   display: grid;
@@ -1436,10 +1506,12 @@ html[data-theme="dark"] .bm-btn-ghost {
 
 @media (max-width: 1100px) {
   .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .finance-cards-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 900px) {
   .dash-bottom-row { grid-template-columns: 1fr; }
+  .finance-controls-panel { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 768px) {
@@ -1449,11 +1521,13 @@ html[data-theme="dark"] .bm-btn-ghost {
   .sidebar     { width: var(--sidebar-cw) !important; }
   .nav-label, .sidebar-brand, .sidebar-search input, .sidebar-toggle span { display: none; }
   .kpi-grid    { grid-template-columns: 1fr 1fr; }
+  .finance-cards-grid { grid-template-columns: 1fr 1fr; }
   .page-content { padding: 1rem; }
 }
 
 @media (max-width: 480px) {
   .kpi-grid   { grid-template-columns: 1fr; }
+  .finance-cards-grid { grid-template-columns: 1fr; }
   .admin-info { display: none; }
 }
 

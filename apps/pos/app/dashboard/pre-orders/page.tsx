@@ -36,6 +36,9 @@ type PreOrder = {
   updatedAt: string;
 };
 
+type Brand = { id: number; name: string };
+type Model = { id: number; name: string; brandId: number };
+
 const MAX_IMAGE_COUNT = 6;
 const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
 
@@ -49,6 +52,8 @@ function getPrimaryImageSrc(images: PreOrderImage[]): string | null {
 export default function PreOrdersManagementPage() {
   const { token } = useAdmin();
   const [preOrders, setPreOrders] = useState<PreOrder[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [models, setModels] = useState<Model[]>([]);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -68,7 +73,9 @@ export default function PreOrdersManagementPage() {
 
   // Form state
   const emptyForm = {
+    brandId: "",
     brand: "",
+    modelId: "",
     model: "",
     year: "",
     cc: "",
@@ -88,8 +95,49 @@ export default function PreOrdersManagementPage() {
   const [imageError, setImageError] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [showNewBrand, setShowNewBrand] = useState(false);
+  const [showNewModel, setShowNewModel] = useState(false);
+  const [newBrandName, setNewBrandName] = useState("");
+  const [newModelName, setNewModelName] = useState("");
 
   // â”€â”€ Fetch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  const bikeManagementBase = `${API_URL}/api/pos/bike-management`;
+
+  const fetchBrands = useCallback(async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${bikeManagementBase}/brands`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) throw new Error("Failed to load brands");
+      const payload = (await res.json()) as { data?: Brand[] };
+      setBrands((payload.data ?? []).sort((a, b) => a.name.localeCompare(b.name)));
+    } catch {
+      // Keep pre-orders working even if brand list temporarily fails.
+      setBrands([]);
+    }
+  }, [bikeManagementBase, token]);
+
+  const fetchModelsByBrand = useCallback(
+    async (brandId: string) => {
+      if (!token || !brandId) {
+        setModels([]);
+        return;
+      }
+      try {
+        const res = await fetch(`${bikeManagementBase}/brands/${brandId}/models`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (!res.ok) throw new Error("Failed to load models");
+        const payload = (await res.json()) as { data?: Model[] };
+        setModels((payload.data ?? []).sort((a, b) => a.name.localeCompare(b.name)));
+      } catch {
+        setModels([]);
+      }
+    },
+    [bikeManagementBase, token],
+  );
+
   const fetchPreOrders = useCallback(async () => {
     if (!token) return;
     setLoading(true);
@@ -106,8 +154,8 @@ export default function PreOrdersManagementPage() {
       });
       if (!res.ok) throw new Error("Failed to load pre-orders");
       const data = await res.json();
-      setPreOrders(data.preOrders ?? []);
-      setTotal(data.pagination?.total ?? 0);
+      setPreOrders(data.data ?? []);
+      setTotal(data.total ?? 0);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Error loading pre-orders");
     } finally {
@@ -118,9 +166,96 @@ export default function PreOrdersManagementPage() {
   useEffect(() => {
     fetchPreOrders();
   }, [fetchPreOrders]);
+
+  useEffect(() => {
+    void fetchBrands();
+  }, [fetchBrands]);
+
+  useEffect(() => {
+    void fetchModelsByBrand(form.brandId);
+  }, [fetchModelsByBrand, form.brandId]);
+
+  useEffect(() => {
+    if (!showModal || !form.brand || form.brandId || brands.length === 0) return;
+    const matchedBrand = brands.find(
+      (brand) => brand.name.toLowerCase() === form.brand.toLowerCase(),
+    );
+    if (!matchedBrand) return;
+    setForm((prev) => ({ ...prev, brandId: String(matchedBrand.id) }));
+  }, [showModal, form.brand, form.brandId, brands]);
+
+  useEffect(() => {
+    if (!showModal || !form.model || form.modelId || models.length === 0) return;
+    const matchedModel = models.find(
+      (model) => model.name.toLowerCase() === form.model.toLowerCase(),
+    );
+    if (!matchedModel) return;
+    setForm((prev) => ({ ...prev, modelId: String(matchedModel.id) }));
+  }, [showModal, form.model, form.modelId, models]);
+
   useEffect(() => {
     setPage(1);
   }, [search, statusFilter]);
+
+  const addBrand = async () => {
+    if (!token || !newBrandName.trim()) return;
+    try {
+      const res = await fetch(`${bikeManagementBase}/brands`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: newBrandName.trim() }),
+      });
+      const payload = (await res.json()) as { data?: Brand; message?: string };
+      if (!res.ok || !payload.data) {
+        throw new Error(payload.message ?? "Failed to add brand");
+      }
+      setBrands((current) => [...current, payload.data!].sort((a, b) => a.name.localeCompare(b.name)));
+      setForm((prev) => ({
+        ...prev,
+        brandId: String(payload.data!.id),
+        brand: payload.data!.name,
+        modelId: "",
+        model: "",
+      }));
+      setNewBrandName("");
+      setShowNewBrand(false);
+      setShowNewModel(false);
+      setModels([]);
+    } catch (err) {
+      setModalError(err instanceof Error ? err.message : "Failed to add brand");
+    }
+  };
+
+  const addModel = async () => {
+    if (!token || !form.brandId || !newModelName.trim()) return;
+    try {
+      const res = await fetch(`${bikeManagementBase}/brands/${form.brandId}/models`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ name: newModelName.trim() }),
+      });
+      const payload = (await res.json()) as { data?: Model; message?: string };
+      if (!res.ok || !payload.data) {
+        throw new Error(payload.message ?? "Failed to add model");
+      }
+      setModels((current) => [...current, payload.data!].sort((a, b) => a.name.localeCompare(b.name)));
+      setForm((prev) => ({
+        ...prev,
+        modelId: String(payload.data!.id),
+        model: payload.data!.name,
+      }));
+      setNewModelName("");
+      setShowNewModel(false);
+    } catch (err) {
+      setModalError(err instanceof Error ? err.message : "Failed to add model");
+    }
+  };
 
   // â”€â”€ Open modals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   function openAdd() {
@@ -129,6 +264,10 @@ export default function PreOrdersManagementPage() {
     setPendingImages([]);
     setImageError(null);
     setModalError(null);
+    setShowNewBrand(false);
+    setShowNewModel(false);
+    setNewBrandName("");
+    setNewModelName("");
     setShowModal(true);
   }
 
@@ -136,7 +275,9 @@ export default function PreOrdersManagementPage() {
     setEditingPreOrder(po);
     setForm({
       brand: po.brand,
+      brandId: "",
       model: po.model,
+      modelId: "",
       year: po.year != null ? String(po.year) : "",
       cc: po.cc ?? "",
       colour: po.colour ?? "",
@@ -151,6 +292,10 @@ export default function PreOrdersManagementPage() {
     setPendingImages([]);
     setImageError(null);
     setModalError(null);
+    setShowNewBrand(false);
+    setShowNewModel(false);
+    setNewBrandName("");
+    setNewModelName("");
     setShowModal(true);
   }
 
@@ -638,27 +783,130 @@ export default function PreOrdersManagementPage() {
               <div className="bm-fields-grid">
                 <div className="bm-field-group">
                   <label>Brand *</label>
-                  <input
-                    className="bm-input"
-                    value={form.brand}
-                    onChange={(e) =>
-                      setForm({ ...form, brand: e.target.value })
-                    }
-                    placeholder="e.g. Yamaha"
-                    required
-                  />
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <select
+                      className="bm-input"
+                      value={form.brandId}
+                      onChange={(e) => {
+                        const selectedId = e.target.value;
+                        const selectedBrand = brands.find((brand) => String(brand.id) === selectedId);
+                        setForm((prev) => ({
+                          ...prev,
+                          brandId: selectedId,
+                          brand: selectedBrand?.name ?? "",
+                          modelId: "",
+                          model: "",
+                        }));
+                        setShowNewModel(false);
+                      }}
+                      required
+                    >
+                      <option value="">— Select Brand —</option>
+                      {brands.map((brand) => (
+                        <option key={brand.id} value={String(brand.id)}>
+                          {brand.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="btn-outline"
+                      onClick={() => setShowNewBrand((current) => !current)}
+                    >
+                      + Add
+                    </button>
+                  </div>
+                  {showNewBrand && (
+                    <div className="bm-quick-add-row">
+                      <input
+                        className="bm-input bm-input-sm"
+                        placeholder="New brand..."
+                        value={newBrandName}
+                        onChange={(e) => setNewBrandName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void addBrand();
+                          }
+                          if (e.key === "Escape") setShowNewBrand(false);
+                        }}
+                        autoFocus
+                      />
+                      <button type="button" className="btn-accent bm-add-btn" onClick={() => void addBrand()}>
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        className="bm-action-btn bm-cancel-btn"
+                        onClick={() => setShowNewBrand(false)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="bm-field-group">
                   <label>Model *</label>
-                  <input
-                    className="bm-input"
-                    value={form.model}
-                    onChange={(e) =>
-                      setForm({ ...form, model: e.target.value })
-                    }
-                    placeholder="e.g. MT-15 V2"
-                    required
-                  />
+                  <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+                    <select
+                      className="bm-input"
+                      value={form.modelId}
+                      onChange={(e) => {
+                        const selectedId = e.target.value;
+                        const selectedModel = models.find((model) => String(model.id) === selectedId);
+                        setForm((prev) => ({
+                          ...prev,
+                          modelId: selectedId,
+                          model: selectedModel?.name ?? "",
+                        }));
+                      }}
+                      required
+                      disabled={!form.brandId}
+                    >
+                      <option value="">— Select Model —</option>
+                      {models.map((model) => (
+                        <option key={model.id} value={String(model.id)}>
+                          {model.name}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="btn-outline"
+                      disabled={!form.brandId}
+                      onClick={() => setShowNewModel((current) => !current)}
+                    >
+                      + Add
+                    </button>
+                  </div>
+                  {showNewModel && (
+                    <div className="bm-quick-add-row">
+                      <input
+                        className="bm-input bm-input-sm"
+                        placeholder="New model..."
+                        value={newModelName}
+                        onChange={(e) => setNewModelName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            void addModel();
+                          }
+                          if (e.key === "Escape") setShowNewModel(false);
+                        }}
+                        autoFocus
+                      />
+                      <button type="button" className="btn-accent bm-add-btn" onClick={() => void addModel()}>
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        className="bm-action-btn bm-cancel-btn"
+                        onClick={() => setShowNewModel(false)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
                 </div>
                 <div className="bm-field-group">
                   <label>Year</label>

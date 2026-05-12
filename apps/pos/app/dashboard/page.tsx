@@ -26,12 +26,28 @@ type Purchase = {
   purchaseChannel?: "PERSONAL" | "LEASING";
   remainingAmount?: number;
   customer: { id: number };
+  bike?: { id: number } | null;
+  inventory?: { id: number } | null;
 };
 
 type InventoryProduct = {
   id: number;
   quantity: number;
+  soldQuantity?: number;
+  taxPaid?: number;
+  additionalExpenses?: number;
   lowStockThreshold?: number | null;
+};
+
+type VehicleExpense = {
+  amount: number;
+};
+
+type VehicleSummary = {
+  id: number;
+  status: "available" | "sold";
+  taxAmount?: number;
+  expenses?: VehicleExpense[];
 };
 
 type RevenueViewMode = "DAILY" | "MONTHLY" | "YEARLY";
@@ -64,12 +80,47 @@ function formatCurrencyCompact(value: number) {
   }).format(Math.round(value));
 }
 
-function getRecognizedRevenue(purchase: Purchase) {
-  // Leasing revenue is recognized only after it is fully settled.
-  if (purchase.purchaseChannel === "LEASING" && (purchase.remainingAmount ?? 0) > 0) {
-    return 0;
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Math.round(value * 100) / 100);
+}
+
+function getSettledRevenue(purchase: Purchase) {
+  const remaining = Math.max(0, purchase.remainingAmount ?? 0);
+  const settled = purchase.finalSellingPrice - remaining;
+  return Math.max(0, Math.min(purchase.finalSellingPrice, settled));
+}
+
+function clampMoney(value: number) {
+  return Math.round(value * 100) / 100;
+}
+
+function isDateWithinRange(iso: string | null | undefined, from: string, to: string) {
+  if (!iso) return false;
+
+  const value = new Date(iso).getTime();
+  if (Number.isNaN(value)) return false;
+
+  if (from) {
+    const fromValue = new Date(`${from}T00:00:00`).getTime();
+    if (value < fromValue) return false;
   }
-  return purchase.finalSellingPrice;
+
+  if (to) {
+    const toValue = new Date(`${to}T23:59:59.999`).getTime();
+    if (value > toValue) return false;
+  }
+
+  return true;
+}
+
+function formatDateRangeLabel(from: string, to: string) {
+  if (from && to) return `${from} to ${to}`;
+  if (from) return `From ${from}`;
+  if (to) return `Up to ${to}`;
+  return "All dates";
 }
 
 export default function DashboardPage() {
@@ -83,6 +134,9 @@ export default function DashboardPage() {
   const [revenueMode, setRevenueMode] = useState<RevenueViewMode>("MONTHLY");
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [products, setProducts] = useState<InventoryProduct[]>([]);
+  const [vehicles, setVehicles] = useState<VehicleSummary[]>([]);
+  const [financeDateFrom, setFinanceDateFrom] = useState("");
+  const [financeDateTo, setFinanceDateTo] = useState("");
 
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
@@ -91,19 +145,23 @@ export default function DashboardPage() {
     setLoading(true);
     setError(null);
     try {
-      const [purchasesRes, productsRes] = await Promise.all([
+      const [purchasesRes, productsRes, vehiclesRes] = await Promise.all([
         fetch(`${API_URL}/api/pos/user-management/purchases?page=1&limit=500`, { headers: auth, cache: "no-store" }),
         fetch(`${API_URL}/api/pos/bike-management/products?page=1&limit=500`, { headers: auth, cache: "no-store" }),
+        fetch(`${API_URL}/api/pos/bike-management/vehicles?limit=5000`, { headers: auth, cache: "no-store" }),
       ]);
 
       const purchasesJson = await purchasesRes.json() as { data?: { purchases?: Purchase[] }; message?: string };
       const productsJson = await productsRes.json() as { data?: { products?: InventoryProduct[] }; message?: string };
+      const vehiclesJson = await vehiclesRes.json() as { data?: { vehicles?: VehicleSummary[] }; message?: string };
 
       if (!purchasesRes.ok) throw new Error(purchasesJson.message ?? "Failed to load purchases");
       if (!productsRes.ok) throw new Error(productsJson.message ?? "Failed to load inventory summary");
+      if (!vehiclesRes.ok) throw new Error(vehiclesJson.message ?? "Failed to load bike summary");
 
       setPurchases(purchasesJson.data?.purchases ?? []);
       setProducts(productsJson.data?.products ?? []);
+      setVehicles(vehiclesJson.data?.vehicles ?? []);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load dashboard data");
     } finally {
@@ -115,25 +173,131 @@ export default function DashboardPage() {
     void loadDashboardData();
   }, [loadDashboardData]);
 
+  const financeDateRangeInvalid = Boolean(
+    financeDateFrom && financeDateTo && financeDateFrom > financeDateTo,
+  );
+
+  const financeDateRangeLabel = useMemo(
+    () => formatDateRangeLabel(financeDateFrom, financeDateTo),
+    [financeDateFrom, financeDateTo],
+  );
+
+  const productsById = useMemo(
+    () => new Map(products.map((product) => [product.id, product])),
+    [products],
+  );
+
+  const vehiclesById = useMemo(
+    () => new Map(vehicles.map((vehicle) => [vehicle.id, vehicle])),
+    [vehicles],
+  );
+
+  const filteredFinancePurchases = useMemo(() => {
+    if (financeDateRangeInvalid) return [];
+    return purchases.filter((purchase) =>
+      isDateWithinRange(purchase.purchasedAt, financeDateFrom, financeDateTo),
+    );
+  }, [financeDateFrom, financeDateRangeInvalid, financeDateTo, purchases]);
+
+  const activeTaxes = useMemo(() => {
+    const total = filteredFinancePurchases.reduce((sum, purchase) => {
+      if (purchase.itemType === "INVENTORY") {
+        const productId = purchase.inventory?.id;
+        const product = productId ? productsById.get(productId) : undefined;
+        return sum + Math.max(0, product?.taxPaid ?? 0) * Math.max(0, purchase.quantity);
+      }
+
+      const bikeId = purchase.bike?.id;
+      const bike = bikeId ? vehiclesById.get(bikeId) : undefined;
+      return sum + Math.max(0, bike?.taxAmount ?? 0);
+    }, 0);
+
+    return clampMoney(total);
+  }, [filteredFinancePurchases, productsById, vehiclesById]);
+
+  const activeOtherCosts = useMemo(() => {
+    const total = filteredFinancePurchases.reduce((sum, purchase) => {
+      if (purchase.itemType === "INVENTORY") {
+        const productId = purchase.inventory?.id;
+        const product = productId ? productsById.get(productId) : undefined;
+        return sum + Math.max(0, product?.additionalExpenses ?? 0) * Math.max(0, purchase.quantity);
+      }
+
+      const bikeId = purchase.bike?.id;
+      const bike = bikeId ? vehiclesById.get(bikeId) : undefined;
+      const expenses = bike?.expenses ?? [];
+      return sum + expenses.reduce((innerSum, item) => innerSum + Math.max(0, item.amount), 0);
+    }, 0);
+
+    return clampMoney(total);
+  }, [filteredFinancePurchases, productsById, vehiclesById]);
+
+  const financialSummary = useMemo(() => {
+    const now = new Date();
+    const dailyKey = dateKeyLocal(now, "DAILY");
+    const monthKey = dateKeyLocal(now, "MONTHLY");
+
+    let totalRevenue = 0;
+    let dailyRevenue = 0;
+    let monthlyRevenue = 0;
+    let leasingOutstanding = 0;
+    let nonLeasingOutstanding = 0;
+
+    filteredFinancePurchases.forEach((purchase) => {
+      const settledRevenue = getSettledRevenue(purchase);
+      const remaining = Math.max(0, purchase.remainingAmount ?? 0);
+      totalRevenue += settledRevenue;
+
+      const purchasedAt = new Date(purchase.purchasedAt);
+      if (dateKeyLocal(purchasedAt, "DAILY") === dailyKey) {
+        dailyRevenue += settledRevenue;
+      }
+      if (dateKeyLocal(purchasedAt, "MONTHLY") === monthKey) {
+        monthlyRevenue += settledRevenue;
+      }
+
+      if (purchase.purchaseChannel === "LEASING") {
+        leasingOutstanding += remaining;
+      } else {
+        nonLeasingOutstanding += remaining;
+      }
+    });
+
+    const totalOutstanding = nonLeasingOutstanding + leasingOutstanding;
+    const grossProfit = totalRevenue - (activeTaxes + activeOtherCosts);
+
+    return {
+      totalRevenue,
+      dailyRevenue,
+      monthlyRevenue,
+      totalOutstanding,
+      leasingOutstanding,
+      grossProfit,
+    };
+  }, [activeOtherCosts, activeTaxes, filteredFinancePurchases]);
+
+  const allTimeRevenue = useMemo(
+    () => clampMoney(purchases.reduce((sum, purchase) => sum + getSettledRevenue(purchase), 0)),
+    [purchases],
+  );
+
   const totals = useMemo(() => {
     const now = new Date();
     const todayKey = dateKeyLocal(now, "DAILY");
 
-    let totalRevenue = 0;
     let todayRevenue = 0;
     let todaySoldUnits = 0;
     let openInvoices = 0;
     const uniqueCustomers = new Set<number>();
 
     purchases.forEach((purchase) => {
-      const recognizedRevenue = getRecognizedRevenue(purchase);
-      totalRevenue += recognizedRevenue;
+      const settledRevenue = getSettledRevenue(purchase);
       uniqueCustomers.add(purchase.customer.id);
       if ((purchase.remainingAmount ?? 0) > 0) openInvoices += 1;
 
       const purchasedAt = new Date(purchase.purchasedAt);
       if (dateKeyLocal(purchasedAt, "DAILY") === todayKey) {
-        todayRevenue += recognizedRevenue;
+        todayRevenue += settledRevenue;
         todaySoldUnits += purchase.quantity;
       }
     });
@@ -144,21 +308,21 @@ export default function DashboardPage() {
     }).length;
 
     return {
-      totalRevenue,
+      totalRevenue: allTimeRevenue,
       todayRevenue,
       todaySoldUnits,
       openInvoices,
       activeUsers: uniqueCustomers.size,
       lowStockAlerts,
     };
-  }, [products, purchases]);
+  }, [allTimeRevenue, products, purchases]);
 
   const groupedRevenue = useMemo(() => {
     const map = new Map<string, { revenue: number; soldUnits: number }>();
     purchases.forEach((purchase) => {
       const key = dateKeyLocal(new Date(purchase.purchasedAt), revenueMode);
       const current = map.get(key) ?? { revenue: 0, soldUnits: 0 };
-      current.revenue += getRecognizedRevenue(purchase);
+      current.revenue += getSettledRevenue(purchase);
       current.soldUnits += purchase.quantity;
       map.set(key, current);
     });
@@ -231,6 +395,168 @@ export default function DashboardPage() {
     ? groupedRevenue.labels
     : ["-"];
 
+  const exportFinanceReportPdf = () => {
+    if (typeof window === "undefined") return;
+
+    const generatedAt = new Date().toLocaleString();
+    const html = `
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>dashboard-finance-report-${dateKeyLocal(new Date(), "DAILY")}</title>
+    <style>
+      @page { size: A4 portrait; margin: 14mm; }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Arial, sans-serif;
+        color: #111827;
+        background: #ffffff;
+      }
+      .header {
+        border-bottom: 2px solid #d4af37;
+        padding-bottom: 10px;
+        margin-bottom: 14px;
+      }
+      .title {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+      }
+      .subtitle {
+        margin-top: 4px;
+        font-size: 12px;
+        color: #4b5563;
+      }
+      .meta {
+        margin-top: 4px;
+        font-size: 11px;
+        color: #6b7280;
+      }
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 14px;
+      }
+      .card {
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        padding: 10px;
+      }
+      .label {
+        font-size: 11px;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+      }
+      .value {
+        margin-top: 6px;
+        font-size: 24px;
+        font-weight: 700;
+      }
+      .table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 4px;
+      }
+      .table th {
+        background: #f3f4f6;
+        border: 1px solid #d1d5db;
+        text-align: left;
+        font-size: 11px;
+        padding: 7px 8px;
+      }
+      .table td {
+        border: 1px solid #e5e7eb;
+        font-size: 11px;
+        padding: 7px 8px;
+      }
+      .section-title {
+        margin-top: 10px;
+        margin-bottom: 6px;
+        font-size: 12px;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #374151;
+        font-weight: 700;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1 class="title">JL Racing Finance Report</h1>
+      <div class="subtitle">Finance summary for ${financeDateRangeLabel}.</div>
+      <div class="meta">Generated: ${generatedAt} | Matching invoices: ${filteredFinancePurchases.length}</div>
+    </div>
+    <div class="grid">
+      <div class="card"><div class="label">Total Revenue</div><div class="value">LKR ${formatCurrency(financialSummary.totalRevenue)}</div></div>
+      <div class="card"><div class="label">Total Outstanding</div><div class="value">LKR ${formatCurrency(financialSummary.totalOutstanding)}</div></div>
+      <div class="card"><div class="label">Leasing Outstanding</div><div class="value">LKR ${formatCurrency(financialSummary.leasingOutstanding)}</div></div>
+      <div class="card"><div class="label">Taxes</div><div class="value">LKR ${formatCurrency(activeTaxes)}</div></div>
+      <div class="card"><div class="label">Other Costs</div><div class="value">LKR ${formatCurrency(activeOtherCosts)}</div></div>
+      <div class="card"><div class="label">Gross Profit</div><div class="value">LKR ${formatCurrency(financialSummary.grossProfit)}</div></div>
+    </div>
+
+    <div class="section-title">Finance Details</div>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Amount (LKR)</th>
+          <th>Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Date Range</td><td>${financeDateRangeLabel}</td><td>Selected dashboard finance filter</td></tr>
+        <tr><td>Total Outstanding</td><td>${formatCurrency(financialSummary.totalOutstanding)}</td><td>Open invoice balances</td></tr>
+        <tr><td>Leasing Outstanding</td><td>${formatCurrency(financialSummary.leasingOutstanding)}</td><td>Open leasing balances</td></tr>
+        <tr><td>Taxes</td><td>${formatCurrency(activeTaxes)}</td><td>Sold bikes + sold inventory tax totals</td></tr>
+        <tr><td>Other Costs</td><td>${formatCurrency(activeOtherCosts)}</td><td>Sold bikes expenses + sold inventory extra costs</td></tr>
+        <tr><td>Gross Profit</td><td>${formatCurrency(financialSummary.grossProfit)}</td><td>Total Revenue - (Taxes + Other Costs)</td></tr>
+      </tbody>
+    </table>
+  </body>
+</html>`;
+
+    const printFrame = document.createElement("iframe");
+    printFrame.setAttribute("aria-hidden", "true");
+    printFrame.style.position = "fixed";
+    printFrame.style.right = "0";
+    printFrame.style.bottom = "0";
+    printFrame.style.width = "0";
+    printFrame.style.height = "0";
+    printFrame.style.border = "0";
+    printFrame.style.opacity = "0";
+
+    const cleanup = () => {
+      window.setTimeout(() => {
+        if (printFrame.parentNode) {
+          printFrame.parentNode.removeChild(printFrame);
+        }
+      }, 1000);
+    };
+
+    printFrame.onload = () => {
+      const frameWindow = printFrame.contentWindow;
+      if (!frameWindow) {
+        cleanup();
+        return;
+      }
+      frameWindow.requestAnimationFrame(() => {
+        window.setTimeout(() => {
+          frameWindow.focus();
+          frameWindow.print();
+          cleanup();
+        }, 120);
+      });
+    };
+
+    document.body.appendChild(printFrame);
+    printFrame.srcdoc = html;
+  };
+
   return (
     <>
       {/* Welcome strip */}
@@ -242,6 +568,14 @@ export default function DashboardPage() {
           <p className="dash-welcome-sub">Here&apos;s what&apos;s happening at JL Racing today.</p>
         </div>
         <div className="dash-welcome-actions">
+          <button
+            type="button"
+            className="btn-outline"
+            onClick={exportFinanceReportPdf}
+            disabled={financeDateRangeInvalid}
+          >
+            <IconInvoice /> Print Finance PDF
+          </button>
           <button type="button" className="btn-outline" onClick={() => router.push("/dashboard/invoices")}>
             <IconInvoice /> New Invoice
           </button>
@@ -252,6 +586,96 @@ export default function DashboardPage() {
       </div>
 
       {error && <div className="bm-alert bm-alert-error">{error}</div>}
+
+      <div className="finance-controls-panel">
+        <div className="finance-control-row">
+          <label className="finance-control-label" htmlFor="finance-date-from">
+            From date
+          </label>
+          <input
+            id="finance-date-from"
+            type="date"
+            className="bm-input"
+            value={financeDateFrom}
+            onChange={(event) => setFinanceDateFrom(event.target.value)}
+          />
+        </div>
+        <div className="finance-control-row">
+          <label className="finance-control-label" htmlFor="finance-date-to">
+            To date
+          </label>
+          <input
+            id="finance-date-to"
+            type="date"
+            className="bm-input"
+            value={financeDateTo}
+            onChange={(event) => setFinanceDateTo(event.target.value)}
+          />
+        </div>
+        <div className="finance-equations">
+          {financeDateRangeInvalid && (
+            <div className="bm-alert bm-alert-error">
+              From date must be earlier than or equal to the to date.
+            </div>
+          )}
+          <span>Showing finance cards for {financeDateRangeLabel}.</span>
+          <span>{filteredFinancePurchases.length} invoice(s) matched the selected range.</span>
+          <div style={{ display: "flex", gap: "0.65rem", flexWrap: "wrap", marginTop: "0.35rem" }}>
+            <button
+              type="button"
+              className="btn-outline"
+              onClick={() => {
+                setFinanceDateFrom("");
+                setFinanceDateTo("");
+              }}
+              disabled={!financeDateFrom && !financeDateTo}
+            >
+              Clear Dates
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="finance-cards-grid">
+        {[
+          {
+            label: "Total Revenue",
+            value: `LKR ${formatCurrency(financialSummary.totalRevenue)}`,
+            hint: "Includes all settled amounts",
+          },
+          {
+            label: "Total Outstanding",
+            value: `LKR ${formatCurrency(financialSummary.totalOutstanding)}`,
+            hint: "Personal + leasing balance",
+          },
+          {
+            label: "Leasing Outstanding",
+            value: `LKR ${formatCurrency(financialSummary.leasingOutstanding)}`,
+            hint: "Only leasing balance",
+          },
+          {
+            label: "Taxes",
+            value: `LKR ${formatCurrency(activeTaxes)}`,
+            hint: `Auto from sales in ${financeDateRangeLabel.toLowerCase()}`,
+          },
+          {
+            label: "Other Costs",
+            value: `LKR ${formatCurrency(activeOtherCosts)}`,
+            hint: `Auto from sales in ${financeDateRangeLabel.toLowerCase()}`,
+          },
+          {
+            label: "Gross Profit",
+            value: `LKR ${formatCurrency(financialSummary.grossProfit)}`,
+            hint: "Revenue - (Taxes + Other Costs)",
+          },
+        ].map((card) => (
+          <div key={card.label} className="finance-card">
+            <span className="finance-card-label">{card.label}</span>
+            <strong className="finance-card-value">{card.value}</strong>
+            <span className="finance-card-hint">{card.hint}</span>
+          </div>
+        ))}
+      </div>
 
       {/* KPI cards */}
       <div className="kpi-grid">

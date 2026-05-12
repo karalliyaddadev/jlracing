@@ -4,7 +4,7 @@ import {
   OnModuleDestroy,
   Logger,
 } from "@nestjs/common";
-import { Prisma, PrismaClient } from "@prisma/client";
+import { Prisma, PrismaClient } from "../generated/prisma";
 
 // Environment-based logging configuration
 const getLogConfig = (): Prisma.LogLevel[] => {

@@ -5,6 +5,7 @@ export const metadata: Metadata = {
   title: "JL Racing — Admin Portal",
   description:
     "Admin portal for managing POS, Local & International websites, and employees",
+  icons: { icon: "/logo.png" },
 };
 
 export default function RootLayout({

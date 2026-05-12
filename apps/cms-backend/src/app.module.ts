@@ -11,6 +11,7 @@ import { BlogModule } from "./modules/blog/blog.module";
 import { ListingsModule } from "./modules/listings/listings.module";
 import { FaqModule } from "./modules/faq/faq.module";
 import { UploadModule } from "./modules/upload/upload.module";
+import { NewsletterModule } from "./modules/newsletter/newsletter.module";
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { UploadModule } from "./modules/upload/upload.module";
     ListingsModule,
     FaqModule,
     UploadModule,
+    NewsletterModule,
   ],
   providers: [
     // Apply JWT guard globally — use @Public() to bypass

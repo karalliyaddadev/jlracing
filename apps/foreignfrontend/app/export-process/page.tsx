@@ -7,23 +7,28 @@ import {
   LuMapPin,
   LuClock,
 } from "react-icons/lu";
+import FadeIn from "../components/FadeIn";
 
 const STEP2_CARDS = [
   {
     title: "Sourcing",
     desc: "Vehicles come from top Japanese auctions, guaranteeing authenticity, competitive pricing, and reliable availability.",
+    bgImage: "/export/step-2-sourcing.png",
   },
   {
     title: "Condition Grading",
     desc: "Detailed interior and exterior grades provide clear insights into each vehicle's condition.",
+    bgImage: "/export/step-2-condition-grading.png",
   },
   {
     title: "Mileage Verification",
     desc: "Accurate mileage and mechanical checks ensure vehicles meet international standards and expectations.",
+    bgImage: "/export/step-2-mileage-verification.png",
   },
   {
     title: "Photography",
     desc: "High-resolution images allow importers to evaluate vehicles confidently before making decisions.",
+    bgImage: "/export/step-2-photography.png",
   },
 ];
 
@@ -80,7 +85,7 @@ const STEP5_FEATURES = [
 export default function ExportProcessPage() {
   return (
     <>
-      {/* ── Hero ── */}
+      {/* ── Hero — no animation (above the fold) ── */}
       <section className="exp-hero">
         <div className="exp-hero__bg" />
         <div className="exp-hero__overlay" />
@@ -97,21 +102,41 @@ export default function ExportProcessPage() {
       {/* ── Step 1 – Entry Point ── */}
       <section className="exp-section exp-section--light">
         <div className="exp-section__inner">
-          <span className="abt-grad-pill">
-            <span className="abt-grad-pill__text">
-              <span className="abt-grad-text">Step 1: Entry Point</span>
+          <FadeIn>
+            <span className="abt-grad-pill">
+              <span className="abt-grad-pill__text">
+                <span className="abt-grad-text">Step 1: Entry Point</span>
+              </span>
             </span>
-          </span>
+          </FadeIn>
           <div className="exp-two-col">
-            <div className="exp-two-col__text">
+            <FadeIn className="exp-two-col__text" direction="left" delay={0.1}>
               <p className="exp-entry__body">
                 We as <em>licensed Direct Auction Exporters</em> guide you from
                 your first selection, providing verified vehicles directly from
                 Japanese auctions with complete transparency, trust, and
                 professional support.
               </p>
-            </div>
-            <div className="exp-two-col__img-box" />
+            </FadeIn>
+            <FadeIn
+              className="exp-two-col__img-box"
+              direction="right"
+              delay={0.2}
+              style={{ overflow: "hidden", padding: 0 }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/export/step-1-entry-point.png"
+                alt="Step 1 Entry Point"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  minHeight: "260px",
+                  objectFit: "cover",
+                  display: "block",
+                }}
+              />
+            </FadeIn>
           </div>
         </div>
       </section>
@@ -119,26 +144,36 @@ export default function ExportProcessPage() {
       {/* ── Step 2 – Select Your Vehicle ── */}
       <section className="exp-section exp-section--dark">
         <div className="exp-section__inner exp-section__inner--center">
-          <span className="abt-grad-pill">
-            <span className="abt-grad-pill__text">
-              <span className="abt-grad-text">
-                Step 2 – Select Your Vehicle
+          <FadeIn>
+            <span className="abt-grad-pill">
+              <span className="abt-grad-pill__text">
+                <span className="abt-grad-text">
+                  Step 2 – Select Your Vehicle
+                </span>
               </span>
             </span>
-          </span>
-          <h2 className="exp-dark-heading">
-            Choose and verify vehicles with full inspection details
-          </h2>
+            <h2 className="exp-dark-heading">
+              Choose and verify vehicles with full inspection details
+            </h2>
+          </FadeIn>
           <div className="exp-cards-grid">
-            {STEP2_CARDS.map((card) => (
-              <div key={card.title} className="exp-yard-card">
-                <div className="exp-yard-card__bg" />
+            {STEP2_CARDS.map((card, i) => (
+              <FadeIn key={card.title} className="exp-yard-card" delay={i * 0.1}>
+                <div
+                  className="exp-yard-card__bg"
+                  style={{
+                    backgroundImage: `url('${card.bgImage}')`,
+                    backgroundSize: "cover",
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
+                  }}
+                />
                 <div className="exp-yard-card__overlay" />
                 <div className="exp-yard-card__body">
                   <h3 className="exp-yard-card__title">{card.title}</h3>
                   <p className="exp-yard-card__desc">{card.desc}</p>
                 </div>
-              </div>
+              </FadeIn>
             ))}
           </div>
         </div>
@@ -147,19 +182,39 @@ export default function ExportProcessPage() {
       {/* ── Step 3 – Confirm Pricing ── */}
       <section className="exp-section exp-section--light">
         <div className="exp-section__inner exp-section__inner--center">
-          <span className="abt-grad-pill">
-            <span className="abt-grad-pill__text">
-              <span className="abt-grad-text">Step 3 – Confirm Pricing</span>
+          <FadeIn>
+            <span className="abt-grad-pill">
+              <span className="abt-grad-pill__text">
+                <span className="abt-grad-text">Step 3 – Confirm Pricing</span>
+              </span>
             </span>
-          </span>
-          <h2 className="exp-light-heading">
-            Clear cost breakdown with <em>no hidden or surprise fees.</em>
-          </h2>
+            <h2 className="exp-light-heading">
+              Clear cost breakdown with no hidden or surprise fees.
+            </h2>
+          </FadeIn>
           <div className="exp-two-col exp-two-col--top">
-            <div className="exp-two-col__img-box exp-two-col__img-box--tall" />
+            <FadeIn
+              className="exp-two-col__img-box exp-two-col__img-box--tall"
+              direction="left"
+              delay={0.1}
+              style={{ overflow: "hidden", padding: 0 }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/export/step-3-confirm pricing.png"
+                alt="Step 3 Confirm Pricing"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  minHeight: "340px",
+                  objectFit: "cover",
+                  display: "block",
+                }}
+              />
+            </FadeIn>
             <div className="exp-features-2x2">
-              {STEP3_FEATURES.map((f) => (
-                <div key={f.title} className="exp-feat">
+              {STEP3_FEATURES.map((f, i) => (
+                <FadeIn key={f.title} className="exp-feat" direction="right" delay={0.15 + i * 0.08}>
                   {f.reactIcon ? (
                     <span className="exp-feat__icon">{f.reactIcon}</span>
                   ) : (
@@ -174,7 +229,7 @@ export default function ExportProcessPage() {
                     <h3 className="exp-feat__title">{f.title}</h3>
                     <p className="exp-feat__desc">{f.desc}</p>
                   </div>
-                </div>
+                </FadeIn>
               ))}
             </div>
           </div>
@@ -185,21 +240,52 @@ export default function ExportProcessPage() {
       <section className="exp-section exp-section--dark">
         <div className="exp-section__inner">
           <div className="exp-two-col exp-two-col--top">
-            <div className="exp-step4-left">
+            <FadeIn className="exp-step4-left" direction="left">
               <div className="exp-step-pill exp-step-pill--dark exp-step-pill--inline">
                 Step 4 – Complete Payment
               </div>
               <p className="exp-step4-body">
-                Once you confirm your vehicle, we guide you through{" "}
-                <em>secure payments including TT and bank-backed LC</em> while
-                handling all export documentation for smooth processing and
-                compliance.
+                Once you confirm your vehicle, we guide you through secure
+                payments including TT and bank-backed LC while handling all
+                export documentation for smooth processing and compliance.
               </p>
-            </div>
-            <div className="exp-two-img-row">
-              <div className="exp-two-col__img-box" />
-              <div className="exp-two-col__img-box" />
-            </div>
+            </FadeIn>
+            <FadeIn className="exp-two-img-row" direction="right" delay={0.2}>
+              <div
+                className="exp-two-col__img-box"
+                style={{ overflow: "hidden", padding: 0 }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/export/complete-payment-2.png"
+                  alt="Complete Payment"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    minHeight: "260px",
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
+              </div>
+              <div
+                className="exp-two-col__img-box"
+                style={{ overflow: "hidden", padding: 0 }}
+              >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src="/export/yard.jpg"
+                  alt="Export Yard"
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    minHeight: "260px",
+                    objectFit: "cover",
+                    display: "block",
+                  }}
+                />
+              </div>
+            </FadeIn>
           </div>
         </div>
       </section>
@@ -207,28 +293,48 @@ export default function ExportProcessPage() {
       {/* ── Step 5 – Shipping & Delivery ── */}
       <section className="exp-section exp-section--light">
         <div className="exp-section__inner exp-section__inner--center">
-          <span className="abt-grad-pill">
-            <span className="abt-grad-pill__text">
-              <span className="abt-grad-text">
-                Step 5 – Shipping &amp; Delivery
+          <FadeIn>
+            <span className="abt-grad-pill">
+              <span className="abt-grad-pill__text">
+                <span className="abt-grad-text">
+                  Step 5 – Shipping &amp; Delivery
+                </span>
               </span>
             </span>
-          </span>
-          <h2 className="exp-light-heading">
-            Comprehensive shipment management and support until your vehicle
-            reaches its destination
-          </h2>
+            <h2 className="exp-light-heading">
+              Comprehensive shipment management and support until your vehicle
+              reaches its destination
+            </h2>
+          </FadeIn>
           <div className="exp-two-col exp-two-col--top">
-            <div className="exp-two-col__img-box exp-two-col__img-box--tall" />
+            <FadeIn
+              className="exp-two-col__img-box exp-two-col__img-box--tall"
+              direction="left"
+              delay={0.1}
+              style={{ overflow: "hidden", padding: 0 }}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/export/step-5-shipping-and-delivery.png"
+                alt="Step 5 Shipping and Delivery"
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  minHeight: "340px",
+                  objectFit: "cover",
+                  display: "block",
+                }}
+              />
+            </FadeIn>
             <div className="exp-features-2x2">
-              {STEP5_FEATURES.map((f) => (
-                <div key={f.title} className="exp-feat">
+              {STEP5_FEATURES.map((f, i) => (
+                <FadeIn key={f.title} className="exp-feat" direction="right" delay={0.15 + i * 0.08}>
                   <span className="exp-feat__icon">{f.reactIcon}</span>
                   <div>
                     <h3 className="exp-feat__title">{f.title}</h3>
                     <p className="exp-feat__desc">{f.desc}</p>
                   </div>
-                </div>
+                </FadeIn>
               ))}
             </div>
           </div>

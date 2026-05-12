@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import ImageLightbox from "../../components/ImageLightbox";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -34,6 +35,7 @@ export default function PreOrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [activeThumb, setActiveThumb] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -101,7 +103,12 @@ export default function PreOrderDetailPage() {
         <div className="bikedetail__layout">
           {/* ── Left — Gallery ── */}
           <div className="bikedetail__gallery">
-            <div className="bikedetail__main-img">
+            <div
+              className="bikedetail__main-img"
+              onClick={() =>
+                sortedImages.length > 0 && setLightboxIndex(activeThumb)
+              }
+            >
               {sortedImages.length > 0 ? (
                 <img
                   src={`${BACKEND_URL}${sortedImages[activeThumb]?.url ?? sortedImages[0].url}`}
@@ -193,7 +200,7 @@ export default function PreOrderDetailPage() {
                 Inquire / Pre-Order
               </Link>
               <a
-                href="https://wa.me/94701234567"
+                href="https://wa.me/94717910091"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bikedetail__btn bikedetail__btn--whatsapp"
@@ -233,6 +240,17 @@ export default function PreOrderDetailPage() {
           </div>
         </div>
       </div>
+      {lightboxIndex !== null && (
+        <ImageLightbox
+          images={sortedImages.map((img) => `${BACKEND_URL}${img.url}`)}
+          index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onChange={(i) => {
+            setLightboxIndex(i);
+            setActiveThumb(i);
+          }}
+        />
+      )}
     </section>
   );
 }

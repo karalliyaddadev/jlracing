@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import ImageLightbox from "../../components/ImageLightbox";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
@@ -45,6 +46,7 @@ export default function BikeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [activeImg, setActiveImg] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -83,7 +85,7 @@ export default function BikeDetailPage() {
       <section className="bikedetail-notfound">
         <h2>Bike not found.</h2>
         <Link href="/bikes" className="bikedetail__back">
-          â† Back to Bikes
+          ← Back to Bikes
         </Link>
       </section>
     );
@@ -94,10 +96,10 @@ export default function BikeDetailPage() {
   const specs = [
     { label: "Brand", value: vehicle.brand.name },
     { label: "Model", value: vehicle.model.name },
-    { label: "Year", value: vehicle.year ?? "â€”" },
+    { label: "Year", value: vehicle.year ?? "—" },
     {
       label: "Engine",
-      value: vehicle.engineCapacityCc ? `${vehicle.engineCapacityCc}cc` : "â€”",
+      value: vehicle.engineCapacityCc ? `${vehicle.engineCapacityCc}cc` : "—",
     },
     { label: "Condition", value: mapCondition(vehicle.condition) },
     {
@@ -110,15 +112,18 @@ export default function BikeDetailPage() {
   return (
     <section className="bikedetail-page">
       <div className="bikedetail-container">
-        {/* â”€â”€ Back â”€â”€ */}
+        {/* Back */}
         <Link href="/bikes" className="bikedetail__back">
-          â† Back to Bikes
+          ← Back to Bikes
         </Link>
 
         <div className="bikedetail__layout">
-          {/* â”€â”€ Left â€” Image â”€â”€ */}
+          {/* Left — Image */}
           <div className="bikedetail__gallery">
-            <div className="bikedetail__main-img">
+            <div
+              className="bikedetail__main-img"
+              onClick={() => images.length > 0 && setLightboxIndex(activeImg)}
+            >
               {images.length > 0 ? (
                 <img
                   src={images[activeImg]}
@@ -144,7 +149,7 @@ export default function BikeDetailPage() {
             )}
           </div>
 
-          {/* â”€â”€ Right â€” Info â”€â”€ */}
+          {/* Right — Info */}
           <div className="bikedetail__info">
             <span className="bikedetail__badge">
               {mapCondition(vehicle.condition)}
@@ -189,7 +194,7 @@ export default function BikeDetailPage() {
                 Inquire Now
               </Link>
               <a
-                href="https://wa.me/94XXXXXXXXX"
+                href="https://wa.me/94717910091"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bikedetail__btn bikedetail__btn--whatsapp"
@@ -208,6 +213,14 @@ export default function BikeDetailPage() {
           </div>
         </div>
       </div>
+      {lightboxIndex !== null && (
+        <ImageLightbox
+          images={images}
+          index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onChange={(i) => { setLightboxIndex(i); setActiveImg(i); }}
+        />
+      )}
     </section>
   );
 }

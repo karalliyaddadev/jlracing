@@ -33,6 +33,8 @@ export default function SoldInventoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = { Authorization: `Bearer ${token}` };
@@ -73,14 +75,33 @@ export default function SoldInventoryPage() {
     void loadData();
   }, [loadData]);
 
+  // Filter purchases by date range
+  const filteredPurchases = useMemo(() => {
+    let filtered = [...purchases];
+    
+    if (fromDate) {
+      const fromDateTime = new Date(fromDate);
+      fromDateTime.setHours(0, 0, 0, 0);
+      filtered = filtered.filter(purchase => new Date(purchase.purchasedAt) >= fromDateTime);
+    }
+    
+    if (toDate) {
+      const toDateTime = new Date(toDate);
+      toDateTime.setHours(23, 59, 59, 999);
+      filtered = filtered.filter(purchase => new Date(purchase.purchasedAt) <= toDateTime);
+    }
+    
+    return filtered;
+  }, [purchases, fromDate, toDate]);
+
   const totalSoldUnits = useMemo(
-    () => purchases.reduce((sum, purchase) => sum + purchase.quantity, 0),
-    [purchases],
+    () => filteredPurchases.reduce((sum, purchase) => sum + purchase.quantity, 0),
+    [filteredPurchases],
   );
+  
   const estimatedRevenue = useMemo(
-    () =>
-      purchases.reduce((sum, purchase) => sum + purchase.finalSellingPrice, 0),
-    [purchases],
+    () => filteredPurchases.reduce((sum, purchase) => sum + purchase.finalSellingPrice, 0),
+    [filteredPurchases],
   );
 
   const exportSoldInventoryPdf = () => {
@@ -88,7 +109,7 @@ export default function SoldInventoryPage() {
       fileName: "inventory-sold-report",
       title: "Inventory Sold Report",
       subtitle: "All sold inventory entries currently loaded in Sold Items tab",
-      rows: purchases,
+      rows: filteredPurchases,
       columns: [
         { header: "Invoice", value: (purchase) => `INV-${String(purchase.id).padStart(5, "0")}` },
         { header: "Purchased At", value: (purchase) => new Date(purchase.purchasedAt).toLocaleString() },
@@ -152,7 +173,7 @@ export default function SoldInventoryPage() {
             </span>
             <span className="bm-stat-label">Sold Entries</span>
           </div>
-          <strong className="bm-stat-value">{purchases.length}</strong>
+          <strong className="bm-stat-value">{filteredPurchases.length}</strong>
           <span className="bm-stat-sub">Customer-linked purchase records</span>
         </div>
         <div className="bm-stat-card">
@@ -192,6 +213,23 @@ export default function SoldInventoryPage() {
       <div className="bm-table-card">
         <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)", display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
           <input className="bm-input" style={{ maxWidth: 420 }} value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search by customer, NIC, product ID, name or brand" />
+          <label htmlFor="sold-inventory-from" style={{ fontSize: 13, color: "var(--text-soft)" }}>From</label>
+          <input
+            id="sold-inventory-from"
+            className="bm-input"
+            type="date"
+            value={fromDate}
+            onChange={(event) => setFromDate(event.target.value)}
+          />
+          <label htmlFor="sold-inventory-to" style={{ fontSize: 13, color: "var(--text-soft)" }}>To</label>
+          <input
+            id="sold-inventory-to"
+            className="bm-input"
+            type="date"
+            value={toDate}
+            onChange={(event) => setToDate(event.target.value)}
+          />
+          <button type="button" className="btn-outline" onClick={() => { setFromDate(""); setToDate(""); }}>Clear Dates</button>
           <button type="button" className="btn-outline" onClick={() => void loadData()}>Refresh</button>
           <button type="button" className="btn-outline" onClick={exportSoldInventoryPdf}>Export PDF</button>
         </div>
@@ -217,7 +255,7 @@ export default function SoldInventoryPage() {
                   </td>
                 </tr>
               )}
-              {!loading && purchases.length === 0 && (
+              {!loading && filteredPurchases.length === 0 && (
                 <tr>
                   <td colSpan={8} className="bm-table-empty">
                     No sold inventory records yet.
@@ -225,7 +263,7 @@ export default function SoldInventoryPage() {
                 </tr>
               )}
               {!loading &&
-                purchases.map((purchase) => {
+                filteredPurchases.map((purchase) => {
                   return (
                     <tr key={purchase.id} className="bm-vehicle-row">
                       <td>INV-{String(purchase.id).padStart(5, "0")}</td>
