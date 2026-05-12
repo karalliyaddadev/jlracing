@@ -7,7 +7,7 @@ async function main() {
   console.log("Seeding Bike Project data...");
 
   const passwordHash = await bcrypt.hash("Admin@123", 12);
-  const posAdminPasswordHash = await bcrypt.hash("jlracing@Admin", 12);
+  const posAdminPasswordHash = await bcrypt.hash("JLRacing@26", 12);
 
   const admin = await prisma.user.upsert({
     where: { email: "admin@bikeproject.com" },
@@ -25,15 +25,15 @@ async function main() {
   });
 
   const posAdmin = await prisma.posAdmin.upsert({
-    where: { email: "jlracing@gmail.com" },
+    where: { email: "jlracing16@gmail.com" },
     update: {
-      name: "JL Racing POS Admin",
+      name: "JL Racing Admin",
       passwordHash: posAdminPasswordHash,
       isActive: true,
     },
     create: {
-      name: "JL Racing POS Admin",
-      email: "jlracing@gmail.com",
+      name: "JL Racing Admin",
+      email: "jlracing16@gmail.com",
       passwordHash: posAdminPasswordHash,
       isActive: true,
     },

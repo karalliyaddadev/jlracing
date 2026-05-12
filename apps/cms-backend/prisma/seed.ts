@@ -4,20 +4,20 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  const passwordHash = await bcrypt.hash("admin123", 12);
+  const passwordHash = await bcrypt.hash("JLRacing@26", 12);
 
   await prisma.cmsAdmin.upsert({
-    where: { email: "admin@jlracing.com" },
-    update: {},
+    where: { email: "jlracing16@gmail.com" },
+    update: { passwordHash, name: "JL Racing CMS Admin" },
     create: {
-      name: "CMS Admin",
-      email: "admin@jlracing.com",
+      name: "JL Racing CMS Admin",
+      email: "jlracing16@gmail.com",
       passwordHash,
       isActive: true,
     },
   });
 
-  console.log("CMS seed complete — admin@jlracing.com / admin123");
+  console.log("CMS seed complete — jlracing16@gmail.com / JLRacing@26");
 }
 
 main()
