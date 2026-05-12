@@ -26,12 +26,12 @@ export default function FadeIn({
       style={style}
       initial={{
         opacity: 0,
-        y: direction === "up" ? 36 : 0,
-        x: direction === "left" ? -36 : direction === "right" ? 36 : 0,
+        y: direction === "up" ? 18 : 0,
+        x: direction === "left" ? -18 : direction === "right" ? 18 : 0,
       }}
       whileInView={{ opacity: 1, y: 0, x: 0 }}
       viewport={{ once: true, amount }}
-      transition={{ duration: 0.65, delay, ease: "easeOut" }}
+      transition={{ duration: 0.42, delay, ease: "easeOut" }}
     >
       {children}
     </motion.div>

@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import FadeIn from "../components/FadeIn";
 
 export default function AboutPage() {
   return (
@@ -20,7 +21,7 @@ export default function AboutPage() {
       </section>
 
       {/* ── Stats Bar ── */}
-      <div className="about-hero__stats-bar">
+      <FadeIn className="about-hero__stats-bar">
         <div className="about-hero__stat">
           <span className="about-hero__stat-num">30+</span>
           <span className="about-hero__stat-label">Years of Experience</span>
@@ -40,12 +41,12 @@ export default function AboutPage() {
           <span className="about-hero__stat-num">500+</span>
           <span className="about-hero__stat-label">Happy Riders</span>
         </div>
-      </div>
+      </FadeIn>
 
       {/* ── Story Section ── */}
       <section className="about-story">
         <div className="about-story__container">
-          <div className="about-story__text">
+          <FadeIn className="about-story__text" direction="left">
             <span className="about-section-label">
               Where Passion Meets Performance
             </span>
@@ -68,8 +69,8 @@ export default function AboutPage() {
               picking up genuine spare parts, we're here to fuel your passion
               for riding.
             </p>
-          </div>
-          <div className="about-story__image-wrap">
+          </FadeIn>
+          <FadeIn className="about-story__image-wrap" direction="right">
             <Image
               src="/about/about-company.png"
               alt="JL Racing showroom"
@@ -77,14 +78,14 @@ export default function AboutPage() {
               className="about-story__image"
               sizes="(max-width: 768px) 100vw, 55vw"
             />
-          </div>
+          </FadeIn>
         </div>
       </section>
 
       {/* ── Founder Section ── */}
       <section className="about-founder">
         <div className="about-founder__container">
-          <div className="about-founder__text">
+          <FadeIn className="about-founder__text" direction="left">
             <span className="about-section-label about-section-label--light">
               Driven by Passion
             </span>
@@ -103,8 +104,8 @@ export default function AboutPage() {
               business into one of Sri Lanka&apos;s most trusted names for
               bikes, parts, and worldwide exports.
             </p>
-          </div>
-          <div className="about-founder__gallery">
+          </FadeIn>
+          <FadeIn className="about-founder__gallery" direction="right">
             <div className="about-founder__img-wrap">
               <Image
                 src="/about/chairman%201.jpeg"
@@ -132,14 +133,14 @@ export default function AboutPage() {
                 sizes="(max-width: 768px) 100vw, 30vw"
               />
             </div>
-          </div>
+          </FadeIn>
         </div>
       </section>
 
       {/* ── Vision & Mission ── */}
       <section className="about-vm">
         <div className="about-vm__container">
-          <div className="about-vm__card">
+          <FadeIn className="about-vm__card">
             <h3 className="about-vm__title">Vision</h3>
             <p className="about-vm__text">
               To be Sri Lanka&apos;s most trusted bike importer and a hub for
@@ -147,8 +148,8 @@ export default function AboutPage() {
               experiences to every rider.
             </p>
             <span className="about-vm__tag">Leading Passion</span>
-          </div>
-          <div className="about-vm__card">
+          </FadeIn>
+          <FadeIn className="about-vm__card" delay={0.1}>
             <h3 className="about-vm__title">Mission</h3>
             <p className="about-vm__text">
               To bring riders the bikes they&apos;ve always dreamed of. Genuine,
@@ -156,7 +157,7 @@ export default function AboutPage() {
               passion for the ride.
             </p>
             <span className="about-vm__tag">Ride Inspired</span>
-          </div>
+          </FadeIn>
         </div>
       </section>
 
@@ -198,8 +199,8 @@ export default function AboutPage() {
                 desc: "Became one of Sri Lanka's most trusted names for bikes, parts, and accessories, driven by rider passion and customer trust.",
                 img: "/about/Milestone%20-%202019.jpg",
               },
-            ].map((m) => (
-              <div key={m.year} className="about-milestone">
+            ].map((m, i) => (
+              <FadeIn key={m.year} className="about-milestone" delay={i * 0.07}>
                 <div className="about-milestone__img-wrap">
                   <Image
                     src={m.img}
@@ -214,7 +215,7 @@ export default function AboutPage() {
                   <h3 className="about-milestone__title">{m.title}</h3>
                   <p className="about-milestone__desc">{m.desc}</p>
                 </div>
-              </div>
+              </FadeIn>
             ))}
           </div>
         </div>
@@ -222,7 +223,7 @@ export default function AboutPage() {
 
       {/* ── CTA ── */}
       <section className="about-cta">
-        <div className="about-cta__container">
+        <FadeIn className="about-cta__container">
           <h2 className="about-cta__heading">
             Ready to Find Your Perfect Ride?
           </h2>
@@ -240,7 +241,7 @@ export default function AboutPage() {
               Pre-Order Now
             </a>
           </div>
-        </div>
+        </FadeIn>
       </section>
     </>
   );

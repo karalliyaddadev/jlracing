@@ -44,6 +44,11 @@ export type BlogPost = $Result.DefaultSelection<Prisma.$BlogPostPayload>
  */
 export type ForeignListing = $Result.DefaultSelection<Prisma.$ForeignListingPayload>
 /**
+ * Model ForeignListingImage
+ * 
+ */
+export type ForeignListingImage = $Result.DefaultSelection<Prisma.$ForeignListingImagePayload>
+/**
  * Model FaqCategory
  * 
  */
@@ -258,6 +263,16 @@ export class PrismaClient<
     * ```
     */
   get foreignListing(): Prisma.ForeignListingDelegate<ExtArgs>;
+
+  /**
+   * `prisma.foreignListingImage`: Exposes CRUD operations for the **ForeignListingImage** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more ForeignListingImages
+    * const foreignListingImages = await prisma.foreignListingImage.findMany()
+    * ```
+    */
+  get foreignListingImage(): Prisma.ForeignListingImageDelegate<ExtArgs>;
 
   /**
    * `prisma.faqCategory`: Exposes CRUD operations for the **FaqCategory** model.
@@ -735,6 +750,7 @@ export namespace Prisma {
     GalleryItem: 'GalleryItem',
     BlogPost: 'BlogPost',
     ForeignListing: 'ForeignListing',
+    ForeignListingImage: 'ForeignListingImage',
     FaqCategory: 'FaqCategory',
     FaqItem: 'FaqItem',
     NewsletterSubscriber: 'NewsletterSubscriber'
@@ -753,7 +769,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "cmsAdmin" | "heroImage" | "videoBanner" | "galleryItem" | "blogPost" | "foreignListing" | "faqCategory" | "faqItem" | "newsletterSubscriber"
+      modelProps: "cmsAdmin" | "heroImage" | "videoBanner" | "galleryItem" | "blogPost" | "foreignListing" | "foreignListingImage" | "faqCategory" | "faqItem" | "newsletterSubscriber"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1177,6 +1193,76 @@ export namespace Prisma {
           }
         }
       }
+      ForeignListingImage: {
+        payload: Prisma.$ForeignListingImagePayload<ExtArgs>
+        fields: Prisma.ForeignListingImageFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.ForeignListingImageFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForeignListingImagePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.ForeignListingImageFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForeignListingImagePayload>
+          }
+          findFirst: {
+            args: Prisma.ForeignListingImageFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForeignListingImagePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.ForeignListingImageFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForeignListingImagePayload>
+          }
+          findMany: {
+            args: Prisma.ForeignListingImageFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForeignListingImagePayload>[]
+          }
+          create: {
+            args: Prisma.ForeignListingImageCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForeignListingImagePayload>
+          }
+          createMany: {
+            args: Prisma.ForeignListingImageCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.ForeignListingImageCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForeignListingImagePayload>[]
+          }
+          delete: {
+            args: Prisma.ForeignListingImageDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForeignListingImagePayload>
+          }
+          update: {
+            args: Prisma.ForeignListingImageUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForeignListingImagePayload>
+          }
+          deleteMany: {
+            args: Prisma.ForeignListingImageDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.ForeignListingImageUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.ForeignListingImageUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$ForeignListingImagePayload>
+          }
+          aggregate: {
+            args: Prisma.ForeignListingImageAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateForeignListingImage>
+          }
+          groupBy: {
+            args: Prisma.ForeignListingImageGroupByArgs<ExtArgs>
+            result: $Utils.Optional<ForeignListingImageGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.ForeignListingImageCountArgs<ExtArgs>
+            result: $Utils.Optional<ForeignListingImageCountAggregateOutputType> | number
+          }
+        }
+      }
       FaqCategory: {
         payload: Prisma.$FaqCategoryPayload<ExtArgs>
         fields: Prisma.FaqCategoryFieldRefs
@@ -1541,6 +1627,37 @@ export namespace Prisma {
   /**
    * Count Types
    */
+
+
+  /**
+   * Count Type ForeignListingCountOutputType
+   */
+
+  export type ForeignListingCountOutputType = {
+    images: number
+  }
+
+  export type ForeignListingCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    images?: boolean | ForeignListingCountOutputTypeCountImagesArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * ForeignListingCountOutputType without action
+   */
+  export type ForeignListingCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForeignListingCountOutputType
+     */
+    select?: ForeignListingCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * ForeignListingCountOutputType without action
+   */
+  export type ForeignListingCountOutputTypeCountImagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ForeignListingImageWhereInput
+  }
 
 
   /**
@@ -6430,12 +6547,16 @@ export namespace Prisma {
     id: number | null
     year: number | null
     price: number | null
+    mileage: number | null
+    engineCc: number | null
   }
 
   export type ForeignListingSumAggregateOutputType = {
     id: number | null
     year: number | null
     price: number | null
+    mileage: number | null
+    engineCc: number | null
   }
 
   export type ForeignListingMinAggregateOutputType = {
@@ -6444,8 +6565,12 @@ export namespace Prisma {
     model: string | null
     year: number | null
     price: number | null
-    pdfUrl: string | null
     category: string | null
+    condition: string | null
+    mileage: number | null
+    colour: string | null
+    engineCc: number | null
+    description: string | null
     isActive: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -6457,8 +6582,12 @@ export namespace Prisma {
     model: string | null
     year: number | null
     price: number | null
-    pdfUrl: string | null
     category: string | null
+    condition: string | null
+    mileage: number | null
+    colour: string | null
+    engineCc: number | null
+    description: string | null
     isActive: boolean | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -6470,8 +6599,12 @@ export namespace Prisma {
     model: number
     year: number
     price: number
-    pdfUrl: number
     category: number
+    condition: number
+    mileage: number
+    colour: number
+    engineCc: number
+    description: number
     isActive: number
     createdAt: number
     updatedAt: number
@@ -6483,12 +6616,16 @@ export namespace Prisma {
     id?: true
     year?: true
     price?: true
+    mileage?: true
+    engineCc?: true
   }
 
   export type ForeignListingSumAggregateInputType = {
     id?: true
     year?: true
     price?: true
+    mileage?: true
+    engineCc?: true
   }
 
   export type ForeignListingMinAggregateInputType = {
@@ -6497,8 +6634,12 @@ export namespace Prisma {
     model?: true
     year?: true
     price?: true
-    pdfUrl?: true
     category?: true
+    condition?: true
+    mileage?: true
+    colour?: true
+    engineCc?: true
+    description?: true
     isActive?: true
     createdAt?: true
     updatedAt?: true
@@ -6510,8 +6651,12 @@ export namespace Prisma {
     model?: true
     year?: true
     price?: true
-    pdfUrl?: true
     category?: true
+    condition?: true
+    mileage?: true
+    colour?: true
+    engineCc?: true
+    description?: true
     isActive?: true
     createdAt?: true
     updatedAt?: true
@@ -6523,8 +6668,12 @@ export namespace Prisma {
     model?: true
     year?: true
     price?: true
-    pdfUrl?: true
     category?: true
+    condition?: true
+    mileage?: true
+    colour?: true
+    engineCc?: true
+    description?: true
     isActive?: true
     createdAt?: true
     updatedAt?: true
@@ -6621,10 +6770,14 @@ export namespace Prisma {
     id: number
     brand: string
     model: string
-    year: number
-    price: number
-    pdfUrl: string
+    year: number | null
+    price: number | null
     category: string
+    condition: string
+    mileage: number
+    colour: string | null
+    engineCc: number | null
+    description: string | null
     isActive: boolean
     createdAt: Date
     updatedAt: Date
@@ -6655,11 +6808,17 @@ export namespace Prisma {
     model?: boolean
     year?: boolean
     price?: boolean
-    pdfUrl?: boolean
     category?: boolean
+    condition?: boolean
+    mileage?: boolean
+    colour?: boolean
+    engineCc?: boolean
+    description?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
+    images?: boolean | ForeignListing$imagesArgs<ExtArgs>
+    _count?: boolean | ForeignListingCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["foreignListing"]>
 
   export type ForeignListingSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -6668,8 +6827,12 @@ export namespace Prisma {
     model?: boolean
     year?: boolean
     price?: boolean
-    pdfUrl?: boolean
     category?: boolean
+    condition?: boolean
+    mileage?: boolean
+    colour?: boolean
+    engineCc?: boolean
+    description?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -6681,25 +6844,40 @@ export namespace Prisma {
     model?: boolean
     year?: boolean
     price?: boolean
-    pdfUrl?: boolean
     category?: boolean
+    condition?: boolean
+    mileage?: boolean
+    colour?: boolean
+    engineCc?: boolean
+    description?: boolean
     isActive?: boolean
     createdAt?: boolean
     updatedAt?: boolean
   }
 
+  export type ForeignListingInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    images?: boolean | ForeignListing$imagesArgs<ExtArgs>
+    _count?: boolean | ForeignListingCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type ForeignListingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
 
   export type $ForeignListingPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "ForeignListing"
-    objects: {}
+    objects: {
+      images: Prisma.$ForeignListingImagePayload<ExtArgs>[]
+    }
     scalars: $Extensions.GetPayloadResult<{
       id: number
       brand: string
       model: string
-      year: number
-      price: number
-      pdfUrl: string
+      year: number | null
+      price: number | null
       category: string
+      condition: string
+      mileage: number
+      colour: string | null
+      engineCc: number | null
+      description: string | null
       isActive: boolean
       createdAt: Date
       updatedAt: Date
@@ -7067,6 +7245,7 @@ export namespace Prisma {
    */
   export interface Prisma__ForeignListingClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
+    images<T extends ForeignListing$imagesArgs<ExtArgs> = {}>(args?: Subset<T, ForeignListing$imagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForeignListingImagePayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -7101,8 +7280,12 @@ export namespace Prisma {
     readonly model: FieldRef<"ForeignListing", 'String'>
     readonly year: FieldRef<"ForeignListing", 'Int'>
     readonly price: FieldRef<"ForeignListing", 'Float'>
-    readonly pdfUrl: FieldRef<"ForeignListing", 'String'>
     readonly category: FieldRef<"ForeignListing", 'String'>
+    readonly condition: FieldRef<"ForeignListing", 'String'>
+    readonly mileage: FieldRef<"ForeignListing", 'Int'>
+    readonly colour: FieldRef<"ForeignListing", 'String'>
+    readonly engineCc: FieldRef<"ForeignListing", 'Int'>
+    readonly description: FieldRef<"ForeignListing", 'String'>
     readonly isActive: FieldRef<"ForeignListing", 'Boolean'>
     readonly createdAt: FieldRef<"ForeignListing", 'DateTime'>
     readonly updatedAt: FieldRef<"ForeignListing", 'DateTime'>
@@ -7119,6 +7302,10 @@ export namespace Prisma {
      */
     select?: ForeignListingSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingInclude<ExtArgs> | null
+    /**
      * Filter, which ForeignListing to fetch.
      */
     where: ForeignListingWhereUniqueInput
@@ -7133,6 +7320,10 @@ export namespace Prisma {
      */
     select?: ForeignListingSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingInclude<ExtArgs> | null
+    /**
      * Filter, which ForeignListing to fetch.
      */
     where: ForeignListingWhereUniqueInput
@@ -7146,6 +7337,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the ForeignListing
      */
     select?: ForeignListingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingInclude<ExtArgs> | null
     /**
      * Filter, which ForeignListing to fetch.
      */
@@ -7191,6 +7386,10 @@ export namespace Prisma {
      */
     select?: ForeignListingSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingInclude<ExtArgs> | null
+    /**
      * Filter, which ForeignListing to fetch.
      */
     where?: ForeignListingWhereInput
@@ -7235,6 +7434,10 @@ export namespace Prisma {
      */
     select?: ForeignListingSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingInclude<ExtArgs> | null
+    /**
      * Filter, which ForeignListings to fetch.
      */
     where?: ForeignListingWhereInput
@@ -7273,6 +7476,10 @@ export namespace Prisma {
      * Select specific fields to fetch from the ForeignListing
      */
     select?: ForeignListingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingInclude<ExtArgs> | null
     /**
      * The data needed to create a ForeignListing.
      */
@@ -7314,6 +7521,10 @@ export namespace Prisma {
      */
     select?: ForeignListingSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingInclude<ExtArgs> | null
+    /**
      * The data needed to update a ForeignListing.
      */
     data: XOR<ForeignListingUpdateInput, ForeignListingUncheckedUpdateInput>
@@ -7346,6 +7557,10 @@ export namespace Prisma {
      */
     select?: ForeignListingSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingInclude<ExtArgs> | null
+    /**
      * The filter to search for the ForeignListing to update in case it exists.
      */
     where: ForeignListingWhereUniqueInput
@@ -7368,6 +7583,10 @@ export namespace Prisma {
      */
     select?: ForeignListingSelect<ExtArgs> | null
     /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingInclude<ExtArgs> | null
+    /**
      * Filter which ForeignListing to delete.
      */
     where: ForeignListingWhereUniqueInput
@@ -7384,6 +7603,26 @@ export namespace Prisma {
   }
 
   /**
+   * ForeignListing.images
+   */
+  export type ForeignListing$imagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForeignListingImage
+     */
+    select?: ForeignListingImageSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingImageInclude<ExtArgs> | null
+    where?: ForeignListingImageWhereInput
+    orderBy?: ForeignListingImageOrderByWithRelationInput | ForeignListingImageOrderByWithRelationInput[]
+    cursor?: ForeignListingImageWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: ForeignListingImageScalarFieldEnum | ForeignListingImageScalarFieldEnum[]
+  }
+
+  /**
    * ForeignListing without action
    */
   export type ForeignListingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -7391,6 +7630,997 @@ export namespace Prisma {
      * Select specific fields to fetch from the ForeignListing
      */
     select?: ForeignListingSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model ForeignListingImage
+   */
+
+  export type AggregateForeignListingImage = {
+    _count: ForeignListingImageCountAggregateOutputType | null
+    _avg: ForeignListingImageAvgAggregateOutputType | null
+    _sum: ForeignListingImageSumAggregateOutputType | null
+    _min: ForeignListingImageMinAggregateOutputType | null
+    _max: ForeignListingImageMaxAggregateOutputType | null
+  }
+
+  export type ForeignListingImageAvgAggregateOutputType = {
+    id: number | null
+    listingId: number | null
+    sortOrder: number | null
+  }
+
+  export type ForeignListingImageSumAggregateOutputType = {
+    id: number | null
+    listingId: number | null
+    sortOrder: number | null
+  }
+
+  export type ForeignListingImageMinAggregateOutputType = {
+    id: number | null
+    listingId: number | null
+    url: string | null
+    isPrimary: boolean | null
+    sortOrder: number | null
+    createdAt: Date | null
+  }
+
+  export type ForeignListingImageMaxAggregateOutputType = {
+    id: number | null
+    listingId: number | null
+    url: string | null
+    isPrimary: boolean | null
+    sortOrder: number | null
+    createdAt: Date | null
+  }
+
+  export type ForeignListingImageCountAggregateOutputType = {
+    id: number
+    listingId: number
+    url: number
+    isPrimary: number
+    sortOrder: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type ForeignListingImageAvgAggregateInputType = {
+    id?: true
+    listingId?: true
+    sortOrder?: true
+  }
+
+  export type ForeignListingImageSumAggregateInputType = {
+    id?: true
+    listingId?: true
+    sortOrder?: true
+  }
+
+  export type ForeignListingImageMinAggregateInputType = {
+    id?: true
+    listingId?: true
+    url?: true
+    isPrimary?: true
+    sortOrder?: true
+    createdAt?: true
+  }
+
+  export type ForeignListingImageMaxAggregateInputType = {
+    id?: true
+    listingId?: true
+    url?: true
+    isPrimary?: true
+    sortOrder?: true
+    createdAt?: true
+  }
+
+  export type ForeignListingImageCountAggregateInputType = {
+    id?: true
+    listingId?: true
+    url?: true
+    isPrimary?: true
+    sortOrder?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type ForeignListingImageAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ForeignListingImage to aggregate.
+     */
+    where?: ForeignListingImageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ForeignListingImages to fetch.
+     */
+    orderBy?: ForeignListingImageOrderByWithRelationInput | ForeignListingImageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: ForeignListingImageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ForeignListingImages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ForeignListingImages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned ForeignListingImages
+    **/
+    _count?: true | ForeignListingImageCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: ForeignListingImageAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: ForeignListingImageSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: ForeignListingImageMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: ForeignListingImageMaxAggregateInputType
+  }
+
+  export type GetForeignListingImageAggregateType<T extends ForeignListingImageAggregateArgs> = {
+        [P in keyof T & keyof AggregateForeignListingImage]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateForeignListingImage[P]>
+      : GetScalarType<T[P], AggregateForeignListingImage[P]>
+  }
+
+
+
+
+  export type ForeignListingImageGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: ForeignListingImageWhereInput
+    orderBy?: ForeignListingImageOrderByWithAggregationInput | ForeignListingImageOrderByWithAggregationInput[]
+    by: ForeignListingImageScalarFieldEnum[] | ForeignListingImageScalarFieldEnum
+    having?: ForeignListingImageScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: ForeignListingImageCountAggregateInputType | true
+    _avg?: ForeignListingImageAvgAggregateInputType
+    _sum?: ForeignListingImageSumAggregateInputType
+    _min?: ForeignListingImageMinAggregateInputType
+    _max?: ForeignListingImageMaxAggregateInputType
+  }
+
+  export type ForeignListingImageGroupByOutputType = {
+    id: number
+    listingId: number
+    url: string
+    isPrimary: boolean
+    sortOrder: number
+    createdAt: Date
+    _count: ForeignListingImageCountAggregateOutputType | null
+    _avg: ForeignListingImageAvgAggregateOutputType | null
+    _sum: ForeignListingImageSumAggregateOutputType | null
+    _min: ForeignListingImageMinAggregateOutputType | null
+    _max: ForeignListingImageMaxAggregateOutputType | null
+  }
+
+  type GetForeignListingImageGroupByPayload<T extends ForeignListingImageGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<ForeignListingImageGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof ForeignListingImageGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], ForeignListingImageGroupByOutputType[P]>
+            : GetScalarType<T[P], ForeignListingImageGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type ForeignListingImageSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    url?: boolean
+    isPrimary?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+    listing?: boolean | ForeignListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["foreignListingImage"]>
+
+  export type ForeignListingImageSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    listingId?: boolean
+    url?: boolean
+    isPrimary?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+    listing?: boolean | ForeignListingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["foreignListingImage"]>
+
+  export type ForeignListingImageSelectScalar = {
+    id?: boolean
+    listingId?: boolean
+    url?: boolean
+    isPrimary?: boolean
+    sortOrder?: boolean
+    createdAt?: boolean
+  }
+
+  export type ForeignListingImageInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    listing?: boolean | ForeignListingDefaultArgs<ExtArgs>
+  }
+  export type ForeignListingImageIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    listing?: boolean | ForeignListingDefaultArgs<ExtArgs>
+  }
+
+  export type $ForeignListingImagePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "ForeignListingImage"
+    objects: {
+      listing: Prisma.$ForeignListingPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      listingId: number
+      url: string
+      isPrimary: boolean
+      sortOrder: number
+      createdAt: Date
+    }, ExtArgs["result"]["foreignListingImage"]>
+    composites: {}
+  }
+
+  type ForeignListingImageGetPayload<S extends boolean | null | undefined | ForeignListingImageDefaultArgs> = $Result.GetResult<Prisma.$ForeignListingImagePayload, S>
+
+  type ForeignListingImageCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<ForeignListingImageFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: ForeignListingImageCountAggregateInputType | true
+    }
+
+  export interface ForeignListingImageDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['ForeignListingImage'], meta: { name: 'ForeignListingImage' } }
+    /**
+     * Find zero or one ForeignListingImage that matches the filter.
+     * @param {ForeignListingImageFindUniqueArgs} args - Arguments to find a ForeignListingImage
+     * @example
+     * // Get one ForeignListingImage
+     * const foreignListingImage = await prisma.foreignListingImage.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends ForeignListingImageFindUniqueArgs>(args: SelectSubset<T, ForeignListingImageFindUniqueArgs<ExtArgs>>): Prisma__ForeignListingImageClient<$Result.GetResult<Prisma.$ForeignListingImagePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one ForeignListingImage that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {ForeignListingImageFindUniqueOrThrowArgs} args - Arguments to find a ForeignListingImage
+     * @example
+     * // Get one ForeignListingImage
+     * const foreignListingImage = await prisma.foreignListingImage.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends ForeignListingImageFindUniqueOrThrowArgs>(args: SelectSubset<T, ForeignListingImageFindUniqueOrThrowArgs<ExtArgs>>): Prisma__ForeignListingImageClient<$Result.GetResult<Prisma.$ForeignListingImagePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first ForeignListingImage that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForeignListingImageFindFirstArgs} args - Arguments to find a ForeignListingImage
+     * @example
+     * // Get one ForeignListingImage
+     * const foreignListingImage = await prisma.foreignListingImage.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends ForeignListingImageFindFirstArgs>(args?: SelectSubset<T, ForeignListingImageFindFirstArgs<ExtArgs>>): Prisma__ForeignListingImageClient<$Result.GetResult<Prisma.$ForeignListingImagePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first ForeignListingImage that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForeignListingImageFindFirstOrThrowArgs} args - Arguments to find a ForeignListingImage
+     * @example
+     * // Get one ForeignListingImage
+     * const foreignListingImage = await prisma.foreignListingImage.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends ForeignListingImageFindFirstOrThrowArgs>(args?: SelectSubset<T, ForeignListingImageFindFirstOrThrowArgs<ExtArgs>>): Prisma__ForeignListingImageClient<$Result.GetResult<Prisma.$ForeignListingImagePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more ForeignListingImages that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForeignListingImageFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all ForeignListingImages
+     * const foreignListingImages = await prisma.foreignListingImage.findMany()
+     * 
+     * // Get first 10 ForeignListingImages
+     * const foreignListingImages = await prisma.foreignListingImage.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const foreignListingImageWithIdOnly = await prisma.foreignListingImage.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends ForeignListingImageFindManyArgs>(args?: SelectSubset<T, ForeignListingImageFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForeignListingImagePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a ForeignListingImage.
+     * @param {ForeignListingImageCreateArgs} args - Arguments to create a ForeignListingImage.
+     * @example
+     * // Create one ForeignListingImage
+     * const ForeignListingImage = await prisma.foreignListingImage.create({
+     *   data: {
+     *     // ... data to create a ForeignListingImage
+     *   }
+     * })
+     * 
+     */
+    create<T extends ForeignListingImageCreateArgs>(args: SelectSubset<T, ForeignListingImageCreateArgs<ExtArgs>>): Prisma__ForeignListingImageClient<$Result.GetResult<Prisma.$ForeignListingImagePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many ForeignListingImages.
+     * @param {ForeignListingImageCreateManyArgs} args - Arguments to create many ForeignListingImages.
+     * @example
+     * // Create many ForeignListingImages
+     * const foreignListingImage = await prisma.foreignListingImage.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends ForeignListingImageCreateManyArgs>(args?: SelectSubset<T, ForeignListingImageCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many ForeignListingImages and returns the data saved in the database.
+     * @param {ForeignListingImageCreateManyAndReturnArgs} args - Arguments to create many ForeignListingImages.
+     * @example
+     * // Create many ForeignListingImages
+     * const foreignListingImage = await prisma.foreignListingImage.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many ForeignListingImages and only return the `id`
+     * const foreignListingImageWithIdOnly = await prisma.foreignListingImage.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends ForeignListingImageCreateManyAndReturnArgs>(args?: SelectSubset<T, ForeignListingImageCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$ForeignListingImagePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a ForeignListingImage.
+     * @param {ForeignListingImageDeleteArgs} args - Arguments to delete one ForeignListingImage.
+     * @example
+     * // Delete one ForeignListingImage
+     * const ForeignListingImage = await prisma.foreignListingImage.delete({
+     *   where: {
+     *     // ... filter to delete one ForeignListingImage
+     *   }
+     * })
+     * 
+     */
+    delete<T extends ForeignListingImageDeleteArgs>(args: SelectSubset<T, ForeignListingImageDeleteArgs<ExtArgs>>): Prisma__ForeignListingImageClient<$Result.GetResult<Prisma.$ForeignListingImagePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one ForeignListingImage.
+     * @param {ForeignListingImageUpdateArgs} args - Arguments to update one ForeignListingImage.
+     * @example
+     * // Update one ForeignListingImage
+     * const foreignListingImage = await prisma.foreignListingImage.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends ForeignListingImageUpdateArgs>(args: SelectSubset<T, ForeignListingImageUpdateArgs<ExtArgs>>): Prisma__ForeignListingImageClient<$Result.GetResult<Prisma.$ForeignListingImagePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more ForeignListingImages.
+     * @param {ForeignListingImageDeleteManyArgs} args - Arguments to filter ForeignListingImages to delete.
+     * @example
+     * // Delete a few ForeignListingImages
+     * const { count } = await prisma.foreignListingImage.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends ForeignListingImageDeleteManyArgs>(args?: SelectSubset<T, ForeignListingImageDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more ForeignListingImages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForeignListingImageUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many ForeignListingImages
+     * const foreignListingImage = await prisma.foreignListingImage.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends ForeignListingImageUpdateManyArgs>(args: SelectSubset<T, ForeignListingImageUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one ForeignListingImage.
+     * @param {ForeignListingImageUpsertArgs} args - Arguments to update or create a ForeignListingImage.
+     * @example
+     * // Update or create a ForeignListingImage
+     * const foreignListingImage = await prisma.foreignListingImage.upsert({
+     *   create: {
+     *     // ... data to create a ForeignListingImage
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the ForeignListingImage we want to update
+     *   }
+     * })
+     */
+    upsert<T extends ForeignListingImageUpsertArgs>(args: SelectSubset<T, ForeignListingImageUpsertArgs<ExtArgs>>): Prisma__ForeignListingImageClient<$Result.GetResult<Prisma.$ForeignListingImagePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of ForeignListingImages.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForeignListingImageCountArgs} args - Arguments to filter ForeignListingImages to count.
+     * @example
+     * // Count the number of ForeignListingImages
+     * const count = await prisma.foreignListingImage.count({
+     *   where: {
+     *     // ... the filter for the ForeignListingImages we want to count
+     *   }
+     * })
+    **/
+    count<T extends ForeignListingImageCountArgs>(
+      args?: Subset<T, ForeignListingImageCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], ForeignListingImageCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a ForeignListingImage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForeignListingImageAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends ForeignListingImageAggregateArgs>(args: Subset<T, ForeignListingImageAggregateArgs>): Prisma.PrismaPromise<GetForeignListingImageAggregateType<T>>
+
+    /**
+     * Group by ForeignListingImage.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {ForeignListingImageGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends ForeignListingImageGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: ForeignListingImageGroupByArgs['orderBy'] }
+        : { orderBy?: ForeignListingImageGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, ForeignListingImageGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetForeignListingImageGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the ForeignListingImage model
+   */
+  readonly fields: ForeignListingImageFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for ForeignListingImage.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__ForeignListingImageClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    listing<T extends ForeignListingDefaultArgs<ExtArgs> = {}>(args?: Subset<T, ForeignListingDefaultArgs<ExtArgs>>): Prisma__ForeignListingClient<$Result.GetResult<Prisma.$ForeignListingPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the ForeignListingImage model
+   */ 
+  interface ForeignListingImageFieldRefs {
+    readonly id: FieldRef<"ForeignListingImage", 'Int'>
+    readonly listingId: FieldRef<"ForeignListingImage", 'Int'>
+    readonly url: FieldRef<"ForeignListingImage", 'String'>
+    readonly isPrimary: FieldRef<"ForeignListingImage", 'Boolean'>
+    readonly sortOrder: FieldRef<"ForeignListingImage", 'Int'>
+    readonly createdAt: FieldRef<"ForeignListingImage", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * ForeignListingImage findUnique
+   */
+  export type ForeignListingImageFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForeignListingImage
+     */
+    select?: ForeignListingImageSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingImageInclude<ExtArgs> | null
+    /**
+     * Filter, which ForeignListingImage to fetch.
+     */
+    where: ForeignListingImageWhereUniqueInput
+  }
+
+  /**
+   * ForeignListingImage findUniqueOrThrow
+   */
+  export type ForeignListingImageFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForeignListingImage
+     */
+    select?: ForeignListingImageSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingImageInclude<ExtArgs> | null
+    /**
+     * Filter, which ForeignListingImage to fetch.
+     */
+    where: ForeignListingImageWhereUniqueInput
+  }
+
+  /**
+   * ForeignListingImage findFirst
+   */
+  export type ForeignListingImageFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForeignListingImage
+     */
+    select?: ForeignListingImageSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingImageInclude<ExtArgs> | null
+    /**
+     * Filter, which ForeignListingImage to fetch.
+     */
+    where?: ForeignListingImageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ForeignListingImages to fetch.
+     */
+    orderBy?: ForeignListingImageOrderByWithRelationInput | ForeignListingImageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ForeignListingImages.
+     */
+    cursor?: ForeignListingImageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ForeignListingImages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ForeignListingImages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ForeignListingImages.
+     */
+    distinct?: ForeignListingImageScalarFieldEnum | ForeignListingImageScalarFieldEnum[]
+  }
+
+  /**
+   * ForeignListingImage findFirstOrThrow
+   */
+  export type ForeignListingImageFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForeignListingImage
+     */
+    select?: ForeignListingImageSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingImageInclude<ExtArgs> | null
+    /**
+     * Filter, which ForeignListingImage to fetch.
+     */
+    where?: ForeignListingImageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ForeignListingImages to fetch.
+     */
+    orderBy?: ForeignListingImageOrderByWithRelationInput | ForeignListingImageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for ForeignListingImages.
+     */
+    cursor?: ForeignListingImageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ForeignListingImages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ForeignListingImages.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of ForeignListingImages.
+     */
+    distinct?: ForeignListingImageScalarFieldEnum | ForeignListingImageScalarFieldEnum[]
+  }
+
+  /**
+   * ForeignListingImage findMany
+   */
+  export type ForeignListingImageFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForeignListingImage
+     */
+    select?: ForeignListingImageSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingImageInclude<ExtArgs> | null
+    /**
+     * Filter, which ForeignListingImages to fetch.
+     */
+    where?: ForeignListingImageWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of ForeignListingImages to fetch.
+     */
+    orderBy?: ForeignListingImageOrderByWithRelationInput | ForeignListingImageOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing ForeignListingImages.
+     */
+    cursor?: ForeignListingImageWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` ForeignListingImages from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` ForeignListingImages.
+     */
+    skip?: number
+    distinct?: ForeignListingImageScalarFieldEnum | ForeignListingImageScalarFieldEnum[]
+  }
+
+  /**
+   * ForeignListingImage create
+   */
+  export type ForeignListingImageCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForeignListingImage
+     */
+    select?: ForeignListingImageSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingImageInclude<ExtArgs> | null
+    /**
+     * The data needed to create a ForeignListingImage.
+     */
+    data: XOR<ForeignListingImageCreateInput, ForeignListingImageUncheckedCreateInput>
+  }
+
+  /**
+   * ForeignListingImage createMany
+   */
+  export type ForeignListingImageCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many ForeignListingImages.
+     */
+    data: ForeignListingImageCreateManyInput | ForeignListingImageCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * ForeignListingImage createManyAndReturn
+   */
+  export type ForeignListingImageCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForeignListingImage
+     */
+    select?: ForeignListingImageSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many ForeignListingImages.
+     */
+    data: ForeignListingImageCreateManyInput | ForeignListingImageCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingImageIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * ForeignListingImage update
+   */
+  export type ForeignListingImageUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForeignListingImage
+     */
+    select?: ForeignListingImageSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingImageInclude<ExtArgs> | null
+    /**
+     * The data needed to update a ForeignListingImage.
+     */
+    data: XOR<ForeignListingImageUpdateInput, ForeignListingImageUncheckedUpdateInput>
+    /**
+     * Choose, which ForeignListingImage to update.
+     */
+    where: ForeignListingImageWhereUniqueInput
+  }
+
+  /**
+   * ForeignListingImage updateMany
+   */
+  export type ForeignListingImageUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update ForeignListingImages.
+     */
+    data: XOR<ForeignListingImageUpdateManyMutationInput, ForeignListingImageUncheckedUpdateManyInput>
+    /**
+     * Filter which ForeignListingImages to update
+     */
+    where?: ForeignListingImageWhereInput
+  }
+
+  /**
+   * ForeignListingImage upsert
+   */
+  export type ForeignListingImageUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForeignListingImage
+     */
+    select?: ForeignListingImageSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingImageInclude<ExtArgs> | null
+    /**
+     * The filter to search for the ForeignListingImage to update in case it exists.
+     */
+    where: ForeignListingImageWhereUniqueInput
+    /**
+     * In case the ForeignListingImage found by the `where` argument doesn't exist, create a new ForeignListingImage with this data.
+     */
+    create: XOR<ForeignListingImageCreateInput, ForeignListingImageUncheckedCreateInput>
+    /**
+     * In case the ForeignListingImage was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<ForeignListingImageUpdateInput, ForeignListingImageUncheckedUpdateInput>
+  }
+
+  /**
+   * ForeignListingImage delete
+   */
+  export type ForeignListingImageDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForeignListingImage
+     */
+    select?: ForeignListingImageSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingImageInclude<ExtArgs> | null
+    /**
+     * Filter which ForeignListingImage to delete.
+     */
+    where: ForeignListingImageWhereUniqueInput
+  }
+
+  /**
+   * ForeignListingImage deleteMany
+   */
+  export type ForeignListingImageDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which ForeignListingImages to delete
+     */
+    where?: ForeignListingImageWhereInput
+  }
+
+  /**
+   * ForeignListingImage without action
+   */
+  export type ForeignListingImageDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the ForeignListingImage
+     */
+    select?: ForeignListingImageSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: ForeignListingImageInclude<ExtArgs> | null
   }
 
 
@@ -10366,14 +11596,30 @@ export namespace Prisma {
     model: 'model',
     year: 'year',
     price: 'price',
-    pdfUrl: 'pdfUrl',
     category: 'category',
+    condition: 'condition',
+    mileage: 'mileage',
+    colour: 'colour',
+    engineCc: 'engineCc',
+    description: 'description',
     isActive: 'isActive',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
   };
 
   export type ForeignListingScalarFieldEnum = (typeof ForeignListingScalarFieldEnum)[keyof typeof ForeignListingScalarFieldEnum]
+
+
+  export const ForeignListingImageScalarFieldEnum: {
+    id: 'id',
+    listingId: 'listingId',
+    url: 'url',
+    isPrimary: 'isPrimary',
+    sortOrder: 'sortOrder',
+    createdAt: 'createdAt'
+  };
+
+  export type ForeignListingImageScalarFieldEnum = (typeof ForeignListingImageScalarFieldEnum)[keyof typeof ForeignListingImageScalarFieldEnum]
 
 
   export const FaqCategoryScalarFieldEnum: {
@@ -10908,26 +12154,36 @@ export namespace Prisma {
     id?: IntFilter<"ForeignListing"> | number
     brand?: StringFilter<"ForeignListing"> | string
     model?: StringFilter<"ForeignListing"> | string
-    year?: IntFilter<"ForeignListing"> | number
-    price?: FloatFilter<"ForeignListing"> | number
-    pdfUrl?: StringFilter<"ForeignListing"> | string
+    year?: IntNullableFilter<"ForeignListing"> | number | null
+    price?: FloatNullableFilter<"ForeignListing"> | number | null
     category?: StringFilter<"ForeignListing"> | string
+    condition?: StringFilter<"ForeignListing"> | string
+    mileage?: IntFilter<"ForeignListing"> | number
+    colour?: StringNullableFilter<"ForeignListing"> | string | null
+    engineCc?: IntNullableFilter<"ForeignListing"> | number | null
+    description?: StringNullableFilter<"ForeignListing"> | string | null
     isActive?: BoolFilter<"ForeignListing"> | boolean
     createdAt?: DateTimeFilter<"ForeignListing"> | Date | string
     updatedAt?: DateTimeFilter<"ForeignListing"> | Date | string
+    images?: ForeignListingImageListRelationFilter
   }
 
   export type ForeignListingOrderByWithRelationInput = {
     id?: SortOrder
     brand?: SortOrder
     model?: SortOrder
-    year?: SortOrder
-    price?: SortOrder
-    pdfUrl?: SortOrder
+    year?: SortOrderInput | SortOrder
+    price?: SortOrderInput | SortOrder
     category?: SortOrder
+    condition?: SortOrder
+    mileage?: SortOrder
+    colour?: SortOrderInput | SortOrder
+    engineCc?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
+    images?: ForeignListingImageOrderByRelationAggregateInput
   }
 
   export type ForeignListingWhereUniqueInput = Prisma.AtLeast<{
@@ -10937,23 +12193,32 @@ export namespace Prisma {
     NOT?: ForeignListingWhereInput | ForeignListingWhereInput[]
     brand?: StringFilter<"ForeignListing"> | string
     model?: StringFilter<"ForeignListing"> | string
-    year?: IntFilter<"ForeignListing"> | number
-    price?: FloatFilter<"ForeignListing"> | number
-    pdfUrl?: StringFilter<"ForeignListing"> | string
+    year?: IntNullableFilter<"ForeignListing"> | number | null
+    price?: FloatNullableFilter<"ForeignListing"> | number | null
     category?: StringFilter<"ForeignListing"> | string
+    condition?: StringFilter<"ForeignListing"> | string
+    mileage?: IntFilter<"ForeignListing"> | number
+    colour?: StringNullableFilter<"ForeignListing"> | string | null
+    engineCc?: IntNullableFilter<"ForeignListing"> | number | null
+    description?: StringNullableFilter<"ForeignListing"> | string | null
     isActive?: BoolFilter<"ForeignListing"> | boolean
     createdAt?: DateTimeFilter<"ForeignListing"> | Date | string
     updatedAt?: DateTimeFilter<"ForeignListing"> | Date | string
+    images?: ForeignListingImageListRelationFilter
   }, "id">
 
   export type ForeignListingOrderByWithAggregationInput = {
     id?: SortOrder
     brand?: SortOrder
     model?: SortOrder
-    year?: SortOrder
-    price?: SortOrder
-    pdfUrl?: SortOrder
+    year?: SortOrderInput | SortOrder
+    price?: SortOrderInput | SortOrder
     category?: SortOrder
+    condition?: SortOrder
+    mileage?: SortOrder
+    colour?: SortOrderInput | SortOrder
+    engineCc?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -10971,13 +12236,79 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"ForeignListing"> | number
     brand?: StringWithAggregatesFilter<"ForeignListing"> | string
     model?: StringWithAggregatesFilter<"ForeignListing"> | string
-    year?: IntWithAggregatesFilter<"ForeignListing"> | number
-    price?: FloatWithAggregatesFilter<"ForeignListing"> | number
-    pdfUrl?: StringWithAggregatesFilter<"ForeignListing"> | string
+    year?: IntNullableWithAggregatesFilter<"ForeignListing"> | number | null
+    price?: FloatNullableWithAggregatesFilter<"ForeignListing"> | number | null
     category?: StringWithAggregatesFilter<"ForeignListing"> | string
+    condition?: StringWithAggregatesFilter<"ForeignListing"> | string
+    mileage?: IntWithAggregatesFilter<"ForeignListing"> | number
+    colour?: StringNullableWithAggregatesFilter<"ForeignListing"> | string | null
+    engineCc?: IntNullableWithAggregatesFilter<"ForeignListing"> | number | null
+    description?: StringNullableWithAggregatesFilter<"ForeignListing"> | string | null
     isActive?: BoolWithAggregatesFilter<"ForeignListing"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"ForeignListing"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"ForeignListing"> | Date | string
+  }
+
+  export type ForeignListingImageWhereInput = {
+    AND?: ForeignListingImageWhereInput | ForeignListingImageWhereInput[]
+    OR?: ForeignListingImageWhereInput[]
+    NOT?: ForeignListingImageWhereInput | ForeignListingImageWhereInput[]
+    id?: IntFilter<"ForeignListingImage"> | number
+    listingId?: IntFilter<"ForeignListingImage"> | number
+    url?: StringFilter<"ForeignListingImage"> | string
+    isPrimary?: BoolFilter<"ForeignListingImage"> | boolean
+    sortOrder?: IntFilter<"ForeignListingImage"> | number
+    createdAt?: DateTimeFilter<"ForeignListingImage"> | Date | string
+    listing?: XOR<ForeignListingRelationFilter, ForeignListingWhereInput>
+  }
+
+  export type ForeignListingImageOrderByWithRelationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    url?: SortOrder
+    isPrimary?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    listing?: ForeignListingOrderByWithRelationInput
+  }
+
+  export type ForeignListingImageWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: ForeignListingImageWhereInput | ForeignListingImageWhereInput[]
+    OR?: ForeignListingImageWhereInput[]
+    NOT?: ForeignListingImageWhereInput | ForeignListingImageWhereInput[]
+    listingId?: IntFilter<"ForeignListingImage"> | number
+    url?: StringFilter<"ForeignListingImage"> | string
+    isPrimary?: BoolFilter<"ForeignListingImage"> | boolean
+    sortOrder?: IntFilter<"ForeignListingImage"> | number
+    createdAt?: DateTimeFilter<"ForeignListingImage"> | Date | string
+    listing?: XOR<ForeignListingRelationFilter, ForeignListingWhereInput>
+  }, "id">
+
+  export type ForeignListingImageOrderByWithAggregationInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    url?: SortOrder
+    isPrimary?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+    _count?: ForeignListingImageCountOrderByAggregateInput
+    _avg?: ForeignListingImageAvgOrderByAggregateInput
+    _max?: ForeignListingImageMaxOrderByAggregateInput
+    _min?: ForeignListingImageMinOrderByAggregateInput
+    _sum?: ForeignListingImageSumOrderByAggregateInput
+  }
+
+  export type ForeignListingImageScalarWhereWithAggregatesInput = {
+    AND?: ForeignListingImageScalarWhereWithAggregatesInput | ForeignListingImageScalarWhereWithAggregatesInput[]
+    OR?: ForeignListingImageScalarWhereWithAggregatesInput[]
+    NOT?: ForeignListingImageScalarWhereWithAggregatesInput | ForeignListingImageScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"ForeignListingImage"> | number
+    listingId?: IntWithAggregatesFilter<"ForeignListingImage"> | number
+    url?: StringWithAggregatesFilter<"ForeignListingImage"> | string
+    isPrimary?: BoolWithAggregatesFilter<"ForeignListingImage"> | boolean
+    sortOrder?: IntWithAggregatesFilter<"ForeignListingImage"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"ForeignListingImage"> | Date | string
   }
 
   export type FaqCategoryWhereInput = {
@@ -11583,61 +12914,85 @@ export namespace Prisma {
   export type ForeignListingCreateInput = {
     brand: string
     model: string
-    year: number
-    price: number
-    pdfUrl: string
+    year?: number | null
+    price?: number | null
     category?: string
+    condition?: string
+    mileage?: number
+    colour?: string | null
+    engineCc?: number | null
+    description?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    images?: ForeignListingImageCreateNestedManyWithoutListingInput
   }
 
   export type ForeignListingUncheckedCreateInput = {
     id?: number
     brand: string
     model: string
-    year: number
-    price: number
-    pdfUrl: string
+    year?: number | null
+    price?: number | null
     category?: string
+    condition?: string
+    mileage?: number
+    colour?: string | null
+    engineCc?: number | null
+    description?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+    images?: ForeignListingImageUncheckedCreateNestedManyWithoutListingInput
   }
 
   export type ForeignListingUpdateInput = {
     brand?: StringFieldUpdateOperationsInput | string
     model?: StringFieldUpdateOperationsInput | string
-    year?: IntFieldUpdateOperationsInput | number
-    price?: FloatFieldUpdateOperationsInput | number
-    pdfUrl?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
     category?: StringFieldUpdateOperationsInput | string
+    condition?: StringFieldUpdateOperationsInput | string
+    mileage?: IntFieldUpdateOperationsInput | number
+    colour?: NullableStringFieldUpdateOperationsInput | string | null
+    engineCc?: NullableIntFieldUpdateOperationsInput | number | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    images?: ForeignListingImageUpdateManyWithoutListingNestedInput
   }
 
   export type ForeignListingUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
     brand?: StringFieldUpdateOperationsInput | string
     model?: StringFieldUpdateOperationsInput | string
-    year?: IntFieldUpdateOperationsInput | number
-    price?: FloatFieldUpdateOperationsInput | number
-    pdfUrl?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
     category?: StringFieldUpdateOperationsInput | string
+    condition?: StringFieldUpdateOperationsInput | string
+    mileage?: IntFieldUpdateOperationsInput | number
+    colour?: NullableStringFieldUpdateOperationsInput | string | null
+    engineCc?: NullableIntFieldUpdateOperationsInput | number | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    images?: ForeignListingImageUncheckedUpdateManyWithoutListingNestedInput
   }
 
   export type ForeignListingCreateManyInput = {
     id?: number
     brand: string
     model: string
-    year: number
-    price: number
-    pdfUrl: string
+    year?: number | null
+    price?: number | null
     category?: string
+    condition?: string
+    mileage?: number
+    colour?: string | null
+    engineCc?: number | null
+    description?: string | null
     isActive?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -11646,10 +13001,14 @@ export namespace Prisma {
   export type ForeignListingUpdateManyMutationInput = {
     brand?: StringFieldUpdateOperationsInput | string
     model?: StringFieldUpdateOperationsInput | string
-    year?: IntFieldUpdateOperationsInput | number
-    price?: FloatFieldUpdateOperationsInput | number
-    pdfUrl?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
     category?: StringFieldUpdateOperationsInput | string
+    condition?: StringFieldUpdateOperationsInput | string
+    mileage?: IntFieldUpdateOperationsInput | number
+    colour?: NullableStringFieldUpdateOperationsInput | string | null
+    engineCc?: NullableIntFieldUpdateOperationsInput | number | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -11659,13 +13018,76 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     brand?: StringFieldUpdateOperationsInput | string
     model?: StringFieldUpdateOperationsInput | string
-    year?: IntFieldUpdateOperationsInput | number
-    price?: FloatFieldUpdateOperationsInput | number
-    pdfUrl?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
     category?: StringFieldUpdateOperationsInput | string
+    condition?: StringFieldUpdateOperationsInput | string
+    mileage?: IntFieldUpdateOperationsInput | number
+    colour?: NullableStringFieldUpdateOperationsInput | string | null
+    engineCc?: NullableIntFieldUpdateOperationsInput | number | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForeignListingImageCreateInput = {
+    url: string
+    isPrimary?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    listing: ForeignListingCreateNestedOneWithoutImagesInput
+  }
+
+  export type ForeignListingImageUncheckedCreateInput = {
+    id?: number
+    listingId: number
+    url: string
+    isPrimary?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+  }
+
+  export type ForeignListingImageUpdateInput = {
+    url?: StringFieldUpdateOperationsInput | string
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    listing?: ForeignListingUpdateOneRequiredWithoutImagesNestedInput
+  }
+
+  export type ForeignListingImageUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    listingId?: IntFieldUpdateOperationsInput | number
+    url?: StringFieldUpdateOperationsInput | string
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForeignListingImageCreateManyInput = {
+    id?: number
+    listingId: number
+    url: string
+    isPrimary?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+  }
+
+  export type ForeignListingImageUpdateManyMutationInput = {
+    url?: StringFieldUpdateOperationsInput | string
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForeignListingImageUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    listingId?: IntFieldUpdateOperationsInput | number
+    url?: StringFieldUpdateOperationsInput | string
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type FaqCategoryCreateInput = {
@@ -12291,15 +13713,25 @@ export namespace Prisma {
     id?: SortOrder
   }
 
-  export type FloatFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+  export type FloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatFilter<$PrismaModel> | number
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type ForeignListingImageListRelationFilter = {
+    every?: ForeignListingImageWhereInput
+    some?: ForeignListingImageWhereInput
+    none?: ForeignListingImageWhereInput
+  }
+
+  export type ForeignListingImageOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type ForeignListingCountOrderByAggregateInput = {
@@ -12308,8 +13740,12 @@ export namespace Prisma {
     model?: SortOrder
     year?: SortOrder
     price?: SortOrder
-    pdfUrl?: SortOrder
     category?: SortOrder
+    condition?: SortOrder
+    mileage?: SortOrder
+    colour?: SortOrder
+    engineCc?: SortOrder
+    description?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -12319,6 +13755,8 @@ export namespace Prisma {
     id?: SortOrder
     year?: SortOrder
     price?: SortOrder
+    mileage?: SortOrder
+    engineCc?: SortOrder
   }
 
   export type ForeignListingMaxOrderByAggregateInput = {
@@ -12327,8 +13765,12 @@ export namespace Prisma {
     model?: SortOrder
     year?: SortOrder
     price?: SortOrder
-    pdfUrl?: SortOrder
     category?: SortOrder
+    condition?: SortOrder
+    mileage?: SortOrder
+    colour?: SortOrder
+    engineCc?: SortOrder
+    description?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -12340,8 +13782,12 @@ export namespace Prisma {
     model?: SortOrder
     year?: SortOrder
     price?: SortOrder
-    pdfUrl?: SortOrder
     category?: SortOrder
+    condition?: SortOrder
+    mileage?: SortOrder
+    colour?: SortOrder
+    engineCc?: SortOrder
+    description?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -12351,22 +13797,68 @@ export namespace Prisma {
     id?: SortOrder
     year?: SortOrder
     price?: SortOrder
+    mileage?: SortOrder
+    engineCc?: SortOrder
   }
 
-  export type FloatWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+  export type FloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedFloatFilter<$PrismaModel>
-    _min?: NestedFloatFilter<$PrismaModel>
-    _max?: NestedFloatFilter<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
+  export type ForeignListingRelationFilter = {
+    is?: ForeignListingWhereInput
+    isNot?: ForeignListingWhereInput
+  }
+
+  export type ForeignListingImageCountOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    url?: SortOrder
+    isPrimary?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ForeignListingImageAvgOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    sortOrder?: SortOrder
+  }
+
+  export type ForeignListingImageMaxOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    url?: SortOrder
+    isPrimary?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ForeignListingImageMinOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    url?: SortOrder
+    isPrimary?: SortOrder
+    sortOrder?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type ForeignListingImageSumOrderByAggregateInput = {
+    id?: SortOrder
+    listingId?: SortOrder
+    sortOrder?: SortOrder
   }
 
   export type FaqItemListRelationFilter = {
@@ -12527,12 +14019,68 @@ export namespace Prisma {
     divide?: number
   }
 
-  export type FloatFieldUpdateOperationsInput = {
-    set?: number
+  export type ForeignListingImageCreateNestedManyWithoutListingInput = {
+    create?: XOR<ForeignListingImageCreateWithoutListingInput, ForeignListingImageUncheckedCreateWithoutListingInput> | ForeignListingImageCreateWithoutListingInput[] | ForeignListingImageUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ForeignListingImageCreateOrConnectWithoutListingInput | ForeignListingImageCreateOrConnectWithoutListingInput[]
+    createMany?: ForeignListingImageCreateManyListingInputEnvelope
+    connect?: ForeignListingImageWhereUniqueInput | ForeignListingImageWhereUniqueInput[]
+  }
+
+  export type ForeignListingImageUncheckedCreateNestedManyWithoutListingInput = {
+    create?: XOR<ForeignListingImageCreateWithoutListingInput, ForeignListingImageUncheckedCreateWithoutListingInput> | ForeignListingImageCreateWithoutListingInput[] | ForeignListingImageUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ForeignListingImageCreateOrConnectWithoutListingInput | ForeignListingImageCreateOrConnectWithoutListingInput[]
+    createMany?: ForeignListingImageCreateManyListingInputEnvelope
+    connect?: ForeignListingImageWhereUniqueInput | ForeignListingImageWhereUniqueInput[]
+  }
+
+  export type NullableFloatFieldUpdateOperationsInput = {
+    set?: number | null
     increment?: number
     decrement?: number
     multiply?: number
     divide?: number
+  }
+
+  export type ForeignListingImageUpdateManyWithoutListingNestedInput = {
+    create?: XOR<ForeignListingImageCreateWithoutListingInput, ForeignListingImageUncheckedCreateWithoutListingInput> | ForeignListingImageCreateWithoutListingInput[] | ForeignListingImageUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ForeignListingImageCreateOrConnectWithoutListingInput | ForeignListingImageCreateOrConnectWithoutListingInput[]
+    upsert?: ForeignListingImageUpsertWithWhereUniqueWithoutListingInput | ForeignListingImageUpsertWithWhereUniqueWithoutListingInput[]
+    createMany?: ForeignListingImageCreateManyListingInputEnvelope
+    set?: ForeignListingImageWhereUniqueInput | ForeignListingImageWhereUniqueInput[]
+    disconnect?: ForeignListingImageWhereUniqueInput | ForeignListingImageWhereUniqueInput[]
+    delete?: ForeignListingImageWhereUniqueInput | ForeignListingImageWhereUniqueInput[]
+    connect?: ForeignListingImageWhereUniqueInput | ForeignListingImageWhereUniqueInput[]
+    update?: ForeignListingImageUpdateWithWhereUniqueWithoutListingInput | ForeignListingImageUpdateWithWhereUniqueWithoutListingInput[]
+    updateMany?: ForeignListingImageUpdateManyWithWhereWithoutListingInput | ForeignListingImageUpdateManyWithWhereWithoutListingInput[]
+    deleteMany?: ForeignListingImageScalarWhereInput | ForeignListingImageScalarWhereInput[]
+  }
+
+  export type ForeignListingImageUncheckedUpdateManyWithoutListingNestedInput = {
+    create?: XOR<ForeignListingImageCreateWithoutListingInput, ForeignListingImageUncheckedCreateWithoutListingInput> | ForeignListingImageCreateWithoutListingInput[] | ForeignListingImageUncheckedCreateWithoutListingInput[]
+    connectOrCreate?: ForeignListingImageCreateOrConnectWithoutListingInput | ForeignListingImageCreateOrConnectWithoutListingInput[]
+    upsert?: ForeignListingImageUpsertWithWhereUniqueWithoutListingInput | ForeignListingImageUpsertWithWhereUniqueWithoutListingInput[]
+    createMany?: ForeignListingImageCreateManyListingInputEnvelope
+    set?: ForeignListingImageWhereUniqueInput | ForeignListingImageWhereUniqueInput[]
+    disconnect?: ForeignListingImageWhereUniqueInput | ForeignListingImageWhereUniqueInput[]
+    delete?: ForeignListingImageWhereUniqueInput | ForeignListingImageWhereUniqueInput[]
+    connect?: ForeignListingImageWhereUniqueInput | ForeignListingImageWhereUniqueInput[]
+    update?: ForeignListingImageUpdateWithWhereUniqueWithoutListingInput | ForeignListingImageUpdateWithWhereUniqueWithoutListingInput[]
+    updateMany?: ForeignListingImageUpdateManyWithWhereWithoutListingInput | ForeignListingImageUpdateManyWithWhereWithoutListingInput[]
+    deleteMany?: ForeignListingImageScalarWhereInput | ForeignListingImageScalarWhereInput[]
+  }
+
+  export type ForeignListingCreateNestedOneWithoutImagesInput = {
+    create?: XOR<ForeignListingCreateWithoutImagesInput, ForeignListingUncheckedCreateWithoutImagesInput>
+    connectOrCreate?: ForeignListingCreateOrConnectWithoutImagesInput
+    connect?: ForeignListingWhereUniqueInput
+  }
+
+  export type ForeignListingUpdateOneRequiredWithoutImagesNestedInput = {
+    create?: XOR<ForeignListingCreateWithoutImagesInput, ForeignListingUncheckedCreateWithoutImagesInput>
+    connectOrCreate?: ForeignListingCreateOrConnectWithoutImagesInput
+    upsert?: ForeignListingUpsertWithoutImagesInput
+    connect?: ForeignListingWhereUniqueInput
+    update?: XOR<XOR<ForeignListingUpdateToOneWithWhereWithoutImagesInput, ForeignListingUpdateWithoutImagesInput>, ForeignListingUncheckedUpdateWithoutImagesInput>
   }
 
   export type FaqItemCreateNestedManyWithoutCategoryInput = {
@@ -12809,20 +14357,155 @@ export namespace Prisma {
     not?: NestedFloatNullableFilter<$PrismaModel> | number | null
   }
 
-  export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+  export type NestedFloatNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
     lt?: number | FloatFieldRefInput<$PrismaModel>
     lte?: number | FloatFieldRefInput<$PrismaModel>
     gt?: number | FloatFieldRefInput<$PrismaModel>
     gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
-    _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedFloatFilter<$PrismaModel>
-    _min?: NestedFloatFilter<$PrismaModel>
-    _max?: NestedFloatFilter<$PrismaModel>
+    not?: NestedFloatNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedFloatNullableFilter<$PrismaModel>
+    _min?: NestedFloatNullableFilter<$PrismaModel>
+    _max?: NestedFloatNullableFilter<$PrismaModel>
+  }
+
+  export type ForeignListingImageCreateWithoutListingInput = {
+    url: string
+    isPrimary?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+  }
+
+  export type ForeignListingImageUncheckedCreateWithoutListingInput = {
+    id?: number
+    url: string
+    isPrimary?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+  }
+
+  export type ForeignListingImageCreateOrConnectWithoutListingInput = {
+    where: ForeignListingImageWhereUniqueInput
+    create: XOR<ForeignListingImageCreateWithoutListingInput, ForeignListingImageUncheckedCreateWithoutListingInput>
+  }
+
+  export type ForeignListingImageCreateManyListingInputEnvelope = {
+    data: ForeignListingImageCreateManyListingInput | ForeignListingImageCreateManyListingInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type ForeignListingImageUpsertWithWhereUniqueWithoutListingInput = {
+    where: ForeignListingImageWhereUniqueInput
+    update: XOR<ForeignListingImageUpdateWithoutListingInput, ForeignListingImageUncheckedUpdateWithoutListingInput>
+    create: XOR<ForeignListingImageCreateWithoutListingInput, ForeignListingImageUncheckedCreateWithoutListingInput>
+  }
+
+  export type ForeignListingImageUpdateWithWhereUniqueWithoutListingInput = {
+    where: ForeignListingImageWhereUniqueInput
+    data: XOR<ForeignListingImageUpdateWithoutListingInput, ForeignListingImageUncheckedUpdateWithoutListingInput>
+  }
+
+  export type ForeignListingImageUpdateManyWithWhereWithoutListingInput = {
+    where: ForeignListingImageScalarWhereInput
+    data: XOR<ForeignListingImageUpdateManyMutationInput, ForeignListingImageUncheckedUpdateManyWithoutListingInput>
+  }
+
+  export type ForeignListingImageScalarWhereInput = {
+    AND?: ForeignListingImageScalarWhereInput | ForeignListingImageScalarWhereInput[]
+    OR?: ForeignListingImageScalarWhereInput[]
+    NOT?: ForeignListingImageScalarWhereInput | ForeignListingImageScalarWhereInput[]
+    id?: IntFilter<"ForeignListingImage"> | number
+    listingId?: IntFilter<"ForeignListingImage"> | number
+    url?: StringFilter<"ForeignListingImage"> | string
+    isPrimary?: BoolFilter<"ForeignListingImage"> | boolean
+    sortOrder?: IntFilter<"ForeignListingImage"> | number
+    createdAt?: DateTimeFilter<"ForeignListingImage"> | Date | string
+  }
+
+  export type ForeignListingCreateWithoutImagesInput = {
+    brand: string
+    model: string
+    year?: number | null
+    price?: number | null
+    category?: string
+    condition?: string
+    mileage?: number
+    colour?: string | null
+    engineCc?: number | null
+    description?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ForeignListingUncheckedCreateWithoutImagesInput = {
+    id?: number
+    brand: string
+    model: string
+    year?: number | null
+    price?: number | null
+    category?: string
+    condition?: string
+    mileage?: number
+    colour?: string | null
+    engineCc?: number | null
+    description?: string | null
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type ForeignListingCreateOrConnectWithoutImagesInput = {
+    where: ForeignListingWhereUniqueInput
+    create: XOR<ForeignListingCreateWithoutImagesInput, ForeignListingUncheckedCreateWithoutImagesInput>
+  }
+
+  export type ForeignListingUpsertWithoutImagesInput = {
+    update: XOR<ForeignListingUpdateWithoutImagesInput, ForeignListingUncheckedUpdateWithoutImagesInput>
+    create: XOR<ForeignListingCreateWithoutImagesInput, ForeignListingUncheckedCreateWithoutImagesInput>
+    where?: ForeignListingWhereInput
+  }
+
+  export type ForeignListingUpdateToOneWithWhereWithoutImagesInput = {
+    where?: ForeignListingWhereInput
+    data: XOR<ForeignListingUpdateWithoutImagesInput, ForeignListingUncheckedUpdateWithoutImagesInput>
+  }
+
+  export type ForeignListingUpdateWithoutImagesInput = {
+    brand?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
+    category?: StringFieldUpdateOperationsInput | string
+    condition?: StringFieldUpdateOperationsInput | string
+    mileage?: IntFieldUpdateOperationsInput | number
+    colour?: NullableStringFieldUpdateOperationsInput | string | null
+    engineCc?: NullableIntFieldUpdateOperationsInput | number | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForeignListingUncheckedUpdateWithoutImagesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    brand?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
+    category?: StringFieldUpdateOperationsInput | string
+    condition?: StringFieldUpdateOperationsInput | string
+    mileage?: IntFieldUpdateOperationsInput | number
+    colour?: NullableStringFieldUpdateOperationsInput | string | null
+    engineCc?: NullableIntFieldUpdateOperationsInput | number | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type FaqItemCreateWithoutCategoryInput = {
@@ -12938,6 +14621,37 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type ForeignListingImageCreateManyListingInput = {
+    id?: number
+    url: string
+    isPrimary?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+  }
+
+  export type ForeignListingImageUpdateWithoutListingInput = {
+    url?: StringFieldUpdateOperationsInput | string
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForeignListingImageUncheckedUpdateWithoutListingInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    url?: StringFieldUpdateOperationsInput | string
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type ForeignListingImageUncheckedUpdateManyWithoutListingInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    url?: StringFieldUpdateOperationsInput | string
+    isPrimary?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type FaqItemCreateManyCategoryInput = {
     id?: number
     question: string
@@ -12983,6 +14697,10 @@ export namespace Prisma {
    * Aliases for legacy arg types
    */
     /**
+     * @deprecated Use ForeignListingCountOutputTypeDefaultArgs instead
+     */
+    export type ForeignListingCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ForeignListingCountOutputTypeDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use FaqCategoryCountOutputTypeDefaultArgs instead
      */
     export type FaqCategoryCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = FaqCategoryCountOutputTypeDefaultArgs<ExtArgs>
@@ -13010,6 +14728,10 @@ export namespace Prisma {
      * @deprecated Use ForeignListingDefaultArgs instead
      */
     export type ForeignListingArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ForeignListingDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use ForeignListingImageDefaultArgs instead
+     */
+    export type ForeignListingImageArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = ForeignListingImageDefaultArgs<ExtArgs>
     /**
      * @deprecated Use FaqCategoryDefaultArgs instead
      */

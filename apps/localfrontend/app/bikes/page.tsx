@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Pagination from "../components/Pagination";
+import FadeIn from "../components/FadeIn";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
@@ -153,7 +154,10 @@ export default function BikesPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000000]);
-  const [yearRange, setYearRange] = useState<[number, number]>([2010, new Date().getFullYear()]);
+  const [yearRange, setYearRange] = useState<[number, number]>([
+    2010,
+    new Date().getFullYear(),
+  ]);
   const [mileageRange, setMileageRange] = useState<[number, number]>([
     0, 100000,
   ]);
@@ -183,12 +187,16 @@ export default function BikesPage() {
   }, []);
 
   const dynamicMinYear = useMemo(() => {
-    const years = vehicles.map((v) => v.year).filter((y): y is number => y != null);
+    const years = vehicles
+      .map((v) => v.year)
+      .filter((y): y is number => y != null);
     return years.length > 0 ? Math.min(...years) : 2010;
   }, [vehicles]);
 
   const dynamicMaxYear = useMemo(() => {
-    const years = vehicles.map((v) => v.year).filter((y): y is number => y != null);
+    const years = vehicles
+      .map((v) => v.year)
+      .filter((y): y is number => y != null);
     return years.length > 0 ? Math.max(...years) : new Date().getFullYear();
   }, [vehicles]);
 
@@ -207,7 +215,8 @@ export default function BikesPage() {
 
   const q = search.toLowerCase();
   const priceFiltered = priceRange[0] > 0 || priceRange[1] < 5000000;
-  const yearFiltered = yearRange[0] > dynamicMinYear || yearRange[1] < dynamicMaxYear;
+  const yearFiltered =
+    yearRange[0] > dynamicMinYear || yearRange[1] < dynamicMaxYear;
   const mileageFiltered = mileageRange[0] > 0 || mileageRange[1] < 100000;
 
   const filtered = vehicles.filter((v) => {
@@ -266,8 +275,8 @@ export default function BikesPage() {
         />
       )}
       <div className="bikes-page__inner">
-        {/* â”€â”€ Header â”€â”€ */}
-        <div className="bikes-page__header">
+        {/* ── Header ── */}
+        <FadeIn className="bikes-page__header">
           <div className="bikes-page__header-row">
             <div>
               <h1 className="bikes-page__title">Stock</h1>
@@ -307,7 +316,7 @@ export default function BikesPage() {
             </div>
           </div>
           <hr className="bikes-page__divider" />
-        </div>
+        </FadeIn>
 
         {/* Mobile filter toggle */}
         <button
@@ -399,44 +408,42 @@ export default function BikesPage() {
             ) : filtered.length === 0 ? (
               <p className="bikes-grid__empty">No bikes match your filters.</p>
             ) : (
-              paginated.map((vehicle) => {
+              paginated.map((vehicle, i) => {
                 const imgSrc = getPrimaryImage(vehicle.images);
                 return (
-                  <Link
-                    key={vehicle.id}
-                    href={`/bikes/${vehicle.id}`}
-                    className="bike-card"
-                  >
-                    <div className="bike-card__image">
-                      {imgSrc ? (
-                        <img
-                          src={imgSrc}
-                          alt={`${vehicle.brand.name} ${vehicle.model.name}`}
-                        />
-                      ) : (
-                        <div className="bike-card__no-image">No image</div>
-                      )}
-                    </div>
-                    <div className="bike-card__body">
-                      <h3 className="bike-card__title">
-                        {vehicle.brand.name} {vehicle.model.name}{" "}
-                        {vehicle.year ?? ""}
-                      </h3>
-                      <p className="bike-card__meta">
-                        {getCCBucket(vehicle.engineCapacityCc) ||
-                          (vehicle.engineCapacityCc
-                            ? `${vehicle.engineCapacityCc}cc`
-                            : "")}
-                        {vehicle.engineCapacityCc
-                          ? "\u00a0\u00a0|\u00a0\u00a0"
-                          : ""}
-                        {mapCondition(vehicle.condition)}
-                      </p>
-                      <p className="bike-card__price">
-                        {formatPrice(vehicle.sellingPrice)}
-                      </p>
-                    </div>
-                  </Link>
+                  <FadeIn key={`${currentPage}-${vehicle.id}`} delay={i * 0.07}>
+                    <Link href={`/bikes/${vehicle.id}`} className="bike-card">
+                      <div className="bike-card__image">
+                        {imgSrc ? (
+                          <img
+                            src={imgSrc}
+                            alt={`${vehicle.brand.name} ${vehicle.model.name}`}
+                          />
+                        ) : (
+                          <div className="bike-card__no-image">No image</div>
+                        )}
+                      </div>
+                      <div className="bike-card__body">
+                        <h3 className="bike-card__title">
+                          {vehicle.brand.name} {vehicle.model.name}{" "}
+                          {vehicle.year ?? ""}
+                        </h3>
+                        <p className="bike-card__meta">
+                          {getCCBucket(vehicle.engineCapacityCc) ||
+                            (vehicle.engineCapacityCc
+                              ? `${vehicle.engineCapacityCc}cc`
+                              : "")}
+                          {vehicle.engineCapacityCc
+                            ? "\u00a0\u00a0|\u00a0\u00a0"
+                            : ""}
+                          {mapCondition(vehicle.condition)}
+                        </p>
+                        <p className="bike-card__price">
+                          {formatPrice(vehicle.sellingPrice)}
+                        </p>
+                      </div>
+                    </Link>
+                  </FadeIn>
                 );
               })
             )}

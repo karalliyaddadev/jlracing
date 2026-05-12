@@ -35,14 +35,10 @@ export default function HomePage() {
       <IntlFeaturesSection />
 
       {/* ── Trusted Brands ── */}
-      <FadeIn style={{ width: "100%" }}>
-        <TrustedBrands />
-      </FadeIn>
+      <TrustedBrands />
 
       {/* ── Vehicle Listings ── */}
-      <FadeIn style={{ width: "100%" }}>
-        <VehicleListings />
-      </FadeIn>
+      <VehicleListings />
 
       {/* ── CTA Banner ── */}
       <section className="int-cta">

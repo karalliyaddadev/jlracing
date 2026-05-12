@@ -195,7 +195,7 @@ export default function SparePartDetailPage() {
                 Order Now
               </Link>
               <a
-                href="https://wa.me/94XXXXXXXXX"
+                href="https://wa.me/94717910091"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bikedetail__btn bikedetail__btn--whatsapp"
@@ -219,7 +219,10 @@ export default function SparePartDetailPage() {
           images={thumbs}
           index={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
-          onChange={(i) => { setLightboxIndex(i); setActiveThumb(i); }}
+          onChange={(i) => {
+            setLightboxIndex(i);
+            setActiveThumb(i);
+          }}
         />
       )}
     </section>

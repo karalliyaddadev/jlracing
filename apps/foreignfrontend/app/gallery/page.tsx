@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import FadeIn from "../components/FadeIn";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
@@ -68,8 +69,8 @@ export default function GalleryPage() {
             <p className="gal-status">No gallery items yet.</p>
           ) : (
             <div className="gal-grid">
-              {items.map((item) => (
-                <div key={item.id} className="gal-card">
+              {items.map((item, i) => (
+                <FadeIn key={`${page}-${item.id}`} className="gal-card" delay={i * 0.06}>
                   <div className="gal-card__img-wrap">
                     {item.mediaType === "video" ? (
                       <video
@@ -94,13 +95,14 @@ export default function GalleryPage() {
                     )}
                   </div>
                   <p className="gal-card__title">{item.title}</p>
-                </div>
+                </FadeIn>
               ))}
             </div>
           )}
 
           {/* Pagination */}
           {totalPages > 1 && (
+            <FadeIn>
             <div className="lst-pagination">
               <button
                 className="lst-pagination__btn lst-pagination__btn--arrow"
@@ -130,6 +132,7 @@ export default function GalleryPage() {
                 &gt;
               </button>
             </div>
+            </FadeIn>
           )}
         </div>
       </section>
