@@ -101,6 +101,19 @@ type InvoiceAccount = {
   isActive: boolean;
 };
 
+function getActiveInvoiceTerms(terms: InvoiceTerm[]) {
+  return terms
+    .filter((term) => term.isActive)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
+    .map((term) => term.text);
+}
+
+function getActiveInvoiceAccounts(accounts: InvoiceAccount[]) {
+  return accounts
+    .filter((account) => account.isActive)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+}
+
 const HTML_ENTITY_MAP: Record<string, string> = {
   "&": "&amp;",
   "<": "&lt;",
@@ -117,6 +130,7 @@ export default function InvoicesPage() {
   const { token } = useAdmin();
   const [search, setSearch] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
+  const [isPreparingPrint, setIsPreparingPrint] = useState(false);
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
@@ -134,6 +148,8 @@ export default function InvoicesPage() {
   const invoiceTermsQuery = useQuery({
     queryKey: ["pos", "invoice-terms", token],
     enabled: Boolean(token),
+    staleTime: 0,
+    refetchOnMount: "always",
     queryFn: async (): Promise<InvoiceTerm[]> => {
       const response = await fetch(`${base}/invoice-terms`, { headers: auth, cache: "no-store" });
       const payload = await readApiData<{ terms?: InvoiceTerm[] }>(response, "Failed to load invoice terms");
@@ -144,6 +160,8 @@ export default function InvoicesPage() {
   const invoiceAccountsQuery = useQuery({
     queryKey: ["pos", "invoice-accounts", token],
     enabled: Boolean(token),
+    staleTime: 0,
+    refetchOnMount: "always",
     queryFn: async (): Promise<InvoiceAccount[]> => {
       const response = await fetch(`${base}/invoice-accounts`, { headers: auth, cache: "no-store" });
       const payload = await readApiData<{ accounts?: InvoiceAccount[] }>(response, "Failed to load invoice account details");
@@ -164,6 +182,7 @@ export default function InvoicesPage() {
         : null;
   const visibleError = error ?? supportError;
   const invoiceSupportLoading = invoiceTermsQuery.isPending || invoiceAccountsQuery.isPending;
+  const refreshing = invoicesQuery.isFetching || invoiceTermsQuery.isFetching || invoiceAccountsQuery.isFetching;
 
   const getPurchaseItemMeta = useCallback((entry: Purchase) => {
     if (entry.itemType === "BIKE" && entry.bike) {
@@ -326,21 +345,20 @@ export default function InvoicesPage() {
   );
 
   const activeInvoiceTerms = useMemo((): string[] => {
-    return invoiceTerms
-      .filter((term: InvoiceTerm) => term.isActive)
-      .sort((a: InvoiceTerm, b: InvoiceTerm) => a.sortOrder - b.sortOrder || a.id - b.id)
-      .map((term: InvoiceTerm) => term.text);
+    return getActiveInvoiceTerms(invoiceTerms);
   }, [invoiceTerms]);
 
   const activeInvoiceAccounts = useMemo((): InvoiceAccount[] => {
-    return invoiceAccounts
-      .filter((account: InvoiceAccount) => account.isActive)
-      .sort((a: InvoiceAccount, b: InvoiceAccount) => a.sortOrder - b.sortOrder || a.id - b.id);
+    return getActiveInvoiceAccounts(invoiceAccounts);
   }, [invoiceAccounts]);
 
   const getInvoiceGrandTotal = (invoice: InvoiceRow) => invoice.finalSellingPrice + invoice.registrationFeeTotal;
 
-  const generateInvoiceHtml = (invoice: InvoiceRow): string => {
+  const generateInvoiceHtml = (
+    invoice: InvoiceRow,
+    accountsForInvoice: InvoiceAccount[] = activeInvoiceAccounts,
+    termsForInvoice: string[] = activeInvoiceTerms,
+  ): string => {
     const invoiceNumber = String(Math.min(...invoice.entries.map((entry) => entry.id))).padStart(4, "0");
     
     const entryRowsHtml = invoice.entries.map((entry) => {
@@ -391,10 +409,10 @@ export default function InvoicesPage() {
       </tr>
     ` : "";
 
-    const bankDetailsHtml = activeInvoiceAccounts.length > 0 ? `
+    const bankDetailsHtml = accountsForInvoice.length > 0 ? `
       <div class="invoice-bank-block" style="margin: 10px 0 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px;">
         <strong>Bank Details</strong>
-        ${activeInvoiceAccounts.map((account) => `
+        ${accountsForInvoice.map((account) => `
           <div class="invoice-bank-account" style="display: flex; flex-direction: column; gap: 2px; margin-top: 2px;">
             <span>Account No: ${escapeInvoiceHtml(account.accountNumber)}</span>
             <span>Account Name: ${escapeInvoiceHtml(account.accountHolder)}</span>
@@ -404,11 +422,11 @@ export default function InvoicesPage() {
       </div>
     ` : "";
 
-    const termsHtml = activeInvoiceTerms.length > 0 ? `
+    const termsHtml = termsForInvoice.length > 0 ? `
       <div style="margin: 10px 0 0; padding: 8px 10px; border: 1px solid #cfcfcf; background: #f7f7f7;">
         <h3 style="margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;">Terms & Conditions</h3>
         <ul style="margin: 0; padding-left: 16px;">
-          ${activeInvoiceTerms.map((term) => `<li style="margin: 0 0 3px; font-size: 10px; line-height: 1.4;">${escapeInvoiceHtml(term)}</li>`).join("")}
+          ${termsForInvoice.map((term) => `<li style="margin: 0 0 3px; font-size: 10px; line-height: 1.4;">${escapeInvoiceHtml(term)}</li>`).join("")}
         </ul>
       </div>
     ` : "";
@@ -481,6 +499,34 @@ export default function InvoicesPage() {
     `;
   };
 
+  const handleRefresh = () => {
+    void Promise.all([
+      invoicesQuery.refetch(),
+      invoiceTermsQuery.refetch(),
+      invoiceAccountsQuery.refetch(),
+    ]);
+  };
+
+  const handlePrintInvoice = async (invoice: InvoiceRow) => {
+    setIsPreparingPrint(true);
+    try {
+      const [accountsResult, termsResult] = await Promise.all([
+        invoiceAccountsQuery.refetch(),
+        invoiceTermsQuery.refetch(),
+      ]);
+
+      if (accountsResult.error || termsResult.error) return;
+
+      const invoiceNumber = String(Math.min(...invoice.entries.map((entry) => entry.id))).padStart(4, "0");
+      const latestAccounts = getActiveInvoiceAccounts(accountsResult.data ?? invoiceAccounts);
+      const latestTerms = getActiveInvoiceTerms(termsResult.data ?? invoiceTerms);
+      const invoiceHtml = generateInvoiceHtml(invoice, latestAccounts, latestTerms);
+      exportInvoiceToPdf(invoiceHtml, invoiceNumber);
+    } finally {
+      setIsPreparingPrint(false);
+    }
+  };
+
   return (
     <div className="bm-page">
       <div className="bm-page-header">
@@ -517,8 +563,8 @@ export default function InvoicesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button type="button" className="btn-outline" onClick={() => void invoicesQuery.refetch()}>
-            Refresh
+          <button type="button" className="btn-outline" onClick={handleRefresh} disabled={refreshing}>
+            {refreshing ? "Refreshing..." : "Refresh"}
           </button>
         </div>
 
@@ -701,15 +747,10 @@ export default function InvoicesPage() {
               <button 
                 type="button" 
                 className="btn-accent" 
-                disabled={invoiceSupportLoading}
-                onClick={() => {
-                  if (!selectedInvoice) return;
-                  const invoiceNumber = String(Math.min(...selectedInvoice.entries.map((entry) => entry.id))).padStart(4, "0");
-                  const invoiceHtml = generateInvoiceHtml(selectedInvoice);
-                  exportInvoiceToPdf(invoiceHtml, invoiceNumber);
-                }}
+                disabled={invoiceSupportLoading || isPreparingPrint}
+                onClick={() => void handlePrintInvoice(selectedInvoice)}
               >
-                {invoiceSupportLoading ? "Preparing Invoice..." : "Print Invoice"}
+                {invoiceSupportLoading || isPreparingPrint ? "Preparing Invoice..." : "Print Invoice"}
               </button>
               <button type="button" className="btn-outline" onClick={() => setSelectedInvoice(null)}>Close</button>
             </div>
