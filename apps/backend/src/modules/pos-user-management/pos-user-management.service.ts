@@ -87,6 +87,140 @@ function resolvePaymentDetails(finalSellingPrice: number, paymentType: "DIRECT" 
   };
 }
 
+type InvoiceAccountRow = {
+  id: number;
+  accountHolder: string;
+  accountNumber: string;
+  bankName: string;
+  branchName: string | null;
+  sortOrder: number;
+  isActive: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+const invoiceAccountSelectSql = Prisma.sql`
+  "id",
+  "accountHolder",
+  "accountNumber",
+  "bankName",
+  "branchName",
+  "sortOrder",
+  "isActive",
+  "createdAt",
+  "updatedAt"
+`;
+
+function getRawDatabaseErrorCode(error: Prisma.PrismaClientKnownRequestError) {
+  const metaCode = error.meta?.code;
+  return typeof metaCode === "string" ? metaCode : error.code;
+}
+
+function handleInvoiceAccountPersistenceError(error: unknown): never {
+  if (error instanceof Prisma.PrismaClientKnownRequestError) {
+    const rawCode = getRawDatabaseErrorCode(error);
+    if (error.code === "P2025") {
+      throw AppError.notFound("Invoice account not found");
+    }
+    if (error.code === "P2002" || rawCode === "23505") {
+      throw AppError.conflict("Invoice account already exists");
+    }
+    if (error.code === "P2021" || rawCode === "42P01") {
+      throw new AppError(
+        "Invoice account table is unavailable. Run database migrations in apps/backend and restart the backend server.",
+        500
+      );
+    }
+    if (error.code === "P2022" || rawCode === "42703") {
+      throw new AppError(
+        "Invoice account table is not up to date. Run database migrations in apps/backend and restart the backend server.",
+        500
+      );
+    }
+  }
+  throw error;
+}
+
+async function listInvoiceAccountsWithRawSql() {
+  return prisma.$queryRaw<InvoiceAccountRow[]>`
+    SELECT ${invoiceAccountSelectSql}
+    FROM "pos_invoice_accounts"
+    ORDER BY "sortOrder" ASC, "id" ASC
+  `;
+}
+
+async function getNextInvoiceAccountSortOrder() {
+  const [row] = await prisma.$queryRaw<Array<{ sortOrder: number | null }>>`
+    SELECT MAX("sortOrder")::int AS "sortOrder"
+    FROM "pos_invoice_accounts"
+  `;
+
+  return (row?.sortOrder ?? 0) + 1;
+}
+
+async function createInvoiceAccountWithRawSql(dto: CreateInvoiceAccountDto) {
+  const sortOrder = dto.sortOrder ?? (await getNextInvoiceAccountSortOrder());
+  const [account] = await prisma.$queryRaw<InvoiceAccountRow[]>`
+    INSERT INTO "pos_invoice_accounts" (
+      "accountHolder",
+      "accountNumber",
+      "bankName",
+      "branchName",
+      "sortOrder",
+      "isActive",
+      "createdAt",
+      "updatedAt"
+    )
+    VALUES (
+      ${dto.accountHolder},
+      ${dto.accountNumber},
+      ${dto.bankName},
+      ${nullableTrimmedText(dto.branchName)},
+      ${sortOrder},
+      ${dto.isActive ?? true},
+      CURRENT_TIMESTAMP,
+      CURRENT_TIMESTAMP
+    )
+    RETURNING ${invoiceAccountSelectSql}
+  `;
+
+  return account;
+}
+
+async function updateInvoiceAccountWithRawSql(accountId: number, dto: UpdateInvoiceAccountDto) {
+  const [account] = await prisma.$queryRaw<InvoiceAccountRow[]>`
+    UPDATE "pos_invoice_accounts"
+    SET
+      "accountHolder" = CASE WHEN ${dto.accountHolder != null} THEN ${dto.accountHolder ?? ""} ELSE "accountHolder" END,
+      "accountNumber" = CASE WHEN ${dto.accountNumber != null} THEN ${dto.accountNumber ?? ""} ELSE "accountNumber" END,
+      "bankName" = CASE WHEN ${dto.bankName != null} THEN ${dto.bankName ?? ""} ELSE "bankName" END,
+      "branchName" = CASE WHEN ${dto.branchName !== undefined} THEN ${nullableTrimmedText(dto.branchName)} ELSE "branchName" END,
+      "sortOrder" = CASE WHEN ${dto.sortOrder != null} THEN ${dto.sortOrder ?? 1} ELSE "sortOrder" END,
+      "isActive" = CASE WHEN ${dto.isActive != null} THEN ${dto.isActive ?? true} ELSE "isActive" END,
+      "updatedAt" = CURRENT_TIMESTAMP
+    WHERE "id" = ${accountId}
+    RETURNING ${invoiceAccountSelectSql}
+  `;
+
+  if (!account) {
+    throw AppError.notFound("Invoice account not found");
+  }
+
+  return account;
+}
+
+async function deleteInvoiceAccountWithRawSql(accountId: number) {
+  const deletedRows = await prisma.$queryRaw<Array<{ id: number }>>`
+    DELETE FROM "pos_invoice_accounts"
+    WHERE "id" = ${accountId}
+    RETURNING "id"
+  `;
+
+  if (deletedRows.length === 0) {
+    throw AppError.notFound("Invoice account not found");
+  }
+}
+
 function getPurchaseModelClient(db: any) {
   const model = db?.posCustomerPurchase;
   if (!model) {
@@ -99,14 +233,7 @@ function getPurchaseModelClient(db: any) {
 }
 
 function getInvoiceAccountModelClient(db: any) {
-  const model = db?.posInvoiceAccount;
-  if (!model) {
-    throw new AppError(
-      "Invoice account model is unavailable. Run 'npm run db:generate' in apps/backend and restart the backend server.",
-      500
-    );
-  }
-  return model;
+  return db?.posInvoiceAccount ?? null;
 }
 
 function getInvoiceTermModelClient(db: any) {
@@ -1225,23 +1352,33 @@ export async function settlePurchase(customerId: number, purchaseId: number, dto
 
 export async function listInvoiceAccounts() {
   const model = getInvoiceAccountModelClient(prisma as any);
-  const accounts = await model.findMany({
-    orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
-  });
+  try {
+    const accounts = model
+      ? await model.findMany({
+          orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+        })
+      : await listInvoiceAccountsWithRawSql();
 
-  return {
-    accounts,
-  };
+    return {
+      accounts,
+    };
+  } catch (error) {
+    handleInvoiceAccountPersistenceError(error);
+  }
 }
 
 export async function createInvoiceAccount(dto: CreateInvoiceAccountDto) {
   const model = getInvoiceAccountModelClient(prisma as any);
-  const maxSortOrderRow = await model.findFirst({
-    orderBy: { sortOrder: "desc" },
-    select: { sortOrder: true },
-  });
-
   try {
+    if (!model) {
+      return await createInvoiceAccountWithRawSql(dto);
+    }
+
+    const maxSortOrderRow = await model.findFirst({
+      orderBy: { sortOrder: "desc" },
+      select: { sortOrder: true },
+    });
+
     return await model.create({
       data: {
         accountHolder: dto.accountHolder,
@@ -1253,10 +1390,7 @@ export async function createInvoiceAccount(dto: CreateInvoiceAccountDto) {
       },
     });
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      throw AppError.conflict("Invoice account already exists");
-    }
-    throw error;
+    handleInvoiceAccountPersistenceError(error);
   }
 }
 
@@ -1264,6 +1398,10 @@ export async function updateInvoiceAccount(accountId: number, dto: UpdateInvoice
   const model = getInvoiceAccountModelClient(prisma as any);
 
   try {
+    if (!model) {
+      return await updateInvoiceAccountWithRawSql(accountId, dto);
+    }
+
     return await model.update({
       where: { id: accountId },
       data: {
@@ -1276,13 +1414,7 @@ export async function updateInvoiceAccount(accountId: number, dto: UpdateInvoice
       },
     });
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-      throw AppError.notFound("Invoice account not found");
-    }
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
-      throw AppError.conflict("Invoice account already exists");
-    }
-    throw error;
+    handleInvoiceAccountPersistenceError(error);
   }
 }
 
@@ -1290,12 +1422,14 @@ export async function deleteInvoiceAccount(accountId: number) {
   const model = getInvoiceAccountModelClient(prisma as any);
 
   try {
+    if (!model) {
+      await deleteInvoiceAccountWithRawSql(accountId);
+      return;
+    }
+
     await model.delete({ where: { id: accountId } });
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2025") {
-      throw AppError.notFound("Invoice account not found");
-    }
-    throw error;
+    handleInvoiceAccountPersistenceError(error);
   }
 }
 

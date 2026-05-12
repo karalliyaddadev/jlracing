@@ -28,6 +28,8 @@ type InvoiceAccountInput = {
   isActive: boolean;
 };
 
+const INVOICE_ACCOUNTS_QUERY_KEY = ["pos", "invoice-accounts"] as const;
+
 export default function InvoiceAccountsPage() {
   const { token } = useAdmin();
   const [error, setError] = useState<string | null>(null);
@@ -52,11 +54,15 @@ export default function InvoiceAccountsPage() {
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
   const queryClient = useQueryClient();
 
-  const accountsQueryKey = useMemo(() => ["pos", "invoice-accounts", token] as const, [token]);
+  const accountsQueryKey = useMemo(() => [...INVOICE_ACCOUNTS_QUERY_KEY, token] as const, [token]);
+  const refreshInvoiceAccountQueries = () =>
+    queryClient.invalidateQueries({ queryKey: INVOICE_ACCOUNTS_QUERY_KEY, refetchType: "all" });
 
   const accountsQuery = useQuery({
     queryKey: accountsQueryKey,
     enabled: Boolean(token),
+    staleTime: 0,
+    refetchOnMount: "always",
     queryFn: async (): Promise<InvoiceAccount[]> => {
       const response = await fetch(`${base}/invoice-accounts`, { headers: auth, cache: "no-store" });
       const payload = await readApiData<{ accounts?: InvoiceAccount[] }>(response, "Failed to load invoice accounts");
@@ -77,7 +83,7 @@ export default function InvoiceAccountsPage() {
     onSuccess: async () => {
       resetCreateForm();
       setSuccess("Account added");
-      await queryClient.invalidateQueries({ queryKey: accountsQueryKey });
+      await refreshInvoiceAccountQueries();
     },
     onError: (err) => {
       setError(err instanceof Error ? err.message : "Failed to add account");
@@ -104,7 +110,7 @@ export default function InvoiceAccountsPage() {
     onSuccess: async () => {
       stopEdit();
       setSuccess("Account updated");
-      await queryClient.invalidateQueries({ queryKey: accountsQueryKey });
+      await refreshInvoiceAccountQueries();
     },
     onError: (err) => {
       setError(err instanceof Error ? err.message : "Failed to update account");
@@ -123,7 +129,7 @@ export default function InvoiceAccountsPage() {
     onSuccess: async (_, accountId) => {
       if (editId === accountId) stopEdit();
       setSuccess("Account deleted");
-      await queryClient.invalidateQueries({ queryKey: accountsQueryKey });
+      await refreshInvoiceAccountQueries();
     },
     onError: (err) => {
       setError(err instanceof Error ? err.message : "Failed to delete account");
@@ -176,6 +182,7 @@ export default function InvoiceAccountsPage() {
     const accountNumber = source.accountNumber.trim();
     const bankName = source.bankName.trim();
     const branchName = source.branchName.trim();
+    const sortOrderValue = source.sortOrder.trim();
 
     if (!accountHolder) {
       setError("Account holder is required");
@@ -190,12 +197,21 @@ export default function InvoiceAccountsPage() {
       return null;
     }
 
+    const sortOrder = sortOrderValue ? Number(sortOrderValue) : undefined;
+    if (
+      sortOrder !== undefined &&
+      (!Number.isInteger(sortOrder) || sortOrder < 1 || sortOrder > 9999)
+    ) {
+      setError("Sort order must be a whole number from 1 to 9999");
+      return null;
+    }
+
     return {
       accountHolder,
       accountNumber,
       bankName,
       branchName,
-      sortOrder: source.sortOrder.trim() ? Number(source.sortOrder) : undefined,
+      sortOrder,
       isActive: source.isActive,
     };
   };
