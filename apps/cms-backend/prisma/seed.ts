@@ -5,19 +5,20 @@ const prisma = new PrismaClient();
 
 async function main() {
   const passwordHash = await bcrypt.hash("JLRacing@26", 12);
+  const email = "admin@jlracing.lk";
 
   await prisma.cmsAdmin.upsert({
-    where: { email: "jlracing16@gmail.com" },
+    where: { email },
     update: {},
     create: {
       name: "CMS Admin",
-      email: "jlracing16@gmail.com",
+      email,
       passwordHash,
       isActive: true,
     },
   });
 
-  console.log("CMS seed complete — jlracing16@gmail.com / JLRacing@26");
+  console.log(`CMS seed complete — ${email} / JLRacing@26`);
 }
 
 main()
