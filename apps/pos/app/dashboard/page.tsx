@@ -54,6 +54,39 @@ type VehicleSummary = {
 
 type RevenueViewMode = "DAILY" | "MONTHLY" | "YEARLY";
 
+function formatDateForInput(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getDateRangeByFilter(filter: "1d" | "1w" | "1m" | "1yr"): { from: string; to: string } {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let fromDate: Date;
+
+  if (filter === "1d") {
+    fromDate = new Date(today);
+    fromDate.setDate(today.getDate() - 1);
+  } else if (filter === "1w") {
+    fromDate = new Date(today);
+    fromDate.setDate(today.getDate() - 7);
+  } else if (filter === "1m") {
+    fromDate = new Date(today);
+    fromDate.setDate(today.getDate() - 30);
+  } else {
+    // 1yr
+    fromDate = new Date(today);
+    fromDate.setFullYear(today.getFullYear() - 1);
+  }
+
+  return {
+    from: formatDateForInput(fromDate),
+    to: formatDateForInput(today),
+  };
+}
+
 function dateKeyLocal(date: Date, mode: RevenueViewMode) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
@@ -869,29 +902,48 @@ export default function DashboardPage() {
       {error && <div className="bm-alert bm-alert-error">{error}</div>}
 
       <div className="finance-controls-panel">
-        <div className="finance-control-row">
-          <label className="finance-control-label" htmlFor="finance-date-from">
-            From date
-          </label>
-          <input
-            id="finance-date-from"
-            type="date"
-            className="bm-input"
-            value={financeDateFrom}
-            onChange={(event) => setFinanceDateFrom(event.target.value)}
-          />
-        </div>
-        <div className="finance-control-row">
-          <label className="finance-control-label" htmlFor="finance-date-to">
-            To date
-          </label>
-          <input
-            id="finance-date-to"
-            type="date"
-            className="bm-input"
-            value={financeDateTo}
-            onChange={(event) => setFinanceDateTo(event.target.value)}
-          />
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "flex-end" }}>
+          <div className="finance-control-row">
+            <label className="finance-control-label" htmlFor="finance-date-from">
+              From date
+            </label>
+            <input
+              id="finance-date-from"
+              type="date"
+              className="bm-input"
+              value={financeDateFrom}
+              onChange={(event) => setFinanceDateFrom(event.target.value)}
+            />
+          </div>
+          <div className="finance-control-row">
+            <label className="finance-control-label" htmlFor="finance-date-to">
+              To date
+            </label>
+            <input
+              id="finance-date-to"
+              type="date"
+              className="bm-input"
+              value={financeDateTo}
+              onChange={(event) => setFinanceDateTo(event.target.value)}
+            />
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+            {(["1d", "1w", "1m", "1yr"] as const).map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                className={financeDateFrom === getDateRangeByFilter(filter).from && financeDateTo === getDateRangeByFilter(filter).to ? "btn-accent" : "btn-outline"}
+                onClick={() => {
+                  const range = getDateRangeByFilter(filter);
+                  setFinanceDateFrom(range.from);
+                  setFinanceDateTo(range.to);
+                }}
+                style={{ padding: "0.5rem 0.8rem", fontSize: "0.9rem" }}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="finance-equations">
           {financeDateRangeInvalid && (
