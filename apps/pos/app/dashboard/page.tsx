@@ -274,7 +274,7 @@ export default function DashboardPage() {
     let dailyRevenue = 0;
     let monthlyRevenue = 0;
     let leasingOutstanding = 0;
-    let nonLeasingOutstanding = 0;
+    let cashOutstanding = 0;
 
     filteredFinancePurchases.forEach((purchase: Purchase) => {
       const settledRevenue = getSettledRevenue(purchase);
@@ -292,11 +292,11 @@ export default function DashboardPage() {
       if (purchase.purchaseChannel === "LEASING") {
         leasingOutstanding += remaining;
       } else {
-        nonLeasingOutstanding += remaining;
+        cashOutstanding += remaining;
       }
     });
 
-    const totalOutstanding = nonLeasingOutstanding + leasingOutstanding;
+    const totalOutstanding = cashOutstanding + leasingOutstanding;
     const grossProfit = totalRevenue - (activeTaxes + activeOtherCosts);
 
     return {
@@ -304,6 +304,7 @@ export default function DashboardPage() {
       dailyRevenue,
       monthlyRevenue,
       totalOutstanding,
+      cashOutstanding,
       leasingOutstanding,
       grossProfit,
     };
@@ -926,7 +927,12 @@ export default function DashboardPage() {
           {
             label: "Total Outstanding",
             value: `LKR ${formatCurrency(financialSummary.totalOutstanding)}`,
-            hint: "Personal + leasing balance",
+            hint: "Cash + leasing balance",
+          },
+          {
+            label: "Cash Outstanding",
+            value: `LKR ${formatCurrency(financialSummary.cashOutstanding)}`,
+            hint: "Outstanding cash balance only",
           },
           {
             label: "Leasing Outstanding",
