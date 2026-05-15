@@ -556,7 +556,7 @@ export default function DashboardPage() {
   <body>
     <div class="sheet">
       <div class="header">
-        <img src="/landing/logo.jpg" alt="JL Racing" class="logo" />
+        <img src="/landing/logoq.png" alt="JL Racing" class="logo" />
         <p class="brand">JL Racing</p>
         <p class="brand-title">Importers, Exporters & Dealers Of Motorcycles, Motor Vehicles, Machineries & Other Motorized Equipments With Spare Parts.</p>
         <p class="brand-address">No:154, Puttalam Road, Kurunegala, Sri Lanka, Kurunegala</p>
