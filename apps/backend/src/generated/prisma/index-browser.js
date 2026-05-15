@@ -351,18 +351,6 @@ exports.Prisma.PosInvoiceTermScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
-exports.Prisma.PosInvoiceAccountScalarFieldEnum = {
-  id: 'id',
-  accountHolder: 'accountHolder',
-  accountNumber: 'accountNumber',
-  bankName: 'bankName',
-  branchName: 'branchName',
-  sortOrder: 'sortOrder',
-  isActive: 'isActive',
-  createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
-};
-
 exports.Prisma.PreOrderScalarFieldEnum = {
   id: 'id',
   displayId: 'displayId',
@@ -376,6 +364,7 @@ exports.Prisma.PreOrderScalarFieldEnum = {
   expectedArrival: 'expectedArrival',
   status: 'status',
   description: 'description',
+  pdfUrl: 'pdfUrl',
   isPublished: 'isPublished',
   sortOrder: 'sortOrder',
   createdAt: 'createdAt',
@@ -504,7 +493,6 @@ exports.Prisma.ModelName = {
   PosCustomerDreamBike: 'PosCustomerDreamBike',
   PosCustomerPurchase: 'PosCustomerPurchase',
   PosInvoiceTerm: 'PosInvoiceTerm',
-  PosInvoiceAccount: 'PosInvoiceAccount',
   PreOrder: 'PreOrder',
   PreOrderImage: 'PreOrderImage',
   ContactRequest: 'ContactRequest',

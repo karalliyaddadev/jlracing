@@ -362,22 +362,6 @@ model PosInvoiceTerm {
   @@map("pos_invoice_terms")
 }
 
-model PosInvoiceAccount {
-  id            Int      @id @default(autoincrement())
-  accountHolder String
-  accountNumber String
-  bankName      String
-  branchName    String?
-  sortOrder     Int      @default(1)
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-
-  @@unique([bankName, accountNumber])
-  @@index([sortOrder])
-  @@map("pos_invoice_accounts")
-}
-
 // ── Pre Orders ────────────────────────────────────────────────────────────────
 
 model PreOrder {
@@ -393,6 +377,7 @@ model PreOrder {
   expectedArrival String?
   status          String          @default("pre-order")
   description     String?
+  pdfUrl          String?
   isPublished     Boolean         @default(true)
   sortOrder       Int             @default(0)
   createdAt       DateTime        @default(now())

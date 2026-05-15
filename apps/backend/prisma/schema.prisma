@@ -377,6 +377,7 @@ model PreOrder {
   expectedArrival String?
   status          String          @default("pre-order")
   description     String?
+  pdfUrl          String?
   isPublished     Boolean         @default(true)
   sortOrder       Int             @default(0)
   createdAt       DateTime        @default(now())

@@ -14,7 +14,7 @@ const CC_OPTIONS = [
   "400–600cc",
   "600cc +",
 ];
-const STATUS_OPTIONS = ["Brand New", "Used", "Reconditioned"];
+const STATUS_OPTIONS = ["Brand New"];
 const ITEMS_PER_PAGE = 6;
 
 interface VehicleImage {
