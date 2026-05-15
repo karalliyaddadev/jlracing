@@ -20,7 +20,7 @@ export default function ReportPage() {
 
         <section className={styles.range}> 
           <div className={styles.rangeLabel}>Report Range:</div>
-          <div className={styles.rangeValue}>Apr, 15, 2026 to May, 1, 2026</div>
+          <div className={styles.rangeValue}>Apr. 15, 2026 to May. 1, 2026</div>
         </section>
 
         <div className={styles.dividerBar} />
@@ -63,7 +63,7 @@ export default function ReportPage() {
 
           <div className={styles.range}> 
             <div className={styles.rangeLabel}>Report Range:</div>
-            <div className={styles.rangeValue}>Apr, 15, 2026 to May, 1, 2026</div>
+            <div className={styles.rangeValue}>Apr. 15, 2026 to May. 1, 2026</div>
           </div>
 
           <table className={styles.reportTable}>

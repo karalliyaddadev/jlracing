@@ -21,36 +21,37 @@
 
 .container {
   max-width: 820px;
-  margin: 20px auto;
+  margin: 24px auto;
   background: #fff;
-  padding: 28px 34px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+  padding: 32px 40px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 .reportHeader {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
+  margin-bottom: 16px;
 }
 
 .reportTitle {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: #111;
 }
 
 .reportId {
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .reportMeta {
-  color: #222;
-  font-size: 14px;
+  color: #333;
+  font-size: 13px;
+  font-weight: 500;
 }
 
 .range {
-  margin: 6px 0 16px 0;
+  margin: 8px 0 16px 0;
   color: #666;
   font-size: 13px;
 }
@@ -58,7 +59,8 @@
 .rangeLabel {
   font-weight: 700;
   color: #222;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
+  font-size: 13px;
 }
 
 .rangeValue {
@@ -67,9 +69,9 @@
 }
 
 .dividerBar {
-  height: 14px;
+  height: 12px;
   background: #000;
-  margin: 12px 0 18px 0;
+  margin: 16px 0 18px 0;
 }
 
 .reportTable {
@@ -80,47 +82,61 @@
 
 .reportTable thead th {
   text-align: left;
-  padding: 8px 0;
+  padding: 12px 0;
   font-weight: 700;
   color: #222;
-  border-bottom: 1px solid #e6e6e6;
+  border-bottom: 1px solid #ddd;
+  font-size: 13px;
+}
+
+.reportTable thead th:nth-child(2),
+.reportTable thead th:nth-child(3) {
+  text-align: right;
+  padding-right: 0;
 }
 
 .reportTable td {
-  padding: 14px 0;
-  vertical-align: top;
+  padding: 12px 0;
+  vertical-align: middle;
   color: #444;
+  font-size: 13px;
+}
+
+.reportTable td:nth-child(2),
+.reportTable td:nth-child(3) {
+  text-align: right;
 }
 
 .desc {
-  width: 60%;
+  width: 50%;
   color: #333;
 }
 
 .amount {
   text-align: right;
   color: #333;
-  font-weight: 600;
+  font-weight: 500;
 }
 
 .rowTotal {
-  display: flex;
-  justify-content: flex-end;
-  gap: 16px;
-  align-items: center;
-  padding-top: 10px;
-  border-top: 1px solid #efefef;
-  margin-top: 6px;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  padding: 14px 0;
+  border-top: 1px solid #ddd;
+  margin-top: 8px;
+  font-size: 13px;
 }
 
 .totalLabel {
-  font-weight: 800;
+  font-weight: 700;
   color: #111;
+  text-align: left;
 }
 
 .totalAmount {
-  font-weight: 800;
+  font-weight: 700;
   color: #111;
+  text-align: right;
 }
 
 .accountsSection {
@@ -129,5 +145,7 @@
 
 .sectionTitle {
   font-size: 16px;
-  margin-bottom: 6px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #111;
 }
