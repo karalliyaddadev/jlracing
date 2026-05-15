@@ -7,11 +7,7 @@ export default function ReportPage() {
   return (
     <div className={styles.wrapper}>
       <header className={styles.topbar}>
-        <div className={styles.topbarContent}>
-          <img src="/landing/logoq.png" alt="JL Racing" className={styles.logo} />
-          <p className={styles.tagline}>Importers, Exporters & Dealers Of Motorcycles, Motor Vehicles, Machineries & Other Motorized Equipments With Spare Parts.</p>
-          <p className={styles.address}>No:154, Puttalam Road, Kurunegala, Sri Lanka, Kurunegala</p>
-        </div>
+        <img src="/landing/logoq.png" alt="JL Racing" className={styles.logo} />
       </header>
 
       <main className={styles.container}>
@@ -71,13 +67,6 @@ export default function ReportPage() {
           </div>
 
           <table className={styles.reportTable}>
-            <thead>
-              <tr>
-                <th className={styles.desc}>Description</th>
-                <th>Debit / Expense</th>
-                <th>Credit / Income</th>
-              </tr>
-            </thead>
             <tbody>
               <tr>
                 <td className={styles.desc}>Cash Outstanding</td>
