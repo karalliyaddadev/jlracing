@@ -7,10 +7,15 @@
 
 .topbar {
   background: #000;
+  color: #fff;
+  width: calc(100% + 48px);
+  margin: -32px -24px 24px;
   padding: 20px 0;
   display: flex;
   justify-content: center;
   align-items: center;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 .logo {
@@ -89,8 +94,11 @@
 
 .dividerBar {
   height: 14px;
+  width: 100%;
   background: #000;
   margin: 12px 0 18px 0;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
 }
 
 .reportTable {

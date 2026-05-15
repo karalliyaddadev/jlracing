@@ -14,10 +14,12 @@ import {
   IconUsers,
   IconInvoice,
   IconInventory,
-  IconActivity,
   IconTrend,
   IconBike,
+  IconActivity,
 } from "../lib/icons";
+
+type RevenueViewMode = "DAILY" | "MONTHLY" | "YEARLY";
 
 type Purchase = {
   id: number;
@@ -27,34 +29,27 @@ type Purchase = {
   finalSellingPrice: number;
   purchaseChannel?: "PERSONAL" | "LEASING";
   remainingAmount?: number;
+  inventory?: { id: number };
+  bike?: { id: number };
   customer: { id: number };
-  bike?: { id: number } | null;
-  inventory?: { id: number } | null;
 };
 
 type InventoryProduct = {
   id: number;
   quantity: number;
-  soldQuantity?: number;
+  lowStockThreshold?: number | null;
   taxPaid?: number;
   additionalExpenses?: number;
-  lowStockThreshold?: number | null;
-};
-
-type VehicleExpense = {
-  amount: number;
 };
 
 type VehicleSummary = {
   id: number;
   status: "available" | "sold";
   taxAmount?: number;
-  expenses?: VehicleExpense[];
+  expenses?: Array<{ amount: number }>;
 };
 
-type RevenueViewMode = "DAILY" | "MONTHLY" | "YEARLY";
-
-function formatDateForInput(date: Date): string {
+function formatDateForInput(date: Date) {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
@@ -503,6 +498,20 @@ export default function DashboardPage() {
         totalPrice: `LKR ${formatCurrency(financialSummary.leasingOutstanding)}`,
       },
     ];
+    const tableRows = rows
+      .map((row) => {
+        const isRevenue = row.label.toLowerCase().includes('revenue');
+        const isTax = row.label.toLowerCase().includes('tax');
+        const isOther = row.label.toLowerCase().includes('other');
+        return [
+          '<tr>',
+          `<td class="col-desc">${row.label}</td>`,
+          `<td class="col-center">${isTax || isOther ? row.totalPrice : ''}</td>`,
+          `<td class="col-right">${isRevenue ? row.totalPrice : ''}</td>`,
+          '</tr>',
+        ].join('');
+      })
+      .join('');
     const html = `
 <!doctype html>
 <html>
@@ -514,7 +523,7 @@ export default function DashboardPage() {
       * { box-sizing: border-box; }
       body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #111; background: #fff; }
       .sheet { width: 100%; max-width: 198mm; margin: 0 auto; background: #fff; }
-      .header { background: #000; color: #caa24a; text-align: center; padding: 18px 16px; }
+      .header { background: #000; color: #caa24c; text-align: center; padding: 18px 16px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .logo { width: 110px; height: auto; display: block; margin: 0 auto 6px; }
       .brand { margin: 0; font-size: 12px; font-weight: 700; }
       .brand-title { margin: 4px 0 0; font-size: 11px; font-weight: 600; }
@@ -524,7 +533,7 @@ export default function DashboardPage() {
       .invoice-number { font-size: 18px; font-weight: 700; margin: 0 0 6px; }
       .report-date { font-size: 14px; font-weight: 700; margin: 0; text-align: right; }
       .range { margin: 8px 0 12px 0; color: #666; font-size: 13px; }
-      .divider { height: 16px; background: #000; margin: 12px 0 18px; }
+      .divider { height: 16px; width: 100%; background: #000; margin: 12px 0 18px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
       .table { width: 100%; border-collapse: collapse; }
       .table thead th { text-align: left; padding: 10px 8px; border-bottom: 2px solid #999; font-size: 13px; font-weight: 700; }
       .table tbody td { padding: 14px 8px; border-bottom: 1px solid #e6e6e6; vertical-align: top; font-size: 13px; color: #444; }
@@ -541,7 +550,7 @@ export default function DashboardPage() {
       .total-label { font-weight: 700; color: #111; }
       .total-value { font-weight: 700; color: #111; }
       .footer-note { margin-top: 16px; font-size: 11px; color: #777; }
-      @media print { body { background: #fff; } .sheet { max-width: none; width: 100%; margin: 0; } }
+      @media print { body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; } .sheet { max-width: none; width: 100%; margin: 0; } }
     </style>
   </head>
   <body>
@@ -575,18 +584,7 @@ export default function DashboardPage() {
             </tr>
           </thead>
           <tbody>
-            ${rows.map((row) => {
-              const isRevenue = row.label.toLowerCase().includes('revenue');
-              const isTax = row.label.toLowerCase().includes('tax');
-              const isOther = row.label.toLowerCase().includes('other');
-              return `
-                <tr>
-                  <td class="col-desc">${row.label}</td>
-                  <td class="col-center">${isTax || isOther ? row.totalPrice : ''}</td>
-                  <td class="col-right">${isRevenue ? row.totalPrice : ''}</td>
-                </tr>
-              `;
-            }).join('')}
+            ${tableRows}
           </tbody>
         </table>
 
@@ -609,12 +607,12 @@ export default function DashboardPage() {
           <tbody>
             <tr>
               <td>Cash Outstanding</td>
-              <td style="text-align:center">${`Rs. ${formatCurrency(financialSummary.cashOutstanding)}`}</td>
+              <td style="text-align:center">Rs. ${formatCurrency(financialSummary.cashOutstanding)}</td>
               <td></td>
             </tr>
             <tr>
               <td>Leasing Outstanding</td>
-              <td style="text-align:center">${`Rs. ${formatCurrency(financialSummary.leasingOutstanding)}`}</td>
+              <td style="text-align:center">Rs. ${formatCurrency(financialSummary.leasingOutstanding)}</td>
               <td></td>
             </tr>
           </tbody>
@@ -622,7 +620,7 @@ export default function DashboardPage() {
 
         <div class="total-row">
           <div class="total-label">Total Outstanding</div>
-          <div class="total-value">${`Rs. ${formatCurrency(financialSummary.totalOutstanding)}`}</div>
+          <div class="total-value">Rs. ${formatCurrency(financialSummary.totalOutstanding)}</div>
         </div>
 
         <div class="footer-note">This document is formatted for print and PDF export from the dashboard. ${generatedAt}</div>
