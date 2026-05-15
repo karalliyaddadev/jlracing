@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   title: "JL Racing International — Global Vehicle Export",
   description:
     "Japanese licensed direct auction export service. We source, bid, and deliver vehicles to any country worldwide.",
-  icons: { icon: "/logo.png" },
+  icons: { icon: "/images/international-logo.png" },
 };
 
 export default function RootLayout({

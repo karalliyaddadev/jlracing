@@ -5,7 +5,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { VehicleCategory } from "../data/vehicles";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
+const CMS_API_URL =
+  process.env.NEXT_PUBLIC_CMS_API_URL ?? "http://localhost:5001";
 
 const CATEGORIES: VehicleCategory[] = [
   "2-Wheelers",
@@ -31,7 +32,6 @@ const CATEGORY_ICONS: Record<
   },
 };
 
-/* ─── Types ─────────────────────────────────────────────── */
 interface VehicleImage {
   id: number;
   url: string;
@@ -39,16 +39,7 @@ interface VehicleImage {
   sortOrder: number;
 }
 
-interface ApiBikeVehicle {
-  id: number;
-  brand: { id: number; name: string };
-  model: { id: number; name: string };
-  year: number | null;
-  sellingPrice: number | null;
-  images: VehicleImage[];
-}
-
-interface ApiExportVehicle {
+interface ListingVehicle {
   id: number;
   brand: string;
   model: string;
@@ -65,7 +56,6 @@ interface ListingCard {
   image: string | null;
 }
 
-/* ─── Helpers ────────────────────────────────────────────── */
 function formatPrice(price: number | null | undefined): string {
   if (!price) return "Contact for price";
   return `Rs. ${price.toLocaleString("en-LK")}`;
@@ -74,7 +64,7 @@ function formatPrice(price: number | null | undefined): string {
 function getPrimaryImage(images: VehicleImage[]): string | null {
   if (!images.length) return null;
   const primary = images.find((i) => i.isPrimary) ?? images[0];
-  return `${BACKEND_URL}${primary.url}`;
+  return `${CMS_API_URL}${primary.url}`;
 }
 
 function categorySlug(cat: VehicleCategory): string {
@@ -86,7 +76,30 @@ function categorySlug(cat: VehicleCategory): string {
 type FetchState = { loading: boolean; cards: ListingCard[] };
 const INITIAL: FetchState = { loading: false, cards: [] };
 
-/* ─── Component ──────────────────────────────────────────── */
+function fetchCategory(
+  cat: VehicleCategory,
+  setter: React.Dispatch<React.SetStateAction<FetchState>>,
+) {
+  setter((s) => ({ ...s, loading: true }));
+  fetch(
+    `${CMS_API_URL}/api/listings/active?category=${encodeURIComponent(cat)}&limit=3`,
+  )
+    .then((r) => (r.ok ? r.json() : Promise.reject()))
+    .then((data) => {
+      const cards: ListingCard[] = (data.vehicles ?? []).map(
+        (v: ListingVehicle) => ({
+          id: v.id,
+          name: `${v.brand} ${v.model}`,
+          year: v.year,
+          price: formatPrice(v.price),
+          image: getPrimaryImage(v.images),
+        }),
+      );
+      setter({ loading: false, cards });
+    })
+    .catch(() => setter({ loading: false, cards: [] }));
+}
+
 export default function VehicleListings() {
   const [active, setActive] = useState<VehicleCategory>("Automobiles");
 
@@ -94,62 +107,9 @@ export default function VehicleListings() {
   const [autos, setAutos] = useState<FetchState>(INITIAL);
   const [heavy, setHeavy] = useState<FetchState>(INITIAL);
 
-  useEffect(() => {
-    setBikes((s) => ({ ...s, loading: true }));
-    fetch(`${BACKEND_URL}/api/bikes/vehicles?limit=3`)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((data) => {
-        const cards: ListingCard[] = (data.vehicles ?? []).map(
-          (v: ApiBikeVehicle) => ({
-            id: v.id,
-            name: `${v.brand.name} ${v.model.name}`,
-            year: v.year,
-            price: formatPrice(v.sellingPrice),
-            image: getPrimaryImage(v.images),
-          }),
-        );
-        setBikes({ loading: false, cards });
-      })
-      .catch(() => setBikes({ loading: false, cards: [] }));
-  }, []);
-
-  useEffect(() => {
-    setAutos((s) => ({ ...s, loading: true }));
-    fetch(`${BACKEND_URL}/api/export-vehicles/automobile?limit=3`)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((data) => {
-        const cards: ListingCard[] = (data.vehicles ?? []).map(
-          (v: ApiExportVehicle) => ({
-            id: v.id,
-            name: `${v.brand} ${v.model}`,
-            year: v.year,
-            price: formatPrice(v.price),
-            image: getPrimaryImage(v.images),
-          }),
-        );
-        setAutos({ loading: false, cards });
-      })
-      .catch(() => setAutos({ loading: false, cards: [] }));
-  }, []);
-
-  useEffect(() => {
-    setHeavy((s) => ({ ...s, loading: true }));
-    fetch(`${BACKEND_URL}/api/export-vehicles/heavy-machinery?limit=3`)
-      .then((r) => (r.ok ? r.json() : Promise.reject()))
-      .then((data) => {
-        const cards: ListingCard[] = (data.vehicles ?? []).map(
-          (v: ApiExportVehicle) => ({
-            id: v.id,
-            name: `${v.brand} ${v.model}`,
-            year: v.year,
-            price: formatPrice(v.price),
-            image: getPrimaryImage(v.images),
-          }),
-        );
-        setHeavy({ loading: false, cards });
-      })
-      .catch(() => setHeavy({ loading: false, cards: [] }));
-  }, []);
+  useEffect(() => { fetchCategory("2-Wheelers", setBikes); }, []);
+  useEffect(() => { fetchCategory("Automobiles", setAutos); }, []);
+  useEffect(() => { fetchCategory("Heavy Machinery", setHeavy); }, []);
 
   const activeState =
     active === "2-Wheelers" ? bikes : active === "Automobiles" ? autos : heavy;
@@ -220,7 +180,7 @@ export default function VehicleListings() {
                 <div className="int-veh-card__body">
                   <h3 className="int-veh-card__name">
                     {vehicle.name}
-                    {vehicle.year ? `\u00a0\u00a0${vehicle.year}` : ""}
+                    {vehicle.year ? `  ${vehicle.year}` : ""}
                   </h3>
                   <p className="int-veh-card__price">{vehicle.price}</p>
                   <span className="int-veh-card__cta">Explore More &gt;</span>

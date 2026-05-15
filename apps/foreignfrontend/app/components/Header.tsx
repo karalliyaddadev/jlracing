@@ -27,7 +27,7 @@ export default function Header() {
       <nav className="header__nav">
         <Link href="/" className="header__logo">
           <img
-            src="/images/international-logo.jpeg"
+            src="/images/international-logo.png"
             alt="JL Racing"
             className="header__logo-img"
           />
