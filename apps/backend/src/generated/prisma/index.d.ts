@@ -24008,6 +24008,7 @@ export namespace Prisma {
     expectedArrival: string | null
     status: string | null
     description: string | null
+    pdfUrl: string | null
     isPublished: boolean | null
     sortOrder: number | null
     createdAt: Date | null
@@ -24027,6 +24028,7 @@ export namespace Prisma {
     expectedArrival: string | null
     status: string | null
     description: string | null
+    pdfUrl: string | null
     isPublished: boolean | null
     sortOrder: number | null
     createdAt: Date | null
@@ -24046,6 +24048,7 @@ export namespace Prisma {
     expectedArrival: number
     status: number
     description: number
+    pdfUrl: number
     isPublished: number
     sortOrder: number
     createdAt: number
@@ -24081,6 +24084,7 @@ export namespace Prisma {
     expectedArrival?: true
     status?: true
     description?: true
+    pdfUrl?: true
     isPublished?: true
     sortOrder?: true
     createdAt?: true
@@ -24100,6 +24104,7 @@ export namespace Prisma {
     expectedArrival?: true
     status?: true
     description?: true
+    pdfUrl?: true
     isPublished?: true
     sortOrder?: true
     createdAt?: true
@@ -24119,6 +24124,7 @@ export namespace Prisma {
     expectedArrival?: true
     status?: true
     description?: true
+    pdfUrl?: true
     isPublished?: true
     sortOrder?: true
     createdAt?: true
@@ -24225,6 +24231,7 @@ export namespace Prisma {
     expectedArrival: string | null
     status: string
     description: string | null
+    pdfUrl: string | null
     isPublished: boolean
     sortOrder: number
     createdAt: Date
@@ -24263,6 +24270,7 @@ export namespace Prisma {
     expectedArrival?: boolean
     status?: boolean
     description?: boolean
+    pdfUrl?: boolean
     isPublished?: boolean
     sortOrder?: boolean
     createdAt?: boolean
@@ -24284,6 +24292,7 @@ export namespace Prisma {
     expectedArrival?: boolean
     status?: boolean
     description?: boolean
+    pdfUrl?: boolean
     isPublished?: boolean
     sortOrder?: boolean
     createdAt?: boolean
@@ -24303,6 +24312,7 @@ export namespace Prisma {
     expectedArrival?: boolean
     status?: boolean
     description?: boolean
+    pdfUrl?: boolean
     isPublished?: boolean
     sortOrder?: boolean
     createdAt?: boolean
@@ -24333,6 +24343,7 @@ export namespace Prisma {
       expectedArrival: string | null
       status: string
       description: string | null
+      pdfUrl: string | null
       isPublished: boolean
       sortOrder: number
       createdAt: Date
@@ -24743,6 +24754,7 @@ export namespace Prisma {
     readonly expectedArrival: FieldRef<"PreOrder", 'String'>
     readonly status: FieldRef<"PreOrder", 'String'>
     readonly description: FieldRef<"PreOrder", 'String'>
+    readonly pdfUrl: FieldRef<"PreOrder", 'String'>
     readonly isPublished: FieldRef<"PreOrder", 'Boolean'>
     readonly sortOrder: FieldRef<"PreOrder", 'Int'>
     readonly createdAt: FieldRef<"PreOrder", 'DateTime'>
@@ -29499,6 +29511,7 @@ export namespace Prisma {
     expectedArrival: 'expectedArrival',
     status: 'status',
     description: 'description',
+    pdfUrl: 'pdfUrl',
     isPublished: 'isPublished',
     sortOrder: 'sortOrder',
     createdAt: 'createdAt',
@@ -31309,6 +31322,7 @@ export namespace Prisma {
     expectedArrival?: StringNullableFilter<"PreOrder"> | string | null
     status?: StringFilter<"PreOrder"> | string
     description?: StringNullableFilter<"PreOrder"> | string | null
+    pdfUrl?: StringNullableFilter<"PreOrder"> | string | null
     isPublished?: BoolFilter<"PreOrder"> | boolean
     sortOrder?: IntFilter<"PreOrder"> | number
     createdAt?: DateTimeFilter<"PreOrder"> | Date | string
@@ -31329,6 +31343,7 @@ export namespace Prisma {
     expectedArrival?: SortOrderInput | SortOrder
     status?: SortOrder
     description?: SortOrderInput | SortOrder
+    pdfUrl?: SortOrderInput | SortOrder
     isPublished?: SortOrder
     sortOrder?: SortOrder
     createdAt?: SortOrder
@@ -31352,6 +31367,7 @@ export namespace Prisma {
     expectedArrival?: StringNullableFilter<"PreOrder"> | string | null
     status?: StringFilter<"PreOrder"> | string
     description?: StringNullableFilter<"PreOrder"> | string | null
+    pdfUrl?: StringNullableFilter<"PreOrder"> | string | null
     isPublished?: BoolFilter<"PreOrder"> | boolean
     sortOrder?: IntFilter<"PreOrder"> | number
     createdAt?: DateTimeFilter<"PreOrder"> | Date | string
@@ -31372,6 +31388,7 @@ export namespace Prisma {
     expectedArrival?: SortOrderInput | SortOrder
     status?: SortOrder
     description?: SortOrderInput | SortOrder
+    pdfUrl?: SortOrderInput | SortOrder
     isPublished?: SortOrder
     sortOrder?: SortOrder
     createdAt?: SortOrder
@@ -31399,6 +31416,7 @@ export namespace Prisma {
     expectedArrival?: StringNullableWithAggregatesFilter<"PreOrder"> | string | null
     status?: StringWithAggregatesFilter<"PreOrder"> | string
     description?: StringNullableWithAggregatesFilter<"PreOrder"> | string | null
+    pdfUrl?: StringNullableWithAggregatesFilter<"PreOrder"> | string | null
     isPublished?: BoolWithAggregatesFilter<"PreOrder"> | boolean
     sortOrder?: IntWithAggregatesFilter<"PreOrder"> | number
     createdAt?: DateTimeWithAggregatesFilter<"PreOrder"> | Date | string
@@ -33331,6 +33349,7 @@ export namespace Prisma {
     expectedArrival?: string | null
     status?: string
     description?: string | null
+    pdfUrl?: string | null
     isPublished?: boolean
     sortOrder?: number
     createdAt?: Date | string
@@ -33351,6 +33370,7 @@ export namespace Prisma {
     expectedArrival?: string | null
     status?: string
     description?: string | null
+    pdfUrl?: string | null
     isPublished?: boolean
     sortOrder?: number
     createdAt?: Date | string
@@ -33370,6 +33390,7 @@ export namespace Prisma {
     expectedArrival?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    pdfUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -33390,6 +33411,7 @@ export namespace Prisma {
     expectedArrival?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    pdfUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -33410,6 +33432,7 @@ export namespace Prisma {
     expectedArrival?: string | null
     status?: string
     description?: string | null
+    pdfUrl?: string | null
     isPublished?: boolean
     sortOrder?: number
     createdAt?: Date | string
@@ -33428,6 +33451,7 @@ export namespace Prisma {
     expectedArrival?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    pdfUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -33447,6 +33471,7 @@ export namespace Prisma {
     expectedArrival?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    pdfUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -35261,6 +35286,7 @@ export namespace Prisma {
     expectedArrival?: SortOrder
     status?: SortOrder
     description?: SortOrder
+    pdfUrl?: SortOrder
     isPublished?: SortOrder
     sortOrder?: SortOrder
     createdAt?: SortOrder
@@ -35287,6 +35313,7 @@ export namespace Prisma {
     expectedArrival?: SortOrder
     status?: SortOrder
     description?: SortOrder
+    pdfUrl?: SortOrder
     isPublished?: SortOrder
     sortOrder?: SortOrder
     createdAt?: SortOrder
@@ -35306,6 +35333,7 @@ export namespace Prisma {
     expectedArrival?: SortOrder
     status?: SortOrder
     description?: SortOrder
+    pdfUrl?: SortOrder
     isPublished?: SortOrder
     sortOrder?: SortOrder
     createdAt?: SortOrder
@@ -39743,6 +39771,7 @@ export namespace Prisma {
     expectedArrival?: string | null
     status?: string
     description?: string | null
+    pdfUrl?: string | null
     isPublished?: boolean
     sortOrder?: number
     createdAt?: Date | string
@@ -39762,6 +39791,7 @@ export namespace Prisma {
     expectedArrival?: string | null
     status?: string
     description?: string | null
+    pdfUrl?: string | null
     isPublished?: boolean
     sortOrder?: number
     createdAt?: Date | string
@@ -39796,6 +39826,7 @@ export namespace Prisma {
     expectedArrival?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    pdfUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -39815,6 +39846,7 @@ export namespace Prisma {
     expectedArrival?: NullableStringFieldUpdateOperationsInput | string | null
     status?: StringFieldUpdateOperationsInput | string
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    pdfUrl?: NullableStringFieldUpdateOperationsInput | string | null
     isPublished?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string

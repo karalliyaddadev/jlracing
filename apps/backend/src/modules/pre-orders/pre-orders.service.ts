@@ -222,6 +222,17 @@ export async function deletePreOrder(id: number) {
   await prisma.preOrder.delete({ where: { id } });
 }
 
+// ── PDF ────────────────────────────────────────────────────────────────────
+
+export async function updatePreOrderPdf(id: number, pdfUrl: string) {
+  await getPreOrder(id);
+  return prisma.preOrder.update({
+    where: { id },
+    data: { pdfUrl },
+    include: preOrderInclude,
+  });
+}
+
 // ── Images ─────────────────────────────────────────────────────────────────
 
 export async function addPreOrderImage(preOrderId: number, url: string) {

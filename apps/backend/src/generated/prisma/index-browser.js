@@ -364,6 +364,7 @@ exports.Prisma.PreOrderScalarFieldEnum = {
   expectedArrival: 'expectedArrival',
   status: 'status',
   description: 'description',
+  pdfUrl: 'pdfUrl',
   isPublished: 'isPublished',
   sortOrder: 'sortOrder',
   createdAt: 'createdAt',

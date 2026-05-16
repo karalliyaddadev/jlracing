@@ -3353,6 +3353,15 @@ button {
   justify-content: center;
 }
 
+.bikedetail__btn--brochure {
+  background: transparent;
+  color: var(--text-dark);
+  border: 1.5px solid var(--border);
+  flex: 1;
+  justify-content: center;
+  gap: 0.4rem;
+}
+
 .bikedetail-notfound {
   min-height: 60vh;
   display: flex;
@@ -3788,6 +3797,88 @@ button {
 
 .contact-map__embed iframe {
   display: block;
+}
+
+.contact-map__cta {
+  margin-top: 1.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.contact-map__visit-btn {
+  display: inline-block;
+  padding: 0.75rem 2rem;
+  background: var(--gold);
+  color: #000;
+  font-weight: 700;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  transition: opacity 0.2s;
+}
+
+.contact-map__visit-btn:hover {
+  opacity: 0.85;
+}
+
+/* ── FAQ Hero ── */
+.faq-hero {
+  position: relative;
+  height: clamp(480px, 68vh, 700px);
+  margin-top: calc(var(--header-h) + var(--announce-h));
+  background: url("/images/faq-hero.jpg") center/cover no-repeat;
+  overflow: hidden;
+}
+
+.faq-hero__overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to right,
+    rgba(5, 5, 5, 0.72) 0%,
+    rgba(5, 5, 5, 0.45) 60%,
+    rgba(5, 5, 5, 0.08) 100%
+  );
+}
+
+.faq-hero__content {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  left: clamp(1.5rem, 5vw, 5rem);
+  z-index: 1;
+  max-width: 580px;
+  color: #fff;
+}
+
+.faq-hero__label {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 1rem;
+}
+
+.faq-hero__title {
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.2;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.faq-hero__title em {
+  font-style: italic;
+  font-weight: 800;
+}
+
+@media (max-width: 600px) {
+  .faq-hero {
+    height: 360px;
+  }
 }
 
 /* ── Contact FAQ ── */
@@ -4673,6 +4764,12 @@ button {
 
 .po-detail__deposit-note strong {
   font-weight: 700;
+}
+
+.po-detail__deposit-text {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
 }
 
 /* ═══════════════════════════════════════════════════════════

@@ -149,6 +149,26 @@ export async function deletePreOrder(
   }
 }
 
+// ── PDF controller ─────────────────────────────────────────────────────────
+
+export async function uploadPreOrderPdf(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const preOrderId = parseInt(req.params.preOrderId as string);
+    if (isNaN(preOrderId)) throw new Error("Invalid ID");
+    const file = (req as Request & { file?: Express.Multer.File }).file;
+    if (!file) throw new Error("No file uploaded");
+    const url = `/uploads/pre-orders/${file.filename}`;
+    const updated = await svc.updatePreOrderPdf(preOrderId, url);
+    res.status(200).json(updated);
+  } catch (err) {
+    next(err);
+  }
+}
+
 // ── Image controllers ──────────────────────────────────────────────────────
 
 export async function uploadPreOrderImage(

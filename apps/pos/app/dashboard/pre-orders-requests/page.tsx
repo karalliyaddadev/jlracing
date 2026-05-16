@@ -34,6 +34,7 @@ type PreOrder = {
   isPublished: boolean;
   sortOrder: number;
   images: PreOrderImage[];
+  pdfUrl?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -163,6 +164,9 @@ export default function PreOrdersRequestsPage() {
   const [imageError, setImageError] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [uploadingImages, setUploadingImages] = useState(false);
+  const [pendingPdf, setPendingPdf] = useState<File | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
 
   // ── Contact requests state
   const [requests, setRequests] = useState<ContactRequest[]>([]);
@@ -286,6 +290,9 @@ export default function PreOrdersRequestsPage() {
     setImageError(null);
     setPendingImages([]);
     if (imageInputRef.current) imageInputRef.current.value = "";
+    setPendingPdf(null);
+    setPdfError(null);
+    if (pdfInputRef.current) pdfInputRef.current.value = "";
   }
 
   function openAddPreOrder() {
@@ -295,6 +302,8 @@ export default function PreOrdersRequestsPage() {
     setPendingImages([]);
     setImageError(null);
     setPreOrderModalError(null);
+    setPendingPdf(null);
+    setPdfError(null);
     setShowPreOrderModal(true);
   }
 
@@ -320,6 +329,8 @@ export default function PreOrdersRequestsPage() {
     setPendingImages([]);
     setImageError(null);
     setPreOrderModalError(null);
+    setPendingPdf(null);
+    setPdfError(null);
     setShowPreOrderModal(true);
   }
 
@@ -445,6 +456,16 @@ export default function PreOrdersRequestsPage() {
           });
         }
         setUploadingImages(false);
+      }
+
+      if (pendingPdf) {
+        const fd = new FormData();
+        fd.append("pdf", pendingPdf);
+        await fetch(`${API_URL}/api/pos/pre-orders/${saved.id}/pdf`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        });
       }
 
       setShowPreOrderModal(false);
@@ -1694,6 +1715,75 @@ export default function PreOrdersRequestsPage() {
                     </div>
                   )}
                 </div>
+
+                {/* PDF Brochure */}
+                <div className="form-section-title" style={{ marginTop: "1.5rem" }}>Brochure (PDF)</div>
+                <div className="images-section">
+                  {editingPreOrder?.pdfUrl && !pendingPdf && (
+                    <div className="pdf-existing">
+                      <span>Current brochure:</span>
+                      <a
+                        href={`${API_URL}${editingPreOrder.pdfUrl}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="pdf-link"
+                      >
+                        View PDF
+                      </a>
+                    </div>
+                  )}
+                  <input
+                    ref={pdfInputRef}
+                    type="file"
+                    accept="application/pdf"
+                    onChange={(e) => {
+                      setPdfError(null);
+                      const file = e.target.files?.[0] ?? null;
+                      if (file && file.size > 20 * 1024 * 1024) {
+                        setPdfError("PDF exceeds 20 MB limit.");
+                        if (pdfInputRef.current) pdfInputRef.current.value = "";
+                        return;
+                      }
+                      setPendingPdf(file);
+                      if (pdfInputRef.current) pdfInputRef.current.value = "";
+                    }}
+                    className="sr-only-file-input"
+                  />
+                  <div className="upload-panel">
+                    <div className="upload-panel-copy">
+                      <strong>{editingPreOrder?.pdfUrl ? "Change Brochure PDF" : "Upload Brochure PDF"}</strong>
+                      <p>
+                        Optional. Upload a product brochure PDF (max 20 MB). Customers can view it on the pre-order listing page.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn-outline"
+                      onClick={() => pdfInputRef.current?.click()}
+                    >
+                      {editingPreOrder?.pdfUrl ? "Change PDF" : "Upload PDF"}
+                    </button>
+                  </div>
+                  {pdfError && <div className="bm-alert bm-alert-error">{pdfError}</div>}
+                  {pendingPdf ? (
+                    <div className="pending-image-card" style={{ marginTop: "0.5rem" }}>
+                      <div className="pending-image-meta">
+                        <span className="pending-image-name">{pendingPdf.name}</span>
+                        <span className="pending-image-size">{(pendingPdf.size / (1024 * 1024)).toFixed(2)} MB</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="pending-image-remove"
+                        onClick={() => setPendingPdf(null)}
+                        title="Remove PDF"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="upload-empty-state">No PDF selected yet.</div>
+                  )}
+                </div>
               </div>
               <div className="bm-modal-footer">
                 <button
@@ -2153,6 +2243,25 @@ export default function PreOrdersRequestsPage() {
           color: var(--text-secondary);
           font-size: 0.84rem;
           background: color-mix(in srgb, var(--bg-card) 88%, var(--bg-secondary) 12%);
+        }
+        .pdf-existing {
+          display: flex;
+          align-items: center;
+          gap: 0.75rem;
+          padding: 0.65rem 0.9rem;
+          border-radius: 8px;
+          border: 1px solid var(--border-color);
+          background: var(--bg-secondary);
+          font-size: 0.875rem;
+          color: var(--text-secondary);
+        }
+        .pdf-link {
+          color: var(--accent);
+          font-weight: 600;
+          text-decoration: none;
+        }
+        .pdf-link:hover {
+          text-decoration: underline;
         }
         .sr-only-file-input {
           display: none;

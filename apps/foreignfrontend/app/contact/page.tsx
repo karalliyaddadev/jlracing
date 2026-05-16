@@ -520,20 +520,20 @@ export default function ContactPage() {
             <div className="cnt-map__frame-wrap">
               <iframe
                 className="cnt-map__iframe"
-                src="https://www.openstreetmap.org/export/embed.html?bbox=80.345%2C7.482%2C80.375%2C7.500&layer=mapnik&marker=7.4910%2C80.3600"
+                src="https://maps.google.com/maps?q=JL+Racing+No+154+Katugastota+Kurunegala+Puttalam+Highway+Kurunegala+60000+Sri+Lanka&t=&z=17&ie=UTF8&iwloc=&output=embed"
                 allowFullScreen
                 loading="lazy"
-                title="JLR International Office Location"
+                title="JL Racing Location"
               />
               <div className="cnt-map__overlay-card">
-                <p className="cnt-map__overlay-title">Visit our Office</p>
+                <p className="cnt-map__overlay-title">No.154 Katugastota – Kurunegala – Puttalam Hwy</p>
                 <a
-                  href="https://www.google.com/maps/dir/?api=1&destination=No.154+Puttalam+Road%2C+Kurunegala+60000%2C+Sri+Lanka"
+                  href="https://www.google.com/maps/search/JL+Racing+No.154+Katugastota+Kurunegala+Puttalam+Highway+Kurunegala+60000+Sri+Lanka"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="cnt-map__direction-btn"
                 >
-                  Get a Direction →
+                  Visit Us →
                 </a>
               </div>
             </div>
