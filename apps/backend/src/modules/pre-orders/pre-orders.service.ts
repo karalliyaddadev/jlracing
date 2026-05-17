@@ -1,5 +1,5 @@
 import { prisma } from "../../database/prisma.client";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../generated/prisma";
 import { AppError } from "../../common/utils/errors";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -220,6 +220,17 @@ export async function updatePreOrder(id: number, dto: UpdatePreOrderDto) {
 export async function deletePreOrder(id: number) {
   await getPreOrder(id);
   await prisma.preOrder.delete({ where: { id } });
+}
+
+// ── PDF ────────────────────────────────────────────────────────────────────
+
+export async function updatePreOrderPdf(id: number, pdfUrl: string) {
+  await getPreOrder(id);
+  return prisma.preOrder.update({
+    where: { id },
+    data: { pdfUrl },
+    include: preOrderInclude,
+  });
 }
 
 // ── Images ─────────────────────────────────────────────────────────────────

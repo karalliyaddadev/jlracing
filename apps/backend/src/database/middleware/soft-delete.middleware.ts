@@ -10,7 +10,7 @@
  * - To see all records: Use raw queries or add a bypass parameter
  */
 
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../../generated/prisma";
 
 /**
  * Models that support soft delete (have deletedAt field)

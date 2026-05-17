@@ -434,7 +434,7 @@ export default function InvoicesPage() {
     return `
       <div class="invoice-paper" style="width: 100%; max-width: 198mm; margin: 0 auto; background: #fff;">
         <header class="invoice-paper-header" style="background: #000; color: #caa24a; text-align: center; padding: 12px 16px 10px;">
-          <img src="/landing/logo.jpg" alt="JL Racing" class="invoice-brand-logo" style="width: 110px; height: auto; display: block; margin: 0 auto 6px;" />
+          <img src="/landing/logoq.png" alt="JL Racing" class="invoice-brand-logo" style="width: 110px; height: auto; display: block; margin: 0 auto 6px;" />
           <p class="invoice-brand-line" style="margin: 0; font-size: 14px; font-weight: 700; line-height: 1.3; letter-spacing: 0.01em;">JL Racing</p>
           <p class="invoice-brand-line" style="margin: 0; font-size: 11px; font-weight: 700; line-height: 1.35;">Importers, Exporters & Dealers Of Motorcycles, Motor Vehicles, Machineries & Other</p>
           <p class="invoice-brand-line" style="margin: 0; font-size: 11px; font-weight: 700; line-height: 1.35;">Motorized Equipments With Spare Parts.</p>
@@ -610,7 +610,7 @@ export default function InvoicesPage() {
             <button type="button" className="bm-modal-close" onClick={() => setSelectedInvoice(null)}>x</button>
             <div className="invoice-paper">
               <header className="invoice-paper-header">
-                <img src="/landing/logo.jpg" alt="JL Racing" className="invoice-brand-logo" />
+                <img src="/landing/logoq.png" alt="JL Racing" className="invoice-brand-logo" />
                 <p className="invoice-brand-line">Importers, Exporters & Dealers Of Motorcycles, Motor Vehicles, Machineries & Other</p>
                 <p className="invoice-brand-line">Motorized Equipments With Spare Parts.</p>
                 <p className="invoice-brand-address">No:154, Puttalam Road, Kurunegala, Sri Lanka, Kurunegala</p>

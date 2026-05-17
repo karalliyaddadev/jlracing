@@ -53,21 +53,6 @@ const LOCAL_CONFIG: SiteConfig = {
           icon: "image",
         },
         { href: "/local/dashboard/video", label: "Video", icon: "play" },
-        {
-          href: "/local/dashboard/bikes",
-          label: "Bike Listings",
-          icon: "bike",
-        },
-        {
-          href: "/local/dashboard/spare-parts",
-          label: "Spare Parts",
-          icon: "cog",
-        },
-        {
-          href: "/local/dashboard/pre-orders",
-          label: "Pre Orders",
-          icon: "cart",
-        },
       ],
     },
     {
@@ -79,12 +64,12 @@ const LOCAL_CONFIG: SiteConfig = {
       ],
     },
     {
-      group: "Settings",
+      group: "Subscribers",
       items: [
         {
-          href: "/local/dashboard/settings",
-          label: "Site Settings",
-          icon: "settings",
+          href: "/local/dashboard/newsletter",
+          label: "Newsletter",
+          icon: "mail",
         },
       ],
     },
@@ -98,10 +83,7 @@ const LOCAL_CONFIG: SiteConfig = {
   actions: [
     { label: "Edit Hero Banner", href: "/local/dashboard/hero-banner" },
     { label: "Add Blog Post", href: "/local/dashboard/blog" },
-    { label: "Manage Bikes", href: "/local/dashboard/bikes" },
     { label: "Upload to Gallery", href: "/local/dashboard/gallery" },
-    { label: "Manage Spare Parts", href: "/local/dashboard/spare-parts" },
-    { label: "Pre Orders", href: "/local/dashboard/pre-orders" },
     { label: "Manage FAQs", href: "/local/dashboard/faq" },
   ],
 };
@@ -132,19 +114,24 @@ const INTERNATIONAL_CONFIG: SiteConfig = {
           label: "Video Banner",
           icon: "play",
         },
+      ],
+    },
+    {
+      group: "Listings",
+      items: [
         {
-          href: "/international/dashboard/pdf",
-          label: "Downloadable PDF",
-          icon: "file",
-        },
-        {
-          href: "/international/dashboard/bikes",
-          label: "Bike Inventory",
+          href: "/international/dashboard/2-wheelers",
+          label: "2-Wheelers",
           icon: "bike",
         },
         {
-          href: "/international/dashboard/spare-parts",
-          label: "Spare Parts",
+          href: "/international/dashboard/automobiles",
+          label: "Automobiles",
+          icon: "car",
+        },
+        {
+          href: "/international/dashboard/heavy-machinery",
+          label: "Heavy Machinery",
           icon: "cog",
         },
       ],
@@ -161,6 +148,16 @@ const INTERNATIONAL_CONFIG: SiteConfig = {
           href: "/international/dashboard/faq",
           label: "FAQ",
           icon: "help",
+        },
+      ],
+    },
+    {
+      group: "Subscribers",
+      items: [
+        {
+          href: "/international/dashboard/newsletter",
+          label: "Newsletter",
+          icon: "mail",
         },
       ],
     },
@@ -184,13 +181,10 @@ const INTERNATIONAL_CONFIG: SiteConfig = {
   ],
   actions: [
     { label: "Edit Hero Banner", href: "/international/dashboard/hero-banner" },
-    { label: "Manage PDFs", href: "/international/dashboard/pdf" },
     { label: "Edit Video", href: "/international/dashboard/video" },
-    { label: "Manage Bikes", href: "/international/dashboard/bikes" },
-    {
-      label: "Manage Spare Parts",
-      href: "/international/dashboard/spare-parts",
-    },
+    { label: "Manage 2-Wheelers", href: "/international/dashboard/2-wheelers" },
+    { label: "Manage Automobiles", href: "/international/dashboard/automobiles" },
+    { label: "Manage Heavy Machinery", href: "/international/dashboard/heavy-machinery" },
     { label: "Upload to Gallery", href: "/international/dashboard/gallery" },
     { label: "Manage FAQs", href: "/international/dashboard/faq" },
   ],

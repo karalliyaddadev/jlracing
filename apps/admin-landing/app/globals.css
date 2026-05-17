@@ -4296,3 +4296,268 @@ body {
     max-width: 100%;
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════
+   Newsletter Admin  (/international/dashboard/newsletter)
+   ══════════════════════════════════════════════════════════════════════════ */
+
+.nl-admin {
+  padding: 1.75rem 2rem;
+  max-width: 100%;
+  width: 100%;
+}
+
+.nl-admin__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.75rem;
+}
+
+.nl-admin__title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--d-text);
+  margin: 0 0 0.25rem;
+}
+
+.nl-admin__subtitle {
+  font-size: 0.82rem;
+  color: var(--d-text-3);
+  margin: 0;
+}
+
+.nl-admin__copy-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.55rem 1.1rem;
+  background: var(--d-bg-3);
+  color: var(--d-text-2);
+  border: 1px solid var(--d-border);
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.nl-admin__copy-btn:hover {
+  background: var(--d-bg-2);
+  color: var(--d-text);
+}
+
+.nl-admin__error {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: rgba(248, 113, 113, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 8px;
+  color: #f87171;
+  font-size: 0.82rem;
+  margin-bottom: 1.25rem;
+}
+
+.nl-admin__error button {
+  background: none;
+  border: none;
+  color: #f87171;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  font-size: 0.9rem;
+}
+
+.nl-admin__loading,
+.nl-admin__empty {
+  color: var(--d-text-3);
+  font-size: 0.85rem;
+  padding: 2rem 0;
+  text-align: center;
+}
+
+.nl-admin__table-wrap {
+  overflow-x: auto;
+  border: 1px solid var(--d-border);
+  border-radius: 10px;
+}
+
+.nl-admin__table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.83rem;
+}
+
+.nl-admin__table th {
+  padding: 0.7rem 1rem;
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--d-text-3);
+  background: var(--d-bg-2);
+  border-bottom: 1px solid var(--d-border);
+}
+
+.nl-admin__table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid var(--d-border);
+  color: var(--d-text);
+  vertical-align: middle;
+}
+
+.nl-admin__table tr:last-child td {
+  border-bottom: none;
+}
+
+.nl-admin__table tbody tr:hover td {
+  background: var(--d-bg-2);
+}
+
+.nl-admin__td-email {
+  font-weight: 500;
+}
+
+.nl-admin__td-date {
+  color: var(--d-text-3);
+  font-size: 0.8rem;
+}
+
+.nl-admin__delete-btn {
+  padding: 0.3rem 0.75rem;
+  background: rgba(248, 113, 113, 0.08);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.nl-admin__delete-btn:hover {
+  background: rgba(248, 113, 113, 0.18);
+}
+
+/* ── Modal ── */
+.nl-admin__modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.nl-admin__modal {
+  background: var(--d-bg-card);
+  border: 1px solid var(--d-border);
+  border-radius: 12px;
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.nl-admin__modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--d-border);
+}
+
+.nl-admin__modal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--d-text);
+  margin: 0;
+}
+
+.nl-admin__modal-close {
+  background: none;
+  border: none;
+  color: var(--d-text-3);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.nl-admin__modal-close:hover {
+  color: var(--d-text);
+}
+
+.nl-admin__modal-body {
+  padding: 1.5rem;
+}
+
+.nl-admin__confirm-text {
+  font-size: 0.88rem;
+  color: var(--d-text-2);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.nl-admin__confirm-text strong {
+  color: var(--d-text);
+}
+
+.nl-admin__modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--d-border);
+}
+
+.nl-admin__cancel-btn {
+  padding: 0.55rem 1.1rem;
+  background: var(--d-bg-3);
+  color: var(--d-text-2);
+  border: 1px solid var(--d-border);
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.nl-admin__cancel-btn:hover {
+  background: var(--d-bg-2);
+}
+
+.nl-admin__cancel-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.nl-admin__delete-confirm-btn {
+  padding: 0.55rem 1.25rem;
+  background: rgba(248, 113, 113, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(248, 113, 113, 0.35);
+  border-radius: 7px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.nl-admin__delete-confirm-btn:hover {
+  background: rgba(248, 113, 113, 0.28);
+}
+
+.nl-admin__delete-confirm-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

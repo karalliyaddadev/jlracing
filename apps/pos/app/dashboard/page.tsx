@@ -14,10 +14,12 @@ import {
   IconUsers,
   IconInvoice,
   IconInventory,
-  IconActivity,
   IconTrend,
   IconBike,
+  IconActivity,
 } from "../lib/icons";
+
+type RevenueViewMode = "DAILY" | "MONTHLY" | "YEARLY";
 
 type Purchase = {
   id: number;
@@ -27,32 +29,58 @@ type Purchase = {
   finalSellingPrice: number;
   purchaseChannel?: "PERSONAL" | "LEASING";
   remainingAmount?: number;
+  inventory?: { id: number };
+  bike?: { id: number };
   customer: { id: number };
-  bike?: { id: number } | null;
-  inventory?: { id: number } | null;
 };
 
 type InventoryProduct = {
   id: number;
   quantity: number;
-  soldQuantity?: number;
+  lowStockThreshold?: number | null;
   taxPaid?: number;
   additionalExpenses?: number;
-  lowStockThreshold?: number | null;
-};
-
-type VehicleExpense = {
-  amount: number;
 };
 
 type VehicleSummary = {
   id: number;
   status: "available" | "sold";
   taxAmount?: number;
-  expenses?: VehicleExpense[];
+  expenses?: Array<{ amount: number }>;
 };
 
-type RevenueViewMode = "DAILY" | "MONTHLY" | "YEARLY";
+function formatDateForInput(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+function getDateRangeByFilter(filter: "1d" | "1w" | "1m" | "1yr"): { from: string; to: string } {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  let fromDate: Date;
+
+  if (filter === "1d") {
+    fromDate = new Date(today);
+    fromDate.setDate(today.getDate() - 1);
+  } else if (filter === "1w") {
+    fromDate = new Date(today);
+    fromDate.setDate(today.getDate() - 7);
+  } else if (filter === "1m") {
+    fromDate = new Date(today);
+    fromDate.setDate(today.getDate() - 30);
+  } else {
+    // 1yr
+    fromDate = new Date(today);
+    fromDate.setFullYear(today.getFullYear() - 1);
+  }
+
+  return {
+    from: formatDateForInput(fromDate),
+    to: formatDateForInput(today),
+  };
+}
 
 function dateKeyLocal(date: Date, mode: RevenueViewMode) {
   const year = date.getFullYear();
@@ -274,7 +302,7 @@ export default function DashboardPage() {
     let dailyRevenue = 0;
     let monthlyRevenue = 0;
     let leasingOutstanding = 0;
-    let nonLeasingOutstanding = 0;
+    let cashOutstanding = 0;
 
     filteredFinancePurchases.forEach((purchase: Purchase) => {
       const settledRevenue = getSettledRevenue(purchase);
@@ -292,11 +320,11 @@ export default function DashboardPage() {
       if (purchase.purchaseChannel === "LEASING") {
         leasingOutstanding += remaining;
       } else {
-        nonLeasingOutstanding += remaining;
+        cashOutstanding += remaining;
       }
     });
 
-    const totalOutstanding = nonLeasingOutstanding + leasingOutstanding;
+    const totalOutstanding = cashOutstanding + leasingOutstanding;
     const grossProfit = totalRevenue - (activeTaxes + activeOtherCosts);
 
     return {
@@ -304,6 +332,7 @@ export default function DashboardPage() {
       dailyRevenue,
       monthlyRevenue,
       totalOutstanding,
+      cashOutstanding,
       leasingOutstanding,
       grossProfit,
     };
@@ -469,329 +498,129 @@ export default function DashboardPage() {
         totalPrice: `LKR ${formatCurrency(financialSummary.leasingOutstanding)}`,
       },
     ];
+    const tableRows = rows
+      .map((row) => {
+        const isRevenue = row.label.toLowerCase().includes('revenue');
+        const isTax = row.label.toLowerCase().includes('tax');
+        const isOther = row.label.toLowerCase().includes('other');
+        return [
+          '<tr>',
+          `<td class="col-desc">${row.label}</td>`,
+          `<td class="col-center">${isTax || isOther ? row.totalPrice : ''}</td>`,
+          `<td class="col-right">${isRevenue ? row.totalPrice : ''}</td>`,
+          '</tr>',
+        ].join('');
+      })
+      .join('');
     const html = `
 <!doctype html>
 <html>
   <head>
     <meta charset="utf-8" />
-    <title>JL Racing Finance Report ${dateKeyLocal(new Date(), "DAILY")}</title>
+    <title>JL Racing Sales Report ${dateKeyLocal(new Date(), "DAILY")}</title>
     <style>
       @page { size: A4 portrait; margin: 6mm; }
       * { box-sizing: border-box; }
-      body {
-        margin: 0;
-        font-family: Arial, Helvetica, sans-serif;
-        color: #111;
-        background: #fff;
-      }
-      .sheet {
-        width: 100%;
-        max-width: 198mm;
-        margin: 0 auto;
-        background: #fff;
-        border: 1px solid #d5d5d5;
-      }
-      .header {
-        background: #000;
-        color: #caa24a;
-        text-align: center;
-        padding: 12px 16px 10px;
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-      .logo {
-        width: 110px;
-        height: auto;
-        display: block;
-        margin: 0 auto 6px;
-      }
-      .brand {
-        font-size: 14px;
-        font-weight: 700;
-        line-height: 1.3;
-        letter-spacing: 0.01em;
-        margin: 0;
-      }
-      .brand-title {
-        margin: 0;
-        font-size: 11px;
-        font-weight: 700;
-        line-height: 1.35;
-      }
-      .brand-address {
-        margin: 0;
-        font-size: 11px;
-        font-weight: 700;
-        line-height: 1.35;
-      }
-      .content {
-        padding: 12px 12px 10px;
-      }
-      .top-row {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        gap: 10px;
-        align-items: start;
-        margin-bottom: 10px;
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-      .invoice-number {
-        font-size: 18px;
-        font-weight: 700;
-        margin: 0 0 6px;
-      }
-      .invoice-label {
-        font-size: 12px;
-        font-weight: 700;
-        margin: 0;
-      }
-      .invoice-subtext {
-        display: block;
-        margin-top: 4px;
-        font-size: 12px;
-        line-height: 1.35;
-      }
-      .report-date {
-        font-size: 14px;
-        font-weight: 700;
-        margin: 0;
-        text-align: right;
-        white-space: nowrap;
-      }
-      .report-pill {
-        display: inline-block;
-        margin-top: 6px;
-        padding: 5px 10px;
-        border-radius: 999px;
-        background: #111;
-        color: #fff;
-        font-size: 10px;
-        font-weight: 700;
-        letter-spacing: 0.03em;
-      }
-      .divider {
-        height: 10px;
-        background: #000;
-        margin: 10px 0 8px;
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-      .meta-grid {
-        display: grid;
-        grid-template-columns: repeat(3, minmax(0, 1fr));
-        gap: 8px;
-        margin-bottom: 10px;
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-      .meta-card {
-        border: 1px solid #d1d1d1;
-        background: #f6f6f6;
-        padding: 8px 10px;
-      }
-      .meta-label {
-        font-size: 10px;
-        text-transform: uppercase;
-        letter-spacing: 0.06em;
-        color: #666;
-        font-weight: 700;
-        margin: 0 0 4px;
-      }
-      .meta-value {
-        margin: 0;
-        font-size: 12px;
-        font-weight: 700;
-        line-height: 1.35;
-      }
-      .table-wrap {
-        background: #fff;
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-      .table {
-        width: 100%;
-        border-collapse: collapse;
-        table-layout: fixed;
-      }
-      .table thead th {
-        text-align: left;
-        padding: 7px 8px;
-        border-bottom: 2px solid #999;
-        font-size: 11px;
-        font-weight: 700;
-      }
-      .table tbody td {
-        padding: 8px 8px;
-        border-bottom: 1px solid #d3d3d3;
-        vertical-align: top;
-        font-size: 11px;
-      }
-      .table tbody tr:nth-child(even) td {
-        background: #f6f6f6;
-      }
-      .desc strong {
-        display: block;
-        font-size: 12px;
-        line-height: 1.25;
-        margin-bottom: 2px;
-      }
-      .desc span {
-        display: block;
-        color: #666;
-        font-size: 10px;
-        line-height: 1.35;
-      }
-      .amount {
-        white-space: nowrap;
-        text-align: right;
-        font-variant-numeric: tabular-nums;
-      }
-      .amount {
-        width: 160px;
-      }
-      .desc-col {
-        width: auto;
-      }
-      .summary-block {
-        display: grid;
-        grid-template-columns: 1fr auto;
-        align-items: center;
-        gap: 10px;
-        margin-top: 10px;
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-      .summary-label {
-        text-align: right;
-        font-size: 13px;
-        font-weight: 700;
-        color: #333;
-        padding-right: 6px;
-      }
-      .summary-total {
-        background: #000;
-        color: #fff;
-        padding: 8px 14px;
-        min-width: 170px;
-        text-align: center;
-        font-size: 14px;
-        font-weight: 700;
-      }
-      .footer-note {
-        margin-top: 10px;
-        font-size: 10px;
-        color: #555;
-        line-height: 1.45;
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-      .terms {
-        margin-top: 10px;
-        padding: 8px 10px;
-        border: 1px solid #cfcfcf;
-        background: #f7f7f7;
-        break-inside: avoid;
-        page-break-inside: avoid;
-      }
-      .terms h3 {
-        margin: 0 0 6px;
-        font-size: 11px;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-      }
-      .terms ul {
-        margin: 0;
-        padding-left: 16px;
-      }
-      .terms li {
-        margin: 0 0 3px;
-        font-size: 10px;
-        line-height: 1.4;
-      }
-      @media print {
-        body {
-          background: #fff;
-        }
-        .sheet {
-          border: none;
-          max-width: none;
-          width: 100%;
-          margin: 0;
-        }
-      }
+      body { margin: 0; font-family: Arial, Helvetica, sans-serif; color: #111; background: #fff; }
+      .sheet { width: 100%; max-width: 198mm; margin: 0 auto; background: #fff; }
+      .header { background: #000; color: #caa24c; text-align: center; padding: 18px 16px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .logo { width: 110px; height: auto; display: block; margin: 0 auto 6px; }
+      .brand { margin: 0; font-size: 12px; font-weight: 700; }
+      .brand-title { margin: 4px 0 0; font-size: 11px; font-weight: 600; }
+      .brand-address { margin: 4px 0 0; font-size: 11px; font-weight: 600; }
+      .content { padding: 14px 18px; }
+      .top-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: start; margin-bottom: 12px; }
+      .invoice-number { font-size: 18px; font-weight: 700; margin: 0 0 6px; }
+      .report-date { font-size: 14px; font-weight: 700; margin: 0; text-align: right; }
+      .range { margin: 8px 0 12px 0; color: #666; font-size: 13px; }
+      .divider { height: 16px; width: 100%; background: #000; margin: 12px 0 18px; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .table { width: 100%; border-collapse: collapse; }
+      .table thead th { text-align: left; padding: 10px 8px; border-bottom: 2px solid #999; font-size: 13px; font-weight: 700; }
+      .table tbody td { padding: 14px 8px; border-bottom: 1px solid #e6e6e6; vertical-align: top; font-size: 13px; color: #444; }
+      .col-desc { width: 60%; }
+      .col-center { text-align: center; width: 20%; color: #333; }
+      .col-right { text-align: right; width: 20%; color: #333; }
+      .gross { font-weight: 800; }
+      .section-title { font-size: 16px; font-weight: 700; margin-top: 26px; margin-bottom: 8px; }
+      .small-note { color: #777; font-size: 11px; margin-top: 6px; }
+      .accounts-table { margin-top: 12px; width: 100%; border-collapse: collapse; }
+      .accounts-table thead th { text-align: left; padding: 8px 8px; border-bottom: 1px solid #999; font-size: 12px; font-weight: 700; }
+      .accounts-table td { padding: 12px 8px; border-bottom: 1px solid #e6e6e6; font-size: 13px; }
+      .total-row { display: flex; justify-content: flex-end; gap: 24px; align-items: center; padding-top: 12px; border-top: 1px solid #ddd; margin-top: 10px; }
+      .total-label { font-weight: 700; color: #111; }
+      .total-value { font-weight: 700; color: #111; }
+      .footer-note { margin-top: 16px; font-size: 11px; color: #777; }
+      @media print { body { background: #fff; -webkit-print-color-adjust: exact; print-color-adjust: exact; } .sheet { max-width: none; width: 100%; margin: 0; } }
     </style>
   </head>
   <body>
     <div class="sheet">
       <div class="header">
-        <img src="/landing/logo.jpg" alt="JL Racing" class="logo" />
+        <img src="/landing/logoq.png" alt="JL Racing" class="logo" />
         <p class="brand">JL Racing</p>
-        <p class="brand-title">Importers, Exporters & Dealers Of Motorcycles, Motor Vehicles, Machineries & Other</p>
-        <p class="brand-title">Motorized Equipments With Spare Parts.</p>
+        <p class="brand-title">Importers, Exporters & Dealers Of Motorcycles, Motor Vehicles, Machineries & Other Motorized Equipments With Spare Parts.</p>
         <p class="brand-address">No:154, Puttalam Road, Kurunegala, Sri Lanka, Kurunegala</p>
       </div>
 
       <div class="content">
         <div class="top-row">
           <div>
-            <p class="invoice-number">Finance Report ${reportNumber}</p>
-            <p class="invoice-label">Report Range: <span class="invoice-subtext">${reportDateRange}</span></p>
-            <span class="report-pill">Generated at ${generatedAt}</span>
+            <p class="invoice-number">Sales Report: <strong>${reportNumber}</strong></p>
+            <div class="range">Report Range: <span class="small-note">${reportDateRange}</span></div>
           </div>
           <div>
             <p class="report-date">Date: ${reportDate}</p>
           </div>
         </div>
 
-        <div class="meta-grid">
-          <div class="meta-card">
-            <p class="meta-label">Report Scope</p>
-            <p class="meta-value">JL Racing Dashboard Finance Summary</p>
-          </div>
-          <div class="meta-card">
-            <p class="meta-label">Selected Range</p>
-            <p class="meta-value">${reportDateRange}</p>
-          </div>
-          <div class="meta-card">
-            <p class="meta-label">Matched Invoices</p>
-            <p class="meta-value">${filteredFinancePurchases.length}</p>
-          </div>
-        </div>
-
         <div class="divider"></div>
 
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Description</th>
-                <th class="amount">Total Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${rows.map((row) => `
-                <tr>
-                  <td class="desc desc-col"><strong>${row.label}</strong><span>${rowDescriptions[row.label] ?? "Finance summary item"}</span></td>
-                  <td class="amount">${row.totalPrice}</td>
-                </tr>
-              `).join("")}
-            </tbody>
-          </table>
+        <table class="table">
+          <thead>
+            <tr>
+              <th class="col-desc">Description</th>
+              <th class="col-center">Debit / Expense</th>
+              <th class="col-right">Credit / Income</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${tableRows}
+          </tbody>
+        </table>
+
+        <div class="total-row">
+          <div class="total-label">Gross Profit</div>
+          <div class="total-value">${rows.find(r => r.label.toLowerCase().includes('gross'))?.totalPrice ?? ''}</div>
         </div>
 
-        <div class="summary-block">
-          <div class="summary-label">Total</div>
-          <div class="summary-total">LKR ${formatCurrency(financialSummary.totalRevenue)}</div>
-        </div>
+        <h3 class="section-title">Accounts Receivable: ${reportNumber}</h3>
+        <div class="range">Report Range: <span class="small-note">${reportDateRange}</span></div>
 
-        <div class="terms">
-          <h3>Finance Notes</h3>
-          <ul>
-            <li>Selected range: ${reportDateRange}</li>
-            <li>Generated from the JL Racing dashboard finance summary</li>
-            <li>Outstanding balances: LKR ${formatCurrency(financialSummary.totalOutstanding)} | Leasing: LKR ${formatCurrency(financialSummary.leasingOutstanding)}</li>
-          </ul>
+        <table class="accounts-table">
+          <thead>
+            <tr>
+              <th>Description</th>
+              <th style="text-align:center">Debit / Expense</th>
+              <th style="text-align:right">Credit / Income</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Cash Outstanding</td>
+              <td style="text-align:center">Rs. ${formatCurrency(financialSummary.cashOutstanding)}</td>
+              <td></td>
+            </tr>
+            <tr>
+              <td>Leasing Outstanding</td>
+              <td style="text-align:center">Rs. ${formatCurrency(financialSummary.leasingOutstanding)}</td>
+              <td></td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="total-row">
+          <div class="total-label">Total Outstanding</div>
+          <div class="total-value">Rs. ${formatCurrency(financialSummary.totalOutstanding)}</div>
         </div>
 
         <div class="footer-note">This document is formatted for print and PDF export from the dashboard. ${generatedAt}</div>
@@ -868,29 +697,48 @@ export default function DashboardPage() {
       {error && <div className="bm-alert bm-alert-error">{error}</div>}
 
       <div className="finance-controls-panel">
-        <div className="finance-control-row">
-          <label className="finance-control-label" htmlFor="finance-date-from">
-            From date
-          </label>
-          <input
-            id="finance-date-from"
-            type="date"
-            className="bm-input"
-            value={financeDateFrom}
-            onChange={(event) => setFinanceDateFrom(event.target.value)}
-          />
-        </div>
-        <div className="finance-control-row">
-          <label className="finance-control-label" htmlFor="finance-date-to">
-            To date
-          </label>
-          <input
-            id="finance-date-to"
-            type="date"
-            className="bm-input"
-            value={financeDateTo}
-            onChange={(event) => setFinanceDateTo(event.target.value)}
-          />
+        <div style={{ display: "flex", gap: "1rem", flexWrap: "wrap", alignItems: "flex-end" }}>
+          <div className="finance-control-row">
+            <label className="finance-control-label" htmlFor="finance-date-from">
+              From date
+            </label>
+            <input
+              id="finance-date-from"
+              type="date"
+              className="bm-input"
+              value={financeDateFrom}
+              onChange={(event) => setFinanceDateFrom(event.target.value)}
+            />
+          </div>
+          <div className="finance-control-row">
+            <label className="finance-control-label" htmlFor="finance-date-to">
+              To date
+            </label>
+            <input
+              id="finance-date-to"
+              type="date"
+              className="bm-input"
+              value={financeDateTo}
+              onChange={(event) => setFinanceDateTo(event.target.value)}
+            />
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
+            {(["1d", "1w", "1m", "1yr"] as const).map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                className={financeDateFrom === getDateRangeByFilter(filter).from && financeDateTo === getDateRangeByFilter(filter).to ? "btn-accent" : "btn-outline"}
+                onClick={() => {
+                  const range = getDateRangeByFilter(filter);
+                  setFinanceDateFrom(range.from);
+                  setFinanceDateTo(range.to);
+                }}
+                style={{ padding: "0.5rem 0.8rem", fontSize: "0.9rem" }}
+              >
+                {filter}
+              </button>
+            ))}
+          </div>
         </div>
         <div className="finance-equations">
           {financeDateRangeInvalid && (
@@ -926,7 +774,12 @@ export default function DashboardPage() {
           {
             label: "Total Outstanding",
             value: `LKR ${formatCurrency(financialSummary.totalOutstanding)}`,
-            hint: "Personal + leasing balance",
+            hint: "Cash + leasing balance",
+          },
+          {
+            label: "Cash Outstanding",
+            value: `LKR ${formatCurrency(financialSummary.cashOutstanding)}`,
+            hint: "Outstanding cash balance only",
           },
           {
             label: "Leasing Outstanding",

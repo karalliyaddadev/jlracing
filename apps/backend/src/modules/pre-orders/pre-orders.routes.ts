@@ -33,6 +33,15 @@ const upload = multer({
   },
 });
 
+const uploadPdf = multer({
+  storage,
+  limits: { fileSize: 20 * 1024 * 1024 },
+  fileFilter: (_req, file, cb) => {
+    if (file.mimetype === "application/pdf") cb(null, true);
+    else cb(new Error("Only PDF files are allowed"));
+  },
+});
+
 // ── Public router (no auth) ────────────────────────────────────────────────
 export const publicPreOrdersRouter = Router();
 publicPreOrdersRouter.get("/", ctrl.listPublicPreOrders);
@@ -57,6 +66,12 @@ posRouter.delete("/:preOrderId/images/:imageId", ctrl.deletePreOrderImage);
 posRouter.patch(
   "/:preOrderId/images/:imageId/primary",
   ctrl.setPreOrderImagePrimary,
+);
+
+posRouter.post(
+  "/:preOrderId/pdf",
+  uploadPdf.single("pdf"),
+  ctrl.uploadPreOrderPdf,
 );
 
 export default posRouter;

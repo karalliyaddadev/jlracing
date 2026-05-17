@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { SiteType } from "@prisma/client";
+import { SiteType } from "../../../generated/prisma";
 import { PrismaService } from "../../common/database/prisma.service";
 import { CreateHeroImageDto } from "./dto/create-hero.dto";
 import { UpdateHeroImageDto } from "./dto/update-hero.dto";

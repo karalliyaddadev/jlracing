@@ -1,6 +1,6 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { PrismaService } from "./prisma.service";
-import { Prisma } from "@prisma/client";
+import { Prisma } from "../generated/prisma";
 
 // Type-safe delegate accessor
 type PrismaDelegate = {

@@ -1,8 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
-import { vehicles, VehicleCategory } from "../data/vehicles";
+import Link from "next/link";
+import { VehicleCategory } from "../data/vehicles";
+import FadeIn from "../components/FadeIn";
+
+const CMS_API_URL =
+  process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
 
 const CATEGORIES: VehicleCategory[] = [
   "2-Wheelers",
@@ -39,18 +44,112 @@ const CATEGORY_DESCS: Record<VehicleCategory, string> = {
 
 const PER_PAGE = 6;
 
+interface VehicleImage {
+  id: number;
+  url: string;
+  isPrimary: boolean;
+  sortOrder: number;
+}
+
+interface ListingVehicle {
+  id: number;
+  brand: string;
+  model: string;
+  year: number | null;
+  price: number | null;
+  images: VehicleImage[];
+}
+
+interface ListingCard {
+  id: number;
+  name: string;
+  year: number | null;
+  price: string;
+  image: string | null;
+}
+
+function categorySlug(cat: VehicleCategory): string {
+  if (cat === "2-Wheelers") return "2-wheelers";
+  if (cat === "Heavy Machinery") return "heavy-machinery";
+  return "automobiles";
+}
+
+function formatPrice(price: number | null | undefined): string {
+  if (!price) return "Contact for price";
+  return `Rs. ${price.toLocaleString("en-LK")}`;
+}
+
+function getPrimaryImage(images: VehicleImage[]): string | null {
+  if (!images.length) return null;
+  const primary = images.find((i) => i.isPrimary) ?? images[0];
+  return `${CMS_API_URL}${primary.url}`;
+}
+
+type FetchState = {
+  loading: boolean;
+  error: string | null;
+  cards: ListingCard[];
+};
+const INITIAL_STATE: FetchState = { loading: false, error: null, cards: [] };
+
+function toCards(vehicles: ListingVehicle[]): ListingCard[] {
+  return vehicles.map((v) => ({
+    id: v.id,
+    name: `${v.brand} ${v.model}`,
+    year: v.year,
+    price: formatPrice(v.price),
+    image: getPrimaryImage(v.images),
+  }));
+}
+
 export default function ListingsPage() {
   const [active, setActive] = useState<VehicleCategory>("Automobiles");
   const [page, setPage] = useState(1);
 
-  const filtered = vehicles.filter((v) => v.category === active);
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
-  const paginated = filtered.slice((page - 1) * PER_PAGE, page * PER_PAGE);
+  const [bikes, setBikes] = useState<FetchState>(INITIAL_STATE);
+  const [autos, setAutos] = useState<FetchState>(INITIAL_STATE);
+  const [heavy, setHeavy] = useState<FetchState>(INITIAL_STATE);
+
+  function fetchCategory(
+    cat: VehicleCategory,
+    setter: React.Dispatch<React.SetStateAction<FetchState>>,
+  ) {
+    setter((s) => ({ ...s, loading: true, error: null }));
+    fetch(
+      `${CMS_API_URL}/api/listings/active?category=${encodeURIComponent(cat)}&limit=200`,
+    )
+      .then((r) => {
+        if (!r.ok) throw new Error();
+        return r.json();
+      })
+      .then((data) => {
+        setter({ loading: false, error: null, cards: toCards(data.vehicles ?? []) });
+      })
+      .catch(() =>
+        setter({ loading: false, error: `Could not load ${cat}.`, cards: [] }),
+      );
+  }
+
+  useEffect(() => { fetchCategory("2-Wheelers", setBikes); }, []);
+  useEffect(() => { fetchCategory("Automobiles", setAutos); }, []);
+  useEffect(() => { fetchCategory("Heavy Machinery", setHeavy); }, []);
 
   const handleCategory = (cat: VehicleCategory) => {
     setActive(cat);
     setPage(1);
   };
+
+  const activeState =
+    active === "2-Wheelers" ? bikes : active === "Automobiles" ? autos : heavy;
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(activeState.cards.length / PER_PAGE),
+  );
+  const paginated = activeState.cards.slice(
+    (page - 1) * PER_PAGE,
+    page * PER_PAGE,
+  );
 
   return (
     <>
@@ -70,7 +169,7 @@ export default function ListingsPage() {
       <section className="lst-full">
         <div className="lst-full__inner">
           {/* Top row: category info + tabs */}
-          <div className="lst-full__top">
+          <FadeIn className="lst-full__top">
             <div className="lst-full__cat-info">
               <h2 className="lst-full__cat-name">{active}</h2>
               <p className="lst-full__cat-desc">{CATEGORY_DESCS[active]}</p>
@@ -97,40 +196,52 @@ export default function ListingsPage() {
                 );
               })}
             </div>
-          </div>
+          </FadeIn>
 
           {/* Cards Grid */}
           <div className="int-listings__grid">
-            {paginated.map((vehicle) => (
-              <div key={vehicle.id} className="int-veh-card">
-                <div className="int-veh-card__img-wrap">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={vehicle.image}
-                    alt={`${vehicle.name} ${vehicle.year}`}
-                    className="int-veh-card__img"
-                  />
-                </div>
-                <div className="int-veh-card__body">
-                  <h3 className="int-veh-card__name">
-                    {vehicle.name}&nbsp;&nbsp;{vehicle.year}
-                  </h3>
-                  <p className="int-veh-card__price">{vehicle.price}</p>
-                  <a
-                    href={vehicle.pdfUrl ?? "#"}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="int-veh-card__cta"
+            {activeState.loading ? (
+              <p className="bikes-grid__empty">Loading vehicles…</p>
+            ) : activeState.error ? (
+              <p className="bikes-grid__empty">{activeState.error}</p>
+            ) : paginated.length === 0 ? (
+              <p className="bikes-grid__empty">No vehicles available yet.</p>
+            ) : (
+              paginated.map((vehicle, i) => (
+                <FadeIn key={`${page}-${vehicle.id}`} delay={i * 0.07}>
+                  <Link
+                    href={`/listings/${categorySlug(active)}/${vehicle.id}`}
+                    className="int-veh-card"
+                    style={{ display: "block" }}
                   >
-                    Explore More &gt;
-                  </a>
-                </div>
-              </div>
-            ))}
+                    <div className="int-veh-card__img-wrap">
+                      {vehicle.image ? (
+                        /* eslint-disable-next-line @next/next/no-img-element */
+                        <img
+                          src={vehicle.image}
+                          alt={`${vehicle.name} ${vehicle.year ?? ""}`}
+                          className="int-veh-card__img"
+                        />
+                      ) : (
+                        <div className="bike-card__no-image">No image</div>
+                      )}
+                    </div>
+                    <div className="int-veh-card__body">
+                      <h3 className="int-veh-card__name">
+                        {vehicle.name}
+                        {vehicle.year ? `  ${vehicle.year}` : ""}
+                      </h3>
+                      <p className="int-veh-card__price">{vehicle.price}</p>
+                      <span className="int-veh-card__cta">Explore More &gt;</span>
+                    </div>
+                  </Link>
+                </FadeIn>
+              ))
+            )}
           </div>
 
           {/* Footer: pagination */}
-          <div className="lst-full__footer">
+          <FadeIn className="lst-full__footer">
             {totalPages > 1 && (
               <div className="lst-pagination">
                 <button
@@ -162,7 +273,7 @@ export default function ListingsPage() {
                 </button>
               </div>
             )}
-          </div>
+          </FadeIn>
         </div>
       </section>
     </>

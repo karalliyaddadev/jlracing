@@ -8,7 +8,7 @@ export default function Footer() {
         <div className="footer__brand">
           <div className="footer__logo-row">
             <img
-              src="/landing/logo.jpg"
+              src="/images/international-logo.png"
               alt="JL Racing International"
               className="footer__logo-img"
             />
@@ -19,7 +19,13 @@ export default function Footer() {
           </p>
           <div className="footer__social">
             {/* Facebook */}
-            <a href="#" className="footer__social-link" aria-label="Facebook">
+            <a
+              href="https://www.facebook.com/jlracingshop/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer__social-link"
+              aria-label="Facebook"
+            >
               <svg
                 width="18"
                 height="18"
@@ -30,7 +36,13 @@ export default function Footer() {
               </svg>
             </a>
             {/* Instagram */}
-            <a href="#" className="footer__social-link" aria-label="Instagram">
+            <a
+              href="https://www.instagram.com/jlracingshop/"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer__social-link"
+              aria-label="Instagram"
+            >
               <svg
                 width="18"
                 height="18"
@@ -41,7 +53,13 @@ export default function Footer() {
               </svg>
             </a>
             {/* TikTok */}
-            <a href="#" className="footer__social-link" aria-label="TikTok">
+            <a
+              href="https://www.tiktok.com/@jlracing16"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="footer__social-link"
+              aria-label="TikTok"
+            >
               <svg
                 width="18"
                 height="18"

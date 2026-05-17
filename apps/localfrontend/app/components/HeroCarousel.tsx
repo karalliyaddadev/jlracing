@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import Link from "next/link";
 
 const CMS_API_URL =
@@ -41,19 +41,26 @@ export default function HeroCarousel() {
 
   return (
     <section className="hero">
-      {/* Sliding image layers */}
+      {/* Sliding image layers — desktop + mobile variants */}
       {slides.map((s, i) => (
-        <div
-          key={s.id}
-          className="hero__slide"
-          style={{
-            backgroundImage: `url(${CMS_API_URL}${s.desktopImage})`,
-            backgroundSize: "cover",
-            backgroundPosition: "center center",
-            backgroundRepeat: "no-repeat",
-            transform: `translateX(${(i - current) * 100}%)`,
-          }}
-        />
+        <Fragment key={s.id}>
+          {/* Desktop image */}
+          <div
+            className="hero__slide hero__slide--desktop"
+            style={{
+              backgroundImage: `url(${CMS_API_URL}${s.desktopImage})`,
+              transform: `translateX(${(i - current) * 100}%)`,
+            }}
+          />
+          {/* Mobile image */}
+          <div
+            className="hero__slide hero__slide--mobile"
+            style={{
+              backgroundImage: `url(${CMS_API_URL}${s.mobileImage})`,
+              transform: `translateX(${(i - current) * 100}%)`,
+            }}
+          />
+        </Fragment>
       ))}
 
       {/* Overlay */}

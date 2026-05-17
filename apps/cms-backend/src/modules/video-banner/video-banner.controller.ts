@@ -9,7 +9,7 @@ import {
   Post,
   Query,
 } from "@nestjs/common";
-import { SiteType } from "@prisma/client";
+import { SiteType } from "../../../generated/prisma";
 import { Public } from "../../common/decorators/public.decorator";
 import { VideoBannerService } from "./video-banner.service";
 import { CreateVideoBannerDto } from "./dto/create-video-banner.dto";

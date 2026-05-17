@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
+import ImageLightbox from "../../components/ImageLightbox";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -25,6 +26,7 @@ type PreOrderBike = {
   expectedArrival?: string | null;
   status: string;
   description?: string | null;
+  pdfUrl?: string | null;
   images: PreOrderImage[];
 };
 
@@ -34,6 +36,7 @@ export default function PreOrderDetailPage() {
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
   const [activeThumb, setActiveThumb] = useState(0);
+  const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
@@ -101,7 +104,12 @@ export default function PreOrderDetailPage() {
         <div className="bikedetail__layout">
           {/* ── Left — Gallery ── */}
           <div className="bikedetail__gallery">
-            <div className="bikedetail__main-img">
+            <div
+              className="bikedetail__main-img"
+              onClick={() =>
+                sortedImages.length > 0 && setLightboxIndex(activeThumb)
+              }
+            >
               {sortedImages.length > 0 ? (
                 <img
                   src={`${BACKEND_URL}${sortedImages[activeThumb]?.url ?? sortedImages[0].url}`}
@@ -193,7 +201,7 @@ export default function PreOrderDetailPage() {
                 Inquire / Pre-Order
               </Link>
               <a
-                href="https://wa.me/94701234567"
+                href="https://wa.me/94717910091"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bikedetail__btn bikedetail__btn--whatsapp"
@@ -208,6 +216,22 @@ export default function PreOrderDetailPage() {
                 </svg>
                 WhatsApp
               </a>
+              {bike.pdfUrl && (
+                <a
+                  href={`${BACKEND_URL}${bike.pdfUrl}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="bikedetail__btn bikedetail__btn--brochure"
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+                    <polyline points="14 2 14 8 20 8" />
+                    <line x1="12" y1="18" x2="12" y2="12" />
+                    <line x1="9" y1="15" x2="15" y2="15" />
+                  </svg>
+                  View Brochure
+                </a>
+              )}
             </div>
 
             {/* Deposit / Reserve note */}
@@ -225,14 +249,26 @@ export default function PreOrderDetailPage() {
                   <line x1="12" y1="8" x2="12" y2="12" />
                   <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
-                Deposit required to reserve:{" "}
-                <strong>{bike.depositRequired}</strong>. Contact us to secure
-                your slot before stock runs out.
+                <span className="po-detail__deposit-text">
+                  <span>Deposit required to reserve: <strong>{bike.depositRequired}</strong>.</span>
+                  <span>Contact us to secure your slot before stock runs out.</span>
+                </span>
               </div>
             )}
           </div>
         </div>
       </div>
+      {lightboxIndex !== null && (
+        <ImageLightbox
+          images={sortedImages.map((img) => `${BACKEND_URL}${img.url}`)}
+          index={lightboxIndex}
+          onClose={() => setLightboxIndex(null)}
+          onChange={(i) => {
+            setLightboxIndex(i);
+            setActiveThumb(i);
+          }}
+        />
+      )}
     </section>
   );
 }

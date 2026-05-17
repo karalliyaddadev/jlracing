@@ -1,9 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { vehicles, VehicleCategory } from "../data/vehicles";
+import { VehicleCategory } from "../data/vehicles";
+
+const CMS_API_URL =
+  process.env.NEXT_PUBLIC_CMS_API_URL ?? "http://localhost:5001";
 
 const CATEGORIES: VehicleCategory[] = [
   "2-Wheelers",
@@ -29,14 +32,87 @@ const CATEGORY_ICONS: Record<
   },
 };
 
-const DISPLAY_LIMIT = 3;
+interface VehicleImage {
+  id: number;
+  url: string;
+  isPrimary: boolean;
+  sortOrder: number;
+}
+
+interface ListingVehicle {
+  id: number;
+  brand: string;
+  model: string;
+  year: number | null;
+  price: number | null;
+  images: VehicleImage[];
+}
+
+interface ListingCard {
+  id: number;
+  name: string;
+  year: number | null;
+  price: string;
+  image: string | null;
+}
+
+function formatPrice(price: number | null | undefined): string {
+  if (!price) return "Contact for price";
+  return `Rs. ${price.toLocaleString("en-LK")}`;
+}
+
+function getPrimaryImage(images: VehicleImage[]): string | null {
+  if (!images.length) return null;
+  const primary = images.find((i) => i.isPrimary) ?? images[0];
+  return `${CMS_API_URL}${primary.url}`;
+}
+
+function categorySlug(cat: VehicleCategory): string {
+  if (cat === "2-Wheelers") return "2-wheelers";
+  if (cat === "Heavy Machinery") return "heavy-machinery";
+  return "automobiles";
+}
+
+type FetchState = { loading: boolean; cards: ListingCard[] };
+const INITIAL: FetchState = { loading: false, cards: [] };
+
+function fetchCategory(
+  cat: VehicleCategory,
+  setter: React.Dispatch<React.SetStateAction<FetchState>>,
+) {
+  setter((s) => ({ ...s, loading: true }));
+  fetch(
+    `${CMS_API_URL}/api/listings/active?category=${encodeURIComponent(cat)}&limit=3`,
+  )
+    .then((r) => (r.ok ? r.json() : Promise.reject()))
+    .then((data) => {
+      const cards: ListingCard[] = (data.vehicles ?? []).map(
+        (v: ListingVehicle) => ({
+          id: v.id,
+          name: `${v.brand} ${v.model}`,
+          year: v.year,
+          price: formatPrice(v.price),
+          image: getPrimaryImage(v.images),
+        }),
+      );
+      setter({ loading: false, cards });
+    })
+    .catch(() => setter({ loading: false, cards: [] }));
+}
 
 export default function VehicleListings() {
   const [active, setActive] = useState<VehicleCategory>("Automobiles");
 
-  const filtered = vehicles
-    .filter((v) => v.category === active)
-    .slice(0, DISPLAY_LIMIT);
+  const [bikes, setBikes] = useState<FetchState>(INITIAL);
+  const [autos, setAutos] = useState<FetchState>(INITIAL);
+  const [heavy, setHeavy] = useState<FetchState>(INITIAL);
+
+  useEffect(() => { fetchCategory("2-Wheelers", setBikes); }, []);
+  useEffect(() => { fetchCategory("Automobiles", setAutos); }, []);
+  useEffect(() => { fetchCategory("Heavy Machinery", setHeavy); }, []);
+
+  const activeState =
+    active === "2-Wheelers" ? bikes : active === "Automobiles" ? autos : heavy;
 
   return (
     <section className="int-listings">
@@ -61,7 +137,7 @@ export default function VehicleListings() {
               <button
                 key={cat}
                 onClick={() => setActive(cat)}
-                className={`int-listings__tab ${isActive ? "int-listings__tab--active" : ""}`}
+                className={`int-listings__tab${isActive ? " int-listings__tab--active" : ""}`}
               >
                 <Image
                   src={isActive ? icon.active : icon.default}
@@ -78,32 +154,40 @@ export default function VehicleListings() {
 
         {/* Cards grid */}
         <div className="int-listings__grid">
-          {filtered.map((vehicle) => (
-            <div key={vehicle.id} className="int-veh-card">
-              <div className="int-veh-card__img-wrap">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={vehicle.image}
-                  alt={`${vehicle.name} ${vehicle.year}`}
-                  className="int-veh-card__img"
-                />
-              </div>
-              <div className="int-veh-card__body">
-                <h3 className="int-veh-card__name">
-                  {vehicle.name}&nbsp;&nbsp;{vehicle.year}
-                </h3>
-                <p className="int-veh-card__price">{vehicle.price}</p>
-                <a
-                  href={vehicle.pdfUrl ?? "#"}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="int-veh-card__cta"
-                >
-                  Explore More &gt;
-                </a>
-              </div>
-            </div>
-          ))}
+          {activeState.loading ? (
+            <p className="bikes-grid__empty">Loading…</p>
+          ) : activeState.cards.length === 0 ? (
+            <p className="bikes-grid__empty">No vehicles available yet.</p>
+          ) : (
+            activeState.cards.map((vehicle) => (
+              <Link
+                key={vehicle.id}
+                href={`/listings/${categorySlug(active)}/${vehicle.id}`}
+                className="int-veh-card"
+              >
+                <div className="int-veh-card__img-wrap">
+                  {vehicle.image ? (
+                    /* eslint-disable-next-line @next/next/no-img-element */
+                    <img
+                      src={vehicle.image}
+                      alt={`${vehicle.name} ${vehicle.year ?? ""}`}
+                      className="int-veh-card__img"
+                    />
+                  ) : (
+                    <div className="bike-card__no-image">No image</div>
+                  )}
+                </div>
+                <div className="int-veh-card__body">
+                  <h3 className="int-veh-card__name">
+                    {vehicle.name}
+                    {vehicle.year ? `  ${vehicle.year}` : ""}
+                  </h3>
+                  <p className="int-veh-card__price">{vehicle.price}</p>
+                  <span className="int-veh-card__cta">Explore More &gt;</span>
+                </div>
+              </Link>
+            ))
+          )}
         </div>
 
         {/* Footer row */}

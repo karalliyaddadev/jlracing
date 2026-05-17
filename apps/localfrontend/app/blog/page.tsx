@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Pagination from "../components/Pagination";
+import FadeIn from "../components/FadeIn";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
@@ -88,8 +89,9 @@ export default function BlogPage() {
           {!loading && !error && (
             <>
               <div className="blog-grid">
-                {posts.map((post) => (
-                  <article key={post.id} className="blog-card">
+                {posts.map((post, i) => (
+                  <FadeIn key={`${currentPage}-${post.id}`} delay={i * 0.07}>
+                  <article className="blog-card">
                     <div className="blog-card__image">
                       {post.imageUrl ? (
                         <img
@@ -181,6 +183,7 @@ export default function BlogPage() {
                       </Link>
                     </div>
                   </article>
+                  </FadeIn>
                 ))}
               </div>
               <Pagination

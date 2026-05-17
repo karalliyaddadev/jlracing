@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException } from "@nestjs/common";
-import { SiteType } from "@prisma/client";
+import { SiteType } from "../../../generated/prisma";
 import { PrismaService } from "../../common/database/prisma.service";
 import { CreateVideoBannerDto } from "./dto/create-video-banner.dto";
 import { UpdateVideoBannerDto } from "./dto/update-video-banner.dto";

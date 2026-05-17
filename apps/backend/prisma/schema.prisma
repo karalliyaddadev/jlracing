@@ -1,5 +1,6 @@
 generator client {
   provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
 }
 
 datasource db {
@@ -392,6 +393,7 @@ model PreOrder {
   expectedArrival String?
   status          String          @default("pre-order")
   description     String?
+  pdfUrl          String?
   isPublished     Boolean         @default(true)
   sortOrder       Int             @default(0)
   createdAt       DateTime        @default(now())
@@ -433,4 +435,46 @@ model ContactRequest {
 
   @@index([status])
   @@map("contact_requests")
+}
+
+// ── International Export Vehicles (Automobiles & Heavy Machinery) ─────────────
+
+enum ExportVehicleCategory {
+  AUTOMOBILE
+  HEAVY_MACHINERY
+}
+
+model ExportVehicle {
+  id          Int                    @id @default(autoincrement())
+  displayId   String                 @unique
+  category    ExportVehicleCategory
+  brand       String
+  model       String
+  year        Int?
+  colour      String?
+  engineCc    Int?
+  mileage     Int                    @default(0)
+  condition   String                 @default("used")
+  description String?
+  price       Float?
+  status      String                 @default("available")
+  createdAt   DateTime               @default(now())
+  updatedAt   DateTime               @updatedAt
+  images      ExportVehicleImage[]
+
+  @@index([category])
+  @@index([status])
+  @@map("export_vehicles")
+}
+
+model ExportVehicleImage {
+  id        Int           @id @default(autoincrement())
+  vehicleId Int
+  vehicle   ExportVehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  url       String
+  isPrimary Boolean       @default(false)
+  sortOrder Int           @default(0)
+  createdAt DateTime      @default(now())
+
+  @@map("export_vehicle_images")
 }

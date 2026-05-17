@@ -7,11 +7,12 @@ import SignInModal from "./SignInModal";
 
 const NAV_LINKS = [
   { href: "/bikes", label: "Stock" },
-  { href: "/spare-parts", label: "Spare Parts" },
   { href: "/pre-orders", label: "Pre Orders" },
+  { href: "/spare-parts", label: "Spare Parts" },
   { href: "/about", label: "About" },
   { href: "/blog", label: "Blog" },
   { href: "/gallery", label: "Gallery" },
+  { href: "/faq", label: "FAQ" },
 ];
 
 export default function Header() {

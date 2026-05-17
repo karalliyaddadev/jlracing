@@ -8,6 +8,9 @@ const brands = [
   { name: "Yamaha", src: "/trusted/yamaha.png" },
   { name: "Triumph", src: "/trusted/triumph.png" },
   { name: "Harley-Davidson", src: "/trusted/harley-davidson.png" },
+  { name: "CF Moto", src: "/trusted/cf-moto.png" },
+  { name: "Kawasaki", src: "/trusted/kawasaki.svg" },
+  { name: "Royal Enfield", src: "/trusted/royal-enfield.png" },
 ];
 
 export default function BrandLogos() {
@@ -22,8 +25,8 @@ export default function BrandLogos() {
                 <Image
                   src={brand.src}
                   alt={brand.name}
-                  width={120}
-                  height={56}
+                  width={200}
+                  height={88}
                   className="brands__logo"
                 />
               </div>

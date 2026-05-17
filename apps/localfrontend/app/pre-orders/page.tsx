@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Pagination from "../components/Pagination";
+import FadeIn from "../components/FadeIn";
 
 const MAX_PRICE = 3_000_000;
 const ITEMS_PER_PAGE = 6;
@@ -42,11 +43,13 @@ function getPrimaryImageSrc(images: PreOrderImage[]): string | null {
 const AVAILABILITY_OPTIONS = ["In Stock", "Pre Order"] as const;
 
 function RangeSlider({
+  label,
   min,
   max,
   value,
   onChange,
 }: {
+  label: string;
   min: number;
   max: number;
   value: [number, number];
@@ -54,7 +57,7 @@ function RangeSlider({
 }) {
   return (
     <div className="bikes-filter__group">
-      <h4 className="bikes-filter__group-title po-filter__label">PRICE</h4>
+      <h4 className="bikes-filter__group-title po-filter__label">{label}</h4>
       <div className="bikes-filter__range-track">
         <input
           type="range"
@@ -82,13 +85,50 @@ function RangeSlider({
   );
 }
 
+function CheckGroup({
+  title,
+  options,
+  selected,
+  onChange,
+}: {
+  title: string;
+  options: string[];
+  selected: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const toggle = (opt: string) =>
+    onChange(
+      selected.includes(opt)
+        ? selected.filter((s) => s !== opt)
+        : [...selected, opt],
+    );
+  return (
+    <div className="bikes-filter__group">
+      <h4 className="bikes-filter__group-title po-filter__label">{title}</h4>
+      {options.map((opt) => (
+        <label key={opt} className="bikes-filter__checkbox-label">
+          <input
+            type="checkbox"
+            checked={selected.includes(opt)}
+            onChange={() => toggle(opt)}
+            className="bikes-filter__checkbox"
+          />
+          {opt}
+        </label>
+      ))}
+      <hr className="bikes-filter__divider" />
+    </div>
+  );
+}
+
 export default function PreOrdersPage() {
   const [allBikes, setAllBikes] = useState<PreOrderBike[]>([]);
   const [loadingBikes, setLoadingBikes] = useState(true);
-  const [priceRange, setPriceRange] = useState<[number, number]>([
-    0,
-    MAX_PRICE,
-  ]);
+
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, MAX_PRICE]);
+  const [yearRange, setYearRange] = useState<[number, number]>([2015, new Date().getFullYear()]);
+  const [brands, setBrands] = useState<string[]>([]);
+  const [ccFilters, setCcFilters] = useState<string[]>([]);
   const [availability, setAvailability] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
@@ -97,30 +137,60 @@ export default function PreOrdersPage() {
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/pre-orders`)
       .then((r) => r.json())
-      .then((data) => setAllBikes(data.preOrders ?? []))
+      .then((data) => setAllBikes(data.data ?? []))
       .catch(() => setAllBikes([]))
       .finally(() => setLoadingBikes(false));
   }, []);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [search, priceRange, availability]);
+  const dynamicMax = useMemo(() => {
+    const prices = allBikes.map((b) => b.price).filter((p): p is number => p != null);
+    return prices.length > 0 ? Math.max(...prices) : MAX_PRICE;
+  }, [allBikes]);
 
-  const toggleAvailability = (opt: string) => {
-    setAvailability((prev) =>
-      prev.includes(opt) ? prev.filter((s) => s !== opt) : [...prev, opt],
-    );
-  };
+  const dynamicMinYear = useMemo(() => {
+    const years = allBikes.map((b) => b.year).filter((y): y is number => y != null);
+    return years.length > 0 ? Math.min(...years) : 2015;
+  }, [allBikes]);
+
+  const dynamicMaxYear = useMemo(() => {
+    const years = allBikes.map((b) => b.year).filter((y): y is number => y != null);
+    return years.length > 0 ? Math.max(...years) : new Date().getFullYear();
+  }, [allBikes]);
+
+  const availableBrands = useMemo(
+    () => Array.from(new Set(allBikes.map((b) => b.brand).filter(Boolean))).sort(),
+    [allBikes],
+  );
+
+  const availableCCValues = useMemo(
+    () =>
+      Array.from(
+        new Set(allBikes.map((b) => b.cc).filter((cc): cc is string => !!cc)),
+      ).sort(),
+    [allBikes],
+  );
+
+  useEffect(() => { setPriceRange([0, dynamicMax]); }, [dynamicMax]);
+  useEffect(() => { setYearRange([dynamicMinYear, dynamicMaxYear]); }, [dynamicMinYear, dynamicMaxYear]);
+  useEffect(() => { setCurrentPage(1); }, [search, priceRange, availability, brands, yearRange, ccFilters]);
 
   const q = search.toLowerCase();
+  const priceFiltered = priceRange[0] > 0 || priceRange[1] < dynamicMax;
+  const yearFiltered = yearRange[0] > dynamicMinYear || yearRange[1] < dynamicMaxYear;
+
   const filtered = allBikes.filter((b) => {
-    const price = b.price ?? 0;
-    if (price < priceRange[0] || price > priceRange[1]) return false;
+    if (priceFiltered) {
+      const price = b.price ?? 0;
+      if (price < priceRange[0] || price > priceRange[1]) return false;
+    }
+    if (yearFiltered && b.year != null) {
+      if (b.year < yearRange[0] || b.year > yearRange[1]) return false;
+    }
+    if (brands.length && !brands.includes(b.brand)) return false;
+    if (ccFilters.length && (!b.cc || !ccFilters.includes(b.cc))) return false;
     const displayStatus = getStatusDisplay(b.status);
-    if (availability.length && !availability.includes(displayStatus))
-      return false;
-    if (q && !`${b.brand} ${b.model} ${b.year ?? ""}`.toLowerCase().includes(q))
-      return false;
+    if (availability.length && !availability.includes(displayStatus)) return false;
+    if (q && !`${b.brand} ${b.model} ${b.year ?? ""}`.toLowerCase().includes(q)) return false;
     return true;
   });
 
@@ -134,15 +204,12 @@ export default function PreOrdersPage() {
     <section className="po-page">
       {/* Mobile filter backdrop */}
       {filtersOpen && (
-        <div
-          className="po-filter-backdrop"
-          onClick={() => setFiltersOpen(false)}
-        />
+        <div className="po-filter-backdrop" onClick={() => setFiltersOpen(false)} />
       )}
 
       <div className="po-page__inner">
         {/* ── Page Header ── */}
-        <div className="po-page__header">
+        <FadeIn className="po-page__header">
           <div className="po-page__header-left">
             <h1 className="po-page__title">Pre Orders</h1>
             <p className="po-page__subtitle">
@@ -182,15 +249,12 @@ export default function PreOrdersPage() {
               )}
             </div>
           </div>
-        </div>
+        </FadeIn>
 
         <hr className="po-page__divider" />
 
         {/* Mobile filter toggle */}
-        <button
-          className="po-filter-toggle"
-          onClick={() => setFiltersOpen(true)}
-        >
+        <button className="po-filter-toggle" onClick={() => setFiltersOpen(true)}>
           <svg
             width="16"
             height="16"
@@ -207,7 +271,6 @@ export default function PreOrdersPage() {
         <div className="po-page__body">
           {/* ── Sidebar Filters ── */}
           <aside className={`po-filter${filtersOpen ? " is-open" : ""}`}>
-            {/* Close button – mobile only */}
             <div className="po-filter__mobile-header">
               <span className="po-filter__mobile-title">Filters</span>
               <button
@@ -228,31 +291,46 @@ export default function PreOrdersPage() {
               </button>
             </div>
 
-            {/* Price range */}
             <RangeSlider
+              label="PRICE"
               min={0}
-              max={MAX_PRICE}
+              max={dynamicMax}
               value={priceRange}
               onChange={setPriceRange}
             />
 
-            {/* Availability */}
-            <div className="bikes-filter__group">
-              <h4 className="bikes-filter__group-title po-filter__label">
-                AVAILABILITY
-              </h4>
-              {AVAILABILITY_OPTIONS.map((opt) => (
-                <label key={opt} className="bikes-filter__checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={availability.includes(opt)}
-                    onChange={() => toggleAvailability(opt)}
-                    className="bikes-filter__checkbox"
-                  />
-                  {opt.toUpperCase()}
-                </label>
-              ))}
-            </div>
+            {availableBrands.length > 0 && (
+              <CheckGroup
+                title="BRAND"
+                options={availableBrands}
+                selected={brands}
+                onChange={setBrands}
+              />
+            )}
+
+            <RangeSlider
+              label="YEAR"
+              min={dynamicMinYear}
+              max={dynamicMaxYear}
+              value={yearRange}
+              onChange={setYearRange}
+            />
+
+            {availableCCValues.length > 0 && (
+              <CheckGroup
+                title="CC"
+                options={availableCCValues}
+                selected={ccFilters}
+                onChange={setCcFilters}
+              />
+            )}
+
+            <CheckGroup
+              title="AVAILABILITY"
+              options={[...AVAILABILITY_OPTIONS]}
+              selected={availability}
+              onChange={setAvailability}
+            />
           </aside>
 
           {/* ── Product Grid ── */}
@@ -262,81 +340,73 @@ export default function PreOrdersPage() {
             ) : filtered.length === 0 ? (
               <p className="po-grid__empty">No bikes match your filters.</p>
             ) : (
-              paginated.map((bike) => {
+              paginated.map((bike, i) => {
                 const imgSrc = getPrimaryImageSrc(bike.images);
                 const displayStatus = getStatusDisplay(bike.status);
                 return (
-                  <Link
-                    key={bike.id}
-                    href={`/pre-orders/${bike.id}`}
-                    className="po-card"
-                  >
-                    <div className="po-card__image">
-                      {imgSrc ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={imgSrc}
-                          alt={`${bike.brand} ${bike.model}`}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
-                        />
-                      ) : (
-                        <div className="po-card__placeholder">
-                          <svg
-                            width="56"
-                            height="56"
-                            viewBox="0 0 640 512"
-                            fill="currentColor"
-                          >
-                            <path d="M280 32a80 80 0 1 1 0 160 80 80 0 1 1 0-160zM128 0c-44.2 0-80 35.8-80 80v16H32C14.3 96 0 110.3 0 128s14.3 32 32 32H48v16c0 17.7 14.3 32 32 32H96c17.7 0 32-14.3 32-32V160h5.4l34.9 104.7A96 96 0 1 0 344 352h48a96 96 0 1 0 192 0 96 96 0 1 0-183.2-40H336A96 96 0 0 0 193 192H96V80c0-44.2-35.8-80-80-80H128zM488 352a48 48 0 1 1-96 0 48 48 0 1 1 96 0zm-240 48a48 48 0 1 1 0-96 48 48 0 1 1 0 96z" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                    <div className="po-card__body">
-                      <span
-                        className={`po-card__badge${
-                          displayStatus === "Pre Order"
-                            ? " po-card__badge--preorder"
-                            : ""
-                        }`}
-                      >
-                        {displayStatus}
-                      </span>
-                      <h3 className="po-card__title">
-                        {bike.brand} {bike.model} {bike.year}
-                      </h3>
-                      <div className="po-card__footer">
-                        <span className="po-card__price">
-                          Rs.&nbsp;
-                          {bike.price != null
-                            ? bike.price.toLocaleString("en-LK")
-                            : "—"}
-                          .00
-                        </span>
-                        <button
-                          className="po-card__cart"
-                          aria-label="Enquire about this bike"
-                        >
-                          <svg
-                            width="15"
-                            height="15"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
-                          >
-                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                            <line x1="3" y1="6" x2="21" y2="6" />
-                            <path d="M16 10a4 4 0 01-8 0" />
-                          </svg>
-                        </button>
+                  <FadeIn key={`${currentPage}-${bike.id}`} delay={i * 0.07}>
+                    <Link href={`/pre-orders/${bike.id}`} className="po-card">
+                      <div className="po-card__image">
+                        {imgSrc ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={imgSrc}
+                            alt={`${bike.brand} ${bike.model}`}
+                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                          />
+                        ) : (
+                          <div className="po-card__placeholder">
+                            <svg
+                              width="56"
+                              height="56"
+                              viewBox="0 0 640 512"
+                              fill="currentColor"
+                            >
+                              <path d="M280 32a80 80 0 1 1 0 160 80 80 0 1 1 0-160zM128 0c-44.2 0-80 35.8-80 80v16H32C14.3 96 0 110.3 0 128s14.3 32 32 32H48v16c0 17.7 14.3 32 32 32H96c17.7 0 32-14.3 32-32V160h5.4l34.9 104.7A96 96 0 1 0 344 352h48a96 96 0 1 0 192 0 96 96 0 1 0-183.2-40H336A96 96 0 0 0 193 192H96V80c0-44.2-35.8-80-80-80H128zM488 352a48 48 0 1 1-96 0 48 48 0 1 1 96 0zm-240 48a48 48 0 1 1 0-96 48 48 0 1 1 0 96z" />
+                            </svg>
+                          </div>
+                        )}
                       </div>
-                    </div>
-                  </Link>
+                      <div className="po-card__body">
+                        <span
+                          className={`po-card__badge${
+                            displayStatus === "Pre Order" ? " po-card__badge--preorder" : ""
+                          }`}
+                        >
+                          {displayStatus}
+                        </span>
+                        <h3 className="po-card__title">
+                          {bike.brand} {bike.model} {bike.year}
+                        </h3>
+                        <div className="po-card__footer">
+                          <span className="po-card__price">
+                            Rs.&nbsp;
+                            {bike.price != null
+                              ? bike.price.toLocaleString("en-LK")
+                              : "—"}
+                            .00
+                          </span>
+                          <button
+                            className="po-card__cart"
+                            aria-label="Enquire about this bike"
+                          >
+                            <svg
+                              width="15"
+                              height="15"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              strokeWidth="2"
+                            >
+                              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                              <line x1="3" y1="6" x2="21" y2="6" />
+                              <path d="M16 10a4 4 0 01-8 0" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    </Link>
+                  </FadeIn>
                 );
               })
             )}
