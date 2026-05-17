@@ -119,8 +119,9 @@ function formatCurrency(value: number) {
 
 function getSettledRevenue(purchase: Purchase) {
   const remaining = Math.max(0, purchase.remainingAmount ?? 0);
-  const settled = purchase.finalSellingPrice - remaining;
-  return Math.max(0, Math.min(purchase.finalSellingPrice, settled));
+  const registrationFee = purchase.hasRegistrationFee ? Math.max(0, purchase.registrationFeeAmount ?? 0) : 0;
+  const settled = purchase.finalSellingPrice - remaining + registrationFee;
+  return Math.max(0, Math.min(purchase.finalSellingPrice + registrationFee, settled));
 }
 
 function clampMoney(value: number) {
