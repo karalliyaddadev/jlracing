@@ -29,6 +29,8 @@ type Purchase = {
   finalSellingPrice: number;
   purchaseChannel?: "PERSONAL" | "LEASING";
   remainingAmount?: number;
+  hasRegistrationFee?: boolean;
+  registrationFeeAmount?: number;
   inventory?: { id: number };
   bike?: { id: number };
   customer: { id: number };
