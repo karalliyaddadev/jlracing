@@ -193,7 +193,7 @@ export default function PreOrderDetailPage() {
             )}
 
             {/* CTA Buttons */}
-            <div className="bikedetail__actions">
+            {/* <div className="bikedetail__actions">
               <Link
                 href="/contact"
                 className="bikedetail__btn bikedetail__btn--primary"
@@ -232,7 +232,7 @@ export default function PreOrderDetailPage() {
                   View Brochure
                 </a>
               )}
-            </div>
+            </div> */}
 
             {/* Deposit / Reserve note */}
             {bike.depositRequired && (
@@ -250,8 +250,13 @@ export default function PreOrderDetailPage() {
                   <line x1="12" y1="16" x2="12.01" y2="16" />
                 </svg>
                 <span className="po-detail__deposit-text">
-                  <span>Deposit required to reserve: <strong>{bike.depositRequired}</strong>.</span>
-                  <span>Contact us to secure your slot before stock runs out.</span>
+                  <span>
+                    Deposit required to reserve:{" "}
+                    <strong>{bike.depositRequired}</strong>.
+                  </span>
+                  <span>
+                    Contact us to secure your slot before stock runs out.
+                  </span>
                 </span>
               </div>
             )}
