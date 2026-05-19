@@ -192,6 +192,7 @@ export default function PreOrderDetailPage() {
               </div>
             )}
 
+            {/* new button is added */}
             {/* CTA Buttons */}
             <div className="bikedetail__actions">
               <Link
