@@ -193,7 +193,7 @@ export default function PreOrderDetailPage() {
             )}
 
             {/* CTA Buttons */}
-            {/* <div className="bikedetail__actions">
+            <div className="bikedetail__actions">
               <Link
                 href="/contact"
                 className="bikedetail__btn bikedetail__btn--primary"
@@ -223,7 +223,14 @@ export default function PreOrderDetailPage() {
                   rel="noopener noreferrer"
                   className="bikedetail__btn bikedetail__btn--brochure"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg
+                    width="16"
+                    height="16"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
                     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
                     <polyline points="14 2 14 8 20 8" />
                     <line x1="12" y1="18" x2="12" y2="12" />
@@ -232,7 +239,7 @@ export default function PreOrderDetailPage() {
                   View Brochure
                 </a>
               )}
-            </div> */}
+            </div>
 
             {/* Deposit / Reserve note */}
             {bike.depositRequired && (
