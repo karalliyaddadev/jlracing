@@ -5,7 +5,17 @@ import Image from "next/image";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { exportTableToPdf } from "../../lib/pdf-export";
-import { IconPreOrders, IconContactRequests, IconEdit, IconPlus, IconClose, IconInventory, IconActivity, IconInvoice, IconUsers } from "../../lib/icons";
+import {
+  IconPreOrders,
+  IconContactRequests,
+  IconEdit,
+  IconPlus,
+  IconClose,
+  IconInventory,
+  IconActivity,
+  IconInvoice,
+  IconUsers,
+} from "../../lib/icons";
 
 // ──────────────────── TYPES ────────────────────────
 
@@ -119,7 +129,9 @@ export default function PreOrdersRequestsPage() {
   const { token } = useAdmin();
 
   // ── Tab state
-  const [activeTab, setActiveTab] = useState<"pre-orders" | "contact-requests">("pre-orders");
+  const [activeTab, setActiveTab] = useState<"pre-orders" | "contact-requests">(
+    "pre-orders",
+  );
 
   // ── Pre-orders state
   const [preOrders, setPreOrders] = useState<PreOrder[]>([]);
@@ -138,8 +150,11 @@ export default function PreOrdersRequestsPage() {
   const [editingPreOrder, setEditingPreOrder] = useState<PreOrder | null>(null);
   const [viewPreOrder, setViewPreOrder] = useState<PreOrder | null>(null);
   const [preOrderSaving, setPreOrderSaving] = useState(false);
-  const [preOrderModalError, setPreOrderModalError] = useState<string | null>(null);
-  const [preOrderDeleteConfirm, setPreOrderDeleteConfirm] = useState<PreOrder | null>(null);
+  const [preOrderModalError, setPreOrderModalError] = useState<string | null>(
+    null,
+  );
+  const [preOrderDeleteConfirm, setPreOrderDeleteConfirm] =
+    useState<PreOrder | null>(null);
   const [preOrderDeleting, setPreOrderDeleting] = useState(false);
 
   const emptyForm = {
@@ -178,13 +193,17 @@ export default function PreOrdersRequestsPage() {
   const [contactPage, setContactPage] = useState(1);
   const [contactTotalPages, setContactTotalPages] = useState(1);
 
-  const [viewContactItem, setViewContactItem] = useState<ContactRequest | null>(null);
+  const [viewContactItem, setViewContactItem] = useState<ContactRequest | null>(
+    null,
+  );
   const [editContactNotes, setEditContactNotes] = useState("");
-  const [editContactStatus, setEditContactStatus] = useState<ContactStatus>("new");
+  const [editContactStatus, setEditContactStatus] =
+    useState<ContactStatus>("new");
   const [contactSaving, setContactSaving] = useState(false);
   const [contactSaveError, setContactSaveError] = useState("");
 
-  const [deleteContactItem, setDeleteContactItem] = useState<ContactRequest | null>(null);
+  const [deleteContactItem, setDeleteContactItem] =
+    useState<ContactRequest | null>(null);
   const [contactDeleting, setContactDeleting] = useState(false);
 
   // ────────────────── PRE-ORDERS FUNCTIONS ──────────────────
@@ -199,7 +218,9 @@ export default function PreOrdersRequestsPage() {
       });
       if (!res.ok) throw new Error("Failed to load brands");
       const payload = (await res.json()) as { data?: Brand[] };
-      setBrands((payload.data ?? []).sort((a, b) => a.name.localeCompare(b.name)));
+      setBrands(
+        (payload.data ?? []).sort((a, b) => a.name.localeCompare(b.name)),
+      );
     } catch {
       setBrands([]);
     }
@@ -212,12 +233,17 @@ export default function PreOrdersRequestsPage() {
         return;
       }
       try {
-        const res = await fetch(`${bikeManagementBase}/brands/${brandId}/models`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await fetch(
+          `${bikeManagementBase}/brands/${brandId}/models`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          },
+        );
         if (!res.ok) throw new Error("Failed to load models");
         const payload = (await res.json()) as { data?: Model[] };
-        setModels((payload.data ?? []).sort((a, b) => a.name.localeCompare(b.name)));
+        setModels(
+          (payload.data ?? []).sort((a, b) => a.name.localeCompare(b.name)),
+        );
       } catch {
         setModels([]);
       }
@@ -244,7 +270,9 @@ export default function PreOrdersRequestsPage() {
       setPreOrders(data.data ?? []);
       setTotal(data.total ?? 0);
     } catch (err) {
-      setPreOrderError(err instanceof Error ? err.message : "Error loading pre-orders");
+      setPreOrderError(
+        err instanceof Error ? err.message : "Error loading pre-orders",
+      );
     } finally {
       setPreOrderLoading(false);
     }
@@ -263,7 +291,13 @@ export default function PreOrdersRequestsPage() {
   }, [fetchModelsByBrand, form.brandId]);
 
   useEffect(() => {
-    if (!showPreOrderModal || !form.brand || form.brandId || brands.length === 0) return;
+    if (
+      !showPreOrderModal ||
+      !form.brand ||
+      form.brandId ||
+      brands.length === 0
+    )
+      return;
     const matchedBrand = brands.find(
       (brand) => brand.name.toLowerCase() === form.brand.toLowerCase(),
     );
@@ -272,7 +306,13 @@ export default function PreOrdersRequestsPage() {
   }, [showPreOrderModal, form.brand, form.brandId, brands]);
 
   useEffect(() => {
-    if (!showPreOrderModal || !form.model || form.modelId || models.length === 0) return;
+    if (
+      !showPreOrderModal ||
+      !form.model ||
+      form.modelId ||
+      models.length === 0
+    )
+      return;
     const matchedModel = models.find(
       (model) => model.name.toLowerCase() === form.model.toLowerCase(),
     );
@@ -415,8 +455,12 @@ export default function PreOrdersRequestsPage() {
         ...(form.cc ? { cc: form.cc.trim() } : {}),
         ...(form.colour ? { colour: form.colour.trim() } : {}),
         ...(form.price ? { price: parseFloat(form.price) } : {}),
-        ...(form.depositRequired ? { depositRequired: form.depositRequired.trim() } : {}),
-        ...(form.expectedArrival ? { expectedArrival: form.expectedArrival.trim() } : {}),
+        ...(form.depositRequired
+          ? { depositRequired: form.depositRequired.trim() }
+          : {}),
+        ...(form.expectedArrival
+          ? { expectedArrival: form.expectedArrival.trim() }
+          : {}),
         status: form.status,
         ...(form.description ? { description: form.description.trim() } : {}),
         isPublished: form.isPublished,
@@ -439,7 +483,9 @@ export default function PreOrdersRequestsPage() {
 
       if (!res.ok) {
         const err = await res.json().catch(() => ({}));
-        throw new Error((err as { message?: string }).message ?? "Failed to save");
+        throw new Error(
+          (err as { message?: string }).message ?? "Failed to save",
+        );
       }
 
       const saved: PreOrder = await res.json();
@@ -471,7 +517,9 @@ export default function PreOrdersRequestsPage() {
       setShowPreOrderModal(false);
       await fetchPreOrders();
     } catch (err) {
-      setPreOrderModalError(err instanceof Error ? err.message : "Error saving");
+      setPreOrderModalError(
+        err instanceof Error ? err.message : "Error saving",
+      );
     } finally {
       setPreOrderSaving(false);
       setUploadingImages(false);
@@ -482,10 +530,13 @@ export default function PreOrdersRequestsPage() {
     if (!preOrderDeleteConfirm) return;
     setPreOrderDeleting(true);
     try {
-      const res = await fetch(`${API_URL}/api/pos/pre-orders/${preOrderDeleteConfirm.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(
+        `${API_URL}/api/pos/pre-orders/${preOrderDeleteConfirm.id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       if (!res.ok) throw new Error("Failed to delete");
       setPreOrderDeleteConfirm(null);
       await fetchPreOrders();
@@ -553,17 +604,25 @@ export default function PreOrdersRequestsPage() {
     setContactSaving(true);
     setContactSaveError("");
     try {
-      const res = await fetch(`${API_URL}/api/pos/contact-requests/${viewContactItem.id}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `${API_URL}/api/pos/contact-requests/${viewContactItem.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            status: editContactStatus,
+            notes: editContactNotes,
+          }),
         },
-        body: JSON.stringify({ status: editContactStatus, notes: editContactNotes }),
-      });
+      );
       if (!res.ok) throw new Error("Failed to save");
       const updated: ContactRequest = await res.json();
-      setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+      setRequests((prev) =>
+        prev.map((r) => (r.id === updated.id ? updated : r)),
+      );
       setViewContactItem(null);
       loadContactStats();
     } catch (err) {
@@ -573,19 +632,27 @@ export default function PreOrdersRequestsPage() {
     }
   }
 
-  async function handleContactQuickStatus(item: ContactRequest, status: ContactStatus) {
+  async function handleContactQuickStatus(
+    item: ContactRequest,
+    status: ContactStatus,
+  ) {
     try {
-      const res = await fetch(`${API_URL}/api/pos/contact-requests/${item.id}`, {
-        method: "PATCH",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
+      const res = await fetch(
+        `${API_URL}/api/pos/contact-requests/${item.id}`,
+        {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ status }),
         },
-        body: JSON.stringify({ status }),
-      });
+      );
       if (!res.ok) throw new Error("Failed");
       const updated: ContactRequest = await res.json();
-      setRequests((prev) => prev.map((r) => (r.id === updated.id ? updated : r)));
+      setRequests((prev) =>
+        prev.map((r) => (r.id === updated.id ? updated : r)),
+      );
       loadContactStats();
     } catch {}
   }
@@ -594,10 +661,13 @@ export default function PreOrdersRequestsPage() {
     if (!deleteContactItem) return;
     setContactDeleting(true);
     try {
-      await fetch(`${API_URL}/api/pos/contact-requests/${deleteContactItem.id}`, {
-        method: "DELETE",
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await fetch(
+        `${API_URL}/api/pos/contact-requests/${deleteContactItem.id}`,
+        {
+          method: "DELETE",
+          headers: { Authorization: `Bearer ${token}` },
+        },
+      );
       setRequests((prev) => prev.filter((r) => r.id !== deleteContactItem.id));
       setDeleteContactItem(null);
       loadContactStats();
@@ -626,8 +696,12 @@ export default function PreOrdersRequestsPage() {
     });
   }, [preOrders, preOrderDateFrom, preOrderDateTo]);
 
-  const totalPreOrder = filteredPreOrders.filter((p) => p.status === "pre-order").length;
-  const totalInStock = filteredPreOrders.filter((p) => p.status === "in-stock").length;
+  const totalPreOrder = filteredPreOrders.filter(
+    (p) => p.status === "pre-order",
+  ).length;
+  const totalInStock = filteredPreOrders.filter(
+    (p) => p.status === "in-stock",
+  ).length;
   const totalPublished = filteredPreOrders.filter((p) => p.isPublished).length;
   const totalPreOrderPages = Math.ceil(total / PREORDER_LIMIT);
   const hasPreOrderDateFilter = Boolean(preOrderDateFrom || preOrderDateTo);
@@ -640,13 +714,27 @@ export default function PreOrdersRequestsPage() {
       rows: filteredPreOrders,
       columns: [
         { header: "Display ID", value: (preOrder) => preOrder.displayId },
-        { header: "Created Date", value: (preOrder) => formatDate(preOrder.createdAt) },
+        {
+          header: "Created Date",
+          value: (preOrder) => formatDate(preOrder.createdAt),
+        },
         { header: "Brand", value: (preOrder) => preOrder.brand },
         { header: "Model", value: (preOrder) => preOrder.model },
         { header: "Year", value: (preOrder) => preOrder.year ?? "-" },
-        { header: "Status", value: (preOrder) => preOrder.status === "pre-order" ? "Pre-order" : "In Stock" },
-        { header: "Published", value: (preOrder) => preOrder.isPublished ? "Yes" : "No" },
-        { header: "Price", value: (preOrder) => preOrder.price != null ? preOrder.price.toLocaleString() : "-" },
+        {
+          header: "Status",
+          value: (preOrder) =>
+            preOrder.status === "pre-order" ? "Pre-order" : "In Stock",
+        },
+        {
+          header: "Published",
+          value: (preOrder) => (preOrder.isPublished ? "Yes" : "No"),
+        },
+        {
+          header: "Price",
+          value: (preOrder) =>
+            preOrder.price != null ? preOrder.price.toLocaleString() : "-",
+        },
       ],
     });
   }, [filteredPreOrders, preOrderDateFrom, preOrderDateTo]);
@@ -685,12 +773,16 @@ export default function PreOrdersRequestsPage() {
               <div>
                 <h2 className="page-title">Pre Orders Management</h2>
                 <p className="page-subtitle">
-                  Manage upcoming bike arrivals and pre-order listings shown on the
-                  public website.
+                  Manage upcoming bike arrivals and pre-order listings shown on
+                  the public website.
                 </p>
               </div>
             </div>
-            <button type="button" className="btn-accent" onClick={openAddPreOrder}>
+            <button
+              type="button"
+              className="btn-accent"
+              onClick={openAddPreOrder}
+            >
               <IconPlus /> Add Pre Order
             </button>
           </div>
@@ -730,7 +822,8 @@ export default function PreOrdersRequestsPage() {
               </button>
             </div>
             <div className="stats-filter-meta">
-              Showing {filteredPreOrders.length} pre-orders for {formatDateRangeLabel(preOrderDateFrom, preOrderDateTo)}.
+              Showing {filteredPreOrders.length} pre-orders for{" "}
+              {formatDateRangeLabel(preOrderDateFrom, preOrderDateTo)}.
             </div>
           </div>
 
@@ -763,7 +856,10 @@ export default function PreOrdersRequestsPage() {
                 </span>
                 <span className="bm-stat-label">Published</span>
               </div>
-              <div className="bm-stat-value" style={{ color: "var(--success)" }}>
+              <div
+                className="bm-stat-value"
+                style={{ color: "var(--success)" }}
+              >
                 {totalPublished}
               </div>
               <span className="bm-stat-sub">Visible on website</span>
@@ -841,13 +937,18 @@ export default function PreOrdersRequestsPage() {
                       ) : (
                         <div className="no-image">No image</div>
                       )}
-                      <div className="preorder-status-badge" data-status={po.status}>
+                      <div
+                        className="preorder-status-badge"
+                        data-status={po.status}
+                      >
                         {po.status === "pre-order" ? "Pre-order" : "In Stock"}
                       </div>
                     </div>
                     <div className="preorder-details">
                       <div className="preorder-header">
-                        <h3>{po.brand} {po.model}</h3>
+                        <h3>
+                          {po.brand} {po.model}
+                        </h3>
                         <div className="bm-actions">
                           <button
                             type="button"
@@ -896,12 +997,19 @@ export default function PreOrdersRequestsPage() {
                         )}
                         {po.price && (
                           <span className="meta-item price">
-                            <strong>Price:</strong> Rs. {po.price.toLocaleString()}
+                            <strong>Price:</strong> Rs.{" "}
+                            {po.price.toLocaleString()}
                           </span>
                         )}
                         <span className="meta-item">
                           <strong>Published:</strong>{" "}
-                          <span style={{ color: po.isPublished ? "var(--success)" : "var(--danger)" }}>
+                          <span
+                            style={{
+                              color: po.isPublished
+                                ? "var(--success)"
+                                : "var(--danger)",
+                            }}
+                          >
                             {po.isPublished ? "Yes" : "No"}
                           </span>
                         </span>
@@ -938,12 +1046,22 @@ export default function PreOrdersRequestsPage() {
 
           {/* View Modal */}
           {viewPreOrder && (
-            <div className="bm-modal-overlay" onClick={() => setViewPreOrder(null)}>
+            <div
+              className="bm-modal-overlay"
+              onClick={() => setViewPreOrder(null)}
+            >
               <div className="bm-modal" onClick={(e) => e.stopPropagation()}>
                 <div className="bm-modal-header">
                   <div>
-                    <h3>{viewPreOrder.brand} {viewPreOrder.model}</h3>
-                    <p className="modal-subtitle">{viewPreOrder.displayId} • {viewPreOrder.status === "pre-order" ? "Pre-order" : "In Stock"}</p>
+                    <h3>
+                      {viewPreOrder.brand} {viewPreOrder.model}
+                    </h3>
+                    <p className="modal-subtitle">
+                      {viewPreOrder.displayId} •{" "}
+                      {viewPreOrder.status === "pre-order"
+                        ? "Pre-order"
+                        : "In Stock"}
+                    </p>
                   </div>
                   <button
                     type="button"
@@ -977,7 +1095,11 @@ export default function PreOrdersRequestsPage() {
                     </div>
                     <div>
                       <label>Price</label>
-                      <p>{viewPreOrder.price ? `Rs. ${viewPreOrder.price.toLocaleString()}` : "—"}</p>
+                      <p>
+                        {viewPreOrder.price
+                          ? `Rs. ${viewPreOrder.price.toLocaleString()}`
+                          : "—"}
+                      </p>
                     </div>
                     <div>
                       <label>Deposit Required</label>
@@ -989,7 +1111,11 @@ export default function PreOrdersRequestsPage() {
                     </div>
                     <div>
                       <label>Status</label>
-                      <p>{viewPreOrder.status === "pre-order" ? "Pre-order" : "In Stock"}</p>
+                      <p>
+                        {viewPreOrder.status === "pre-order"
+                          ? "Pre-order"
+                          : "In Stock"}
+                      </p>
                     </div>
                     <div>
                       <label>Published</label>
@@ -1013,7 +1139,10 @@ export default function PreOrdersRequestsPage() {
                               alt="Pre-order"
                               width={100}
                               height={100}
-                              style={{ objectFit: "cover", borderRadius: "4px" }}
+                              style={{
+                                objectFit: "cover",
+                                borderRadius: "4px",
+                              }}
                             />
                             {img.isPrimary && (
                               <span className="primary-badge">Primary</span>
@@ -1032,7 +1161,11 @@ export default function PreOrdersRequestsPage() {
                   >
                     <IconEdit /> Edit
                   </button>
-                  <button type="button" className="btn-outline" onClick={() => setViewPreOrder(null)}>
+                  <button
+                    type="button"
+                    className="btn-outline"
+                    onClick={() => setViewPreOrder(null)}
+                  >
                     Close
                   </button>
                 </div>
@@ -1042,7 +1175,10 @@ export default function PreOrdersRequestsPage() {
 
           {/* Delete Confirmation */}
           {preOrderDeleteConfirm && (
-            <div className="bm-modal-overlay" onClick={() => setPreOrderDeleteConfirm(null)}>
+            <div
+              className="bm-modal-overlay"
+              onClick={() => setPreOrderDeleteConfirm(null)}
+            >
               <div className="bm-modal" onClick={(e) => e.stopPropagation()}>
                 <div className="bm-modal-header">
                   <h3>Delete Pre-Order?</h3>
@@ -1058,7 +1194,8 @@ export default function PreOrdersRequestsPage() {
                   <p>
                     Are you sure you want to delete{" "}
                     <strong>
-                      {preOrderDeleteConfirm.brand} {preOrderDeleteConfirm.model}
+                      {preOrderDeleteConfirm.brand}{" "}
+                      {preOrderDeleteConfirm.model}
                     </strong>
                     ? This action cannot be undone.
                   </p>
@@ -1124,7 +1261,10 @@ export default function PreOrdersRequestsPage() {
                   </span>
                   <span className="bm-stat-label">New</span>
                 </div>
-                <div className="bm-stat-value" style={{ color: "var(--accent)" }}>
+                <div
+                  className="bm-stat-value"
+                  style={{ color: "var(--accent)" }}
+                >
                   {contactStats.new}
                 </div>
                 <span className="bm-stat-sub">Need follow-up</span>
@@ -1136,7 +1276,10 @@ export default function PreOrdersRequestsPage() {
                   </span>
                   <span className="bm-stat-label">Contacted</span>
                 </div>
-                <div className="bm-stat-value" style={{ color: "var(--success)" }}>
+                <div
+                  className="bm-stat-value"
+                  style={{ color: "var(--success)" }}
+                >
                   {contactStats.contacted}
                 </div>
                 <span className="bm-stat-sub">In progress</span>
@@ -1191,7 +1334,9 @@ export default function PreOrdersRequestsPage() {
               </button>
             </div>
 
-            {contactError && <div className="bm-alert bm-alert-error">{contactError}</div>}
+            {contactError && (
+              <div className="bm-alert bm-alert-error">{contactError}</div>
+            )}
 
             <div className="data-table-wrap">
               <table className="data-table">
@@ -1233,7 +1378,9 @@ export default function PreOrdersRequestsPage() {
                         <td>{item.email}</td>
                         <td>{item.phone || "—"}</td>
                         <td>{item.city || "—"}</td>
-                        <td className="interests-cell">{item.interests || "—"}</td>
+                        <td className="interests-cell">
+                          {item.interests || "—"}
+                        </td>
                         <td>
                           <span className={statusBadgeClass(item.status)}>
                             {statusLabel(item.status)}
@@ -1253,7 +1400,9 @@ export default function PreOrdersRequestsPage() {
                               <button
                                 type="button"
                                 className="bm-action-btn bm-edit-btn"
-                                onClick={() => handleContactQuickStatus(item, "contacted")}
+                                onClick={() =>
+                                  handleContactQuickStatus(item, "contacted")
+                                }
                               >
                                 Contacted
                               </button>
@@ -1262,7 +1411,9 @@ export default function PreOrdersRequestsPage() {
                               <button
                                 type="button"
                                 className="bm-action-btn"
-                                onClick={() => handleContactQuickStatus(item, "closed")}
+                                onClick={() =>
+                                  handleContactQuickStatus(item, "closed")
+                                }
                               >
                                 Close
                               </button>
@@ -1309,7 +1460,10 @@ export default function PreOrdersRequestsPage() {
 
           {/* Contact View Modal */}
           {viewContactItem && (
-            <div className="bm-modal-overlay" onClick={() => setViewContactItem(null)}>
+            <div
+              className="bm-modal-overlay"
+              onClick={() => setViewContactItem(null)}
+            >
               <div className="bm-modal" onClick={(e) => e.stopPropagation()}>
                 <div className="bm-modal-header">
                   <h3>{viewContactItem.name}</h3>
@@ -1340,7 +1494,9 @@ export default function PreOrdersRequestsPage() {
                       <select
                         className="bm-input"
                         value={editContactStatus}
-                        onChange={(e) => setEditContactStatus(e.target.value as ContactStatus)}
+                        onChange={(e) =>
+                          setEditContactStatus(e.target.value as ContactStatus)
+                        }
                       >
                         <option value="new">New</option>
                         <option value="contacted">Contacted</option>
@@ -1399,7 +1555,10 @@ export default function PreOrdersRequestsPage() {
 
           {/* Contact Delete Confirmation */}
           {deleteContactItem && (
-            <div className="bm-modal-overlay" onClick={() => setDeleteContactItem(null)}>
+            <div
+              className="bm-modal-overlay"
+              onClick={() => setDeleteContactItem(null)}
+            >
               <div className="bm-modal" onClick={(e) => e.stopPropagation()}>
                 <div className="bm-modal-header">
                   <h3>Delete Contact Request?</h3>
@@ -1414,7 +1573,8 @@ export default function PreOrdersRequestsPage() {
                 <div className="bm-modal-body">
                   <p>
                     Are you sure you want to delete the request from{" "}
-                    <strong>{deleteContactItem.name}</strong>? This action cannot be undone.
+                    <strong>{deleteContactItem.name}</strong>? This action
+                    cannot be undone.
                   </p>
                 </div>
                 <div className="bm-modal-footer">
@@ -1443,15 +1603,16 @@ export default function PreOrdersRequestsPage() {
       {/* Edit/Add Pre-Order Modal */}
       {showPreOrderModal && (
         <div className="bm-modal-overlay" onClick={closePreOrderModal}>
-          <div
-            className="bm-modal large"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="bm-modal large" onClick={(e) => e.stopPropagation()}>
             <div className="bm-modal-header">
               <div>
-                <h3>{editingPreOrder ? "Edit Pre-Order" : "Add New Pre-Order"}</h3>
+                <h3>
+                  {editingPreOrder ? "Edit Pre-Order" : "Add New Pre-Order"}
+                </h3>
                 <p className="modal-subtitle">
-                  {editingPreOrder ? "Update bike pre-order details and images." : "Create a new pre-order listing with complete details."}
+                  {editingPreOrder
+                    ? "Update bike pre-order details and images."
+                    : "Create a new pre-order listing with complete details."}
                 </p>
               </div>
               <button
@@ -1465,7 +1626,9 @@ export default function PreOrdersRequestsPage() {
             <form onSubmit={handlePreOrderSubmit}>
               <div className="bm-modal-body">
                 {preOrderModalError && (
-                  <div className="bm-alert bm-alert-error">{preOrderModalError}</div>
+                  <div className="bm-alert bm-alert-error">
+                    {preOrderModalError}
+                  </div>
                 )}
                 <div className="form-section-title">Bike Details</div>
                 <div className="form-grid">
@@ -1476,7 +1639,9 @@ export default function PreOrdersRequestsPage() {
                       className="bm-input"
                       list="brands"
                       value={form.brand}
-                      onChange={(e) => setForm({ ...form, brand: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, brand: e.target.value })
+                      }
                       required
                     />
                     <datalist id="brands">
@@ -1492,7 +1657,9 @@ export default function PreOrdersRequestsPage() {
                       className="bm-input"
                       list="models"
                       value={form.model}
-                      onChange={(e) => setForm({ ...form, model: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, model: e.target.value })
+                      }
                       required
                     />
                     <datalist id="models">
@@ -1507,7 +1674,9 @@ export default function PreOrdersRequestsPage() {
                       type="number"
                       className="bm-input"
                       value={form.year}
-                      onChange={(e) => setForm({ ...form, year: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, year: e.target.value })
+                      }
                     />
                   </div>
                   <div className="form-field">
@@ -1525,7 +1694,9 @@ export default function PreOrdersRequestsPage() {
                       type="text"
                       className="bm-input"
                       value={form.colour}
-                      onChange={(e) => setForm({ ...form, colour: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, colour: e.target.value })
+                      }
                     />
                   </div>
                   <div className="form-field">
@@ -1534,7 +1705,9 @@ export default function PreOrdersRequestsPage() {
                       type="number"
                       className="bm-input"
                       value={form.price}
-                      onChange={(e) => setForm({ ...form, price: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, price: e.target.value })
+                      }
                     />
                   </div>
                   <div className="form-field">
@@ -1543,7 +1716,9 @@ export default function PreOrdersRequestsPage() {
                       type="text"
                       className="bm-input"
                       value={form.depositRequired}
-                      onChange={(e) => setForm({ ...form, depositRequired: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, depositRequired: e.target.value })
+                      }
                       placeholder="e.g., Rs. 50,000"
                     />
                   </div>
@@ -1553,7 +1728,9 @@ export default function PreOrdersRequestsPage() {
                       type="text"
                       className="bm-input"
                       value={form.expectedArrival}
-                      onChange={(e) => setForm({ ...form, expectedArrival: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, expectedArrival: e.target.value })
+                      }
                       placeholder="e.g., March 2025"
                     />
                   </div>
@@ -1562,7 +1739,9 @@ export default function PreOrdersRequestsPage() {
                     <select
                       className="bm-input"
                       value={form.status}
-                      onChange={(e) => setForm({ ...form, status: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, status: e.target.value })
+                      }
                     >
                       <option value="pre-order">Pre-Order</option>
                       <option value="in-stock">In Stock</option>
@@ -1574,7 +1753,9 @@ export default function PreOrdersRequestsPage() {
                       type="number"
                       className="bm-input"
                       value={form.sortOrder}
-                      onChange={(e) => setForm({ ...form, sortOrder: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, sortOrder: e.target.value })
+                      }
                     />
                   </div>
                   <div className="form-field full-width">
@@ -1582,7 +1763,9 @@ export default function PreOrdersRequestsPage() {
                       <input
                         type="checkbox"
                         checked={form.isPublished}
-                        onChange={(e) => setForm({ ...form, isPublished: e.target.checked })}
+                        onChange={(e) =>
+                          setForm({ ...form, isPublished: e.target.checked })
+                        }
                       />
                       Publish on website
                     </label>
@@ -1593,7 +1776,9 @@ export default function PreOrdersRequestsPage() {
                       className="bm-input"
                       rows={3}
                       value={form.description}
-                      onChange={(e) => setForm({ ...form, description: e.target.value })}
+                      onChange={(e) =>
+                        setForm({ ...form, description: e.target.value })
+                      }
                       placeholder="Enter product description..."
                     />
                   </div>
@@ -1619,7 +1804,9 @@ export default function PreOrdersRequestsPage() {
                               <button
                                 type="button"
                                 className="primary-btn"
-                                onClick={() => setPrimaryImage(editingPreOrder.id, img.id)}
+                                onClick={() =>
+                                  setPrimaryImage(editingPreOrder.id, img.id)
+                                }
                               >
                                 Set Primary
                               </button>
@@ -1627,7 +1814,9 @@ export default function PreOrdersRequestsPage() {
                             <button
                               type="button"
                               className="delete-btn"
-                              onClick={() => deleteExistingImage(editingPreOrder.id, img.id)}
+                              onClick={() =>
+                                deleteExistingImage(editingPreOrder.id, img.id)
+                              }
                             >
                               Delete
                             </button>
@@ -1646,14 +1835,20 @@ export default function PreOrdersRequestsPage() {
                   <div className="upload-section-head">
                     <div>
                       <label>
-                        Add Images ({pendingImages.length + (editingPreOrder?.images.length || 0)}/{MAX_IMAGE_COUNT})
+                        Add Images (
+                        {pendingImages.length +
+                          (editingPreOrder?.images.length || 0)}
+                        /{MAX_IMAGE_COUNT})
                       </label>
                       <p className="upload-help-text">
-                        Upload up to {MAX_IMAGE_COUNT} images. Supported formats: JPG, PNG, WEBP, AVIF. Maximum size 10 MB each.
+                        Upload up to {MAX_IMAGE_COUNT} images. Supported
+                        formats: JPG, PNG, WEBP, AVIF. Maximum size 10 MB each.
                       </p>
                     </div>
                     <span className="upload-counter">
-                      {pendingImages.length + (editingPreOrder?.images.length || 0)}/{MAX_IMAGE_COUNT}
+                      {pendingImages.length +
+                        (editingPreOrder?.images.length || 0)}
+                      /{MAX_IMAGE_COUNT}
                     </span>
                   </div>
                   <input
@@ -1668,7 +1863,8 @@ export default function PreOrdersRequestsPage() {
                     <div className="upload-panel-copy">
                       <strong>Add bike gallery images</strong>
                       <p>
-                        Choose clear bike photos. The first primary image is what users will see first on the listing.
+                        Choose clear bike photos. The first primary image is
+                        what users will see first on the listing.
                       </p>
                     </div>
                     <button
@@ -1676,17 +1872,24 @@ export default function PreOrdersRequestsPage() {
                       className="btn-outline"
                       onClick={() => imageInputRef.current?.click()}
                       disabled={
-                        (editingPreOrder?.images?.length ?? 0) + pendingImages.length >= MAX_IMAGE_COUNT
+                        (editingPreOrder?.images?.length ?? 0) +
+                          pendingImages.length >=
+                        MAX_IMAGE_COUNT
                       }
                     >
                       <IconPlus /> Choose Images
                     </button>
                   </div>
-                  {imageError && <div className="bm-alert bm-alert-error">{imageError}</div>}
+                  {imageError && (
+                    <div className="bm-alert bm-alert-error">{imageError}</div>
+                  )}
                   {pendingImages.length > 0 && (
                     <div className="pending-images">
                       {pendingImages.map((f, idx) => (
-                        <div key={`${f.name}-${idx}`} className="pending-image-card">
+                        <div
+                          key={`${f.name}-${idx}`}
+                          className="pending-image-card"
+                        >
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={URL.createObjectURL(f)}
@@ -1695,7 +1898,9 @@ export default function PreOrdersRequestsPage() {
                           />
                           <div className="pending-image-meta">
                             <span className="pending-image-name">{f.name}</span>
-                            <span className="pending-image-size">{(f.size / (1024 * 1024)).toFixed(2)} MB</span>
+                            <span className="pending-image-size">
+                              {(f.size / (1024 * 1024)).toFixed(2)} MB
+                            </span>
                           </div>
                           <button
                             type="button"
@@ -1717,7 +1922,12 @@ export default function PreOrdersRequestsPage() {
                 </div>
 
                 {/* PDF Brochure */}
-                <div className="form-section-title" style={{ marginTop: "1.5rem" }}>Brochure (PDF)</div>
+                <div
+                  className="form-section-title"
+                  style={{ marginTop: "1.5rem" }}
+                >
+                  Brochure (PDF)
+                </div>
                 <div className="images-section">
                   {editingPreOrder?.pdfUrl && !pendingPdf && (
                     <div className="pdf-existing">
@@ -1751,9 +1961,14 @@ export default function PreOrdersRequestsPage() {
                   />
                   <div className="upload-panel">
                     <div className="upload-panel-copy">
-                      <strong>{editingPreOrder?.pdfUrl ? "Change Brochure PDF" : "Upload Brochure PDF"}</strong>
+                      <strong>
+                        {editingPreOrder?.pdfUrl
+                          ? "Change Brochure PDF"
+                          : "Upload Brochure PDF"}
+                      </strong>
                       <p>
-                        Optional. Upload a product brochure PDF (max 20 MB). Customers can view it on the pre-order listing page.
+                        Optional. Upload a product brochure PDF (max 20 MB).
+                        Customers can view it on the pre-order listing page.
                       </p>
                     </div>
                     <button
@@ -1764,12 +1979,21 @@ export default function PreOrdersRequestsPage() {
                       {editingPreOrder?.pdfUrl ? "Change PDF" : "Upload PDF"}
                     </button>
                   </div>
-                  {pdfError && <div className="bm-alert bm-alert-error">{pdfError}</div>}
+                  {pdfError && (
+                    <div className="bm-alert bm-alert-error">{pdfError}</div>
+                  )}
                   {pendingPdf ? (
-                    <div className="pending-image-card" style={{ marginTop: "0.5rem" }}>
+                    <div
+                      className="pending-image-card"
+                      style={{ marginTop: "0.5rem" }}
+                    >
                       <div className="pending-image-meta">
-                        <span className="pending-image-name">{pendingPdf.name}</span>
-                        <span className="pending-image-size">{(pendingPdf.size / (1024 * 1024)).toFixed(2)} MB</span>
+                        <span className="pending-image-name">
+                          {pendingPdf.name}
+                        </span>
+                        <span className="pending-image-size">
+                          {(pendingPdf.size / (1024 * 1024)).toFixed(2)} MB
+                        </span>
                       </div>
                       <button
                         type="button"
@@ -1781,7 +2005,9 @@ export default function PreOrdersRequestsPage() {
                       </button>
                     </div>
                   ) : (
-                    <div className="upload-empty-state">No PDF selected yet.</div>
+                    <div className="upload-empty-state">
+                      No PDF selected yet.
+                    </div>
                   )}
                 </div>
               </div>
@@ -1798,7 +2024,11 @@ export default function PreOrdersRequestsPage() {
                   className="btn-accent"
                   disabled={preOrderSaving || uploadingImages}
                 >
-                  {preOrderSaving ? "Saving..." : uploadingImages ? "Uploading..." : "Save Pre-Order"}
+                  {preOrderSaving
+                    ? "Saving..."
+                    : uploadingImages
+                      ? "Uploading..."
+                      : "Save Pre-Order"}
                 </button>
               </div>
             </form>
@@ -1963,7 +2193,9 @@ export default function PreOrdersRequestsPage() {
           border-radius: 12px;
           overflow: hidden;
           box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-          transition: transform 0.2s, box-shadow 0.2s;
+          transition:
+            transform 0.2s,
+            box-shadow 0.2s;
           border: 1px solid var(--border-color);
         }
         .preorder-card:hover {
@@ -2030,7 +2262,8 @@ export default function PreOrdersRequestsPage() {
           color: var(--accent);
           font-weight: 600;
         }
-        .loading-state, .empty-state {
+        .loading-state,
+        .empty-state {
           text-align: center;
           padding: 3rem;
           color: var(--text-secondary);
@@ -2106,7 +2339,8 @@ export default function PreOrdersRequestsPage() {
           align-items: center;
           gap: 1rem;
           padding: 1rem 1.1rem;
-          border: 1px dashed color-mix(in srgb, var(--accent) 34%, var(--border-color) 66%);
+          border: 1px dashed
+            color-mix(in srgb, var(--accent) 34%, var(--border-color) 66%);
           border-radius: 12px;
           background: color-mix(in srgb, var(--bg-secondary) 84%, white 16%);
           flex-wrap: wrap;
@@ -2223,7 +2457,8 @@ export default function PreOrdersRequestsPage() {
           width: 2rem;
           height: 2rem;
           border-radius: 999px;
-          border: 1px solid color-mix(in srgb, var(--danger) 25%, var(--border-color) 75%);
+          border: 1px solid
+            color-mix(in srgb, var(--danger) 25%, var(--border-color) 75%);
           background: color-mix(in srgb, var(--danger) 10%, var(--bg-card) 90%);
           cursor: pointer;
           color: var(--danger);
@@ -2242,7 +2477,11 @@ export default function PreOrdersRequestsPage() {
           border: 1px dashed var(--border-color);
           color: var(--text-secondary);
           font-size: 0.84rem;
-          background: color-mix(in srgb, var(--bg-card) 88%, var(--bg-secondary) 12%);
+          background: color-mix(
+            in srgb,
+            var(--bg-card) 88%,
+            var(--bg-secondary) 12%
+          );
         }
         .pdf-existing {
           display: flex;
