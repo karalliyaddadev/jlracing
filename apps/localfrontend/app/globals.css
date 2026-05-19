@@ -3362,6 +3362,11 @@ button {
   gap: 0.4rem;
 }
 
+.bikedetail__btn--disabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
 .bikedetail-notfound {
   min-height: 60vh;
   display: flex;

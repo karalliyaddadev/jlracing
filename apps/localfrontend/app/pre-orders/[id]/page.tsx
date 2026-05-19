@@ -5,7 +5,13 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import ImageLightbox from "../../components/ImageLightbox";
 
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const BACKEND_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
+
+function resolveBackendUrl(assetPath?: string | null) {
+  if (!assetPath) return null;
+  if (/^https?:\/\//i.test(assetPath)) return assetPath;
+  return `${BACKEND_URL}${assetPath.startsWith("/") ? "" : "/"}${assetPath}`;
+}
 
 type PreOrderImage = {
   id: number;
@@ -92,6 +98,7 @@ export default function PreOrderDetailPage() {
     if (!a.isPrimary && b.isPrimary) return 1;
     return a.sortOrder - b.sortOrder;
   });
+  const brochureUrl = resolveBackendUrl(bike.pdfUrl?.trim() || null);
 
   return (
     <section className="bikedetail-page">
@@ -112,7 +119,7 @@ export default function PreOrderDetailPage() {
             >
               {sortedImages.length > 0 ? (
                 <img
-                  src={`${BACKEND_URL}${sortedImages[activeThumb]?.url ?? sortedImages[0].url}`}
+                  src={resolveBackendUrl(sortedImages[activeThumb]?.url ?? sortedImages[0].url) ?? ""}
                   alt={`${bike.brand} ${bike.model}`}
                 />
               ) : (
@@ -141,7 +148,7 @@ export default function PreOrderDetailPage() {
                     onClick={() => setActiveThumb(i)}
                   >
                     <img
-                      src={`${BACKEND_URL}${img.url}`}
+                      src={resolveBackendUrl(img.url) ?? ""}
                       alt={`View ${i + 1}`}
                     />
                   </div>
@@ -217,9 +224,9 @@ export default function PreOrderDetailPage() {
                 </svg>
                 WhatsApp
               </a>
-              {bike.pdfUrl && (
+              {brochureUrl && (
                 <a
-                  href={`${BACKEND_URL}${bike.pdfUrl}`}
+                  href={brochureUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="bikedetail__btn bikedetail__btn--brochure"
@@ -273,7 +280,9 @@ export default function PreOrderDetailPage() {
       </div>
       {lightboxIndex !== null && (
         <ImageLightbox
-          images={sortedImages.map((img) => `${BACKEND_URL}${img.url}`)}
+          images={sortedImages
+            .map((img) => resolveBackendUrl(img.url))
+            .filter((src): src is string => Boolean(src))}
           index={lightboxIndex}
           onClose={() => setLightboxIndex(null)}
           onChange={(i) => {
