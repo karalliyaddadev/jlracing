@@ -43,10 +43,16 @@ type Model = { id: number; name: string; brandId: number };
 const MAX_IMAGE_COUNT = 6;
 const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
 
+function resolveAssetUrl(assetPath?: string | null) {
+  if (!assetPath) return null;
+  if (/^https?:\/\//i.test(assetPath)) return assetPath;
+  return `${API_URL.replace(/\/$/, "")}${assetPath.startsWith("/") ? "" : "/"}${assetPath}`;
+}
+
 function getPrimaryImageSrc(images: PreOrderImage[]): string | null {
   if (!images?.length) return null;
   const primary = images.find((i) => i.isPrimary) ?? images[0];
-  return `${API_URL}${primary.url}`;
+  return resolveAssetUrl(primary.url);
 }
 
 // â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -451,6 +457,8 @@ export default function PreOrdersManagementPage() {
         });
       }
 
+      setPendingImages([]);
+      setPendingPdf(null);
       setShowModal(false);
       await fetchPreOrders();
     } catch (err) {
@@ -1107,7 +1115,7 @@ export default function PreOrdersManagementPage() {
                       }
                     >
                       <Image
-                        src={`${API_URL}${img.url}`}
+                        src={resolveAssetUrl(img.url) ?? ""}
                         alt="img"
                         width={72}
                         height={56}
@@ -1238,7 +1246,7 @@ export default function PreOrdersManagementPage() {
                 {editingPreOrder?.pdfUrl && !pendingPdf && (
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                     <a
-                      href={`${API_URL}${editingPreOrder.pdfUrl}`}
+                      href={resolveAssetUrl(editingPreOrder.pdfUrl) ?? "#"}
                       target="_blank"
                       rel="noopener noreferrer"
                       style={{ fontSize: 12, color: "var(--accent)", textDecoration: "underline" }}
