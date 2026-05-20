@@ -88,12 +88,18 @@ const MAX_IMAGE_COUNT = 6;
 const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
 const PREORDER_LIMIT = 20;
 
+function resolveAssetUrl(assetPath?: string | null) {
+  if (!assetPath) return null;
+  if (/^https?:\/\//i.test(assetPath)) return assetPath;
+  return `${API_URL.replace(/\/$/, "")}${assetPath.startsWith("/") ? "" : "/"}${assetPath}`;
+}
+
 // ──────────────────── HELPERS ────────────────────────
 
 function getPrimaryImageSrc(images: PreOrderImage[]): string | null {
   if (!images?.length) return null;
   const primary = images.find((i) => i.isPrimary) ?? images[0];
-  return `${API_URL}${primary.url}`;
+  return resolveAssetUrl(primary.url);
 }
 
 function statusBadgeClass(status: ContactStatus) {
@@ -514,6 +520,8 @@ export default function PreOrdersRequestsPage() {
         });
       }
 
+      setPendingImages([]);
+      setPendingPdf(null);
       setShowPreOrderModal(false);
       await fetchPreOrders();
     } catch (err) {
@@ -1135,7 +1143,7 @@ export default function PreOrdersRequestsPage() {
                         {viewPreOrder.images.map((img) => (
                           <div key={img.id} className="image-item">
                             <Image
-                              src={`${API_URL}${img.url}`}
+                              src={resolveAssetUrl(img.url) ?? ""}
                               alt="Pre-order"
                               width={100}
                               height={100}
@@ -1793,7 +1801,7 @@ export default function PreOrdersRequestsPage() {
                       {editingPreOrder.images.map((img) => (
                         <div key={img.id} className="image-item with-actions">
                           <Image
-                            src={`${API_URL}${img.url}`}
+                            src={resolveAssetUrl(img.url) ?? ""}
                             alt="Pre-order"
                             width={100}
                             height={100}
@@ -1933,7 +1941,7 @@ export default function PreOrdersRequestsPage() {
                     <div className="pdf-existing">
                       <span>Current brochure:</span>
                       <a
-                        href={`${API_URL}${editingPreOrder.pdfUrl}`}
+                        href={resolveAssetUrl(editingPreOrder.pdfUrl) ?? "#"}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="pdf-link"
