@@ -39,6 +39,46 @@ enum PosPurchaseChannel {
   LEASING
 }
 
+enum AccountType {
+  BANK
+  CASH
+}
+
+enum PaymentMethod {
+  CASH
+  CHEQUE
+}
+
+enum ChequeStatus {
+  PENDING
+  CLEARED
+  BOUNCED
+}
+
+enum VoucherType {
+  VEHICLE_CLEARANCE
+  BILL
+  OTHER_PAYMENT
+  PERMIT
+  LEASING_PAYMENT
+  LOAN_PAYMENT
+  SALARY
+  CUSTOMER_REFUND
+  VEHICLE_PURCHASE
+  ADVANCE_REFUND
+}
+
+enum TransactionType {
+  RECEIPT
+  VOUCHER
+  REVERSAL
+}
+
+enum TransactionDirection {
+  DR
+  CR
+}
+
 model User {
   id           Int      @id @default(autoincrement())
   name         String
@@ -340,6 +380,7 @@ model PosCustomerPurchase {
   bikeVehicle         BikeVehicle? @relation(fields: [bikeVehicleId], references: [id], onDelete: SetNull)
   inventoryProduct    InventoryProduct? @relation(fields: [inventoryProductId], references: [id], onDelete: SetNull)
   leasingCompany      PosLeasingCompany? @relation(fields: [leasingCompanyId], references: [id], onDelete: SetNull)
+  receipts            AccountReceipt[]
 
   @@index([customerId])
   @@index([invoiceGroupCode])
@@ -461,4 +502,89 @@ model ExportVehicleImage {
   createdAt DateTime      @default(now())
 
   @@map("export_vehicle_images")
+}
+
+// ── Accounts Module ───────────────────────────────────────────────────────────
+
+model Account {
+  id             Int                  @id @default(autoincrement())
+  name           String
+  code           String               @unique
+  type           AccountType          @default(BANK)
+  openingBalance Float                @default(0)
+  isActive       Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  receipts       AccountReceipt[]
+  vouchers       AccountVoucher[]
+  transactions   AccountTransaction[]
+
+  @@map("accounts")
+}
+
+model AccountReceipt {
+  id            Int                  @id @default(autoincrement())
+  receiptNo     String               @unique
+  purchaseId    Int
+  accountId     Int
+  amount        Float
+  paymentMethod PaymentMethod        @default(CASH)
+  chequeNo      String?
+  chequeBank    String?
+  chequeDate    DateTime?
+  chequeStatus  ChequeStatus?
+  description   String?
+  isVoided      Boolean              @default(false)
+  createdById   Int
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  account       Account              @relation(fields: [accountId], references: [id])
+  purchase      PosCustomerPurchase  @relation(fields: [purchaseId], references: [id])
+  transactions  AccountTransaction[]
+
+  @@index([purchaseId])
+  @@index([accountId])
+  @@map("account_receipts")
+}
+
+model AccountVoucher {
+  id           Int                  @id @default(autoincrement())
+  voucherNo    String               @unique
+  accountId    Int
+  type         VoucherType
+  amount       Float
+  description  String?
+  isVoided     Boolean              @default(false)
+  createdById  Int
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  account      Account              @relation(fields: [accountId], references: [id])
+  transactions AccountTransaction[]
+
+  @@index([accountId])
+  @@map("account_vouchers")
+}
+
+model AccountTransaction {
+  id          Int                  @id @default(autoincrement())
+  accountId   Int
+  type        TransactionType
+  direction   TransactionDirection
+  amount      Float
+  receiptId   Int?
+  voucherId   Int?
+  refNo       String?
+  description String?
+  chequeNo    String?
+  isReversal  Boolean              @default(false)
+  createdById Int
+  createdAt   DateTime             @default(now())
+  account     Account              @relation(fields: [accountId], references: [id])
+  receipt     AccountReceipt?      @relation(fields: [receiptId], references: [id])
+  voucher     AccountVoucher?      @relation(fields: [voucherId], references: [id])
+
+  @@index([accountId])
+  @@index([receiptId])
+  @@index([voucherId])
+  @@map("account_transactions")
 }
