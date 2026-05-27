@@ -1678,6 +1678,13 @@ button {
   gap: 2rem;
 }
 
+.abt-auctions__top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
 .abt-auctions__pill {
   display: inline-flex;
   align-items: center;

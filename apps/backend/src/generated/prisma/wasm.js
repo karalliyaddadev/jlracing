@@ -422,6 +422,64 @@ exports.Prisma.ExportVehicleImageScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.AccountScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  code: 'code',
+  type: 'type',
+  openingBalance: 'openingBalance',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AccountReceiptScalarFieldEnum = {
+  id: 'id',
+  receiptNo: 'receiptNo',
+  purchaseId: 'purchaseId',
+  accountId: 'accountId',
+  amount: 'amount',
+  paymentMethod: 'paymentMethod',
+  chequeNo: 'chequeNo',
+  chequeBank: 'chequeBank',
+  chequeDate: 'chequeDate',
+  chequeStatus: 'chequeStatus',
+  description: 'description',
+  isVoided: 'isVoided',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AccountVoucherScalarFieldEnum = {
+  id: 'id',
+  voucherNo: 'voucherNo',
+  accountId: 'accountId',
+  type: 'type',
+  amount: 'amount',
+  description: 'description',
+  isVoided: 'isVoided',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AccountTransactionScalarFieldEnum = {
+  id: 'id',
+  accountId: 'accountId',
+  type: 'type',
+  direction: 'direction',
+  amount: 'amount',
+  receiptId: 'receiptId',
+  voucherId: 'voucherId',
+  refNo: 'refNo',
+  description: 'description',
+  chequeNo: 'chequeNo',
+  isReversal: 'isReversal',
+  createdById: 'createdById',
+  createdAt: 'createdAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -472,6 +530,46 @@ exports.ExportVehicleCategory = exports.$Enums.ExportVehicleCategory = {
   HEAVY_MACHINERY: 'HEAVY_MACHINERY'
 };
 
+exports.AccountType = exports.$Enums.AccountType = {
+  BANK: 'BANK',
+  CASH: 'CASH'
+};
+
+exports.PaymentMethod = exports.$Enums.PaymentMethod = {
+  CASH: 'CASH',
+  CHEQUE: 'CHEQUE'
+};
+
+exports.ChequeStatus = exports.$Enums.ChequeStatus = {
+  PENDING: 'PENDING',
+  CLEARED: 'CLEARED',
+  BOUNCED: 'BOUNCED'
+};
+
+exports.VoucherType = exports.$Enums.VoucherType = {
+  VEHICLE_CLEARANCE: 'VEHICLE_CLEARANCE',
+  BILL: 'BILL',
+  OTHER_PAYMENT: 'OTHER_PAYMENT',
+  PERMIT: 'PERMIT',
+  LEASING_PAYMENT: 'LEASING_PAYMENT',
+  LOAN_PAYMENT: 'LOAN_PAYMENT',
+  SALARY: 'SALARY',
+  CUSTOMER_REFUND: 'CUSTOMER_REFUND',
+  VEHICLE_PURCHASE: 'VEHICLE_PURCHASE',
+  ADVANCE_REFUND: 'ADVANCE_REFUND'
+};
+
+exports.TransactionType = exports.$Enums.TransactionType = {
+  RECEIPT: 'RECEIPT',
+  VOUCHER: 'VOUCHER',
+  REVERSAL: 'REVERSAL'
+};
+
+exports.TransactionDirection = exports.$Enums.TransactionDirection = {
+  DR: 'DR',
+  CR: 'CR'
+};
+
 exports.Prisma.ModelName = {
   User: 'User',
   Bike: 'Bike',
@@ -497,7 +595,11 @@ exports.Prisma.ModelName = {
   PreOrderImage: 'PreOrderImage',
   ContactRequest: 'ContactRequest',
   ExportVehicle: 'ExportVehicle',
-  ExportVehicleImage: 'ExportVehicleImage'
+  ExportVehicleImage: 'ExportVehicleImage',
+  Account: 'Account',
+  AccountReceipt: 'AccountReceipt',
+  AccountVoucher: 'AccountVoucher',
+  AccountTransaction: 'AccountTransaction'
 };
 
 /**

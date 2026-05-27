@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
+  IconAccounts,
   IconBike,
   IconChevronLeft,
   IconChevronNav,
@@ -69,6 +70,12 @@ const NAV_ITEMS = [
     href: "/dashboard/invoices",
     Icon: IconInvoice,
   },
+  {
+    key: "accounts",
+    label: "Accounts",
+    href: "/dashboard/accounts",
+    Icon: IconAccounts,
+  },
 ] as const;
 
 const BIKE_SUB_ITEMS = [
@@ -102,6 +109,13 @@ const INVOICE_SUB_ITEMS = [
   },
 ] as const;
 
+const ACCOUNTS_SUB_ITEMS = [
+  { key: "receipts", label: "Receipts", href: "/dashboard/accounts/receipts" },
+  { key: "vouchers", label: "Vouchers", href: "/dashboard/accounts/vouchers" },
+  { key: "ledger", label: "General Ledger", href: "/dashboard/accounts/ledger" },
+  { key: "manage", label: "Manage Accounts", href: "/dashboard/accounts" },
+] as const;
+
 const SIDEBAR_COLLAPSED_KEY = "pos-sidebar-collapsed";
 
 export function Sidebar() {
@@ -118,6 +132,9 @@ export function Sidebar() {
   );
   const [invoiceOpen, setInvoiceOpen] = useState(
     pathname.startsWith("/dashboard/invoices"),
+  );
+  const [accountsOpen, setAccountsOpen] = useState(
+    pathname.startsWith("/dashboard/accounts"),
   );
 
   useEffect(() => {
@@ -144,6 +161,9 @@ export function Sidebar() {
     if (pathname.startsWith("/dashboard/invoices")) {
       setInvoiceOpen(true);
     }
+    if (pathname.startsWith("/dashboard/accounts")) {
+      setAccountsOpen(true);
+    }
   }, [pathname]);
 
   const isBikeActive = pathname.startsWith("/dashboard/bikes");
@@ -152,9 +172,9 @@ export function Sidebar() {
   const isLeasingActive = pathname.startsWith("/dashboard/leasing-companies");
   const isUserActive = pathname.startsWith("/dashboard/users");
   const isInvoiceActive = pathname.startsWith("/dashboard/invoices");
+  const isAccountsActive = pathname.startsWith("/dashboard/accounts");
 
-  const isSubItemActive = (href: string) =>
-    pathname === href || pathname.startsWith(`${href}/`);
+  const isSubItemActive = (href: string) => pathname === href;
 
   return (
     <aside className={`sidebar${collapsed ? " collapsed" : ""}`}>
@@ -432,6 +452,53 @@ export function Sidebar() {
                   {invoiceOpen && (
                     <div className="nav-sub-group">
                       {INVOICE_SUB_ITEMS.map(
+                        ({
+                          key: itemKey,
+                          label: itemLabel,
+                          href: itemHref,
+                        }) => {
+                          const itemActive = isSubItemActive(itemHref);
+                          return (
+                            <Link
+                              key={itemKey}
+                              href={itemHref}
+                              className={`nav-sub-item${itemActive ? " active" : ""}`}
+                            >
+                              <span className="nav-sub-dot" />
+                              <span>{itemLabel}</span>
+                            </Link>
+                          );
+                        },
+                      )}
+                    </div>
+                  )}
+                </>
+              ) : key === "accounts" && !collapsed ? (
+                <>
+                  <button
+                    type="button"
+                    className={`nav-item nav-group-toggle${isAccountsActive ? " active" : ""}`}
+                    onClick={() => setAccountsOpen((value) => !value)}
+                  >
+                    <span className="nav-icon">
+                      <Icon />
+                    </span>
+                    <span className="nav-label">{label}</span>
+                    <span
+                      className="nav-chevron"
+                      style={{
+                        transform: accountsOpen
+                          ? "rotate(90deg)"
+                          : "rotate(0deg)",
+                        transition: "transform 0.2s",
+                      }}
+                    >
+                      <IconChevronNav />
+                    </span>
+                  </button>
+                  {accountsOpen && (
+                    <div className="nav-sub-group">
+                      {ACCOUNTS_SUB_ITEMS.map(
                         ({
                           key: itemKey,
                           label: itemLabel,
