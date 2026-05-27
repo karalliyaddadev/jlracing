@@ -444,11 +444,17 @@ export default function PreOrdersManagementPage() {
       if (pendingPdf) {
         const fd = new FormData();
         fd.append("pdf", pendingPdf);
-        await fetch(`${API_URL}/api/pos/pre-orders/${saved.id}/pdf`, {
+        const pdfRes = await fetch(`${API_URL}/api/pos/pre-orders/${saved.id}/pdf`, {
           method: "POST",
           headers: { Authorization: `Bearer ${token}` },
           body: fd,
         });
+        if (!pdfRes.ok) {
+          const errData = await pdfRes.json().catch(() => ({}));
+          throw new Error(
+            (errData as { message?: string }).message ?? "Failed to upload PDF brochure",
+          );
+        }
       }
 
       setShowModal(false);
