@@ -1,9 +1,23 @@
 import { z } from "zod";
-import { AccountType, PaymentMethod, VoucherType } from "../../../generated/prisma";
+
+const accountTypeValues = ["BANK", "CASH"] as const;
+const paymentMethodValues = ["CASH", "CHEQUE"] as const;
+const voucherTypeValues = [
+  "VEHICLE_CLEARANCE",
+  "BILL",
+  "OTHER_PAYMENT",
+  "PERMIT",
+  "LEASING_PAYMENT",
+  "LOAN_PAYMENT",
+  "SALARY",
+  "CUSTOMER_REFUND",
+  "VEHICLE_PURCHASE",
+  "ADVANCE_REFUND",
+] as const;
 
 export const createAccountSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(120, "Name is too long"),
-  type: z.nativeEnum(AccountType).default(AccountType.BANK),
+  type: z.enum(accountTypeValues).default("BANK"),
   openingBalance: z.number().min(0).default(0),
 });
 
@@ -13,7 +27,7 @@ export const createReceiptSchema = z.object({
   purchaseId: z.number().int().positive("Purchase is required"),
   accountId: z.number().int().positive("Account is required"),
   amount: z.number().positive("Amount must be greater than 0"),
-  paymentMethod: z.nativeEnum(PaymentMethod).default(PaymentMethod.CASH),
+  paymentMethod: z.enum(paymentMethodValues).default("CASH"),
   chequeNo: z.string().trim().max(80).optional(),
   chequeBank: z.string().trim().max(120).optional(),
   chequeDate: z
@@ -29,7 +43,7 @@ export const updateReceiptSchema = createReceiptSchema
 
 export const createVoucherSchema = z.object({
   accountId: z.number().int().positive("Account is required"),
-  type: z.nativeEnum(VoucherType),
+  type: z.enum(voucherTypeValues),
   amount: z.number().positive("Amount must be greater than 0"),
   description: z.string().trim().max(500).optional(),
 });
