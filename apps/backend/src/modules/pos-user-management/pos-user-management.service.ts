@@ -1926,6 +1926,41 @@ export async function getPurchaseInstallments(purchaseId: number) {
   return { installments };
 }
 
+export async function listInvoiceAccounts() {
+  try {
+    const accounts = await listInvoiceAccountsWithRawSql();
+    return { accounts };
+  } catch (error) {
+    handleInvoiceAccountPersistenceError(error);
+  }
+}
+
+export async function createInvoiceAccount(dto: CreateInvoiceAccountDto) {
+  try {
+    const account = await createInvoiceAccountWithRawSql(dto);
+    return account;
+  } catch (error) {
+    handleInvoiceAccountPersistenceError(error);
+  }
+}
+
+export async function updateInvoiceAccount(accountId: number, dto: UpdateInvoiceAccountDto) {
+  try {
+    const account = await updateInvoiceAccountWithRawSql(accountId, dto);
+    return account;
+  } catch (error) {
+    handleInvoiceAccountPersistenceError(error);
+  }
+}
+
+export async function deleteInvoiceAccount(accountId: number) {
+  try {
+    await deleteInvoiceAccountWithRawSql(accountId);
+  } catch (error) {
+    handleInvoiceAccountPersistenceError(error);
+  }
+}
+
 export async function listInvoiceTerms() {
   const model = getInvoiceTermModelClient(prisma as any);
   const terms = await model.findMany({

@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { IconInvoice, IconUsers } from "../../lib/icons";
+import { readApiData } from "../../lib/api";
 
 type InstallmentPayment = {
   id: number;
@@ -162,6 +163,8 @@ export default function InvoicesPage() {
   const invoicesQuery = useQuery({
     queryKey: ["pos", "invoices", token],
     enabled: Boolean(token),
+    staleTime: 0,
+    refetchOnMount: "always",
     queryFn: async (): Promise<Purchase[]> => {
       const response = await fetch(`${base}/purchases?page=1&limit=500`, { headers: auth, cache: "no-store" });
       const payload = await readApiData<{ purchases?: Purchase[] }>(response, "Failed to load invoices");
@@ -175,18 +178,57 @@ export default function InvoicesPage() {
     staleTime: 0,
     refetchOnMount: "always",
     queryFn: async (): Promise<InvoiceTerm[]> => {
-      const response = await fetch(`${base}/invoice-terms`, { headers: auth, cache: "no-store" });
-      const payload = await response.json() as { data?: { terms?: InvoiceTerm[] }; message?: string };
-      if (!response.ok) throw new Error(payload.message ?? "Failed to load invoice terms");
-      setInvoiceTerms(payload.data?.terms ?? []);
-    } catch {
-      setInvoiceTerms([]);
-    }
-  }, [auth, base, token]);
+      try {
+        const response = await fetch(`${base}/invoice-terms`, { headers: auth, cache: "no-store" });
+        const payload = await response.json() as { data?: { terms?: InvoiceTerm[] }; message?: string };
+        if (!response.ok) throw new Error(payload.message ?? "Failed to load invoice terms");
+        return payload.data?.terms ?? [];
+      } catch {
+        return [];
+      }
+    },
+  });
 
-  useEffect(() => {
-    void loadInvoiceTerms();
-  }, [loadInvoiceTerms]);
+  const invoiceAccountsQuery = useQuery({
+    queryKey: ["pos", "invoice-accounts", token],
+    enabled: Boolean(token),
+    staleTime: 0,
+    refetchOnMount: "always",
+    queryFn: async (): Promise<InvoiceAccount[]> => {
+      try {
+        const response = await fetch(`${base}/invoice-accounts`, { headers: auth, cache: "no-store" });
+        const payload = await readApiData<{ accounts?: InvoiceAccount[] }>(response, "Failed to load invoice accounts");
+        return payload.accounts ?? [];
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  const invoices = invoicesQuery.data ?? [];
+  const invoiceTerms = invoiceTermsQuery.data ?? [];
+  const invoiceAccounts = invoiceAccountsQuery.data ?? [];
+  const loading = invoicesQuery.isLoading;
+  const refreshing = invoicesQuery.isFetching || invoiceTermsQuery.isFetching || invoiceAccountsQuery.isFetching;
+  const visibleError = invoicesQuery.error instanceof Error ? invoicesQuery.error.message : null;
+  const invoiceSupportLoading = invoiceTermsQuery.isLoading || invoiceAccountsQuery.isLoading;
+
+  const handleRefresh = useCallback(() => {
+    void invoicesQuery.refetch();
+    void invoiceTermsQuery.refetch();
+    void invoiceAccountsQuery.refetch();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [isPreparingPrint, setIsPreparingPrint] = useState(false);
+
+  const handlePrintInvoice = useCallback((_invoice: InvoiceRow) => {
+    setIsPreparingPrint(true);
+    requestAnimationFrame(() => {
+      window.print();
+      setIsPreparingPrint(false);
+    });
+  }, []);
 
   useEffect(() => {
     if (!selectedInvoice) { setInvoiceInstallments([]); return; }

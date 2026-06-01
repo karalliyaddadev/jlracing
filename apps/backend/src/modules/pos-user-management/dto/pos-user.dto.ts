@@ -179,6 +179,21 @@ export const settlePurchaseSchema = z.object({
   penaltyRate: z.number().min(0).max(100).optional(),
 });
 
+export const createInvoiceAccountSchema = z.object({
+  accountHolder: requiredTrimmedText("Account holder"),
+  accountNumber: requiredTrimmedText("Account number"),
+  bankName: requiredTrimmedText("Bank name"),
+  branchName: z.string().trim().max(120).optional(),
+  sortOrder: z.coerce.number().int().min(1).max(9999).optional(),
+  isActive: z.coerce.boolean().optional().default(true),
+});
+
+export const updateInvoiceAccountSchema = createInvoiceAccountSchema
+  .partial()
+  .refine((data) => Object.keys(data).length > 0, {
+    message: "At least one field is required",
+  });
+
 export const createInvoiceTermSchema = z.object({
   text: z
     .string()
@@ -204,6 +219,8 @@ export type SettlePurchaseDto = z.infer<typeof settlePurchaseSchema>;
 export type GetInstallmentsDto = { purchaseId: number };
 export type CreateInvoiceTermDto = z.infer<typeof createInvoiceTermSchema>;
 export type UpdateInvoiceTermDto = z.infer<typeof updateInvoiceTermSchema>;
+export type CreateInvoiceAccountDto = z.infer<typeof createInvoiceAccountSchema>;
+export type UpdateInvoiceAccountDto = z.infer<typeof updateInvoiceAccountSchema>;
 export type CreateLeasingCompanyDto = z.infer<
   typeof createLeasingCompanySchema
 >;

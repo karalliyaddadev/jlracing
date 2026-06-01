@@ -415,24 +415,38 @@ model PosInvoiceTerm {
 }
 
 model PosInstallment {
-  id            Int                 @id @default(autoincrement())
+  id            Int                     @id @default(autoincrement())
   purchaseId    Int
   installmentNo Int
   dueDate       DateTime
   dueAmount     Float
-  paidAmount    Float               @default(0)
-  isPartial     Boolean             @default(false)
-  penaltyRate   Float               @default(0)
-  penaltyAmount Float               @default(0)
-  status        InstallmentStatus   @default(PENDING)
+  paidAmount    Float                   @default(0)
+  isPartial     Boolean                 @default(false)
+  penaltyRate   Float                   @default(0)
+  penaltyAmount Float                   @default(0)
+  status        InstallmentStatus       @default(PENDING)
   settledAt     DateTime?
   notes         String?
-  createdAt     DateTime            @default(now())
-  updatedAt     DateTime            @updatedAt
-  purchase      PosCustomerPurchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  purchase      PosCustomerPurchase     @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  payments      PosInstallmentPayment[]
 
   @@index([purchaseId])
   @@map("pos_installments")
+}
+
+model PosInstallmentPayment {
+  id            Int            @id @default(autoincrement())
+  installmentId Int
+  amount        Float
+  penaltyAmount Float          @default(0)
+  note          String?
+  paidAt        DateTime       @default(now())
+  installment   PosInstallment @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+
+  @@index([installmentId])
+  @@map("pos_installment_payments")
 }
 
 // ── Pre Orders ────────────────────────────────────────────────────────────────
