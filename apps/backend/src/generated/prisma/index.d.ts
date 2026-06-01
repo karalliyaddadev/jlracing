@@ -114,6 +114,16 @@ export type PosCustomerPurchase = $Result.DefaultSelection<Prisma.$PosCustomerPu
  */
 export type PosInvoiceTerm = $Result.DefaultSelection<Prisma.$PosInvoiceTermPayload>
 /**
+ * Model PosInstallment
+ * 
+ */
+export type PosInstallment = $Result.DefaultSelection<Prisma.$PosInstallmentPayload>
+/**
+ * Model PosInstallmentPayment
+ * 
+ */
+export type PosInstallmentPayment = $Result.DefaultSelection<Prisma.$PosInstallmentPaymentPayload>
+/**
  * Model PreOrder
  * 
  */
@@ -212,6 +222,15 @@ export const PosPurchaseChannel: {
 export type PosPurchaseChannel = (typeof PosPurchaseChannel)[keyof typeof PosPurchaseChannel]
 
 
+export const InstallmentStatus: {
+  PENDING: 'PENDING',
+  PARTIAL: 'PARTIAL',
+  PAID: 'PAID'
+};
+
+export type InstallmentStatus = (typeof InstallmentStatus)[keyof typeof InstallmentStatus]
+
+
 export const ExportVehicleCategory: {
   AUTOMOBILE: 'AUTOMOBILE',
   HEAVY_MACHINERY: 'HEAVY_MACHINERY'
@@ -302,6 +321,10 @@ export const PosSettlementStatus: typeof $Enums.PosSettlementStatus
 export type PosPurchaseChannel = $Enums.PosPurchaseChannel
 
 export const PosPurchaseChannel: typeof $Enums.PosPurchaseChannel
+
+export type InstallmentStatus = $Enums.InstallmentStatus
+
+export const InstallmentStatus: typeof $Enums.InstallmentStatus
 
 export type ExportVehicleCategory = $Enums.ExportVehicleCategory
 
@@ -653,6 +676,26 @@ export class PrismaClient<
     * ```
     */
   get posInvoiceTerm(): Prisma.PosInvoiceTermDelegate<ExtArgs>;
+
+  /**
+   * `prisma.posInstallment`: Exposes CRUD operations for the **PosInstallment** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PosInstallments
+    * const posInstallments = await prisma.posInstallment.findMany()
+    * ```
+    */
+  get posInstallment(): Prisma.PosInstallmentDelegate<ExtArgs>;
+
+  /**
+   * `prisma.posInstallmentPayment`: Exposes CRUD operations for the **PosInstallmentPayment** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more PosInstallmentPayments
+    * const posInstallmentPayments = await prisma.posInstallmentPayment.findMany()
+    * ```
+    */
+  get posInstallmentPayment(): Prisma.PosInstallmentPaymentDelegate<ExtArgs>;
 
   /**
    * `prisma.preOrder`: Exposes CRUD operations for the **PreOrder** model.
@@ -1204,6 +1247,8 @@ export namespace Prisma {
     PosCustomerDreamBike: 'PosCustomerDreamBike',
     PosCustomerPurchase: 'PosCustomerPurchase',
     PosInvoiceTerm: 'PosInvoiceTerm',
+    PosInstallment: 'PosInstallment',
+    PosInstallmentPayment: 'PosInstallmentPayment',
     PreOrder: 'PreOrder',
     PreOrderImage: 'PreOrderImage',
     ContactRequest: 'ContactRequest',
@@ -1228,7 +1273,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "bike" | "posAdmin" | "bikeBrand" | "bikeModel" | "bikeColor" | "bikeSupplier" | "bikeVehicle" | "bikeVehicleImage" | "bikeVehicleExpense" | "inventoryBrand" | "inventoryCategory" | "inventoryProduct" | "inventoryProductExpense" | "inventoryProductImage" | "posCustomer" | "posLeasingCompany" | "posCustomerDreamBike" | "posCustomerPurchase" | "posInvoiceTerm" | "preOrder" | "preOrderImage" | "contactRequest" | "exportVehicle" | "exportVehicleImage" | "account" | "accountReceipt" | "accountVoucher" | "accountTransaction"
+      modelProps: "user" | "bike" | "posAdmin" | "bikeBrand" | "bikeModel" | "bikeColor" | "bikeSupplier" | "bikeVehicle" | "bikeVehicleImage" | "bikeVehicleExpense" | "inventoryBrand" | "inventoryCategory" | "inventoryProduct" | "inventoryProductExpense" | "inventoryProductImage" | "posCustomer" | "posLeasingCompany" | "posCustomerDreamBike" | "posCustomerPurchase" | "posInvoiceTerm" | "posInstallment" | "posInstallmentPayment" | "preOrder" | "preOrderImage" | "contactRequest" | "exportVehicle" | "exportVehicleImage" | "account" | "accountReceipt" | "accountVoucher" | "accountTransaction"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2632,6 +2677,146 @@ export namespace Prisma {
           }
         }
       }
+      PosInstallment: {
+        payload: Prisma.$PosInstallmentPayload<ExtArgs>
+        fields: Prisma.PosInstallmentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PosInstallmentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PosInstallmentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPayload>
+          }
+          findFirst: {
+            args: Prisma.PosInstallmentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PosInstallmentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPayload>
+          }
+          findMany: {
+            args: Prisma.PosInstallmentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPayload>[]
+          }
+          create: {
+            args: Prisma.PosInstallmentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPayload>
+          }
+          createMany: {
+            args: Prisma.PosInstallmentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PosInstallmentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPayload>[]
+          }
+          delete: {
+            args: Prisma.PosInstallmentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPayload>
+          }
+          update: {
+            args: Prisma.PosInstallmentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPayload>
+          }
+          deleteMany: {
+            args: Prisma.PosInstallmentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PosInstallmentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PosInstallmentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPayload>
+          }
+          aggregate: {
+            args: Prisma.PosInstallmentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePosInstallment>
+          }
+          groupBy: {
+            args: Prisma.PosInstallmentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PosInstallmentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PosInstallmentCountArgs<ExtArgs>
+            result: $Utils.Optional<PosInstallmentCountAggregateOutputType> | number
+          }
+        }
+      }
+      PosInstallmentPayment: {
+        payload: Prisma.$PosInstallmentPaymentPayload<ExtArgs>
+        fields: Prisma.PosInstallmentPaymentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.PosInstallmentPaymentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPaymentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.PosInstallmentPaymentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPaymentPayload>
+          }
+          findFirst: {
+            args: Prisma.PosInstallmentPaymentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPaymentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.PosInstallmentPaymentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPaymentPayload>
+          }
+          findMany: {
+            args: Prisma.PosInstallmentPaymentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPaymentPayload>[]
+          }
+          create: {
+            args: Prisma.PosInstallmentPaymentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPaymentPayload>
+          }
+          createMany: {
+            args: Prisma.PosInstallmentPaymentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.PosInstallmentPaymentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPaymentPayload>[]
+          }
+          delete: {
+            args: Prisma.PosInstallmentPaymentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPaymentPayload>
+          }
+          update: {
+            args: Prisma.PosInstallmentPaymentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPaymentPayload>
+          }
+          deleteMany: {
+            args: Prisma.PosInstallmentPaymentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.PosInstallmentPaymentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.PosInstallmentPaymentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$PosInstallmentPaymentPayload>
+          }
+          aggregate: {
+            args: Prisma.PosInstallmentPaymentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregatePosInstallmentPayment>
+          }
+          groupBy: {
+            args: Prisma.PosInstallmentPaymentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<PosInstallmentPaymentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.PosInstallmentPaymentCountArgs<ExtArgs>
+            result: $Utils.Optional<PosInstallmentPaymentCountAggregateOutputType> | number
+          }
+        }
+      }
       PreOrder: {
         payload: Prisma.$PreOrderPayload<ExtArgs>
         fields: Prisma.PreOrderFieldRefs
@@ -3775,10 +3960,12 @@ export namespace Prisma {
 
   export type PosCustomerPurchaseCountOutputType = {
     receipts: number
+    installments: number
   }
 
   export type PosCustomerPurchaseCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     receipts?: boolean | PosCustomerPurchaseCountOutputTypeCountReceiptsArgs
+    installments?: boolean | PosCustomerPurchaseCountOutputTypeCountInstallmentsArgs
   }
 
   // Custom InputTypes
@@ -3797,6 +3984,44 @@ export namespace Prisma {
    */
   export type PosCustomerPurchaseCountOutputTypeCountReceiptsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AccountReceiptWhereInput
+  }
+
+  /**
+   * PosCustomerPurchaseCountOutputType without action
+   */
+  export type PosCustomerPurchaseCountOutputTypeCountInstallmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PosInstallmentWhereInput
+  }
+
+
+  /**
+   * Count Type PosInstallmentCountOutputType
+   */
+
+  export type PosInstallmentCountOutputType = {
+    payments: number
+  }
+
+  export type PosInstallmentCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    payments?: boolean | PosInstallmentCountOutputTypeCountPaymentsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * PosInstallmentCountOutputType without action
+   */
+  export type PosInstallmentCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallmentCountOutputType
+     */
+    select?: PosInstallmentCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * PosInstallmentCountOutputType without action
+   */
+  export type PosInstallmentCountOutputTypeCountPaymentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PosInstallmentPaymentWhereInput
   }
 
 
@@ -22364,6 +22589,10 @@ export namespace Prisma {
     leasingDownPaymentAmount: number | null
     leasingFinancedAmount: number | null
     registrationFeeAmount: number | null
+    interestRate: number | null
+    installmentMonths: number | null
+    monthlyInstallmentAmount: number | null
+    totalWithInterest: number | null
     quantity: number | null
   }
 
@@ -22380,6 +22609,10 @@ export namespace Prisma {
     leasingDownPaymentAmount: number | null
     leasingFinancedAmount: number | null
     registrationFeeAmount: number | null
+    interestRate: number | null
+    installmentMonths: number | null
+    monthlyInstallmentAmount: number | null
+    totalWithInterest: number | null
     quantity: number | null
   }
 
@@ -22403,6 +22636,10 @@ export namespace Prisma {
     leasingFinancedAmount: number | null
     hasRegistrationFee: boolean | null
     registrationFeeAmount: number | null
+    interestRate: number | null
+    installmentMonths: number | null
+    monthlyInstallmentAmount: number | null
+    totalWithInterest: number | null
     quantity: number | null
     purchasedAt: Date | null
   }
@@ -22427,6 +22664,10 @@ export namespace Prisma {
     leasingFinancedAmount: number | null
     hasRegistrationFee: boolean | null
     registrationFeeAmount: number | null
+    interestRate: number | null
+    installmentMonths: number | null
+    monthlyInstallmentAmount: number | null
+    totalWithInterest: number | null
     quantity: number | null
     purchasedAt: Date | null
   }
@@ -22451,6 +22692,10 @@ export namespace Prisma {
     leasingFinancedAmount: number
     hasRegistrationFee: number
     registrationFeeAmount: number
+    interestRate: number
+    installmentMonths: number
+    monthlyInstallmentAmount: number
+    totalWithInterest: number
     quantity: number
     purchasedAt: number
     _all: number
@@ -22470,6 +22715,10 @@ export namespace Prisma {
     leasingDownPaymentAmount?: true
     leasingFinancedAmount?: true
     registrationFeeAmount?: true
+    interestRate?: true
+    installmentMonths?: true
+    monthlyInstallmentAmount?: true
+    totalWithInterest?: true
     quantity?: true
   }
 
@@ -22486,6 +22735,10 @@ export namespace Prisma {
     leasingDownPaymentAmount?: true
     leasingFinancedAmount?: true
     registrationFeeAmount?: true
+    interestRate?: true
+    installmentMonths?: true
+    monthlyInstallmentAmount?: true
+    totalWithInterest?: true
     quantity?: true
   }
 
@@ -22509,6 +22762,10 @@ export namespace Prisma {
     leasingFinancedAmount?: true
     hasRegistrationFee?: true
     registrationFeeAmount?: true
+    interestRate?: true
+    installmentMonths?: true
+    monthlyInstallmentAmount?: true
+    totalWithInterest?: true
     quantity?: true
     purchasedAt?: true
   }
@@ -22533,6 +22790,10 @@ export namespace Prisma {
     leasingFinancedAmount?: true
     hasRegistrationFee?: true
     registrationFeeAmount?: true
+    interestRate?: true
+    installmentMonths?: true
+    monthlyInstallmentAmount?: true
+    totalWithInterest?: true
     quantity?: true
     purchasedAt?: true
   }
@@ -22557,6 +22818,10 @@ export namespace Prisma {
     leasingFinancedAmount?: true
     hasRegistrationFee?: true
     registrationFeeAmount?: true
+    interestRate?: true
+    installmentMonths?: true
+    monthlyInstallmentAmount?: true
+    totalWithInterest?: true
     quantity?: true
     purchasedAt?: true
     _all?: true
@@ -22668,6 +22933,10 @@ export namespace Prisma {
     leasingFinancedAmount: number
     hasRegistrationFee: boolean
     registrationFeeAmount: number
+    interestRate: number | null
+    installmentMonths: number | null
+    monthlyInstallmentAmount: number | null
+    totalWithInterest: number | null
     quantity: number
     purchasedAt: Date
     _count: PosCustomerPurchaseCountAggregateOutputType | null
@@ -22711,6 +22980,10 @@ export namespace Prisma {
     leasingFinancedAmount?: boolean
     hasRegistrationFee?: boolean
     registrationFeeAmount?: boolean
+    interestRate?: boolean
+    installmentMonths?: boolean
+    monthlyInstallmentAmount?: boolean
+    totalWithInterest?: boolean
     quantity?: boolean
     purchasedAt?: boolean
     customer?: boolean | PosCustomerDefaultArgs<ExtArgs>
@@ -22718,6 +22991,7 @@ export namespace Prisma {
     inventoryProduct?: boolean | PosCustomerPurchase$inventoryProductArgs<ExtArgs>
     leasingCompany?: boolean | PosCustomerPurchase$leasingCompanyArgs<ExtArgs>
     receipts?: boolean | PosCustomerPurchase$receiptsArgs<ExtArgs>
+    installments?: boolean | PosCustomerPurchase$installmentsArgs<ExtArgs>
     _count?: boolean | PosCustomerPurchaseCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["posCustomerPurchase"]>
 
@@ -22741,6 +23015,10 @@ export namespace Prisma {
     leasingFinancedAmount?: boolean
     hasRegistrationFee?: boolean
     registrationFeeAmount?: boolean
+    interestRate?: boolean
+    installmentMonths?: boolean
+    monthlyInstallmentAmount?: boolean
+    totalWithInterest?: boolean
     quantity?: boolean
     purchasedAt?: boolean
     customer?: boolean | PosCustomerDefaultArgs<ExtArgs>
@@ -22769,6 +23047,10 @@ export namespace Prisma {
     leasingFinancedAmount?: boolean
     hasRegistrationFee?: boolean
     registrationFeeAmount?: boolean
+    interestRate?: boolean
+    installmentMonths?: boolean
+    monthlyInstallmentAmount?: boolean
+    totalWithInterest?: boolean
     quantity?: boolean
     purchasedAt?: boolean
   }
@@ -22779,6 +23061,7 @@ export namespace Prisma {
     inventoryProduct?: boolean | PosCustomerPurchase$inventoryProductArgs<ExtArgs>
     leasingCompany?: boolean | PosCustomerPurchase$leasingCompanyArgs<ExtArgs>
     receipts?: boolean | PosCustomerPurchase$receiptsArgs<ExtArgs>
+    installments?: boolean | PosCustomerPurchase$installmentsArgs<ExtArgs>
     _count?: boolean | PosCustomerPurchaseCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type PosCustomerPurchaseIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -22796,6 +23079,7 @@ export namespace Prisma {
       inventoryProduct: Prisma.$InventoryProductPayload<ExtArgs> | null
       leasingCompany: Prisma.$PosLeasingCompanyPayload<ExtArgs> | null
       receipts: Prisma.$AccountReceiptPayload<ExtArgs>[]
+      installments: Prisma.$PosInstallmentPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -22817,6 +23101,10 @@ export namespace Prisma {
       leasingFinancedAmount: number
       hasRegistrationFee: boolean
       registrationFeeAmount: number
+      interestRate: number | null
+      installmentMonths: number | null
+      monthlyInstallmentAmount: number | null
+      totalWithInterest: number | null
       quantity: number
       purchasedAt: Date
     }, ExtArgs["result"]["posCustomerPurchase"]>
@@ -23188,6 +23476,7 @@ export namespace Prisma {
     inventoryProduct<T extends PosCustomerPurchase$inventoryProductArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchase$inventoryProductArgs<ExtArgs>>): Prisma__InventoryProductClient<$Result.GetResult<Prisma.$InventoryProductPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     leasingCompany<T extends PosCustomerPurchase$leasingCompanyArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchase$leasingCompanyArgs<ExtArgs>>): Prisma__PosLeasingCompanyClient<$Result.GetResult<Prisma.$PosLeasingCompanyPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     receipts<T extends PosCustomerPurchase$receiptsArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchase$receiptsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountReceiptPayload<ExtArgs>, T, "findMany"> | Null>
+    installments<T extends PosCustomerPurchase$installmentsArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchase$installmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PosInstallmentPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -23236,6 +23525,10 @@ export namespace Prisma {
     readonly leasingFinancedAmount: FieldRef<"PosCustomerPurchase", 'Float'>
     readonly hasRegistrationFee: FieldRef<"PosCustomerPurchase", 'Boolean'>
     readonly registrationFeeAmount: FieldRef<"PosCustomerPurchase", 'Float'>
+    readonly interestRate: FieldRef<"PosCustomerPurchase", 'Float'>
+    readonly installmentMonths: FieldRef<"PosCustomerPurchase", 'Int'>
+    readonly monthlyInstallmentAmount: FieldRef<"PosCustomerPurchase", 'Float'>
+    readonly totalWithInterest: FieldRef<"PosCustomerPurchase", 'Float'>
     readonly quantity: FieldRef<"PosCustomerPurchase", 'Int'>
     readonly purchasedAt: FieldRef<"PosCustomerPurchase", 'DateTime'>
   }
@@ -23618,6 +23911,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AccountReceiptScalarFieldEnum | AccountReceiptScalarFieldEnum[]
+  }
+
+  /**
+   * PosCustomerPurchase.installments
+   */
+  export type PosCustomerPurchase$installmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallment
+     */
+    select?: PosInstallmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentInclude<ExtArgs> | null
+    where?: PosInstallmentWhereInput
+    orderBy?: PosInstallmentOrderByWithRelationInput | PosInstallmentOrderByWithRelationInput[]
+    cursor?: PosInstallmentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PosInstallmentScalarFieldEnum | PosInstallmentScalarFieldEnum[]
   }
 
   /**
@@ -24560,6 +24873,2122 @@ export namespace Prisma {
      * Select specific fields to fetch from the PosInvoiceTerm
      */
     select?: PosInvoiceTermSelect<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PosInstallment
+   */
+
+  export type AggregatePosInstallment = {
+    _count: PosInstallmentCountAggregateOutputType | null
+    _avg: PosInstallmentAvgAggregateOutputType | null
+    _sum: PosInstallmentSumAggregateOutputType | null
+    _min: PosInstallmentMinAggregateOutputType | null
+    _max: PosInstallmentMaxAggregateOutputType | null
+  }
+
+  export type PosInstallmentAvgAggregateOutputType = {
+    id: number | null
+    purchaseId: number | null
+    installmentNo: number | null
+    dueAmount: number | null
+    paidAmount: number | null
+    penaltyRate: number | null
+    penaltyAmount: number | null
+  }
+
+  export type PosInstallmentSumAggregateOutputType = {
+    id: number | null
+    purchaseId: number | null
+    installmentNo: number | null
+    dueAmount: number | null
+    paidAmount: number | null
+    penaltyRate: number | null
+    penaltyAmount: number | null
+  }
+
+  export type PosInstallmentMinAggregateOutputType = {
+    id: number | null
+    purchaseId: number | null
+    installmentNo: number | null
+    dueDate: Date | null
+    dueAmount: number | null
+    paidAmount: number | null
+    isPartial: boolean | null
+    penaltyRate: number | null
+    penaltyAmount: number | null
+    status: $Enums.InstallmentStatus | null
+    settledAt: Date | null
+    notes: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PosInstallmentMaxAggregateOutputType = {
+    id: number | null
+    purchaseId: number | null
+    installmentNo: number | null
+    dueDate: Date | null
+    dueAmount: number | null
+    paidAmount: number | null
+    isPartial: boolean | null
+    penaltyRate: number | null
+    penaltyAmount: number | null
+    status: $Enums.InstallmentStatus | null
+    settledAt: Date | null
+    notes: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type PosInstallmentCountAggregateOutputType = {
+    id: number
+    purchaseId: number
+    installmentNo: number
+    dueDate: number
+    dueAmount: number
+    paidAmount: number
+    isPartial: number
+    penaltyRate: number
+    penaltyAmount: number
+    status: number
+    settledAt: number
+    notes: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type PosInstallmentAvgAggregateInputType = {
+    id?: true
+    purchaseId?: true
+    installmentNo?: true
+    dueAmount?: true
+    paidAmount?: true
+    penaltyRate?: true
+    penaltyAmount?: true
+  }
+
+  export type PosInstallmentSumAggregateInputType = {
+    id?: true
+    purchaseId?: true
+    installmentNo?: true
+    dueAmount?: true
+    paidAmount?: true
+    penaltyRate?: true
+    penaltyAmount?: true
+  }
+
+  export type PosInstallmentMinAggregateInputType = {
+    id?: true
+    purchaseId?: true
+    installmentNo?: true
+    dueDate?: true
+    dueAmount?: true
+    paidAmount?: true
+    isPartial?: true
+    penaltyRate?: true
+    penaltyAmount?: true
+    status?: true
+    settledAt?: true
+    notes?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PosInstallmentMaxAggregateInputType = {
+    id?: true
+    purchaseId?: true
+    installmentNo?: true
+    dueDate?: true
+    dueAmount?: true
+    paidAmount?: true
+    isPartial?: true
+    penaltyRate?: true
+    penaltyAmount?: true
+    status?: true
+    settledAt?: true
+    notes?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type PosInstallmentCountAggregateInputType = {
+    id?: true
+    purchaseId?: true
+    installmentNo?: true
+    dueDate?: true
+    dueAmount?: true
+    paidAmount?: true
+    isPartial?: true
+    penaltyRate?: true
+    penaltyAmount?: true
+    status?: true
+    settledAt?: true
+    notes?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type PosInstallmentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PosInstallment to aggregate.
+     */
+    where?: PosInstallmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PosInstallments to fetch.
+     */
+    orderBy?: PosInstallmentOrderByWithRelationInput | PosInstallmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PosInstallmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PosInstallments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PosInstallments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PosInstallments
+    **/
+    _count?: true | PosInstallmentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PosInstallmentAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PosInstallmentSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PosInstallmentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PosInstallmentMaxAggregateInputType
+  }
+
+  export type GetPosInstallmentAggregateType<T extends PosInstallmentAggregateArgs> = {
+        [P in keyof T & keyof AggregatePosInstallment]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePosInstallment[P]>
+      : GetScalarType<T[P], AggregatePosInstallment[P]>
+  }
+
+
+
+
+  export type PosInstallmentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PosInstallmentWhereInput
+    orderBy?: PosInstallmentOrderByWithAggregationInput | PosInstallmentOrderByWithAggregationInput[]
+    by: PosInstallmentScalarFieldEnum[] | PosInstallmentScalarFieldEnum
+    having?: PosInstallmentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PosInstallmentCountAggregateInputType | true
+    _avg?: PosInstallmentAvgAggregateInputType
+    _sum?: PosInstallmentSumAggregateInputType
+    _min?: PosInstallmentMinAggregateInputType
+    _max?: PosInstallmentMaxAggregateInputType
+  }
+
+  export type PosInstallmentGroupByOutputType = {
+    id: number
+    purchaseId: number
+    installmentNo: number
+    dueDate: Date
+    dueAmount: number
+    paidAmount: number
+    isPartial: boolean
+    penaltyRate: number
+    penaltyAmount: number
+    status: $Enums.InstallmentStatus
+    settledAt: Date | null
+    notes: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: PosInstallmentCountAggregateOutputType | null
+    _avg: PosInstallmentAvgAggregateOutputType | null
+    _sum: PosInstallmentSumAggregateOutputType | null
+    _min: PosInstallmentMinAggregateOutputType | null
+    _max: PosInstallmentMaxAggregateOutputType | null
+  }
+
+  type GetPosInstallmentGroupByPayload<T extends PosInstallmentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PosInstallmentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PosInstallmentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PosInstallmentGroupByOutputType[P]>
+            : GetScalarType<T[P], PosInstallmentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PosInstallmentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    purchaseId?: boolean
+    installmentNo?: boolean
+    dueDate?: boolean
+    dueAmount?: boolean
+    paidAmount?: boolean
+    isPartial?: boolean
+    penaltyRate?: boolean
+    penaltyAmount?: boolean
+    status?: boolean
+    settledAt?: boolean
+    notes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    purchase?: boolean | PosCustomerPurchaseDefaultArgs<ExtArgs>
+    payments?: boolean | PosInstallment$paymentsArgs<ExtArgs>
+    _count?: boolean | PosInstallmentCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["posInstallment"]>
+
+  export type PosInstallmentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    purchaseId?: boolean
+    installmentNo?: boolean
+    dueDate?: boolean
+    dueAmount?: boolean
+    paidAmount?: boolean
+    isPartial?: boolean
+    penaltyRate?: boolean
+    penaltyAmount?: boolean
+    status?: boolean
+    settledAt?: boolean
+    notes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    purchase?: boolean | PosCustomerPurchaseDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["posInstallment"]>
+
+  export type PosInstallmentSelectScalar = {
+    id?: boolean
+    purchaseId?: boolean
+    installmentNo?: boolean
+    dueDate?: boolean
+    dueAmount?: boolean
+    paidAmount?: boolean
+    isPartial?: boolean
+    penaltyRate?: boolean
+    penaltyAmount?: boolean
+    status?: boolean
+    settledAt?: boolean
+    notes?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type PosInstallmentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    purchase?: boolean | PosCustomerPurchaseDefaultArgs<ExtArgs>
+    payments?: boolean | PosInstallment$paymentsArgs<ExtArgs>
+    _count?: boolean | PosInstallmentCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type PosInstallmentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    purchase?: boolean | PosCustomerPurchaseDefaultArgs<ExtArgs>
+  }
+
+  export type $PosInstallmentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PosInstallment"
+    objects: {
+      purchase: Prisma.$PosCustomerPurchasePayload<ExtArgs>
+      payments: Prisma.$PosInstallmentPaymentPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      purchaseId: number
+      installmentNo: number
+      dueDate: Date
+      dueAmount: number
+      paidAmount: number
+      isPartial: boolean
+      penaltyRate: number
+      penaltyAmount: number
+      status: $Enums.InstallmentStatus
+      settledAt: Date | null
+      notes: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["posInstallment"]>
+    composites: {}
+  }
+
+  type PosInstallmentGetPayload<S extends boolean | null | undefined | PosInstallmentDefaultArgs> = $Result.GetResult<Prisma.$PosInstallmentPayload, S>
+
+  type PosInstallmentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PosInstallmentFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PosInstallmentCountAggregateInputType | true
+    }
+
+  export interface PosInstallmentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PosInstallment'], meta: { name: 'PosInstallment' } }
+    /**
+     * Find zero or one PosInstallment that matches the filter.
+     * @param {PosInstallmentFindUniqueArgs} args - Arguments to find a PosInstallment
+     * @example
+     * // Get one PosInstallment
+     * const posInstallment = await prisma.posInstallment.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PosInstallmentFindUniqueArgs>(args: SelectSubset<T, PosInstallmentFindUniqueArgs<ExtArgs>>): Prisma__PosInstallmentClient<$Result.GetResult<Prisma.$PosInstallmentPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PosInstallment that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PosInstallmentFindUniqueOrThrowArgs} args - Arguments to find a PosInstallment
+     * @example
+     * // Get one PosInstallment
+     * const posInstallment = await prisma.posInstallment.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PosInstallmentFindUniqueOrThrowArgs>(args: SelectSubset<T, PosInstallmentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PosInstallmentClient<$Result.GetResult<Prisma.$PosInstallmentPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PosInstallment that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PosInstallmentFindFirstArgs} args - Arguments to find a PosInstallment
+     * @example
+     * // Get one PosInstallment
+     * const posInstallment = await prisma.posInstallment.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PosInstallmentFindFirstArgs>(args?: SelectSubset<T, PosInstallmentFindFirstArgs<ExtArgs>>): Prisma__PosInstallmentClient<$Result.GetResult<Prisma.$PosInstallmentPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PosInstallment that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PosInstallmentFindFirstOrThrowArgs} args - Arguments to find a PosInstallment
+     * @example
+     * // Get one PosInstallment
+     * const posInstallment = await prisma.posInstallment.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PosInstallmentFindFirstOrThrowArgs>(args?: SelectSubset<T, PosInstallmentFindFirstOrThrowArgs<ExtArgs>>): Prisma__PosInstallmentClient<$Result.GetResult<Prisma.$PosInstallmentPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PosInstallments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PosInstallmentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PosInstallments
+     * const posInstallments = await prisma.posInstallment.findMany()
+     * 
+     * // Get first 10 PosInstallments
+     * const posInstallments = await prisma.posInstallment.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const posInstallmentWithIdOnly = await prisma.posInstallment.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PosInstallmentFindManyArgs>(args?: SelectSubset<T, PosInstallmentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PosInstallmentPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PosInstallment.
+     * @param {PosInstallmentCreateArgs} args - Arguments to create a PosInstallment.
+     * @example
+     * // Create one PosInstallment
+     * const PosInstallment = await prisma.posInstallment.create({
+     *   data: {
+     *     // ... data to create a PosInstallment
+     *   }
+     * })
+     * 
+     */
+    create<T extends PosInstallmentCreateArgs>(args: SelectSubset<T, PosInstallmentCreateArgs<ExtArgs>>): Prisma__PosInstallmentClient<$Result.GetResult<Prisma.$PosInstallmentPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PosInstallments.
+     * @param {PosInstallmentCreateManyArgs} args - Arguments to create many PosInstallments.
+     * @example
+     * // Create many PosInstallments
+     * const posInstallment = await prisma.posInstallment.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PosInstallmentCreateManyArgs>(args?: SelectSubset<T, PosInstallmentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PosInstallments and returns the data saved in the database.
+     * @param {PosInstallmentCreateManyAndReturnArgs} args - Arguments to create many PosInstallments.
+     * @example
+     * // Create many PosInstallments
+     * const posInstallment = await prisma.posInstallment.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PosInstallments and only return the `id`
+     * const posInstallmentWithIdOnly = await prisma.posInstallment.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PosInstallmentCreateManyAndReturnArgs>(args?: SelectSubset<T, PosInstallmentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PosInstallmentPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a PosInstallment.
+     * @param {PosInstallmentDeleteArgs} args - Arguments to delete one PosInstallment.
+     * @example
+     * // Delete one PosInstallment
+     * const PosInstallment = await prisma.posInstallment.delete({
+     *   where: {
+     *     // ... filter to delete one PosInstallment
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PosInstallmentDeleteArgs>(args: SelectSubset<T, PosInstallmentDeleteArgs<ExtArgs>>): Prisma__PosInstallmentClient<$Result.GetResult<Prisma.$PosInstallmentPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PosInstallment.
+     * @param {PosInstallmentUpdateArgs} args - Arguments to update one PosInstallment.
+     * @example
+     * // Update one PosInstallment
+     * const posInstallment = await prisma.posInstallment.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PosInstallmentUpdateArgs>(args: SelectSubset<T, PosInstallmentUpdateArgs<ExtArgs>>): Prisma__PosInstallmentClient<$Result.GetResult<Prisma.$PosInstallmentPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PosInstallments.
+     * @param {PosInstallmentDeleteManyArgs} args - Arguments to filter PosInstallments to delete.
+     * @example
+     * // Delete a few PosInstallments
+     * const { count } = await prisma.posInstallment.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PosInstallmentDeleteManyArgs>(args?: SelectSubset<T, PosInstallmentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PosInstallments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PosInstallmentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PosInstallments
+     * const posInstallment = await prisma.posInstallment.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PosInstallmentUpdateManyArgs>(args: SelectSubset<T, PosInstallmentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PosInstallment.
+     * @param {PosInstallmentUpsertArgs} args - Arguments to update or create a PosInstallment.
+     * @example
+     * // Update or create a PosInstallment
+     * const posInstallment = await prisma.posInstallment.upsert({
+     *   create: {
+     *     // ... data to create a PosInstallment
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PosInstallment we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PosInstallmentUpsertArgs>(args: SelectSubset<T, PosInstallmentUpsertArgs<ExtArgs>>): Prisma__PosInstallmentClient<$Result.GetResult<Prisma.$PosInstallmentPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PosInstallments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PosInstallmentCountArgs} args - Arguments to filter PosInstallments to count.
+     * @example
+     * // Count the number of PosInstallments
+     * const count = await prisma.posInstallment.count({
+     *   where: {
+     *     // ... the filter for the PosInstallments we want to count
+     *   }
+     * })
+    **/
+    count<T extends PosInstallmentCountArgs>(
+      args?: Subset<T, PosInstallmentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PosInstallmentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PosInstallment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PosInstallmentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PosInstallmentAggregateArgs>(args: Subset<T, PosInstallmentAggregateArgs>): Prisma.PrismaPromise<GetPosInstallmentAggregateType<T>>
+
+    /**
+     * Group by PosInstallment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PosInstallmentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PosInstallmentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PosInstallmentGroupByArgs['orderBy'] }
+        : { orderBy?: PosInstallmentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PosInstallmentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPosInstallmentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PosInstallment model
+   */
+  readonly fields: PosInstallmentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PosInstallment.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PosInstallmentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    purchase<T extends PosCustomerPurchaseDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchaseDefaultArgs<ExtArgs>>): Prisma__PosCustomerPurchaseClient<$Result.GetResult<Prisma.$PosCustomerPurchasePayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    payments<T extends PosInstallment$paymentsArgs<ExtArgs> = {}>(args?: Subset<T, PosInstallment$paymentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PosInstallmentPaymentPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PosInstallment model
+   */ 
+  interface PosInstallmentFieldRefs {
+    readonly id: FieldRef<"PosInstallment", 'Int'>
+    readonly purchaseId: FieldRef<"PosInstallment", 'Int'>
+    readonly installmentNo: FieldRef<"PosInstallment", 'Int'>
+    readonly dueDate: FieldRef<"PosInstallment", 'DateTime'>
+    readonly dueAmount: FieldRef<"PosInstallment", 'Float'>
+    readonly paidAmount: FieldRef<"PosInstallment", 'Float'>
+    readonly isPartial: FieldRef<"PosInstallment", 'Boolean'>
+    readonly penaltyRate: FieldRef<"PosInstallment", 'Float'>
+    readonly penaltyAmount: FieldRef<"PosInstallment", 'Float'>
+    readonly status: FieldRef<"PosInstallment", 'InstallmentStatus'>
+    readonly settledAt: FieldRef<"PosInstallment", 'DateTime'>
+    readonly notes: FieldRef<"PosInstallment", 'String'>
+    readonly createdAt: FieldRef<"PosInstallment", 'DateTime'>
+    readonly updatedAt: FieldRef<"PosInstallment", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PosInstallment findUnique
+   */
+  export type PosInstallmentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallment
+     */
+    select?: PosInstallmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentInclude<ExtArgs> | null
+    /**
+     * Filter, which PosInstallment to fetch.
+     */
+    where: PosInstallmentWhereUniqueInput
+  }
+
+  /**
+   * PosInstallment findUniqueOrThrow
+   */
+  export type PosInstallmentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallment
+     */
+    select?: PosInstallmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentInclude<ExtArgs> | null
+    /**
+     * Filter, which PosInstallment to fetch.
+     */
+    where: PosInstallmentWhereUniqueInput
+  }
+
+  /**
+   * PosInstallment findFirst
+   */
+  export type PosInstallmentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallment
+     */
+    select?: PosInstallmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentInclude<ExtArgs> | null
+    /**
+     * Filter, which PosInstallment to fetch.
+     */
+    where?: PosInstallmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PosInstallments to fetch.
+     */
+    orderBy?: PosInstallmentOrderByWithRelationInput | PosInstallmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PosInstallments.
+     */
+    cursor?: PosInstallmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PosInstallments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PosInstallments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PosInstallments.
+     */
+    distinct?: PosInstallmentScalarFieldEnum | PosInstallmentScalarFieldEnum[]
+  }
+
+  /**
+   * PosInstallment findFirstOrThrow
+   */
+  export type PosInstallmentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallment
+     */
+    select?: PosInstallmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentInclude<ExtArgs> | null
+    /**
+     * Filter, which PosInstallment to fetch.
+     */
+    where?: PosInstallmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PosInstallments to fetch.
+     */
+    orderBy?: PosInstallmentOrderByWithRelationInput | PosInstallmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PosInstallments.
+     */
+    cursor?: PosInstallmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PosInstallments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PosInstallments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PosInstallments.
+     */
+    distinct?: PosInstallmentScalarFieldEnum | PosInstallmentScalarFieldEnum[]
+  }
+
+  /**
+   * PosInstallment findMany
+   */
+  export type PosInstallmentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallment
+     */
+    select?: PosInstallmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentInclude<ExtArgs> | null
+    /**
+     * Filter, which PosInstallments to fetch.
+     */
+    where?: PosInstallmentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PosInstallments to fetch.
+     */
+    orderBy?: PosInstallmentOrderByWithRelationInput | PosInstallmentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PosInstallments.
+     */
+    cursor?: PosInstallmentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PosInstallments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PosInstallments.
+     */
+    skip?: number
+    distinct?: PosInstallmentScalarFieldEnum | PosInstallmentScalarFieldEnum[]
+  }
+
+  /**
+   * PosInstallment create
+   */
+  export type PosInstallmentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallment
+     */
+    select?: PosInstallmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PosInstallment.
+     */
+    data: XOR<PosInstallmentCreateInput, PosInstallmentUncheckedCreateInput>
+  }
+
+  /**
+   * PosInstallment createMany
+   */
+  export type PosInstallmentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PosInstallments.
+     */
+    data: PosInstallmentCreateManyInput | PosInstallmentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PosInstallment createManyAndReturn
+   */
+  export type PosInstallmentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallment
+     */
+    select?: PosInstallmentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many PosInstallments.
+     */
+    data: PosInstallmentCreateManyInput | PosInstallmentCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PosInstallment update
+   */
+  export type PosInstallmentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallment
+     */
+    select?: PosInstallmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PosInstallment.
+     */
+    data: XOR<PosInstallmentUpdateInput, PosInstallmentUncheckedUpdateInput>
+    /**
+     * Choose, which PosInstallment to update.
+     */
+    where: PosInstallmentWhereUniqueInput
+  }
+
+  /**
+   * PosInstallment updateMany
+   */
+  export type PosInstallmentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PosInstallments.
+     */
+    data: XOR<PosInstallmentUpdateManyMutationInput, PosInstallmentUncheckedUpdateManyInput>
+    /**
+     * Filter which PosInstallments to update
+     */
+    where?: PosInstallmentWhereInput
+  }
+
+  /**
+   * PosInstallment upsert
+   */
+  export type PosInstallmentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallment
+     */
+    select?: PosInstallmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PosInstallment to update in case it exists.
+     */
+    where: PosInstallmentWhereUniqueInput
+    /**
+     * In case the PosInstallment found by the `where` argument doesn't exist, create a new PosInstallment with this data.
+     */
+    create: XOR<PosInstallmentCreateInput, PosInstallmentUncheckedCreateInput>
+    /**
+     * In case the PosInstallment was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PosInstallmentUpdateInput, PosInstallmentUncheckedUpdateInput>
+  }
+
+  /**
+   * PosInstallment delete
+   */
+  export type PosInstallmentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallment
+     */
+    select?: PosInstallmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentInclude<ExtArgs> | null
+    /**
+     * Filter which PosInstallment to delete.
+     */
+    where: PosInstallmentWhereUniqueInput
+  }
+
+  /**
+   * PosInstallment deleteMany
+   */
+  export type PosInstallmentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PosInstallments to delete
+     */
+    where?: PosInstallmentWhereInput
+  }
+
+  /**
+   * PosInstallment.payments
+   */
+  export type PosInstallment$paymentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallmentPayment
+     */
+    select?: PosInstallmentPaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentPaymentInclude<ExtArgs> | null
+    where?: PosInstallmentPaymentWhereInput
+    orderBy?: PosInstallmentPaymentOrderByWithRelationInput | PosInstallmentPaymentOrderByWithRelationInput[]
+    cursor?: PosInstallmentPaymentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PosInstallmentPaymentScalarFieldEnum | PosInstallmentPaymentScalarFieldEnum[]
+  }
+
+  /**
+   * PosInstallment without action
+   */
+  export type PosInstallmentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallment
+     */
+    select?: PosInstallmentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model PosInstallmentPayment
+   */
+
+  export type AggregatePosInstallmentPayment = {
+    _count: PosInstallmentPaymentCountAggregateOutputType | null
+    _avg: PosInstallmentPaymentAvgAggregateOutputType | null
+    _sum: PosInstallmentPaymentSumAggregateOutputType | null
+    _min: PosInstallmentPaymentMinAggregateOutputType | null
+    _max: PosInstallmentPaymentMaxAggregateOutputType | null
+  }
+
+  export type PosInstallmentPaymentAvgAggregateOutputType = {
+    id: number | null
+    installmentId: number | null
+    amount: number | null
+    penaltyAmount: number | null
+  }
+
+  export type PosInstallmentPaymentSumAggregateOutputType = {
+    id: number | null
+    installmentId: number | null
+    amount: number | null
+    penaltyAmount: number | null
+  }
+
+  export type PosInstallmentPaymentMinAggregateOutputType = {
+    id: number | null
+    installmentId: number | null
+    amount: number | null
+    penaltyAmount: number | null
+    note: string | null
+    paidAt: Date | null
+  }
+
+  export type PosInstallmentPaymentMaxAggregateOutputType = {
+    id: number | null
+    installmentId: number | null
+    amount: number | null
+    penaltyAmount: number | null
+    note: string | null
+    paidAt: Date | null
+  }
+
+  export type PosInstallmentPaymentCountAggregateOutputType = {
+    id: number
+    installmentId: number
+    amount: number
+    penaltyAmount: number
+    note: number
+    paidAt: number
+    _all: number
+  }
+
+
+  export type PosInstallmentPaymentAvgAggregateInputType = {
+    id?: true
+    installmentId?: true
+    amount?: true
+    penaltyAmount?: true
+  }
+
+  export type PosInstallmentPaymentSumAggregateInputType = {
+    id?: true
+    installmentId?: true
+    amount?: true
+    penaltyAmount?: true
+  }
+
+  export type PosInstallmentPaymentMinAggregateInputType = {
+    id?: true
+    installmentId?: true
+    amount?: true
+    penaltyAmount?: true
+    note?: true
+    paidAt?: true
+  }
+
+  export type PosInstallmentPaymentMaxAggregateInputType = {
+    id?: true
+    installmentId?: true
+    amount?: true
+    penaltyAmount?: true
+    note?: true
+    paidAt?: true
+  }
+
+  export type PosInstallmentPaymentCountAggregateInputType = {
+    id?: true
+    installmentId?: true
+    amount?: true
+    penaltyAmount?: true
+    note?: true
+    paidAt?: true
+    _all?: true
+  }
+
+  export type PosInstallmentPaymentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PosInstallmentPayment to aggregate.
+     */
+    where?: PosInstallmentPaymentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PosInstallmentPayments to fetch.
+     */
+    orderBy?: PosInstallmentPaymentOrderByWithRelationInput | PosInstallmentPaymentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: PosInstallmentPaymentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PosInstallmentPayments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PosInstallmentPayments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned PosInstallmentPayments
+    **/
+    _count?: true | PosInstallmentPaymentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: PosInstallmentPaymentAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: PosInstallmentPaymentSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: PosInstallmentPaymentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: PosInstallmentPaymentMaxAggregateInputType
+  }
+
+  export type GetPosInstallmentPaymentAggregateType<T extends PosInstallmentPaymentAggregateArgs> = {
+        [P in keyof T & keyof AggregatePosInstallmentPayment]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregatePosInstallmentPayment[P]>
+      : GetScalarType<T[P], AggregatePosInstallmentPayment[P]>
+  }
+
+
+
+
+  export type PosInstallmentPaymentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PosInstallmentPaymentWhereInput
+    orderBy?: PosInstallmentPaymentOrderByWithAggregationInput | PosInstallmentPaymentOrderByWithAggregationInput[]
+    by: PosInstallmentPaymentScalarFieldEnum[] | PosInstallmentPaymentScalarFieldEnum
+    having?: PosInstallmentPaymentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: PosInstallmentPaymentCountAggregateInputType | true
+    _avg?: PosInstallmentPaymentAvgAggregateInputType
+    _sum?: PosInstallmentPaymentSumAggregateInputType
+    _min?: PosInstallmentPaymentMinAggregateInputType
+    _max?: PosInstallmentPaymentMaxAggregateInputType
+  }
+
+  export type PosInstallmentPaymentGroupByOutputType = {
+    id: number
+    installmentId: number
+    amount: number
+    penaltyAmount: number
+    note: string | null
+    paidAt: Date
+    _count: PosInstallmentPaymentCountAggregateOutputType | null
+    _avg: PosInstallmentPaymentAvgAggregateOutputType | null
+    _sum: PosInstallmentPaymentSumAggregateOutputType | null
+    _min: PosInstallmentPaymentMinAggregateOutputType | null
+    _max: PosInstallmentPaymentMaxAggregateOutputType | null
+  }
+
+  type GetPosInstallmentPaymentGroupByPayload<T extends PosInstallmentPaymentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<PosInstallmentPaymentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof PosInstallmentPaymentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], PosInstallmentPaymentGroupByOutputType[P]>
+            : GetScalarType<T[P], PosInstallmentPaymentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type PosInstallmentPaymentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    installmentId?: boolean
+    amount?: boolean
+    penaltyAmount?: boolean
+    note?: boolean
+    paidAt?: boolean
+    installment?: boolean | PosInstallmentDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["posInstallmentPayment"]>
+
+  export type PosInstallmentPaymentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    installmentId?: boolean
+    amount?: boolean
+    penaltyAmount?: boolean
+    note?: boolean
+    paidAt?: boolean
+    installment?: boolean | PosInstallmentDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["posInstallmentPayment"]>
+
+  export type PosInstallmentPaymentSelectScalar = {
+    id?: boolean
+    installmentId?: boolean
+    amount?: boolean
+    penaltyAmount?: boolean
+    note?: boolean
+    paidAt?: boolean
+  }
+
+  export type PosInstallmentPaymentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    installment?: boolean | PosInstallmentDefaultArgs<ExtArgs>
+  }
+  export type PosInstallmentPaymentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    installment?: boolean | PosInstallmentDefaultArgs<ExtArgs>
+  }
+
+  export type $PosInstallmentPaymentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "PosInstallmentPayment"
+    objects: {
+      installment: Prisma.$PosInstallmentPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      installmentId: number
+      amount: number
+      penaltyAmount: number
+      note: string | null
+      paidAt: Date
+    }, ExtArgs["result"]["posInstallmentPayment"]>
+    composites: {}
+  }
+
+  type PosInstallmentPaymentGetPayload<S extends boolean | null | undefined | PosInstallmentPaymentDefaultArgs> = $Result.GetResult<Prisma.$PosInstallmentPaymentPayload, S>
+
+  type PosInstallmentPaymentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<PosInstallmentPaymentFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: PosInstallmentPaymentCountAggregateInputType | true
+    }
+
+  export interface PosInstallmentPaymentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['PosInstallmentPayment'], meta: { name: 'PosInstallmentPayment' } }
+    /**
+     * Find zero or one PosInstallmentPayment that matches the filter.
+     * @param {PosInstallmentPaymentFindUniqueArgs} args - Arguments to find a PosInstallmentPayment
+     * @example
+     * // Get one PosInstallmentPayment
+     * const posInstallmentPayment = await prisma.posInstallmentPayment.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends PosInstallmentPaymentFindUniqueArgs>(args: SelectSubset<T, PosInstallmentPaymentFindUniqueArgs<ExtArgs>>): Prisma__PosInstallmentPaymentClient<$Result.GetResult<Prisma.$PosInstallmentPaymentPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one PosInstallmentPayment that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {PosInstallmentPaymentFindUniqueOrThrowArgs} args - Arguments to find a PosInstallmentPayment
+     * @example
+     * // Get one PosInstallmentPayment
+     * const posInstallmentPayment = await prisma.posInstallmentPayment.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends PosInstallmentPaymentFindUniqueOrThrowArgs>(args: SelectSubset<T, PosInstallmentPaymentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__PosInstallmentPaymentClient<$Result.GetResult<Prisma.$PosInstallmentPaymentPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first PosInstallmentPayment that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PosInstallmentPaymentFindFirstArgs} args - Arguments to find a PosInstallmentPayment
+     * @example
+     * // Get one PosInstallmentPayment
+     * const posInstallmentPayment = await prisma.posInstallmentPayment.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends PosInstallmentPaymentFindFirstArgs>(args?: SelectSubset<T, PosInstallmentPaymentFindFirstArgs<ExtArgs>>): Prisma__PosInstallmentPaymentClient<$Result.GetResult<Prisma.$PosInstallmentPaymentPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first PosInstallmentPayment that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PosInstallmentPaymentFindFirstOrThrowArgs} args - Arguments to find a PosInstallmentPayment
+     * @example
+     * // Get one PosInstallmentPayment
+     * const posInstallmentPayment = await prisma.posInstallmentPayment.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends PosInstallmentPaymentFindFirstOrThrowArgs>(args?: SelectSubset<T, PosInstallmentPaymentFindFirstOrThrowArgs<ExtArgs>>): Prisma__PosInstallmentPaymentClient<$Result.GetResult<Prisma.$PosInstallmentPaymentPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more PosInstallmentPayments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PosInstallmentPaymentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all PosInstallmentPayments
+     * const posInstallmentPayments = await prisma.posInstallmentPayment.findMany()
+     * 
+     * // Get first 10 PosInstallmentPayments
+     * const posInstallmentPayments = await prisma.posInstallmentPayment.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const posInstallmentPaymentWithIdOnly = await prisma.posInstallmentPayment.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends PosInstallmentPaymentFindManyArgs>(args?: SelectSubset<T, PosInstallmentPaymentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PosInstallmentPaymentPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a PosInstallmentPayment.
+     * @param {PosInstallmentPaymentCreateArgs} args - Arguments to create a PosInstallmentPayment.
+     * @example
+     * // Create one PosInstallmentPayment
+     * const PosInstallmentPayment = await prisma.posInstallmentPayment.create({
+     *   data: {
+     *     // ... data to create a PosInstallmentPayment
+     *   }
+     * })
+     * 
+     */
+    create<T extends PosInstallmentPaymentCreateArgs>(args: SelectSubset<T, PosInstallmentPaymentCreateArgs<ExtArgs>>): Prisma__PosInstallmentPaymentClient<$Result.GetResult<Prisma.$PosInstallmentPaymentPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many PosInstallmentPayments.
+     * @param {PosInstallmentPaymentCreateManyArgs} args - Arguments to create many PosInstallmentPayments.
+     * @example
+     * // Create many PosInstallmentPayments
+     * const posInstallmentPayment = await prisma.posInstallmentPayment.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends PosInstallmentPaymentCreateManyArgs>(args?: SelectSubset<T, PosInstallmentPaymentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many PosInstallmentPayments and returns the data saved in the database.
+     * @param {PosInstallmentPaymentCreateManyAndReturnArgs} args - Arguments to create many PosInstallmentPayments.
+     * @example
+     * // Create many PosInstallmentPayments
+     * const posInstallmentPayment = await prisma.posInstallmentPayment.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many PosInstallmentPayments and only return the `id`
+     * const posInstallmentPaymentWithIdOnly = await prisma.posInstallmentPayment.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends PosInstallmentPaymentCreateManyAndReturnArgs>(args?: SelectSubset<T, PosInstallmentPaymentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PosInstallmentPaymentPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a PosInstallmentPayment.
+     * @param {PosInstallmentPaymentDeleteArgs} args - Arguments to delete one PosInstallmentPayment.
+     * @example
+     * // Delete one PosInstallmentPayment
+     * const PosInstallmentPayment = await prisma.posInstallmentPayment.delete({
+     *   where: {
+     *     // ... filter to delete one PosInstallmentPayment
+     *   }
+     * })
+     * 
+     */
+    delete<T extends PosInstallmentPaymentDeleteArgs>(args: SelectSubset<T, PosInstallmentPaymentDeleteArgs<ExtArgs>>): Prisma__PosInstallmentPaymentClient<$Result.GetResult<Prisma.$PosInstallmentPaymentPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one PosInstallmentPayment.
+     * @param {PosInstallmentPaymentUpdateArgs} args - Arguments to update one PosInstallmentPayment.
+     * @example
+     * // Update one PosInstallmentPayment
+     * const posInstallmentPayment = await prisma.posInstallmentPayment.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends PosInstallmentPaymentUpdateArgs>(args: SelectSubset<T, PosInstallmentPaymentUpdateArgs<ExtArgs>>): Prisma__PosInstallmentPaymentClient<$Result.GetResult<Prisma.$PosInstallmentPaymentPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more PosInstallmentPayments.
+     * @param {PosInstallmentPaymentDeleteManyArgs} args - Arguments to filter PosInstallmentPayments to delete.
+     * @example
+     * // Delete a few PosInstallmentPayments
+     * const { count } = await prisma.posInstallmentPayment.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends PosInstallmentPaymentDeleteManyArgs>(args?: SelectSubset<T, PosInstallmentPaymentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more PosInstallmentPayments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PosInstallmentPaymentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many PosInstallmentPayments
+     * const posInstallmentPayment = await prisma.posInstallmentPayment.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends PosInstallmentPaymentUpdateManyArgs>(args: SelectSubset<T, PosInstallmentPaymentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one PosInstallmentPayment.
+     * @param {PosInstallmentPaymentUpsertArgs} args - Arguments to update or create a PosInstallmentPayment.
+     * @example
+     * // Update or create a PosInstallmentPayment
+     * const posInstallmentPayment = await prisma.posInstallmentPayment.upsert({
+     *   create: {
+     *     // ... data to create a PosInstallmentPayment
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the PosInstallmentPayment we want to update
+     *   }
+     * })
+     */
+    upsert<T extends PosInstallmentPaymentUpsertArgs>(args: SelectSubset<T, PosInstallmentPaymentUpsertArgs<ExtArgs>>): Prisma__PosInstallmentPaymentClient<$Result.GetResult<Prisma.$PosInstallmentPaymentPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of PosInstallmentPayments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PosInstallmentPaymentCountArgs} args - Arguments to filter PosInstallmentPayments to count.
+     * @example
+     * // Count the number of PosInstallmentPayments
+     * const count = await prisma.posInstallmentPayment.count({
+     *   where: {
+     *     // ... the filter for the PosInstallmentPayments we want to count
+     *   }
+     * })
+    **/
+    count<T extends PosInstallmentPaymentCountArgs>(
+      args?: Subset<T, PosInstallmentPaymentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], PosInstallmentPaymentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a PosInstallmentPayment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PosInstallmentPaymentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends PosInstallmentPaymentAggregateArgs>(args: Subset<T, PosInstallmentPaymentAggregateArgs>): Prisma.PrismaPromise<GetPosInstallmentPaymentAggregateType<T>>
+
+    /**
+     * Group by PosInstallmentPayment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {PosInstallmentPaymentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends PosInstallmentPaymentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: PosInstallmentPaymentGroupByArgs['orderBy'] }
+        : { orderBy?: PosInstallmentPaymentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, PosInstallmentPaymentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetPosInstallmentPaymentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the PosInstallmentPayment model
+   */
+  readonly fields: PosInstallmentPaymentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for PosInstallmentPayment.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__PosInstallmentPaymentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    installment<T extends PosInstallmentDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PosInstallmentDefaultArgs<ExtArgs>>): Prisma__PosInstallmentClient<$Result.GetResult<Prisma.$PosInstallmentPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the PosInstallmentPayment model
+   */ 
+  interface PosInstallmentPaymentFieldRefs {
+    readonly id: FieldRef<"PosInstallmentPayment", 'Int'>
+    readonly installmentId: FieldRef<"PosInstallmentPayment", 'Int'>
+    readonly amount: FieldRef<"PosInstallmentPayment", 'Float'>
+    readonly penaltyAmount: FieldRef<"PosInstallmentPayment", 'Float'>
+    readonly note: FieldRef<"PosInstallmentPayment", 'String'>
+    readonly paidAt: FieldRef<"PosInstallmentPayment", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * PosInstallmentPayment findUnique
+   */
+  export type PosInstallmentPaymentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallmentPayment
+     */
+    select?: PosInstallmentPaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentPaymentInclude<ExtArgs> | null
+    /**
+     * Filter, which PosInstallmentPayment to fetch.
+     */
+    where: PosInstallmentPaymentWhereUniqueInput
+  }
+
+  /**
+   * PosInstallmentPayment findUniqueOrThrow
+   */
+  export type PosInstallmentPaymentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallmentPayment
+     */
+    select?: PosInstallmentPaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentPaymentInclude<ExtArgs> | null
+    /**
+     * Filter, which PosInstallmentPayment to fetch.
+     */
+    where: PosInstallmentPaymentWhereUniqueInput
+  }
+
+  /**
+   * PosInstallmentPayment findFirst
+   */
+  export type PosInstallmentPaymentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallmentPayment
+     */
+    select?: PosInstallmentPaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentPaymentInclude<ExtArgs> | null
+    /**
+     * Filter, which PosInstallmentPayment to fetch.
+     */
+    where?: PosInstallmentPaymentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PosInstallmentPayments to fetch.
+     */
+    orderBy?: PosInstallmentPaymentOrderByWithRelationInput | PosInstallmentPaymentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PosInstallmentPayments.
+     */
+    cursor?: PosInstallmentPaymentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PosInstallmentPayments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PosInstallmentPayments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PosInstallmentPayments.
+     */
+    distinct?: PosInstallmentPaymentScalarFieldEnum | PosInstallmentPaymentScalarFieldEnum[]
+  }
+
+  /**
+   * PosInstallmentPayment findFirstOrThrow
+   */
+  export type PosInstallmentPaymentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallmentPayment
+     */
+    select?: PosInstallmentPaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentPaymentInclude<ExtArgs> | null
+    /**
+     * Filter, which PosInstallmentPayment to fetch.
+     */
+    where?: PosInstallmentPaymentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PosInstallmentPayments to fetch.
+     */
+    orderBy?: PosInstallmentPaymentOrderByWithRelationInput | PosInstallmentPaymentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for PosInstallmentPayments.
+     */
+    cursor?: PosInstallmentPaymentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PosInstallmentPayments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PosInstallmentPayments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of PosInstallmentPayments.
+     */
+    distinct?: PosInstallmentPaymentScalarFieldEnum | PosInstallmentPaymentScalarFieldEnum[]
+  }
+
+  /**
+   * PosInstallmentPayment findMany
+   */
+  export type PosInstallmentPaymentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallmentPayment
+     */
+    select?: PosInstallmentPaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentPaymentInclude<ExtArgs> | null
+    /**
+     * Filter, which PosInstallmentPayments to fetch.
+     */
+    where?: PosInstallmentPaymentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of PosInstallmentPayments to fetch.
+     */
+    orderBy?: PosInstallmentPaymentOrderByWithRelationInput | PosInstallmentPaymentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing PosInstallmentPayments.
+     */
+    cursor?: PosInstallmentPaymentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` PosInstallmentPayments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` PosInstallmentPayments.
+     */
+    skip?: number
+    distinct?: PosInstallmentPaymentScalarFieldEnum | PosInstallmentPaymentScalarFieldEnum[]
+  }
+
+  /**
+   * PosInstallmentPayment create
+   */
+  export type PosInstallmentPaymentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallmentPayment
+     */
+    select?: PosInstallmentPaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentPaymentInclude<ExtArgs> | null
+    /**
+     * The data needed to create a PosInstallmentPayment.
+     */
+    data: XOR<PosInstallmentPaymentCreateInput, PosInstallmentPaymentUncheckedCreateInput>
+  }
+
+  /**
+   * PosInstallmentPayment createMany
+   */
+  export type PosInstallmentPaymentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many PosInstallmentPayments.
+     */
+    data: PosInstallmentPaymentCreateManyInput | PosInstallmentPaymentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * PosInstallmentPayment createManyAndReturn
+   */
+  export type PosInstallmentPaymentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallmentPayment
+     */
+    select?: PosInstallmentPaymentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many PosInstallmentPayments.
+     */
+    data: PosInstallmentPaymentCreateManyInput | PosInstallmentPaymentCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentPaymentIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * PosInstallmentPayment update
+   */
+  export type PosInstallmentPaymentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallmentPayment
+     */
+    select?: PosInstallmentPaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentPaymentInclude<ExtArgs> | null
+    /**
+     * The data needed to update a PosInstallmentPayment.
+     */
+    data: XOR<PosInstallmentPaymentUpdateInput, PosInstallmentPaymentUncheckedUpdateInput>
+    /**
+     * Choose, which PosInstallmentPayment to update.
+     */
+    where: PosInstallmentPaymentWhereUniqueInput
+  }
+
+  /**
+   * PosInstallmentPayment updateMany
+   */
+  export type PosInstallmentPaymentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update PosInstallmentPayments.
+     */
+    data: XOR<PosInstallmentPaymentUpdateManyMutationInput, PosInstallmentPaymentUncheckedUpdateManyInput>
+    /**
+     * Filter which PosInstallmentPayments to update
+     */
+    where?: PosInstallmentPaymentWhereInput
+  }
+
+  /**
+   * PosInstallmentPayment upsert
+   */
+  export type PosInstallmentPaymentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallmentPayment
+     */
+    select?: PosInstallmentPaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentPaymentInclude<ExtArgs> | null
+    /**
+     * The filter to search for the PosInstallmentPayment to update in case it exists.
+     */
+    where: PosInstallmentPaymentWhereUniqueInput
+    /**
+     * In case the PosInstallmentPayment found by the `where` argument doesn't exist, create a new PosInstallmentPayment with this data.
+     */
+    create: XOR<PosInstallmentPaymentCreateInput, PosInstallmentPaymentUncheckedCreateInput>
+    /**
+     * In case the PosInstallmentPayment was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<PosInstallmentPaymentUpdateInput, PosInstallmentPaymentUncheckedUpdateInput>
+  }
+
+  /**
+   * PosInstallmentPayment delete
+   */
+  export type PosInstallmentPaymentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallmentPayment
+     */
+    select?: PosInstallmentPaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentPaymentInclude<ExtArgs> | null
+    /**
+     * Filter which PosInstallmentPayment to delete.
+     */
+    where: PosInstallmentPaymentWhereUniqueInput
+  }
+
+  /**
+   * PosInstallmentPayment deleteMany
+   */
+  export type PosInstallmentPaymentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which PosInstallmentPayments to delete
+     */
+    where?: PosInstallmentPaymentWhereInput
+  }
+
+  /**
+   * PosInstallmentPayment without action
+   */
+  export type PosInstallmentPaymentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosInstallmentPayment
+     */
+    select?: PosInstallmentPaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosInstallmentPaymentInclude<ExtArgs> | null
   }
 
 
@@ -34468,6 +36897,10 @@ export namespace Prisma {
     leasingFinancedAmount: 'leasingFinancedAmount',
     hasRegistrationFee: 'hasRegistrationFee',
     registrationFeeAmount: 'registrationFeeAmount',
+    interestRate: 'interestRate',
+    installmentMonths: 'installmentMonths',
+    monthlyInstallmentAmount: 'monthlyInstallmentAmount',
+    totalWithInterest: 'totalWithInterest',
     quantity: 'quantity',
     purchasedAt: 'purchasedAt'
   };
@@ -34485,6 +36918,38 @@ export namespace Prisma {
   };
 
   export type PosInvoiceTermScalarFieldEnum = (typeof PosInvoiceTermScalarFieldEnum)[keyof typeof PosInvoiceTermScalarFieldEnum]
+
+
+  export const PosInstallmentScalarFieldEnum: {
+    id: 'id',
+    purchaseId: 'purchaseId',
+    installmentNo: 'installmentNo',
+    dueDate: 'dueDate',
+    dueAmount: 'dueAmount',
+    paidAmount: 'paidAmount',
+    isPartial: 'isPartial',
+    penaltyRate: 'penaltyRate',
+    penaltyAmount: 'penaltyAmount',
+    status: 'status',
+    settledAt: 'settledAt',
+    notes: 'notes',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type PosInstallmentScalarFieldEnum = (typeof PosInstallmentScalarFieldEnum)[keyof typeof PosInstallmentScalarFieldEnum]
+
+
+  export const PosInstallmentPaymentScalarFieldEnum: {
+    id: 'id',
+    installmentId: 'installmentId',
+    amount: 'amount',
+    penaltyAmount: 'penaltyAmount',
+    note: 'note',
+    paidAt: 'paidAt'
+  };
+
+  export type PosInstallmentPaymentScalarFieldEnum = (typeof PosInstallmentPaymentScalarFieldEnum)[keyof typeof PosInstallmentPaymentScalarFieldEnum]
 
 
   export const PreOrderScalarFieldEnum: {
@@ -34816,6 +37281,20 @@ export namespace Prisma {
    * Reference to a field of type 'PosPurchaseChannel[]'
    */
   export type ListEnumPosPurchaseChannelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PosPurchaseChannel[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'InstallmentStatus'
+   */
+  export type EnumInstallmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InstallmentStatus'>
+    
+
+
+  /**
+   * Reference to a field of type 'InstallmentStatus[]'
+   */
+  export type ListEnumInstallmentStatusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InstallmentStatus[]'>
     
 
 
@@ -36267,6 +38746,10 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFilter<"PosCustomerPurchase"> | number
     hasRegistrationFee?: BoolFilter<"PosCustomerPurchase"> | boolean
     registrationFeeAmount?: FloatFilter<"PosCustomerPurchase"> | number
+    interestRate?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
+    installmentMonths?: IntNullableFilter<"PosCustomerPurchase"> | number | null
+    monthlyInstallmentAmount?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
+    totalWithInterest?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
     quantity?: IntFilter<"PosCustomerPurchase"> | number
     purchasedAt?: DateTimeFilter<"PosCustomerPurchase"> | Date | string
     customer?: XOR<PosCustomerRelationFilter, PosCustomerWhereInput>
@@ -36274,6 +38757,7 @@ export namespace Prisma {
     inventoryProduct?: XOR<InventoryProductNullableRelationFilter, InventoryProductWhereInput> | null
     leasingCompany?: XOR<PosLeasingCompanyNullableRelationFilter, PosLeasingCompanyWhereInput> | null
     receipts?: AccountReceiptListRelationFilter
+    installments?: PosInstallmentListRelationFilter
   }
 
   export type PosCustomerPurchaseOrderByWithRelationInput = {
@@ -36296,6 +38780,10 @@ export namespace Prisma {
     leasingFinancedAmount?: SortOrder
     hasRegistrationFee?: SortOrder
     registrationFeeAmount?: SortOrder
+    interestRate?: SortOrderInput | SortOrder
+    installmentMonths?: SortOrderInput | SortOrder
+    monthlyInstallmentAmount?: SortOrderInput | SortOrder
+    totalWithInterest?: SortOrderInput | SortOrder
     quantity?: SortOrder
     purchasedAt?: SortOrder
     customer?: PosCustomerOrderByWithRelationInput
@@ -36303,6 +38791,7 @@ export namespace Prisma {
     inventoryProduct?: InventoryProductOrderByWithRelationInput
     leasingCompany?: PosLeasingCompanyOrderByWithRelationInput
     receipts?: AccountReceiptOrderByRelationAggregateInput
+    installments?: PosInstallmentOrderByRelationAggregateInput
   }
 
   export type PosCustomerPurchaseWhereUniqueInput = Prisma.AtLeast<{
@@ -36328,6 +38817,10 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFilter<"PosCustomerPurchase"> | number
     hasRegistrationFee?: BoolFilter<"PosCustomerPurchase"> | boolean
     registrationFeeAmount?: FloatFilter<"PosCustomerPurchase"> | number
+    interestRate?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
+    installmentMonths?: IntNullableFilter<"PosCustomerPurchase"> | number | null
+    monthlyInstallmentAmount?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
+    totalWithInterest?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
     quantity?: IntFilter<"PosCustomerPurchase"> | number
     purchasedAt?: DateTimeFilter<"PosCustomerPurchase"> | Date | string
     customer?: XOR<PosCustomerRelationFilter, PosCustomerWhereInput>
@@ -36335,6 +38828,7 @@ export namespace Prisma {
     inventoryProduct?: XOR<InventoryProductNullableRelationFilter, InventoryProductWhereInput> | null
     leasingCompany?: XOR<PosLeasingCompanyNullableRelationFilter, PosLeasingCompanyWhereInput> | null
     receipts?: AccountReceiptListRelationFilter
+    installments?: PosInstallmentListRelationFilter
   }, "id">
 
   export type PosCustomerPurchaseOrderByWithAggregationInput = {
@@ -36357,6 +38851,10 @@ export namespace Prisma {
     leasingFinancedAmount?: SortOrder
     hasRegistrationFee?: SortOrder
     registrationFeeAmount?: SortOrder
+    interestRate?: SortOrderInput | SortOrder
+    installmentMonths?: SortOrderInput | SortOrder
+    monthlyInstallmentAmount?: SortOrderInput | SortOrder
+    totalWithInterest?: SortOrderInput | SortOrder
     quantity?: SortOrder
     purchasedAt?: SortOrder
     _count?: PosCustomerPurchaseCountOrderByAggregateInput
@@ -36389,6 +38887,10 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatWithAggregatesFilter<"PosCustomerPurchase"> | number
     hasRegistrationFee?: BoolWithAggregatesFilter<"PosCustomerPurchase"> | boolean
     registrationFeeAmount?: FloatWithAggregatesFilter<"PosCustomerPurchase"> | number
+    interestRate?: FloatNullableWithAggregatesFilter<"PosCustomerPurchase"> | number | null
+    installmentMonths?: IntNullableWithAggregatesFilter<"PosCustomerPurchase"> | number | null
+    monthlyInstallmentAmount?: FloatNullableWithAggregatesFilter<"PosCustomerPurchase"> | number | null
+    totalWithInterest?: FloatNullableWithAggregatesFilter<"PosCustomerPurchase"> | number | null
     quantity?: IntWithAggregatesFilter<"PosCustomerPurchase"> | number
     purchasedAt?: DateTimeWithAggregatesFilter<"PosCustomerPurchase"> | Date | string
   }
@@ -36450,6 +38952,173 @@ export namespace Prisma {
     isActive?: BoolWithAggregatesFilter<"PosInvoiceTerm"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"PosInvoiceTerm"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"PosInvoiceTerm"> | Date | string
+  }
+
+  export type PosInstallmentWhereInput = {
+    AND?: PosInstallmentWhereInput | PosInstallmentWhereInput[]
+    OR?: PosInstallmentWhereInput[]
+    NOT?: PosInstallmentWhereInput | PosInstallmentWhereInput[]
+    id?: IntFilter<"PosInstallment"> | number
+    purchaseId?: IntFilter<"PosInstallment"> | number
+    installmentNo?: IntFilter<"PosInstallment"> | number
+    dueDate?: DateTimeFilter<"PosInstallment"> | Date | string
+    dueAmount?: FloatFilter<"PosInstallment"> | number
+    paidAmount?: FloatFilter<"PosInstallment"> | number
+    isPartial?: BoolFilter<"PosInstallment"> | boolean
+    penaltyRate?: FloatFilter<"PosInstallment"> | number
+    penaltyAmount?: FloatFilter<"PosInstallment"> | number
+    status?: EnumInstallmentStatusFilter<"PosInstallment"> | $Enums.InstallmentStatus
+    settledAt?: DateTimeNullableFilter<"PosInstallment"> | Date | string | null
+    notes?: StringNullableFilter<"PosInstallment"> | string | null
+    createdAt?: DateTimeFilter<"PosInstallment"> | Date | string
+    updatedAt?: DateTimeFilter<"PosInstallment"> | Date | string
+    purchase?: XOR<PosCustomerPurchaseRelationFilter, PosCustomerPurchaseWhereInput>
+    payments?: PosInstallmentPaymentListRelationFilter
+  }
+
+  export type PosInstallmentOrderByWithRelationInput = {
+    id?: SortOrder
+    purchaseId?: SortOrder
+    installmentNo?: SortOrder
+    dueDate?: SortOrder
+    dueAmount?: SortOrder
+    paidAmount?: SortOrder
+    isPartial?: SortOrder
+    penaltyRate?: SortOrder
+    penaltyAmount?: SortOrder
+    status?: SortOrder
+    settledAt?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    purchase?: PosCustomerPurchaseOrderByWithRelationInput
+    payments?: PosInstallmentPaymentOrderByRelationAggregateInput
+  }
+
+  export type PosInstallmentWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: PosInstallmentWhereInput | PosInstallmentWhereInput[]
+    OR?: PosInstallmentWhereInput[]
+    NOT?: PosInstallmentWhereInput | PosInstallmentWhereInput[]
+    purchaseId?: IntFilter<"PosInstallment"> | number
+    installmentNo?: IntFilter<"PosInstallment"> | number
+    dueDate?: DateTimeFilter<"PosInstallment"> | Date | string
+    dueAmount?: FloatFilter<"PosInstallment"> | number
+    paidAmount?: FloatFilter<"PosInstallment"> | number
+    isPartial?: BoolFilter<"PosInstallment"> | boolean
+    penaltyRate?: FloatFilter<"PosInstallment"> | number
+    penaltyAmount?: FloatFilter<"PosInstallment"> | number
+    status?: EnumInstallmentStatusFilter<"PosInstallment"> | $Enums.InstallmentStatus
+    settledAt?: DateTimeNullableFilter<"PosInstallment"> | Date | string | null
+    notes?: StringNullableFilter<"PosInstallment"> | string | null
+    createdAt?: DateTimeFilter<"PosInstallment"> | Date | string
+    updatedAt?: DateTimeFilter<"PosInstallment"> | Date | string
+    purchase?: XOR<PosCustomerPurchaseRelationFilter, PosCustomerPurchaseWhereInput>
+    payments?: PosInstallmentPaymentListRelationFilter
+  }, "id">
+
+  export type PosInstallmentOrderByWithAggregationInput = {
+    id?: SortOrder
+    purchaseId?: SortOrder
+    installmentNo?: SortOrder
+    dueDate?: SortOrder
+    dueAmount?: SortOrder
+    paidAmount?: SortOrder
+    isPartial?: SortOrder
+    penaltyRate?: SortOrder
+    penaltyAmount?: SortOrder
+    status?: SortOrder
+    settledAt?: SortOrderInput | SortOrder
+    notes?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: PosInstallmentCountOrderByAggregateInput
+    _avg?: PosInstallmentAvgOrderByAggregateInput
+    _max?: PosInstallmentMaxOrderByAggregateInput
+    _min?: PosInstallmentMinOrderByAggregateInput
+    _sum?: PosInstallmentSumOrderByAggregateInput
+  }
+
+  export type PosInstallmentScalarWhereWithAggregatesInput = {
+    AND?: PosInstallmentScalarWhereWithAggregatesInput | PosInstallmentScalarWhereWithAggregatesInput[]
+    OR?: PosInstallmentScalarWhereWithAggregatesInput[]
+    NOT?: PosInstallmentScalarWhereWithAggregatesInput | PosInstallmentScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"PosInstallment"> | number
+    purchaseId?: IntWithAggregatesFilter<"PosInstallment"> | number
+    installmentNo?: IntWithAggregatesFilter<"PosInstallment"> | number
+    dueDate?: DateTimeWithAggregatesFilter<"PosInstallment"> | Date | string
+    dueAmount?: FloatWithAggregatesFilter<"PosInstallment"> | number
+    paidAmount?: FloatWithAggregatesFilter<"PosInstallment"> | number
+    isPartial?: BoolWithAggregatesFilter<"PosInstallment"> | boolean
+    penaltyRate?: FloatWithAggregatesFilter<"PosInstallment"> | number
+    penaltyAmount?: FloatWithAggregatesFilter<"PosInstallment"> | number
+    status?: EnumInstallmentStatusWithAggregatesFilter<"PosInstallment"> | $Enums.InstallmentStatus
+    settledAt?: DateTimeNullableWithAggregatesFilter<"PosInstallment"> | Date | string | null
+    notes?: StringNullableWithAggregatesFilter<"PosInstallment"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"PosInstallment"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"PosInstallment"> | Date | string
+  }
+
+  export type PosInstallmentPaymentWhereInput = {
+    AND?: PosInstallmentPaymentWhereInput | PosInstallmentPaymentWhereInput[]
+    OR?: PosInstallmentPaymentWhereInput[]
+    NOT?: PosInstallmentPaymentWhereInput | PosInstallmentPaymentWhereInput[]
+    id?: IntFilter<"PosInstallmentPayment"> | number
+    installmentId?: IntFilter<"PosInstallmentPayment"> | number
+    amount?: FloatFilter<"PosInstallmentPayment"> | number
+    penaltyAmount?: FloatFilter<"PosInstallmentPayment"> | number
+    note?: StringNullableFilter<"PosInstallmentPayment"> | string | null
+    paidAt?: DateTimeFilter<"PosInstallmentPayment"> | Date | string
+    installment?: XOR<PosInstallmentRelationFilter, PosInstallmentWhereInput>
+  }
+
+  export type PosInstallmentPaymentOrderByWithRelationInput = {
+    id?: SortOrder
+    installmentId?: SortOrder
+    amount?: SortOrder
+    penaltyAmount?: SortOrder
+    note?: SortOrderInput | SortOrder
+    paidAt?: SortOrder
+    installment?: PosInstallmentOrderByWithRelationInput
+  }
+
+  export type PosInstallmentPaymentWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    AND?: PosInstallmentPaymentWhereInput | PosInstallmentPaymentWhereInput[]
+    OR?: PosInstallmentPaymentWhereInput[]
+    NOT?: PosInstallmentPaymentWhereInput | PosInstallmentPaymentWhereInput[]
+    installmentId?: IntFilter<"PosInstallmentPayment"> | number
+    amount?: FloatFilter<"PosInstallmentPayment"> | number
+    penaltyAmount?: FloatFilter<"PosInstallmentPayment"> | number
+    note?: StringNullableFilter<"PosInstallmentPayment"> | string | null
+    paidAt?: DateTimeFilter<"PosInstallmentPayment"> | Date | string
+    installment?: XOR<PosInstallmentRelationFilter, PosInstallmentWhereInput>
+  }, "id">
+
+  export type PosInstallmentPaymentOrderByWithAggregationInput = {
+    id?: SortOrder
+    installmentId?: SortOrder
+    amount?: SortOrder
+    penaltyAmount?: SortOrder
+    note?: SortOrderInput | SortOrder
+    paidAt?: SortOrder
+    _count?: PosInstallmentPaymentCountOrderByAggregateInput
+    _avg?: PosInstallmentPaymentAvgOrderByAggregateInput
+    _max?: PosInstallmentPaymentMaxOrderByAggregateInput
+    _min?: PosInstallmentPaymentMinOrderByAggregateInput
+    _sum?: PosInstallmentPaymentSumOrderByAggregateInput
+  }
+
+  export type PosInstallmentPaymentScalarWhereWithAggregatesInput = {
+    AND?: PosInstallmentPaymentScalarWhereWithAggregatesInput | PosInstallmentPaymentScalarWhereWithAggregatesInput[]
+    OR?: PosInstallmentPaymentScalarWhereWithAggregatesInput[]
+    NOT?: PosInstallmentPaymentScalarWhereWithAggregatesInput | PosInstallmentPaymentScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"PosInstallmentPayment"> | number
+    installmentId?: IntWithAggregatesFilter<"PosInstallmentPayment"> | number
+    amount?: FloatWithAggregatesFilter<"PosInstallmentPayment"> | number
+    penaltyAmount?: FloatWithAggregatesFilter<"PosInstallmentPayment"> | number
+    note?: StringNullableWithAggregatesFilter<"PosInstallmentPayment"> | string | null
+    paidAt?: DateTimeWithAggregatesFilter<"PosInstallmentPayment"> | Date | string
   }
 
   export type PreOrderWhereInput = {
@@ -38656,6 +41325,10 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
     customer: PosCustomerCreateNestedOneWithoutPurchasesInput
@@ -38663,6 +41336,7 @@ export namespace Prisma {
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
+    installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUncheckedCreateInput = {
@@ -38685,9 +41359,14 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput
+    installments?: PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUpdateInput = {
@@ -38705,6 +41384,10 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
@@ -38712,6 +41395,7 @@ export namespace Prisma {
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
+    installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateInput = {
@@ -38734,9 +41418,14 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput
+    installments?: PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseCreateManyInput = {
@@ -38759,6 +41448,10 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
   }
@@ -38778,6 +41471,10 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -38802,6 +41499,10 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -38864,6 +41565,184 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PosInstallmentCreateInput = {
+    installmentNo: number
+    dueDate: Date | string
+    dueAmount: number
+    paidAmount?: number
+    isPartial?: boolean
+    penaltyRate?: number
+    penaltyAmount?: number
+    status?: $Enums.InstallmentStatus
+    settledAt?: Date | string | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    purchase: PosCustomerPurchaseCreateNestedOneWithoutInstallmentsInput
+    payments?: PosInstallmentPaymentCreateNestedManyWithoutInstallmentInput
+  }
+
+  export type PosInstallmentUncheckedCreateInput = {
+    id?: number
+    purchaseId: number
+    installmentNo: number
+    dueDate: Date | string
+    dueAmount: number
+    paidAmount?: number
+    isPartial?: boolean
+    penaltyRate?: number
+    penaltyAmount?: number
+    status?: $Enums.InstallmentStatus
+    settledAt?: Date | string | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    payments?: PosInstallmentPaymentUncheckedCreateNestedManyWithoutInstallmentInput
+  }
+
+  export type PosInstallmentUpdateInput = {
+    installmentNo?: IntFieldUpdateOperationsInput | number
+    dueDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAmount?: FloatFieldUpdateOperationsInput | number
+    paidAmount?: FloatFieldUpdateOperationsInput | number
+    isPartial?: BoolFieldUpdateOperationsInput | boolean
+    penaltyRate?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    purchase?: PosCustomerPurchaseUpdateOneRequiredWithoutInstallmentsNestedInput
+    payments?: PosInstallmentPaymentUpdateManyWithoutInstallmentNestedInput
+  }
+
+  export type PosInstallmentUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    purchaseId?: IntFieldUpdateOperationsInput | number
+    installmentNo?: IntFieldUpdateOperationsInput | number
+    dueDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAmount?: FloatFieldUpdateOperationsInput | number
+    paidAmount?: FloatFieldUpdateOperationsInput | number
+    isPartial?: BoolFieldUpdateOperationsInput | boolean
+    penaltyRate?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payments?: PosInstallmentPaymentUncheckedUpdateManyWithoutInstallmentNestedInput
+  }
+
+  export type PosInstallmentCreateManyInput = {
+    id?: number
+    purchaseId: number
+    installmentNo: number
+    dueDate: Date | string
+    dueAmount: number
+    paidAmount?: number
+    isPartial?: boolean
+    penaltyRate?: number
+    penaltyAmount?: number
+    status?: $Enums.InstallmentStatus
+    settledAt?: Date | string | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PosInstallmentUpdateManyMutationInput = {
+    installmentNo?: IntFieldUpdateOperationsInput | number
+    dueDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAmount?: FloatFieldUpdateOperationsInput | number
+    paidAmount?: FloatFieldUpdateOperationsInput | number
+    isPartial?: BoolFieldUpdateOperationsInput | boolean
+    penaltyRate?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PosInstallmentUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    purchaseId?: IntFieldUpdateOperationsInput | number
+    installmentNo?: IntFieldUpdateOperationsInput | number
+    dueDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAmount?: FloatFieldUpdateOperationsInput | number
+    paidAmount?: FloatFieldUpdateOperationsInput | number
+    isPartial?: BoolFieldUpdateOperationsInput | boolean
+    penaltyRate?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PosInstallmentPaymentCreateInput = {
+    amount: number
+    penaltyAmount?: number
+    note?: string | null
+    paidAt?: Date | string
+    installment: PosInstallmentCreateNestedOneWithoutPaymentsInput
+  }
+
+  export type PosInstallmentPaymentUncheckedCreateInput = {
+    id?: number
+    installmentId: number
+    amount: number
+    penaltyAmount?: number
+    note?: string | null
+    paidAt?: Date | string
+  }
+
+  export type PosInstallmentPaymentUpdateInput = {
+    amount?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    installment?: PosInstallmentUpdateOneRequiredWithoutPaymentsNestedInput
+  }
+
+  export type PosInstallmentPaymentUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    installmentId?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PosInstallmentPaymentCreateManyInput = {
+    id?: number
+    installmentId: number
+    amount: number
+    penaltyAmount?: number
+    note?: string | null
+    paidAt?: Date | string
+  }
+
+  export type PosInstallmentPaymentUpdateManyMutationInput = {
+    amount?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PosInstallmentPaymentUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    installmentId?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PreOrderCreateInput = {
@@ -41015,7 +43894,17 @@ export namespace Prisma {
     none?: AccountReceiptWhereInput
   }
 
+  export type PosInstallmentListRelationFilter = {
+    every?: PosInstallmentWhereInput
+    some?: PosInstallmentWhereInput
+    none?: PosInstallmentWhereInput
+  }
+
   export type AccountReceiptOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PosInstallmentOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -41039,6 +43928,10 @@ export namespace Prisma {
     leasingFinancedAmount?: SortOrder
     hasRegistrationFee?: SortOrder
     registrationFeeAmount?: SortOrder
+    interestRate?: SortOrder
+    installmentMonths?: SortOrder
+    monthlyInstallmentAmount?: SortOrder
+    totalWithInterest?: SortOrder
     quantity?: SortOrder
     purchasedAt?: SortOrder
   }
@@ -41056,6 +43949,10 @@ export namespace Prisma {
     leasingDownPaymentAmount?: SortOrder
     leasingFinancedAmount?: SortOrder
     registrationFeeAmount?: SortOrder
+    interestRate?: SortOrder
+    installmentMonths?: SortOrder
+    monthlyInstallmentAmount?: SortOrder
+    totalWithInterest?: SortOrder
     quantity?: SortOrder
   }
 
@@ -41079,6 +43976,10 @@ export namespace Prisma {
     leasingFinancedAmount?: SortOrder
     hasRegistrationFee?: SortOrder
     registrationFeeAmount?: SortOrder
+    interestRate?: SortOrder
+    installmentMonths?: SortOrder
+    monthlyInstallmentAmount?: SortOrder
+    totalWithInterest?: SortOrder
     quantity?: SortOrder
     purchasedAt?: SortOrder
   }
@@ -41103,6 +44004,10 @@ export namespace Prisma {
     leasingFinancedAmount?: SortOrder
     hasRegistrationFee?: SortOrder
     registrationFeeAmount?: SortOrder
+    interestRate?: SortOrder
+    installmentMonths?: SortOrder
+    monthlyInstallmentAmount?: SortOrder
+    totalWithInterest?: SortOrder
     quantity?: SortOrder
     purchasedAt?: SortOrder
   }
@@ -41120,6 +44025,10 @@ export namespace Prisma {
     leasingDownPaymentAmount?: SortOrder
     leasingFinancedAmount?: SortOrder
     registrationFeeAmount?: SortOrder
+    interestRate?: SortOrder
+    installmentMonths?: SortOrder
+    monthlyInstallmentAmount?: SortOrder
+    totalWithInterest?: SortOrder
     quantity?: SortOrder
   }
 
@@ -41208,6 +44117,155 @@ export namespace Prisma {
   export type PosInvoiceTermSumOrderByAggregateInput = {
     id?: SortOrder
     sortOrder?: SortOrder
+  }
+
+  export type EnumInstallmentStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.InstallmentStatus | EnumInstallmentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.InstallmentStatus[] | ListEnumInstallmentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.InstallmentStatus[] | ListEnumInstallmentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumInstallmentStatusFilter<$PrismaModel> | $Enums.InstallmentStatus
+  }
+
+  export type PosCustomerPurchaseRelationFilter = {
+    is?: PosCustomerPurchaseWhereInput
+    isNot?: PosCustomerPurchaseWhereInput
+  }
+
+  export type PosInstallmentPaymentListRelationFilter = {
+    every?: PosInstallmentPaymentWhereInput
+    some?: PosInstallmentPaymentWhereInput
+    none?: PosInstallmentPaymentWhereInput
+  }
+
+  export type PosInstallmentPaymentOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type PosInstallmentCountOrderByAggregateInput = {
+    id?: SortOrder
+    purchaseId?: SortOrder
+    installmentNo?: SortOrder
+    dueDate?: SortOrder
+    dueAmount?: SortOrder
+    paidAmount?: SortOrder
+    isPartial?: SortOrder
+    penaltyRate?: SortOrder
+    penaltyAmount?: SortOrder
+    status?: SortOrder
+    settledAt?: SortOrder
+    notes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PosInstallmentAvgOrderByAggregateInput = {
+    id?: SortOrder
+    purchaseId?: SortOrder
+    installmentNo?: SortOrder
+    dueAmount?: SortOrder
+    paidAmount?: SortOrder
+    penaltyRate?: SortOrder
+    penaltyAmount?: SortOrder
+  }
+
+  export type PosInstallmentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    purchaseId?: SortOrder
+    installmentNo?: SortOrder
+    dueDate?: SortOrder
+    dueAmount?: SortOrder
+    paidAmount?: SortOrder
+    isPartial?: SortOrder
+    penaltyRate?: SortOrder
+    penaltyAmount?: SortOrder
+    status?: SortOrder
+    settledAt?: SortOrder
+    notes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PosInstallmentMinOrderByAggregateInput = {
+    id?: SortOrder
+    purchaseId?: SortOrder
+    installmentNo?: SortOrder
+    dueDate?: SortOrder
+    dueAmount?: SortOrder
+    paidAmount?: SortOrder
+    isPartial?: SortOrder
+    penaltyRate?: SortOrder
+    penaltyAmount?: SortOrder
+    status?: SortOrder
+    settledAt?: SortOrder
+    notes?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type PosInstallmentSumOrderByAggregateInput = {
+    id?: SortOrder
+    purchaseId?: SortOrder
+    installmentNo?: SortOrder
+    dueAmount?: SortOrder
+    paidAmount?: SortOrder
+    penaltyRate?: SortOrder
+    penaltyAmount?: SortOrder
+  }
+
+  export type EnumInstallmentStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.InstallmentStatus | EnumInstallmentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.InstallmentStatus[] | ListEnumInstallmentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.InstallmentStatus[] | ListEnumInstallmentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumInstallmentStatusWithAggregatesFilter<$PrismaModel> | $Enums.InstallmentStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumInstallmentStatusFilter<$PrismaModel>
+    _max?: NestedEnumInstallmentStatusFilter<$PrismaModel>
+  }
+
+  export type PosInstallmentRelationFilter = {
+    is?: PosInstallmentWhereInput
+    isNot?: PosInstallmentWhereInput
+  }
+
+  export type PosInstallmentPaymentCountOrderByAggregateInput = {
+    id?: SortOrder
+    installmentId?: SortOrder
+    amount?: SortOrder
+    penaltyAmount?: SortOrder
+    note?: SortOrder
+    paidAt?: SortOrder
+  }
+
+  export type PosInstallmentPaymentAvgOrderByAggregateInput = {
+    id?: SortOrder
+    installmentId?: SortOrder
+    amount?: SortOrder
+    penaltyAmount?: SortOrder
+  }
+
+  export type PosInstallmentPaymentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    installmentId?: SortOrder
+    amount?: SortOrder
+    penaltyAmount?: SortOrder
+    note?: SortOrder
+    paidAt?: SortOrder
+  }
+
+  export type PosInstallmentPaymentMinOrderByAggregateInput = {
+    id?: SortOrder
+    installmentId?: SortOrder
+    amount?: SortOrder
+    penaltyAmount?: SortOrder
+    note?: SortOrder
+    paidAt?: SortOrder
+  }
+
+  export type PosInstallmentPaymentSumOrderByAggregateInput = {
+    id?: SortOrder
+    installmentId?: SortOrder
+    amount?: SortOrder
+    penaltyAmount?: SortOrder
   }
 
   export type PreOrderImageListRelationFilter = {
@@ -41629,11 +44687,6 @@ export namespace Prisma {
   export type AccountRelationFilter = {
     is?: AccountWhereInput
     isNot?: AccountWhereInput
-  }
-
-  export type PosCustomerPurchaseRelationFilter = {
-    is?: PosCustomerPurchaseWhereInput
-    isNot?: PosCustomerPurchaseWhereInput
   }
 
   export type AccountReceiptCountOrderByAggregateInput = {
@@ -42893,11 +45946,25 @@ export namespace Prisma {
     connect?: AccountReceiptWhereUniqueInput | AccountReceiptWhereUniqueInput[]
   }
 
+  export type PosInstallmentCreateNestedManyWithoutPurchaseInput = {
+    create?: XOR<PosInstallmentCreateWithoutPurchaseInput, PosInstallmentUncheckedCreateWithoutPurchaseInput> | PosInstallmentCreateWithoutPurchaseInput[] | PosInstallmentUncheckedCreateWithoutPurchaseInput[]
+    connectOrCreate?: PosInstallmentCreateOrConnectWithoutPurchaseInput | PosInstallmentCreateOrConnectWithoutPurchaseInput[]
+    createMany?: PosInstallmentCreateManyPurchaseInputEnvelope
+    connect?: PosInstallmentWhereUniqueInput | PosInstallmentWhereUniqueInput[]
+  }
+
   export type AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput = {
     create?: XOR<AccountReceiptCreateWithoutPurchaseInput, AccountReceiptUncheckedCreateWithoutPurchaseInput> | AccountReceiptCreateWithoutPurchaseInput[] | AccountReceiptUncheckedCreateWithoutPurchaseInput[]
     connectOrCreate?: AccountReceiptCreateOrConnectWithoutPurchaseInput | AccountReceiptCreateOrConnectWithoutPurchaseInput[]
     createMany?: AccountReceiptCreateManyPurchaseInputEnvelope
     connect?: AccountReceiptWhereUniqueInput | AccountReceiptWhereUniqueInput[]
+  }
+
+  export type PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput = {
+    create?: XOR<PosInstallmentCreateWithoutPurchaseInput, PosInstallmentUncheckedCreateWithoutPurchaseInput> | PosInstallmentCreateWithoutPurchaseInput[] | PosInstallmentUncheckedCreateWithoutPurchaseInput[]
+    connectOrCreate?: PosInstallmentCreateOrConnectWithoutPurchaseInput | PosInstallmentCreateOrConnectWithoutPurchaseInput[]
+    createMany?: PosInstallmentCreateManyPurchaseInputEnvelope
+    connect?: PosInstallmentWhereUniqueInput | PosInstallmentWhereUniqueInput[]
   }
 
   export type EnumPosPurchaseItemTypeFieldUpdateOperationsInput = {
@@ -42972,6 +46039,20 @@ export namespace Prisma {
     deleteMany?: AccountReceiptScalarWhereInput | AccountReceiptScalarWhereInput[]
   }
 
+  export type PosInstallmentUpdateManyWithoutPurchaseNestedInput = {
+    create?: XOR<PosInstallmentCreateWithoutPurchaseInput, PosInstallmentUncheckedCreateWithoutPurchaseInput> | PosInstallmentCreateWithoutPurchaseInput[] | PosInstallmentUncheckedCreateWithoutPurchaseInput[]
+    connectOrCreate?: PosInstallmentCreateOrConnectWithoutPurchaseInput | PosInstallmentCreateOrConnectWithoutPurchaseInput[]
+    upsert?: PosInstallmentUpsertWithWhereUniqueWithoutPurchaseInput | PosInstallmentUpsertWithWhereUniqueWithoutPurchaseInput[]
+    createMany?: PosInstallmentCreateManyPurchaseInputEnvelope
+    set?: PosInstallmentWhereUniqueInput | PosInstallmentWhereUniqueInput[]
+    disconnect?: PosInstallmentWhereUniqueInput | PosInstallmentWhereUniqueInput[]
+    delete?: PosInstallmentWhereUniqueInput | PosInstallmentWhereUniqueInput[]
+    connect?: PosInstallmentWhereUniqueInput | PosInstallmentWhereUniqueInput[]
+    update?: PosInstallmentUpdateWithWhereUniqueWithoutPurchaseInput | PosInstallmentUpdateWithWhereUniqueWithoutPurchaseInput[]
+    updateMany?: PosInstallmentUpdateManyWithWhereWithoutPurchaseInput | PosInstallmentUpdateManyWithWhereWithoutPurchaseInput[]
+    deleteMany?: PosInstallmentScalarWhereInput | PosInstallmentScalarWhereInput[]
+  }
+
   export type AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput = {
     create?: XOR<AccountReceiptCreateWithoutPurchaseInput, AccountReceiptUncheckedCreateWithoutPurchaseInput> | AccountReceiptCreateWithoutPurchaseInput[] | AccountReceiptUncheckedCreateWithoutPurchaseInput[]
     connectOrCreate?: AccountReceiptCreateOrConnectWithoutPurchaseInput | AccountReceiptCreateOrConnectWithoutPurchaseInput[]
@@ -42984,6 +46065,94 @@ export namespace Prisma {
     update?: AccountReceiptUpdateWithWhereUniqueWithoutPurchaseInput | AccountReceiptUpdateWithWhereUniqueWithoutPurchaseInput[]
     updateMany?: AccountReceiptUpdateManyWithWhereWithoutPurchaseInput | AccountReceiptUpdateManyWithWhereWithoutPurchaseInput[]
     deleteMany?: AccountReceiptScalarWhereInput | AccountReceiptScalarWhereInput[]
+  }
+
+  export type PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput = {
+    create?: XOR<PosInstallmentCreateWithoutPurchaseInput, PosInstallmentUncheckedCreateWithoutPurchaseInput> | PosInstallmentCreateWithoutPurchaseInput[] | PosInstallmentUncheckedCreateWithoutPurchaseInput[]
+    connectOrCreate?: PosInstallmentCreateOrConnectWithoutPurchaseInput | PosInstallmentCreateOrConnectWithoutPurchaseInput[]
+    upsert?: PosInstallmentUpsertWithWhereUniqueWithoutPurchaseInput | PosInstallmentUpsertWithWhereUniqueWithoutPurchaseInput[]
+    createMany?: PosInstallmentCreateManyPurchaseInputEnvelope
+    set?: PosInstallmentWhereUniqueInput | PosInstallmentWhereUniqueInput[]
+    disconnect?: PosInstallmentWhereUniqueInput | PosInstallmentWhereUniqueInput[]
+    delete?: PosInstallmentWhereUniqueInput | PosInstallmentWhereUniqueInput[]
+    connect?: PosInstallmentWhereUniqueInput | PosInstallmentWhereUniqueInput[]
+    update?: PosInstallmentUpdateWithWhereUniqueWithoutPurchaseInput | PosInstallmentUpdateWithWhereUniqueWithoutPurchaseInput[]
+    updateMany?: PosInstallmentUpdateManyWithWhereWithoutPurchaseInput | PosInstallmentUpdateManyWithWhereWithoutPurchaseInput[]
+    deleteMany?: PosInstallmentScalarWhereInput | PosInstallmentScalarWhereInput[]
+  }
+
+  export type PosCustomerPurchaseCreateNestedOneWithoutInstallmentsInput = {
+    create?: XOR<PosCustomerPurchaseCreateWithoutInstallmentsInput, PosCustomerPurchaseUncheckedCreateWithoutInstallmentsInput>
+    connectOrCreate?: PosCustomerPurchaseCreateOrConnectWithoutInstallmentsInput
+    connect?: PosCustomerPurchaseWhereUniqueInput
+  }
+
+  export type PosInstallmentPaymentCreateNestedManyWithoutInstallmentInput = {
+    create?: XOR<PosInstallmentPaymentCreateWithoutInstallmentInput, PosInstallmentPaymentUncheckedCreateWithoutInstallmentInput> | PosInstallmentPaymentCreateWithoutInstallmentInput[] | PosInstallmentPaymentUncheckedCreateWithoutInstallmentInput[]
+    connectOrCreate?: PosInstallmentPaymentCreateOrConnectWithoutInstallmentInput | PosInstallmentPaymentCreateOrConnectWithoutInstallmentInput[]
+    createMany?: PosInstallmentPaymentCreateManyInstallmentInputEnvelope
+    connect?: PosInstallmentPaymentWhereUniqueInput | PosInstallmentPaymentWhereUniqueInput[]
+  }
+
+  export type PosInstallmentPaymentUncheckedCreateNestedManyWithoutInstallmentInput = {
+    create?: XOR<PosInstallmentPaymentCreateWithoutInstallmentInput, PosInstallmentPaymentUncheckedCreateWithoutInstallmentInput> | PosInstallmentPaymentCreateWithoutInstallmentInput[] | PosInstallmentPaymentUncheckedCreateWithoutInstallmentInput[]
+    connectOrCreate?: PosInstallmentPaymentCreateOrConnectWithoutInstallmentInput | PosInstallmentPaymentCreateOrConnectWithoutInstallmentInput[]
+    createMany?: PosInstallmentPaymentCreateManyInstallmentInputEnvelope
+    connect?: PosInstallmentPaymentWhereUniqueInput | PosInstallmentPaymentWhereUniqueInput[]
+  }
+
+  export type EnumInstallmentStatusFieldUpdateOperationsInput = {
+    set?: $Enums.InstallmentStatus
+  }
+
+  export type PosCustomerPurchaseUpdateOneRequiredWithoutInstallmentsNestedInput = {
+    create?: XOR<PosCustomerPurchaseCreateWithoutInstallmentsInput, PosCustomerPurchaseUncheckedCreateWithoutInstallmentsInput>
+    connectOrCreate?: PosCustomerPurchaseCreateOrConnectWithoutInstallmentsInput
+    upsert?: PosCustomerPurchaseUpsertWithoutInstallmentsInput
+    connect?: PosCustomerPurchaseWhereUniqueInput
+    update?: XOR<XOR<PosCustomerPurchaseUpdateToOneWithWhereWithoutInstallmentsInput, PosCustomerPurchaseUpdateWithoutInstallmentsInput>, PosCustomerPurchaseUncheckedUpdateWithoutInstallmentsInput>
+  }
+
+  export type PosInstallmentPaymentUpdateManyWithoutInstallmentNestedInput = {
+    create?: XOR<PosInstallmentPaymentCreateWithoutInstallmentInput, PosInstallmentPaymentUncheckedCreateWithoutInstallmentInput> | PosInstallmentPaymentCreateWithoutInstallmentInput[] | PosInstallmentPaymentUncheckedCreateWithoutInstallmentInput[]
+    connectOrCreate?: PosInstallmentPaymentCreateOrConnectWithoutInstallmentInput | PosInstallmentPaymentCreateOrConnectWithoutInstallmentInput[]
+    upsert?: PosInstallmentPaymentUpsertWithWhereUniqueWithoutInstallmentInput | PosInstallmentPaymentUpsertWithWhereUniqueWithoutInstallmentInput[]
+    createMany?: PosInstallmentPaymentCreateManyInstallmentInputEnvelope
+    set?: PosInstallmentPaymentWhereUniqueInput | PosInstallmentPaymentWhereUniqueInput[]
+    disconnect?: PosInstallmentPaymentWhereUniqueInput | PosInstallmentPaymentWhereUniqueInput[]
+    delete?: PosInstallmentPaymentWhereUniqueInput | PosInstallmentPaymentWhereUniqueInput[]
+    connect?: PosInstallmentPaymentWhereUniqueInput | PosInstallmentPaymentWhereUniqueInput[]
+    update?: PosInstallmentPaymentUpdateWithWhereUniqueWithoutInstallmentInput | PosInstallmentPaymentUpdateWithWhereUniqueWithoutInstallmentInput[]
+    updateMany?: PosInstallmentPaymentUpdateManyWithWhereWithoutInstallmentInput | PosInstallmentPaymentUpdateManyWithWhereWithoutInstallmentInput[]
+    deleteMany?: PosInstallmentPaymentScalarWhereInput | PosInstallmentPaymentScalarWhereInput[]
+  }
+
+  export type PosInstallmentPaymentUncheckedUpdateManyWithoutInstallmentNestedInput = {
+    create?: XOR<PosInstallmentPaymentCreateWithoutInstallmentInput, PosInstallmentPaymentUncheckedCreateWithoutInstallmentInput> | PosInstallmentPaymentCreateWithoutInstallmentInput[] | PosInstallmentPaymentUncheckedCreateWithoutInstallmentInput[]
+    connectOrCreate?: PosInstallmentPaymentCreateOrConnectWithoutInstallmentInput | PosInstallmentPaymentCreateOrConnectWithoutInstallmentInput[]
+    upsert?: PosInstallmentPaymentUpsertWithWhereUniqueWithoutInstallmentInput | PosInstallmentPaymentUpsertWithWhereUniqueWithoutInstallmentInput[]
+    createMany?: PosInstallmentPaymentCreateManyInstallmentInputEnvelope
+    set?: PosInstallmentPaymentWhereUniqueInput | PosInstallmentPaymentWhereUniqueInput[]
+    disconnect?: PosInstallmentPaymentWhereUniqueInput | PosInstallmentPaymentWhereUniqueInput[]
+    delete?: PosInstallmentPaymentWhereUniqueInput | PosInstallmentPaymentWhereUniqueInput[]
+    connect?: PosInstallmentPaymentWhereUniqueInput | PosInstallmentPaymentWhereUniqueInput[]
+    update?: PosInstallmentPaymentUpdateWithWhereUniqueWithoutInstallmentInput | PosInstallmentPaymentUpdateWithWhereUniqueWithoutInstallmentInput[]
+    updateMany?: PosInstallmentPaymentUpdateManyWithWhereWithoutInstallmentInput | PosInstallmentPaymentUpdateManyWithWhereWithoutInstallmentInput[]
+    deleteMany?: PosInstallmentPaymentScalarWhereInput | PosInstallmentPaymentScalarWhereInput[]
+  }
+
+  export type PosInstallmentCreateNestedOneWithoutPaymentsInput = {
+    create?: XOR<PosInstallmentCreateWithoutPaymentsInput, PosInstallmentUncheckedCreateWithoutPaymentsInput>
+    connectOrCreate?: PosInstallmentCreateOrConnectWithoutPaymentsInput
+    connect?: PosInstallmentWhereUniqueInput
+  }
+
+  export type PosInstallmentUpdateOneRequiredWithoutPaymentsNestedInput = {
+    create?: XOR<PosInstallmentCreateWithoutPaymentsInput, PosInstallmentUncheckedCreateWithoutPaymentsInput>
+    connectOrCreate?: PosInstallmentCreateOrConnectWithoutPaymentsInput
+    upsert?: PosInstallmentUpsertWithoutPaymentsInput
+    connect?: PosInstallmentWhereUniqueInput
+    update?: XOR<XOR<PosInstallmentUpdateToOneWithWhereWithoutPaymentsInput, PosInstallmentUpdateWithoutPaymentsInput>, PosInstallmentUncheckedUpdateWithoutPaymentsInput>
   }
 
   export type PreOrderImageCreateNestedManyWithoutPreOrderInput = {
@@ -43759,6 +46928,23 @@ export namespace Prisma {
     _max?: NestedEnumPosPurchaseChannelFilter<$PrismaModel>
   }
 
+  export type NestedEnumInstallmentStatusFilter<$PrismaModel = never> = {
+    equals?: $Enums.InstallmentStatus | EnumInstallmentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.InstallmentStatus[] | ListEnumInstallmentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.InstallmentStatus[] | ListEnumInstallmentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumInstallmentStatusFilter<$PrismaModel> | $Enums.InstallmentStatus
+  }
+
+  export type NestedEnumInstallmentStatusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.InstallmentStatus | EnumInstallmentStatusFieldRefInput<$PrismaModel>
+    in?: $Enums.InstallmentStatus[] | ListEnumInstallmentStatusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.InstallmentStatus[] | ListEnumInstallmentStatusFieldRefInput<$PrismaModel>
+    not?: NestedEnumInstallmentStatusWithAggregatesFilter<$PrismaModel> | $Enums.InstallmentStatus
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumInstallmentStatusFilter<$PrismaModel>
+    _max?: NestedEnumInstallmentStatusFilter<$PrismaModel>
+  }
+
   export type NestedEnumExportVehicleCategoryFilter<$PrismaModel = never> = {
     equals?: $Enums.ExportVehicleCategory | EnumExportVehicleCategoryFieldRefInput<$PrismaModel>
     in?: $Enums.ExportVehicleCategory[] | ListEnumExportVehicleCategoryFieldRefInput<$PrismaModel>
@@ -44522,12 +47708,17 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
     customer: PosCustomerCreateNestedOneWithoutPurchasesInput
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
+    installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUncheckedCreateWithoutBikeVehicleInput = {
@@ -44549,9 +47740,14 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput
+    installments?: PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseCreateOrConnectWithoutBikeVehicleInput = {
@@ -44778,6 +47974,10 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFilter<"PosCustomerPurchase"> | number
     hasRegistrationFee?: BoolFilter<"PosCustomerPurchase"> | boolean
     registrationFeeAmount?: FloatFilter<"PosCustomerPurchase"> | number
+    interestRate?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
+    installmentMonths?: IntNullableFilter<"PosCustomerPurchase"> | number | null
+    monthlyInstallmentAmount?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
+    totalWithInterest?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
     quantity?: IntFilter<"PosCustomerPurchase"> | number
     purchasedAt?: DateTimeFilter<"PosCustomerPurchase"> | Date | string
   }
@@ -45329,12 +48529,17 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
     customer: PosCustomerCreateNestedOneWithoutPurchasesInput
     bikeVehicle?: BikeVehicleCreateNestedOneWithoutCustomerPurchasesInput
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
+    installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUncheckedCreateWithoutInventoryProductInput = {
@@ -45356,9 +48561,14 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput
+    installments?: PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseCreateOrConnectWithoutInventoryProductInput = {
@@ -45786,12 +48996,17 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
     bikeVehicle?: BikeVehicleCreateNestedOneWithoutCustomerPurchasesInput
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
+    installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUncheckedCreateWithoutCustomerInput = {
@@ -45813,9 +49028,14 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput
+    installments?: PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseCreateOrConnectWithoutCustomerInput = {
@@ -45875,12 +49095,17 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
     customer: PosCustomerCreateNestedOneWithoutPurchasesInput
     bikeVehicle?: BikeVehicleCreateNestedOneWithoutCustomerPurchasesInput
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
+    installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUncheckedCreateWithoutLeasingCompanyInput = {
@@ -45902,9 +49127,14 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput
+    installments?: PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseCreateOrConnectWithoutLeasingCompanyInput = {
@@ -46354,6 +49584,49 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PosInstallmentCreateWithoutPurchaseInput = {
+    installmentNo: number
+    dueDate: Date | string
+    dueAmount: number
+    paidAmount?: number
+    isPartial?: boolean
+    penaltyRate?: number
+    penaltyAmount?: number
+    status?: $Enums.InstallmentStatus
+    settledAt?: Date | string | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    payments?: PosInstallmentPaymentCreateNestedManyWithoutInstallmentInput
+  }
+
+  export type PosInstallmentUncheckedCreateWithoutPurchaseInput = {
+    id?: number
+    installmentNo: number
+    dueDate: Date | string
+    dueAmount: number
+    paidAmount?: number
+    isPartial?: boolean
+    penaltyRate?: number
+    penaltyAmount?: number
+    status?: $Enums.InstallmentStatus
+    settledAt?: Date | string | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    payments?: PosInstallmentPaymentUncheckedCreateNestedManyWithoutInstallmentInput
+  }
+
+  export type PosInstallmentCreateOrConnectWithoutPurchaseInput = {
+    where: PosInstallmentWhereUniqueInput
+    create: XOR<PosInstallmentCreateWithoutPurchaseInput, PosInstallmentUncheckedCreateWithoutPurchaseInput>
+  }
+
+  export type PosInstallmentCreateManyPurchaseInputEnvelope = {
+    data: PosInstallmentCreateManyPurchaseInput | PosInstallmentCreateManyPurchaseInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PosCustomerUpsertWithoutPurchasesInput = {
     update: XOR<PosCustomerUpdateWithoutPurchasesInput, PosCustomerUncheckedUpdateWithoutPurchasesInput>
     create: XOR<PosCustomerCreateWithoutPurchasesInput, PosCustomerUncheckedCreateWithoutPurchasesInput>
@@ -46581,6 +49854,307 @@ export namespace Prisma {
     createdById?: IntFilter<"AccountReceipt"> | number
     createdAt?: DateTimeFilter<"AccountReceipt"> | Date | string
     updatedAt?: DateTimeFilter<"AccountReceipt"> | Date | string
+  }
+
+  export type PosInstallmentUpsertWithWhereUniqueWithoutPurchaseInput = {
+    where: PosInstallmentWhereUniqueInput
+    update: XOR<PosInstallmentUpdateWithoutPurchaseInput, PosInstallmentUncheckedUpdateWithoutPurchaseInput>
+    create: XOR<PosInstallmentCreateWithoutPurchaseInput, PosInstallmentUncheckedCreateWithoutPurchaseInput>
+  }
+
+  export type PosInstallmentUpdateWithWhereUniqueWithoutPurchaseInput = {
+    where: PosInstallmentWhereUniqueInput
+    data: XOR<PosInstallmentUpdateWithoutPurchaseInput, PosInstallmentUncheckedUpdateWithoutPurchaseInput>
+  }
+
+  export type PosInstallmentUpdateManyWithWhereWithoutPurchaseInput = {
+    where: PosInstallmentScalarWhereInput
+    data: XOR<PosInstallmentUpdateManyMutationInput, PosInstallmentUncheckedUpdateManyWithoutPurchaseInput>
+  }
+
+  export type PosInstallmentScalarWhereInput = {
+    AND?: PosInstallmentScalarWhereInput | PosInstallmentScalarWhereInput[]
+    OR?: PosInstallmentScalarWhereInput[]
+    NOT?: PosInstallmentScalarWhereInput | PosInstallmentScalarWhereInput[]
+    id?: IntFilter<"PosInstallment"> | number
+    purchaseId?: IntFilter<"PosInstallment"> | number
+    installmentNo?: IntFilter<"PosInstallment"> | number
+    dueDate?: DateTimeFilter<"PosInstallment"> | Date | string
+    dueAmount?: FloatFilter<"PosInstallment"> | number
+    paidAmount?: FloatFilter<"PosInstallment"> | number
+    isPartial?: BoolFilter<"PosInstallment"> | boolean
+    penaltyRate?: FloatFilter<"PosInstallment"> | number
+    penaltyAmount?: FloatFilter<"PosInstallment"> | number
+    status?: EnumInstallmentStatusFilter<"PosInstallment"> | $Enums.InstallmentStatus
+    settledAt?: DateTimeNullableFilter<"PosInstallment"> | Date | string | null
+    notes?: StringNullableFilter<"PosInstallment"> | string | null
+    createdAt?: DateTimeFilter<"PosInstallment"> | Date | string
+    updatedAt?: DateTimeFilter<"PosInstallment"> | Date | string
+  }
+
+  export type PosCustomerPurchaseCreateWithoutInstallmentsInput = {
+    itemType?: $Enums.PosPurchaseItemType
+    purchaseMode?: $Enums.PosPurchaseMode
+    invoiceGroupCode?: string | null
+    currentSellingPrice?: number | null
+    finalSellingPrice: number
+    paymentType?: $Enums.PosPaymentType
+    downPaymentAmount?: number
+    remainingAmount?: number
+    settlementStatus?: $Enums.PosSettlementStatus
+    purchaseChannel?: $Enums.PosPurchaseChannel
+    leasingDownPaymentAmount?: number
+    leasingFinancedAmount?: number
+    hasRegistrationFee?: boolean
+    registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
+    quantity?: number
+    purchasedAt?: Date | string
+    customer: PosCustomerCreateNestedOneWithoutPurchasesInput
+    bikeVehicle?: BikeVehicleCreateNestedOneWithoutCustomerPurchasesInput
+    inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
+    leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
+    receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
+  }
+
+  export type PosCustomerPurchaseUncheckedCreateWithoutInstallmentsInput = {
+    id?: number
+    customerId: number
+    itemType?: $Enums.PosPurchaseItemType
+    purchaseMode?: $Enums.PosPurchaseMode
+    invoiceGroupCode?: string | null
+    bikeVehicleId?: number | null
+    inventoryProductId?: number | null
+    currentSellingPrice?: number | null
+    finalSellingPrice: number
+    paymentType?: $Enums.PosPaymentType
+    downPaymentAmount?: number
+    remainingAmount?: number
+    settlementStatus?: $Enums.PosSettlementStatus
+    purchaseChannel?: $Enums.PosPurchaseChannel
+    leasingCompanyId?: number | null
+    leasingDownPaymentAmount?: number
+    leasingFinancedAmount?: number
+    hasRegistrationFee?: boolean
+    registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
+    quantity?: number
+    purchasedAt?: Date | string
+    receipts?: AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput
+  }
+
+  export type PosCustomerPurchaseCreateOrConnectWithoutInstallmentsInput = {
+    where: PosCustomerPurchaseWhereUniqueInput
+    create: XOR<PosCustomerPurchaseCreateWithoutInstallmentsInput, PosCustomerPurchaseUncheckedCreateWithoutInstallmentsInput>
+  }
+
+  export type PosInstallmentPaymentCreateWithoutInstallmentInput = {
+    amount: number
+    penaltyAmount?: number
+    note?: string | null
+    paidAt?: Date | string
+  }
+
+  export type PosInstallmentPaymentUncheckedCreateWithoutInstallmentInput = {
+    id?: number
+    amount: number
+    penaltyAmount?: number
+    note?: string | null
+    paidAt?: Date | string
+  }
+
+  export type PosInstallmentPaymentCreateOrConnectWithoutInstallmentInput = {
+    where: PosInstallmentPaymentWhereUniqueInput
+    create: XOR<PosInstallmentPaymentCreateWithoutInstallmentInput, PosInstallmentPaymentUncheckedCreateWithoutInstallmentInput>
+  }
+
+  export type PosInstallmentPaymentCreateManyInstallmentInputEnvelope = {
+    data: PosInstallmentPaymentCreateManyInstallmentInput | PosInstallmentPaymentCreateManyInstallmentInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type PosCustomerPurchaseUpsertWithoutInstallmentsInput = {
+    update: XOR<PosCustomerPurchaseUpdateWithoutInstallmentsInput, PosCustomerPurchaseUncheckedUpdateWithoutInstallmentsInput>
+    create: XOR<PosCustomerPurchaseCreateWithoutInstallmentsInput, PosCustomerPurchaseUncheckedCreateWithoutInstallmentsInput>
+    where?: PosCustomerPurchaseWhereInput
+  }
+
+  export type PosCustomerPurchaseUpdateToOneWithWhereWithoutInstallmentsInput = {
+    where?: PosCustomerPurchaseWhereInput
+    data: XOR<PosCustomerPurchaseUpdateWithoutInstallmentsInput, PosCustomerPurchaseUncheckedUpdateWithoutInstallmentsInput>
+  }
+
+  export type PosCustomerPurchaseUpdateWithoutInstallmentsInput = {
+    itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
+    purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
+    invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    finalSellingPrice?: FloatFieldUpdateOperationsInput | number
+    paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
+    downPaymentAmount?: FloatFieldUpdateOperationsInput | number
+    remainingAmount?: FloatFieldUpdateOperationsInput | number
+    settlementStatus?: EnumPosSettlementStatusFieldUpdateOperationsInput | $Enums.PosSettlementStatus
+    purchaseChannel?: EnumPosPurchaseChannelFieldUpdateOperationsInput | $Enums.PosPurchaseChannel
+    leasingDownPaymentAmount?: FloatFieldUpdateOperationsInput | number
+    leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
+    hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
+    registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
+    quantity?: IntFieldUpdateOperationsInput | number
+    purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
+    bikeVehicle?: BikeVehicleUpdateOneWithoutCustomerPurchasesNestedInput
+    inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
+    leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
+    receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
+  }
+
+  export type PosCustomerPurchaseUncheckedUpdateWithoutInstallmentsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    customerId?: IntFieldUpdateOperationsInput | number
+    itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
+    purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
+    invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
+    inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    finalSellingPrice?: FloatFieldUpdateOperationsInput | number
+    paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
+    downPaymentAmount?: FloatFieldUpdateOperationsInput | number
+    remainingAmount?: FloatFieldUpdateOperationsInput | number
+    settlementStatus?: EnumPosSettlementStatusFieldUpdateOperationsInput | $Enums.PosSettlementStatus
+    purchaseChannel?: EnumPosPurchaseChannelFieldUpdateOperationsInput | $Enums.PosPurchaseChannel
+    leasingCompanyId?: NullableIntFieldUpdateOperationsInput | number | null
+    leasingDownPaymentAmount?: FloatFieldUpdateOperationsInput | number
+    leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
+    hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
+    registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
+    quantity?: IntFieldUpdateOperationsInput | number
+    purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receipts?: AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput
+  }
+
+  export type PosInstallmentPaymentUpsertWithWhereUniqueWithoutInstallmentInput = {
+    where: PosInstallmentPaymentWhereUniqueInput
+    update: XOR<PosInstallmentPaymentUpdateWithoutInstallmentInput, PosInstallmentPaymentUncheckedUpdateWithoutInstallmentInput>
+    create: XOR<PosInstallmentPaymentCreateWithoutInstallmentInput, PosInstallmentPaymentUncheckedCreateWithoutInstallmentInput>
+  }
+
+  export type PosInstallmentPaymentUpdateWithWhereUniqueWithoutInstallmentInput = {
+    where: PosInstallmentPaymentWhereUniqueInput
+    data: XOR<PosInstallmentPaymentUpdateWithoutInstallmentInput, PosInstallmentPaymentUncheckedUpdateWithoutInstallmentInput>
+  }
+
+  export type PosInstallmentPaymentUpdateManyWithWhereWithoutInstallmentInput = {
+    where: PosInstallmentPaymentScalarWhereInput
+    data: XOR<PosInstallmentPaymentUpdateManyMutationInput, PosInstallmentPaymentUncheckedUpdateManyWithoutInstallmentInput>
+  }
+
+  export type PosInstallmentPaymentScalarWhereInput = {
+    AND?: PosInstallmentPaymentScalarWhereInput | PosInstallmentPaymentScalarWhereInput[]
+    OR?: PosInstallmentPaymentScalarWhereInput[]
+    NOT?: PosInstallmentPaymentScalarWhereInput | PosInstallmentPaymentScalarWhereInput[]
+    id?: IntFilter<"PosInstallmentPayment"> | number
+    installmentId?: IntFilter<"PosInstallmentPayment"> | number
+    amount?: FloatFilter<"PosInstallmentPayment"> | number
+    penaltyAmount?: FloatFilter<"PosInstallmentPayment"> | number
+    note?: StringNullableFilter<"PosInstallmentPayment"> | string | null
+    paidAt?: DateTimeFilter<"PosInstallmentPayment"> | Date | string
+  }
+
+  export type PosInstallmentCreateWithoutPaymentsInput = {
+    installmentNo: number
+    dueDate: Date | string
+    dueAmount: number
+    paidAmount?: number
+    isPartial?: boolean
+    penaltyRate?: number
+    penaltyAmount?: number
+    status?: $Enums.InstallmentStatus
+    settledAt?: Date | string | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    purchase: PosCustomerPurchaseCreateNestedOneWithoutInstallmentsInput
+  }
+
+  export type PosInstallmentUncheckedCreateWithoutPaymentsInput = {
+    id?: number
+    purchaseId: number
+    installmentNo: number
+    dueDate: Date | string
+    dueAmount: number
+    paidAmount?: number
+    isPartial?: boolean
+    penaltyRate?: number
+    penaltyAmount?: number
+    status?: $Enums.InstallmentStatus
+    settledAt?: Date | string | null
+    notes?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PosInstallmentCreateOrConnectWithoutPaymentsInput = {
+    where: PosInstallmentWhereUniqueInput
+    create: XOR<PosInstallmentCreateWithoutPaymentsInput, PosInstallmentUncheckedCreateWithoutPaymentsInput>
+  }
+
+  export type PosInstallmentUpsertWithoutPaymentsInput = {
+    update: XOR<PosInstallmentUpdateWithoutPaymentsInput, PosInstallmentUncheckedUpdateWithoutPaymentsInput>
+    create: XOR<PosInstallmentCreateWithoutPaymentsInput, PosInstallmentUncheckedCreateWithoutPaymentsInput>
+    where?: PosInstallmentWhereInput
+  }
+
+  export type PosInstallmentUpdateToOneWithWhereWithoutPaymentsInput = {
+    where?: PosInstallmentWhereInput
+    data: XOR<PosInstallmentUpdateWithoutPaymentsInput, PosInstallmentUncheckedUpdateWithoutPaymentsInput>
+  }
+
+  export type PosInstallmentUpdateWithoutPaymentsInput = {
+    installmentNo?: IntFieldUpdateOperationsInput | number
+    dueDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAmount?: FloatFieldUpdateOperationsInput | number
+    paidAmount?: FloatFieldUpdateOperationsInput | number
+    isPartial?: BoolFieldUpdateOperationsInput | boolean
+    penaltyRate?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    purchase?: PosCustomerPurchaseUpdateOneRequiredWithoutInstallmentsNestedInput
+  }
+
+  export type PosInstallmentUncheckedUpdateWithoutPaymentsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    purchaseId?: IntFieldUpdateOperationsInput | number
+    installmentNo?: IntFieldUpdateOperationsInput | number
+    dueDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAmount?: FloatFieldUpdateOperationsInput | number
+    paidAmount?: FloatFieldUpdateOperationsInput | number
+    isPartial?: BoolFieldUpdateOperationsInput | boolean
+    penaltyRate?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PreOrderImageCreateWithoutPreOrderInput = {
@@ -47116,12 +50690,17 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
     customer: PosCustomerCreateNestedOneWithoutPurchasesInput
     bikeVehicle?: BikeVehicleCreateNestedOneWithoutCustomerPurchasesInput
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
+    installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUncheckedCreateWithoutReceiptsInput = {
@@ -47144,8 +50723,13 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
+    installments?: PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseCreateOrConnectWithoutReceiptsInput = {
@@ -47254,12 +50838,17 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
     bikeVehicle?: BikeVehicleUpdateOneWithoutCustomerPurchasesNestedInput
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
+    installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateWithoutReceiptsInput = {
@@ -47282,8 +50871,13 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    installments?: PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type AccountTransactionUpsertWithWhereUniqueWithoutReceiptInput = {
@@ -48136,6 +51730,10 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
   }
@@ -48215,12 +51813,17 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
+    installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateWithoutBikeVehicleInput = {
@@ -48242,9 +51845,14 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput
+    installments?: PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateManyWithoutBikeVehicleInput = {
@@ -48266,6 +51874,10 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -48482,6 +52094,10 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
   }
@@ -48544,12 +52160,17 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
     bikeVehicle?: BikeVehicleUpdateOneWithoutCustomerPurchasesNestedInput
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
+    installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateWithoutInventoryProductInput = {
@@ -48571,9 +52192,14 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput
+    installments?: PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateManyWithoutInventoryProductInput = {
@@ -48595,6 +52221,10 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -48624,6 +52254,10 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
   }
@@ -48660,12 +52294,17 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     bikeVehicle?: BikeVehicleUpdateOneWithoutCustomerPurchasesNestedInput
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
+    installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateWithoutCustomerInput = {
@@ -48687,9 +52326,14 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput
+    installments?: PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateManyWithoutCustomerInput = {
@@ -48711,6 +52355,10 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -48734,6 +52382,10 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
     quantity?: number
     purchasedAt?: Date | string
   }
@@ -48753,12 +52405,17 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
     bikeVehicle?: BikeVehicleUpdateOneWithoutCustomerPurchasesNestedInput
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
+    installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateWithoutLeasingCompanyInput = {
@@ -48780,9 +52437,14 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput
+    installments?: PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateManyWithoutLeasingCompanyInput = {
@@ -48804,6 +52466,10 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -48821,6 +52487,22 @@ export namespace Prisma {
     description?: string | null
     isVoided?: boolean
     createdById: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type PosInstallmentCreateManyPurchaseInput = {
+    id?: number
+    installmentNo: number
+    dueDate: Date | string
+    dueAmount: number
+    paidAmount?: number
+    isPartial?: boolean
+    penaltyRate?: number
+    penaltyAmount?: number
+    status?: $Enums.InstallmentStatus
+    settledAt?: Date | string | null
+    notes?: string | null
     createdAt?: Date | string
     updatedAt?: Date | string
   }
@@ -48875,6 +52557,86 @@ export namespace Prisma {
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PosInstallmentUpdateWithoutPurchaseInput = {
+    installmentNo?: IntFieldUpdateOperationsInput | number
+    dueDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAmount?: FloatFieldUpdateOperationsInput | number
+    paidAmount?: FloatFieldUpdateOperationsInput | number
+    isPartial?: BoolFieldUpdateOperationsInput | boolean
+    penaltyRate?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payments?: PosInstallmentPaymentUpdateManyWithoutInstallmentNestedInput
+  }
+
+  export type PosInstallmentUncheckedUpdateWithoutPurchaseInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    installmentNo?: IntFieldUpdateOperationsInput | number
+    dueDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAmount?: FloatFieldUpdateOperationsInput | number
+    paidAmount?: FloatFieldUpdateOperationsInput | number
+    isPartial?: BoolFieldUpdateOperationsInput | boolean
+    penaltyRate?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    payments?: PosInstallmentPaymentUncheckedUpdateManyWithoutInstallmentNestedInput
+  }
+
+  export type PosInstallmentUncheckedUpdateManyWithoutPurchaseInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    installmentNo?: IntFieldUpdateOperationsInput | number
+    dueDate?: DateTimeFieldUpdateOperationsInput | Date | string
+    dueAmount?: FloatFieldUpdateOperationsInput | number
+    paidAmount?: FloatFieldUpdateOperationsInput | number
+    isPartial?: BoolFieldUpdateOperationsInput | boolean
+    penaltyRate?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    status?: EnumInstallmentStatusFieldUpdateOperationsInput | $Enums.InstallmentStatus
+    settledAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PosInstallmentPaymentCreateManyInstallmentInput = {
+    id?: number
+    amount: number
+    penaltyAmount?: number
+    note?: string | null
+    paidAt?: Date | string
+  }
+
+  export type PosInstallmentPaymentUpdateWithoutInstallmentInput = {
+    amount?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PosInstallmentPaymentUncheckedUpdateWithoutInstallmentInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PosInstallmentPaymentUncheckedUpdateManyWithoutInstallmentInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+    penaltyAmount?: FloatFieldUpdateOperationsInput | number
+    note?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type PreOrderImageCreateManyPreOrderInput = {
@@ -49280,6 +53042,10 @@ export namespace Prisma {
      */
     export type PosCustomerPurchaseCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PosCustomerPurchaseCountOutputTypeDefaultArgs<ExtArgs>
     /**
+     * @deprecated Use PosInstallmentCountOutputTypeDefaultArgs instead
+     */
+    export type PosInstallmentCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PosInstallmentCountOutputTypeDefaultArgs<ExtArgs>
+    /**
      * @deprecated Use PreOrderCountOutputTypeDefaultArgs instead
      */
     export type PreOrderCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PreOrderCountOutputTypeDefaultArgs<ExtArgs>
@@ -49379,6 +53145,14 @@ export namespace Prisma {
      * @deprecated Use PosInvoiceTermDefaultArgs instead
      */
     export type PosInvoiceTermArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PosInvoiceTermDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PosInstallmentDefaultArgs instead
+     */
+    export type PosInstallmentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PosInstallmentDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use PosInstallmentPaymentDefaultArgs instead
+     */
+    export type PosInstallmentPaymentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = PosInstallmentPaymentDefaultArgs<ExtArgs>
     /**
      * @deprecated Use PreOrderDefaultArgs instead
      */

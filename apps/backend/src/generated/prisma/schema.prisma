@@ -39,6 +39,12 @@ enum PosPurchaseChannel {
   LEASING
 }
 
+enum InstallmentStatus {
+  PENDING
+  PARTIAL
+  PAID
+}
+
 enum AccountType {
   BANK
   CASH
@@ -374,6 +380,10 @@ model PosCustomerPurchase {
   leasingFinancedAmount    Float               @default(0)
   hasRegistrationFee       Boolean             @default(false)
   registrationFeeAmount    Float               @default(0)
+  interestRate             Float?
+  installmentMonths        Int?
+  monthlyInstallmentAmount Float?
+  totalWithInterest        Float?
   quantity                 Int                 @default(1)
   purchasedAt              DateTime            @default(now())
   customer                 PosCustomer         @relation(fields: [customerId], references: [id], onDelete: Cascade)
@@ -381,6 +391,7 @@ model PosCustomerPurchase {
   inventoryProduct         InventoryProduct?   @relation(fields: [inventoryProductId], references: [id], onDelete: SetNull)
   leasingCompany           PosLeasingCompany?  @relation(fields: [leasingCompanyId], references: [id], onDelete: SetNull)
   receipts                 AccountReceipt[]
+  installments             PosInstallment[]
 
   @@index([customerId])
   @@index([invoiceGroupCode])
@@ -401,6 +412,41 @@ model PosInvoiceTerm {
 
   @@index([sortOrder])
   @@map("pos_invoice_terms")
+}
+
+model PosInstallment {
+  id            Int                     @id @default(autoincrement())
+  purchaseId    Int
+  installmentNo Int
+  dueDate       DateTime
+  dueAmount     Float
+  paidAmount    Float                   @default(0)
+  isPartial     Boolean                 @default(false)
+  penaltyRate   Float                   @default(0)
+  penaltyAmount Float                   @default(0)
+  status        InstallmentStatus       @default(PENDING)
+  settledAt     DateTime?
+  notes         String?
+  createdAt     DateTime                @default(now())
+  updatedAt     DateTime                @updatedAt
+  purchase      PosCustomerPurchase     @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  payments      PosInstallmentPayment[]
+
+  @@index([purchaseId])
+  @@map("pos_installments")
+}
+
+model PosInstallmentPayment {
+  id            Int            @id @default(autoincrement())
+  installmentId Int
+  amount        Float
+  penaltyAmount Float          @default(0)
+  note          String?
+  paidAt        DateTime       @default(now())
+  installment   PosInstallment @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+
+  @@index([installmentId])
+  @@map("pos_installment_payments")
 }
 
 // ── Pre Orders ────────────────────────────────────────────────────────────────

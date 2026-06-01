@@ -338,6 +338,10 @@ exports.Prisma.PosCustomerPurchaseScalarFieldEnum = {
   leasingFinancedAmount: 'leasingFinancedAmount',
   hasRegistrationFee: 'hasRegistrationFee',
   registrationFeeAmount: 'registrationFeeAmount',
+  interestRate: 'interestRate',
+  installmentMonths: 'installmentMonths',
+  monthlyInstallmentAmount: 'monthlyInstallmentAmount',
+  totalWithInterest: 'totalWithInterest',
   quantity: 'quantity',
   purchasedAt: 'purchasedAt'
 };
@@ -349,6 +353,32 @@ exports.Prisma.PosInvoiceTermScalarFieldEnum = {
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PosInstallmentScalarFieldEnum = {
+  id: 'id',
+  purchaseId: 'purchaseId',
+  installmentNo: 'installmentNo',
+  dueDate: 'dueDate',
+  dueAmount: 'dueAmount',
+  paidAmount: 'paidAmount',
+  isPartial: 'isPartial',
+  penaltyRate: 'penaltyRate',
+  penaltyAmount: 'penaltyAmount',
+  status: 'status',
+  settledAt: 'settledAt',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PosInstallmentPaymentScalarFieldEnum = {
+  id: 'id',
+  installmentId: 'installmentId',
+  amount: 'amount',
+  penaltyAmount: 'penaltyAmount',
+  note: 'note',
+  paidAt: 'paidAt'
 };
 
 exports.Prisma.PreOrderScalarFieldEnum = {
@@ -525,6 +555,12 @@ exports.PosPurchaseChannel = exports.$Enums.PosPurchaseChannel = {
   LEASING: 'LEASING'
 };
 
+exports.InstallmentStatus = exports.$Enums.InstallmentStatus = {
+  PENDING: 'PENDING',
+  PARTIAL: 'PARTIAL',
+  PAID: 'PAID'
+};
+
 exports.ExportVehicleCategory = exports.$Enums.ExportVehicleCategory = {
   AUTOMOBILE: 'AUTOMOBILE',
   HEAVY_MACHINERY: 'HEAVY_MACHINERY'
@@ -591,6 +627,8 @@ exports.Prisma.ModelName = {
   PosCustomerDreamBike: 'PosCustomerDreamBike',
   PosCustomerPurchase: 'PosCustomerPurchase',
   PosInvoiceTerm: 'PosInvoiceTerm',
+  PosInstallment: 'PosInstallment',
+  PosInstallmentPayment: 'PosInstallmentPayment',
   PreOrder: 'PreOrder',
   PreOrderImage: 'PreOrderImage',
   ContactRequest: 'ContactRequest',
