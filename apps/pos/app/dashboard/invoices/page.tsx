@@ -5,6 +5,28 @@ import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { IconInvoice, IconUsers } from "../../lib/icons";
 
+type InstallmentPayment = {
+  id: number;
+  amount: number;
+  penaltyAmount: number;
+  note?: string | null;
+  paidAt: string;
+};
+
+type Installment = {
+  id: number;
+  installmentNo: number;
+  dueDate: string;
+  dueAmount: number;
+  paidAmount: number;
+  isPartial: boolean;
+  penaltyRate: number;
+  penaltyAmount: number;
+  status: "PENDING" | "PARTIAL" | "PAID";
+  settledAt?: string | null;
+  payments?: InstallmentPayment[];
+};
+
 type Purchase = {
   id: number;
   purchasedAt: string;
@@ -24,6 +46,10 @@ type Purchase = {
   settlementStatus?: "SETTLED" | "TO_SETTLE";
   hasRegistrationFee?: boolean;
   registrationFeeAmount?: number;
+  interestRate?: number | null;
+  installmentMonths?: number | null;
+  monthlyInstallmentAmount?: number | null;
+  totalWithInterest?: number | null;
   customer: {
     id: number;
     firstName: string;
@@ -96,6 +122,7 @@ export default function InvoicesPage() {
   const [invoices, setInvoices] = useState<Purchase[]>([]);
   const [invoiceTerms, setInvoiceTerms] = useState<InvoiceTerm[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
+  const [invoiceInstallments, setInvoiceInstallments] = useState<Installment[]>([]);
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
@@ -138,6 +165,19 @@ export default function InvoicesPage() {
   useEffect(() => {
     void loadInvoiceTerms();
   }, [loadInvoiceTerms]);
+
+  useEffect(() => {
+    if (!selectedInvoice) { setInvoiceInstallments([]); return; }
+    const entry = selectedInvoice.entries.find((e) => (e.installmentMonths ?? 0) > 0);
+    if (!entry) { setInvoiceInstallments([]); return; }
+    void (async () => {
+      try {
+        const resp = await fetch(`${base}/${entry.customer.id}/purchases/${entry.id}/installments`, { headers: auth, cache: "no-store" });
+        const json = await resp.json() as { data?: { installments?: Installment[] } };
+        setInvoiceInstallments(json.data?.installments ?? []);
+      } catch { setInvoiceInstallments([]); }
+    })();
+  }, [auth, base, selectedInvoice]);
 
   const getPurchaseItemMeta = useCallback((entry: Purchase) => {
     if (entry.itemType === "BIKE" && entry.bike) {
@@ -271,7 +311,10 @@ export default function InvoicesPage() {
       .map((term) => term.text);
   }, [invoiceTerms]);
 
-  const getInvoiceGrandTotal = (invoice: InvoiceRow) => invoice.finalSellingPrice + invoice.registrationFeeTotal;
+  const getInvoiceGrandTotal = (invoice: InvoiceRow) => {
+    const effectiveTotal = invoice.entries.reduce((sum, e) => sum + (e.totalWithInterest ?? e.finalSellingPrice), 0);
+    return effectiveTotal + invoice.registrationFeeTotal;
+  };
 
   return (
     <div className="bm-page">
@@ -321,12 +364,13 @@ export default function InvoicesPage() {
                 <th>Customer</th>
                 <th>Item</th>
                 <th>Final Price</th>
+                <th>Status</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan={6} className="bm-table-empty">Loading invoices...</td></tr>}
-              {!loading && invoiceRows.length === 0 && <tr><td colSpan={6} className="bm-table-empty">No invoices found.</td></tr>}
+              {loading && <tr><td colSpan={7} className="bm-table-empty">Loading invoices...</td></tr>}
+              {!loading && invoiceRows.length === 0 && <tr><td colSpan={7} className="bm-table-empty">No invoices found.</td></tr>}
               {!loading && invoiceRows.map((invoice) => (
                 <tr key={invoice.key}>
                   <td>{invoice.invoiceLabel}</td>
@@ -338,6 +382,17 @@ export default function InvoicesPage() {
                     <span className="users-muted" style={{ display: "block" }}>{invoice.purchaseModeText} • {invoice.paymentTypeText}</span>
                   </td>
                   <td>Rs. {invoice.finalSellingPrice.toLocaleString()}</td>
+                  <td>
+                    {(invoice.remainingAmount > 0 || invoice.settlementStatus === "SETTLED") && (
+                      <span style={{
+                        fontWeight: 600,
+                        fontSize: "0.8rem",
+                        color: invoice.settlementStatus === "SETTLED" ? "var(--green)" : "var(--amber, #f59e0b)",
+                      }}>
+                        {invoice.settlementStatus === "SETTLED" ? "Settled" : "To Settle"}
+                      </span>
+                    )}
+                  </td>
                   <td>
                     <button type="button" className="btn-outline" onClick={() => setSelectedInvoice(invoice)}>View Invoice</button>
                   </td>
@@ -438,14 +493,34 @@ export default function InvoicesPage() {
                         </tr>
                       </>
                     )}
+                    {(() => {
+                      const interestEntry = selectedInvoice.entries.find((e) => (e.interestRate ?? 0) > 0 && (e.installmentMonths ?? 0) > 0);
+                      if (!interestEntry) return null;
+                      return (
+                        <>
+                          <tr className="invoice-summary-row">
+                            <td className="invoice-desc-cell">Finance Charge ({interestEntry.interestRate}%)</td>
+                            <td className="invoice-col-qty" />
+                            <td className="invoice-col-amount">Rs. {((interestEntry.totalWithInterest ?? 0) - interestEntry.finalSellingPrice).toLocaleString()}</td>
+                            <td className="invoice-col-amount" />
+                          </tr>
+                          <tr className="invoice-summary-row">
+                            <td className="invoice-desc-cell">Monthly Installment × {interestEntry.installmentMonths} months</td>
+                            <td className="invoice-col-qty" />
+                            <td className="invoice-col-amount">Rs. {(interestEntry.monthlyInstallmentAmount ?? 0).toLocaleString()}</td>
+                            <td className="invoice-col-amount" />
+                          </tr>
+                        </>
+                      );
+                    })()}
                     <tr className="invoice-summary-row">
-                      <td className="invoice-desc-cell">Advance</td>
+                      <td className="invoice-desc-cell">Advance Paid</td>
                       <td className="invoice-col-qty" />
                       <td className="invoice-col-amount">Rs. {selectedInvoice.downPaymentAmount.toLocaleString()}</td>
                       <td className="invoice-col-amount" />
                     </tr>
                     <tr className="invoice-summary-row invoice-balance-row">
-                      <td className="invoice-desc-cell">Balance</td>
+                      <td className="invoice-desc-cell">Balance Remaining</td>
                       <td className="invoice-col-qty" />
                       <td className="invoice-col-amount">Rs. {selectedInvoice.remainingAmount.toLocaleString()}</td>
                       <td className="invoice-col-amount" />
@@ -453,7 +528,7 @@ export default function InvoicesPage() {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colSpan={3} className="invoice-total-label">Total</td>
+                      <td colSpan={3} className="invoice-total-label">Grand Total</td>
                       <td className="invoice-total-value">Rs. {getInvoiceGrandTotal(selectedInvoice).toLocaleString()}</td>
                     </tr>
                   </tfoot>
@@ -465,6 +540,71 @@ export default function InvoicesPage() {
                   <span>JL Racing</span>
                   <span>HNB</span>
                 </div>
+
+                {invoiceInstallments.length > 0 && (() => {
+                  const paidCount = invoiceInstallments.filter((i) => i.status === "PAID" || i.status === "PARTIAL").length;
+                  const remainingCount = invoiceInstallments.filter((i) => i.status === "PENDING" || i.status === "PARTIAL").length;
+                  return (
+                    <>
+                      <div className="invoice-divider" />
+                      <strong style={{ display: "block", marginBottom: "0.5rem" }}>
+                        Installment Schedule — {paidCount} of {invoiceInstallments.length} months paid · {remainingCount} remaining
+                      </strong>
+                      <table className="invoice-print-table">
+                        <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>Due Date</th>
+                            <th className="invoice-col-amount">Monthly Due</th>
+                            <th className="invoice-col-amount">Paid</th>
+                            <th className="invoice-col-amount">Penalty</th>
+                            <th className="invoice-col-amount">Balance Due</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {invoiceInstallments.map((inst) => {
+                            const balanceDue = Math.max(0, Math.round((inst.dueAmount + (inst.penaltyAmount ?? 0) - inst.paidAmount) * 100) / 100);
+                            return (
+                              <>
+                                <tr key={inst.id} style={{ opacity: inst.status === "PAID" ? 0.65 : 1 }}>
+                                  <td>{inst.installmentNo}</td>
+                                  <td>
+                                    {new Date(inst.dueDate).toLocaleDateString("en-GB")}
+                                    {inst.settledAt && <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Last: {new Date(inst.settledAt).toLocaleDateString("en-GB")}</div>}
+                                  </td>
+                                  <td className="invoice-col-amount">Rs. {inst.dueAmount.toLocaleString()}</td>
+                                  <td className="invoice-col-amount">{inst.paidAmount > 0 ? `Rs. ${inst.paidAmount.toLocaleString()}` : "—"}</td>
+                                  <td className="invoice-col-amount">{(inst.penaltyAmount ?? 0) > 0 ? `Rs. ${inst.penaltyAmount.toLocaleString()}` : "—"}</td>
+                                  <td className="invoice-col-amount" style={{ fontWeight: balanceDue > 0 ? 600 : undefined, color: balanceDue > 0 ? "var(--amber, #f59e0b)" : undefined }}>
+                                    {balanceDue > 0 ? `Rs. ${balanceDue.toLocaleString()}` : "—"}
+                                  </td>
+                                  <td>
+                                    <span style={{ fontWeight: 600, color: inst.status === "PAID" ? "var(--green)" : inst.status === "PARTIAL" ? "var(--amber, #f59e0b)" : "var(--text-muted)" }}>
+                                      {inst.status}
+                                    </span>
+                                  </td>
+                                </tr>
+                                {inst.payments && inst.payments.length > 0 && inst.payments.map((pay) => (
+                                  <tr key={`pay-${pay.id}`} style={{ background: "var(--panel-bg, #f9f9f9)" }}>
+                                    <td style={{ paddingLeft: "1.2rem", fontSize: "0.78rem", color: "var(--text-muted)" }}>↳</td>
+                                    <td style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{new Date(pay.paidAt).toLocaleDateString("en-GB")}</td>
+                                    <td className="invoice-col-amount" style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{pay.note ?? ""}</td>
+                                    <td className="invoice-col-amount" style={{ fontSize: "0.78rem" }}>Rs. {pay.amount.toLocaleString()}</td>
+                                    <td className="invoice-col-amount" style={{ fontSize: "0.78rem", color: pay.penaltyAmount > 0 ? "var(--amber, #f59e0b)" : "var(--text-muted)" }}>
+                                      {pay.penaltyAmount > 0 ? `Rs. ${pay.penaltyAmount.toLocaleString()}` : "—"}
+                                    </td>
+                                    <td colSpan={2} />
+                                  </tr>
+                                ))}
+                              </>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </>
+                  );
+                })()}
 
                 {activeInvoiceTerms.length > 0 && (
                   <>

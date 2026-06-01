@@ -559,17 +559,32 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
     }
   }
 
+  const interestRate = (paymentType === "DOWNPAYMENT" && dto.interestRate != null && dto.interestRate > 0)
+    ? dto.interestRate
+    : undefined;
+  const installmentMonths = (paymentType === "DOWNPAYMENT" && dto.installmentMonths != null && dto.installmentMonths >= 1)
+    ? dto.installmentMonths
+    : undefined;
+  const totalWithInterest = (interestRate != null && installmentMonths != null)
+    ? roundCurrency(dto.finalSellingPrice * (1 + interestRate / 100))
+    : undefined;
+  const monthlyInstallmentAmount = (totalWithInterest != null && installmentMonths != null)
+    ? roundCurrency(totalWithInterest / installmentMonths)
+    : undefined;
+
+  const effectiveTotal = totalWithInterest ?? dto.finalSellingPrice;
+
   const paymentDetails = purchaseChannel === "LEASING"
     ? {
         downPaymentAmount: leasingDownPaymentAmount,
-        remainingAmount: roundCurrency(dto.finalSellingPrice - leasingDownPaymentAmount),
-        settlementStatus: roundCurrency(dto.finalSellingPrice - leasingDownPaymentAmount) > 0
+        remainingAmount: roundCurrency(effectiveTotal - leasingDownPaymentAmount),
+        settlementStatus: roundCurrency(effectiveTotal - leasingDownPaymentAmount) > 0
           ? ("TO_SETTLE" as const)
           : ("SETTLED" as const),
       }
-    : resolvePaymentDetails(dto.finalSellingPrice, paymentType, dto.downPaymentAmount);
+    : resolvePaymentDetails(effectiveTotal, paymentType, dto.downPaymentAmount);
   const leasingFinancedAmount = purchaseChannel === "LEASING"
-    ? roundCurrency(dto.finalSellingPrice - leasingDownPaymentAmount)
+    ? roundCurrency(effectiveTotal - leasingDownPaymentAmount)
     : 0;
 
   if (dto.purchaseType === "BIKE") {
@@ -625,8 +640,59 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
           leasingFinancedAmount,
           hasRegistrationFee,
           registrationFeeAmount,
+          interestRate,
+          installmentMonths,
+          monthlyInstallmentAmount,
+          totalWithInterest,
         },
       });
+
+      if (installmentMonths != null && monthlyInstallmentAmount != null) {
+        const baseDate = new Date(purchase.purchasedAt);
+        const installmentData = Array.from({ length: installmentMonths }, (_, i) => {
+          const dueDate = new Date(baseDate);
+          dueDate.setMonth(dueDate.getMonth() + i + 1);
+          const isLast = i === installmentMonths - 1;
+          const dueAmount = isLast
+            ? roundCurrency((totalWithInterest ?? dto.finalSellingPrice) - monthlyInstallmentAmount * (installmentMonths - 1))
+            : monthlyInstallmentAmount;
+          return { purchaseId: purchase.id, installmentNo: i + 1, dueDate, dueAmount };
+        });
+        await (tx as any).posInstallment.createMany({ data: installmentData });
+
+        const initialDownPayment = roundCurrency(purchase.downPaymentAmount ?? 0);
+        if (initialDownPayment > 0) {
+          const createdInstallments = await (tx as any).posInstallment.findMany({
+            where: { purchaseId: purchase.id },
+            orderBy: { installmentNo: "asc" },
+          });
+          let remainingDP = initialDownPayment;
+          for (const inst of createdInstallments) {
+            if (remainingDP <= 0) break;
+            const pay = roundCurrency(Math.min(remainingDP, inst.dueAmount));
+            remainingDP = roundCurrency(remainingDP - pay);
+            if (pay >= inst.dueAmount) {
+              // Full advance covers this installment — mark as PAID
+              await (tx as any).posInstallment.update({
+                where: { id: inst.id },
+                data: { paidAmount: pay, status: "PAID", isPartial: false, settledAt: purchase.purchasedAt },
+              });
+              await (tx as any).posInstallmentPayment.create({
+                data: { installmentId: inst.id, amount: pay, penaltyAmount: 0, note: "Initial advance payment", paidAt: purchase.purchasedAt },
+              });
+            } else {
+              // Partial advance — record actual paid amount and mark as PARTIAL
+              await (tx as any).posInstallment.update({
+                where: { id: inst.id },
+                data: { paidAmount: pay, status: "PARTIAL", isPartial: true },
+              });
+              await (tx as any).posInstallmentPayment.create({
+                data: { installmentId: inst.id, amount: pay, penaltyAmount: 0, note: "Initial advance payment", paidAt: purchase.purchasedAt },
+              });
+            }
+          }
+        }
+      }
 
       await tx.bikeVehicle.update({
         where: { id: bikeId },
@@ -684,6 +750,10 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
       leasingFinancedAmount: result.leasingFinancedAmount,
       hasRegistrationFee: result.hasRegistrationFee,
       registrationFeeAmount: result.registrationFeeAmount,
+      interestRate: result.interestRate,
+      installmentMonths: result.installmentMonths,
+      monthlyInstallmentAmount: result.monthlyInstallmentAmount,
+      totalWithInterest: result.totalWithInterest,
       purchasedAt: result.purchasedAt,
     };
   }
@@ -730,8 +800,58 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
         leasingFinancedAmount: 0,
         hasRegistrationFee,
         registrationFeeAmount,
+        interestRate,
+        installmentMonths,
+        monthlyInstallmentAmount,
+        totalWithInterest,
       },
     });
+
+    if (installmentMonths != null && monthlyInstallmentAmount != null) {
+      const baseDate = new Date(purchase.purchasedAt);
+      const installmentData = Array.from({ length: installmentMonths }, (_, i) => {
+        const dueDate = new Date(baseDate);
+        dueDate.setMonth(dueDate.getMonth() + i + 1);
+        const isLast = i === installmentMonths - 1;
+        const dueAmount = isLast
+          ? roundCurrency((totalWithInterest ?? dto.finalSellingPrice) - monthlyInstallmentAmount * (installmentMonths - 1))
+          : monthlyInstallmentAmount;
+        return { purchaseId: purchase.id, installmentNo: i + 1, dueDate, dueAmount };
+      });
+      await (tx as any).posInstallment.createMany({ data: installmentData });
+
+      const initialDownPayment = roundCurrency(purchase.downPaymentAmount ?? 0);
+      if (initialDownPayment > 0) {
+        const createdInstallments = await (tx as any).posInstallment.findMany({
+          where: { purchaseId: purchase.id },
+          orderBy: { installmentNo: "asc" },
+        });
+        let remainingDP = initialDownPayment;
+        for (const inst of createdInstallments) {
+          if (remainingDP <= 0) break;
+          const pay = roundCurrency(Math.min(remainingDP, inst.dueAmount));
+          remainingDP = roundCurrency(remainingDP - pay);
+          if (pay >= inst.dueAmount) {
+            await (tx as any).posInstallment.update({
+              where: { id: inst.id },
+              data: { paidAmount: pay, status: "PAID", isPartial: false, settledAt: purchase.purchasedAt },
+            });
+            await (tx as any).posInstallmentPayment.create({
+              data: { installmentId: inst.id, amount: pay, penaltyAmount: 0, note: "Initial advance payment", paidAt: purchase.purchasedAt },
+            });
+          } else {
+            // Partial advance — record actual paid amount and mark as PARTIAL
+            await (tx as any).posInstallment.update({
+              where: { id: inst.id },
+              data: { paidAmount: pay, status: "PARTIAL", isPartial: true },
+            });
+            await (tx as any).posInstallmentPayment.create({
+              data: { installmentId: inst.id, amount: pay, penaltyAmount: 0, note: "Initial advance payment", paidAt: purchase.purchasedAt },
+            });
+          }
+        }
+      }
+    }
 
     await tx.inventoryProduct.update({
       where: { id: productId },
@@ -782,6 +902,10 @@ export async function createPurchase(customerId: number, dto: CreatePurchaseDto)
     leasingFinancedAmount: result.leasingFinancedAmount,
     hasRegistrationFee: result.hasRegistrationFee,
     registrationFeeAmount: result.registrationFeeAmount,
+    interestRate: result.interestRate,
+    installmentMonths: result.installmentMonths,
+    monthlyInstallmentAmount: result.monthlyInstallmentAmount,
+    totalWithInterest: result.totalWithInterest,
     purchasedAt: result.purchasedAt,
   };
 }
@@ -890,6 +1014,10 @@ export async function listPurchases(query: PurchaseQueryDto) {
       leasingFinancedAmount: row.leasingFinancedAmount,
       hasRegistrationFee: row.hasRegistrationFee,
       registrationFeeAmount: row.registrationFeeAmount,
+      interestRate: row.interestRate,
+      installmentMonths: row.installmentMonths,
+      monthlyInstallmentAmount: row.monthlyInstallmentAmount,
+      totalWithInterest: row.totalWithInterest,
       customer: row.customer,
       bike: row.bikeVehicle ? {
         id: row.bikeVehicle.id,
@@ -1037,6 +1165,10 @@ export async function listPurchasesByUser(customerId: number, query: PurchaseQue
       leasingFinancedAmount: row.leasingFinancedAmount,
       hasRegistrationFee: row.hasRegistrationFee,
       registrationFeeAmount: row.registrationFeeAmount,
+      interestRate: row.interestRate,
+      installmentMonths: row.installmentMonths,
+      monthlyInstallmentAmount: row.monthlyInstallmentAmount,
+      totalWithInterest: row.totalWithInterest,
       customer: row.customer,
       bike: row.bikeVehicle
         ? {
@@ -1171,6 +1303,124 @@ export async function settlePurchase(customerId: number, purchaseId: number, dto
         },
       });
     }
+
+    if (dto.installmentId) {
+      const installment = await (tx as any).posInstallment.findFirst({
+        where: { id: dto.installmentId, purchaseId: basePurchase.id },
+      });
+      if (!installment) throw AppError.notFound("Installment not found for this purchase");
+      if (installment.status === "PAID") {
+        throw AppError.validation({ installmentId: ["This installment has already been fully paid"] });
+      }
+
+      const prevPenaltyAmount = roundCurrency(installment.penaltyAmount ?? 0);
+      const prevPaidAmount = roundCurrency(installment.paidAmount ?? 0);
+      const totalPaid = roundCurrency(prevPaidAmount + settleAmount);
+
+      // Total owed = principal + ALL previously accumulated penalty debt
+      const totalOwedBefore = roundCurrency(installment.dueAmount + prevPenaltyAmount);
+      // Fully settled only when payment covers principal + all accumulated penalty
+      const isFullyPaid = totalPaid >= totalOwedBefore;
+      const isPartial = !isFullyPaid;
+
+      // Remaining balance after this payment (includes uncleared penalty debt)
+      const unpaidBalance = roundCurrency(Math.max(0, totalOwedBefore - totalPaid));
+
+      // Additional penalty on remaining balance (admin-supplied rate, only when still partial)
+      const newPenaltyRate = isPartial ? roundCurrency(dto.penaltyRate ?? 0) : 0;
+      const additionalPenalty = isPartial
+        ? roundCurrency(unpaidBalance * newPenaltyRate / 100)
+        : 0;
+      // Accumulate: existing penalty debt + any newly charged penalty
+      const newPenaltyAmount = roundCurrency(prevPenaltyAmount + additionalPenalty);
+
+      const newStatus = isFullyPaid ? "PAID" : (totalPaid > 0 ? "PARTIAL" : "PENDING");
+
+      await (tx as any).posInstallment.update({
+        where: { id: dto.installmentId },
+        data: {
+          paidAmount: totalPaid,
+          isPartial,
+          penaltyRate: newPenaltyRate,
+          penaltyAmount: newPenaltyAmount,
+          status: newStatus,
+          settledAt: new Date(),
+        },
+      });
+      await (tx as any).posInstallmentPayment.create({
+        data: { installmentId: dto.installmentId, amount: settleAmount, penaltyAmount: additionalPenalty },
+      });
+
+      // Only newly-added penalty increments purchase remaining (prevPenalty was already tracked)
+      if (additionalPenalty > 0) {
+        await getPurchaseModelClient(tx as any).update({
+          where: { id: basePurchase.id },
+          data: { remainingAmount: { increment: additionalPenalty }, settlementStatus: "TO_SETTLE" as const },
+        });
+      }
+
+      // Overpayment cascade: only real overpayment beyond totalOwedBefore cascades to next month
+      const overpayment = roundCurrency(Math.max(0, totalPaid - totalOwedBefore));
+      if (overpayment > 0) {
+        const pendingNext = await (tx as any).posInstallment.findMany({
+          where: {
+            purchaseId: basePurchase.id,
+            status: { in: ["PENDING", "PARTIAL"] },
+            installmentNo: { gt: installment.installmentNo },
+          },
+          orderBy: { installmentNo: "asc" },
+        });
+
+        let excess = overpayment;
+        for (const pending of pendingNext) {
+          if (excess <= 0) break;
+          const reduction = roundCurrency(Math.min(pending.dueAmount, excess));
+          excess = roundCurrency(excess - reduction);
+          const newDue = roundCurrency(pending.dueAmount - reduction);
+          await (tx as any).posInstallment.update({
+            where: { id: pending.id },
+            data: newDue <= 0
+              ? { dueAmount: 0, paidAmount: pending.dueAmount, status: "PAID", settledAt: new Date() }
+              : { dueAmount: newDue },
+          });
+        }
+      }
+    } else {
+      const pendingInstallments = await (tx as any).posInstallment.findMany({
+        where: {
+          purchaseId: basePurchase.id,
+          status: { in: ["PENDING", "PARTIAL"] },
+        },
+        orderBy: { installmentNo: "asc" },
+      });
+
+      let remaining = settleAmount;
+      for (const inst of pendingInstallments) {
+        if (remaining <= 0) break;
+        const alreadyPaid = roundCurrency(inst.paidAmount ?? 0);
+        const instPenalty = roundCurrency(inst.penaltyAmount ?? 0);
+        const totalOwed = roundCurrency(inst.dueAmount + instPenalty);
+        const stillDue = roundCurrency(totalOwed - alreadyPaid);
+        if (stillDue <= 0) continue;
+        const pay = roundCurrency(Math.min(remaining, stillDue));
+        remaining = roundCurrency(remaining - pay);
+        const newTotalPaid = roundCurrency(alreadyPaid + pay);
+        if (newTotalPaid >= totalOwed) {
+          await (tx as any).posInstallment.update({
+            where: { id: inst.id },
+            data: { paidAmount: newTotalPaid, status: "PAID", isPartial: false, settledAt: new Date() },
+          });
+        } else {
+          await (tx as any).posInstallment.update({
+            where: { id: inst.id },
+            data: { paidAmount: newTotalPaid, status: "PARTIAL", isPartial: true, settledAt: new Date() },
+          });
+        }
+        await (tx as any).posInstallmentPayment.create({
+          data: { installmentId: inst.id, amount: pay, penaltyAmount: 0 },
+        });
+      }
+    }
   });
 
   const refreshed = await getPurchaseModelClient(prisma as any).findMany({
@@ -1203,6 +1453,15 @@ export async function settlePurchase(customerId: number, purchaseId: number, dto
     settlementStatus: totalRemainingAfter > 0 ? "TO_SETTLE" : "SETTLED",
     updatedEntries: refreshed,
   };
+}
+
+export async function getPurchaseInstallments(purchaseId: number) {
+  const installments = await (prisma as any).posInstallment.findMany({
+    where: { purchaseId },
+    orderBy: { installmentNo: "asc" },
+    include: { payments: { orderBy: { paidAt: "asc" } } },
+  });
+  return { installments };
 }
 
 export async function listInvoiceTerms() {

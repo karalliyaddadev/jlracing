@@ -131,6 +131,15 @@ export async function settlePurchase(req: Request, res: Response, next: NextFunc
   }
 }
 
+export async function getPurchaseInstallments(req: Request, res: Response, next: NextFunction) {
+  try {
+    const purchaseId = parsePositiveIntParam("purchaseId", req.params.purchaseId);
+    return sendSuccess(res, await service.getPurchaseInstallments(purchaseId));
+  } catch (error) {
+    return next(error);
+  }
+}
+
 export async function getInvoiceTerms(_req: Request, res: Response, next: NextFunction) {
   try {
     return sendSuccess(res, await service.listInvoiceTerms());
