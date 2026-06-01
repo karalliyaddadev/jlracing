@@ -131,6 +131,8 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
   const [leasingDownPaymentAmount, setLeasingDownPaymentAmount] = useState("");
   const [hasRegistrationFee, setHasRegistrationFee] = useState(false);
   const [registrationFeeAmount, setRegistrationFeeAmount] = useState("");
+  const [interestRate, setInterestRate] = useState("");
+  const [installmentMonths, setInstallmentMonths] = useState("");
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
@@ -204,12 +206,28 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
 
   const parsedDownPayment = Number(downPaymentAmount || "0");
   const parsedLeasingDownPayment = Number(leasingDownPaymentAmount || "0");
+  const parsedInterestRate = Number(interestRate || "0");
+  const parsedInstallmentMonths = Number(installmentMonths || "0");
+
+  const computedTotalWithInterest = useMemo(() => {
+    if (paymentType !== "DOWNPAYMENT" || !Number.isFinite(parsedInterestRate) || parsedInterestRate <= 0) return null;
+    if (!Number.isInteger(parsedInstallmentMonths) || parsedInstallmentMonths <= 0) return null;
+    return roundCurrency(computedInvoiceTotal * (1 + parsedInterestRate / 100));
+  }, [computedInvoiceTotal, parsedInterestRate, parsedInstallmentMonths, paymentType]);
+
+  const computedMonthlyInstallment = useMemo(() => {
+    if (computedTotalWithInterest == null || parsedInstallmentMonths <= 0) return null;
+    return roundCurrency(computedTotalWithInterest / parsedInstallmentMonths);
+  }, [computedTotalWithInterest, parsedInstallmentMonths]);
+
+  const effectiveTotal = computedTotalWithInterest ?? computedInvoiceTotal;
+
   const computedDownPayment = purchaseChannel === "LEASING"
     ? (Number.isFinite(parsedLeasingDownPayment) && parsedLeasingDownPayment >= 0 ? parsedLeasingDownPayment : 0)
     : (paymentType === "DIRECT"
       ? computedInvoiceTotal
       : (Number.isFinite(parsedDownPayment) && parsedDownPayment >= 0 ? parsedDownPayment : 0));
-  const computedRemaining = Math.max(0, Math.round((computedInvoiceTotal - computedDownPayment) * 100) / 100);
+  const computedRemaining = Math.max(0, Math.round((effectiveTotal - computedDownPayment) * 100) / 100);
 
   useEffect(() => {
     void (async () => {
@@ -526,6 +544,8 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
             : (paymentType === "DOWNPAYMENT" ? parsedDownPayment : undefined),
           hasRegistrationFee: itemType === "BIKE" ? hasRegistrationFee : false,
           registrationFeeAmount: itemType === "BIKE" && hasRegistrationFee ? Number(registrationFeeAmount || "0") : undefined,
+          interestRate: paymentType === "DOWNPAYMENT" && parsedInterestRate > 0 ? parsedInterestRate : undefined,
+          installmentMonths: paymentType === "DOWNPAYMENT" && parsedInstallmentMonths >= 1 ? parsedInstallmentMonths : undefined,
         }),
       });
 
@@ -860,9 +880,15 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                     <>
                       <div className="bm-field-group">
                         <label>Payment Type</label>
-                        <select className="bm-input" value={paymentType} onChange={(event) => setPaymentType(event.target.value as "DIRECT" | "DOWNPAYMENT") }>
+                        <select className="bm-input" value={paymentType} onChange={(event) => {
+                          setPaymentType(event.target.value as "DIRECT" | "DOWNPAYMENT");
+                          if (event.target.value === "DIRECT") {
+                            setInterestRate("");
+                            setInstallmentMonths("");
+                          }
+                        }}>
                           <option value="DIRECT">Direct Buy</option>
-                          <option value="DOWNPAYMENT">Downpayment</option>
+                          <option value="DOWNPAYMENT">Downpayment (Installments)</option>
                         </select>
                       </div>
 
@@ -879,6 +905,48 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                           required={paymentType === "DOWNPAYMENT"}
                         />
                       </div>
+
+                      {paymentType === "DOWNPAYMENT" && (
+                        <>
+                          <div className="bm-field-group">
+                            <label>Finance Charge (%)</label>
+                            <input
+                              className="bm-input"
+                              type="number"
+                              min={0}
+                              max={100}
+                              step="0.01"
+                              placeholder="e.g. 5"
+                              value={interestRate}
+                              onChange={(event) => setInterestRate(event.target.value)}
+                            />
+                          </div>
+                          <div className="bm-field-group">
+                            <label>Number of Installments (Months)</label>
+                            <input
+                              className="bm-input"
+                              type="number"
+                              min={1}
+                              step="1"
+                              placeholder="e.g. 12"
+                              value={installmentMonths}
+                              onChange={(event) => setInstallmentMonths(event.target.value)}
+                            />
+                          </div>
+                          {computedTotalWithInterest != null && (
+                            <>
+                              <div className="bm-field-group">
+                                <label>Total with Finance Charge</label>
+                                <input className="bm-input" value={`Rs. ${computedTotalWithInterest.toLocaleString()}`} readOnly />
+                              </div>
+                              <div className="bm-field-group">
+                                <label>Monthly Installment</label>
+                                <input className="bm-input" value={computedMonthlyInstallment != null ? `Rs. ${computedMonthlyInstallment.toLocaleString()}` : "-"} readOnly />
+                              </div>
+                            </>
+                          )}
+                        </>
+                      )}
                     </>
                   )}
 
@@ -923,9 +991,15 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                 <>
                   <div className="bm-field-group">
                     <label>Payment Type</label>
-                    <select className="bm-input" value={paymentType} onChange={(event) => setPaymentType(event.target.value as "DIRECT" | "DOWNPAYMENT") }>
+                    <select className="bm-input" value={paymentType} onChange={(event) => {
+                      setPaymentType(event.target.value as "DIRECT" | "DOWNPAYMENT");
+                      if (event.target.value === "DIRECT") {
+                        setInterestRate("");
+                        setInstallmentMonths("");
+                      }
+                    }}>
                       <option value="DIRECT">Direct Buy</option>
-                      <option value="DOWNPAYMENT">Downpayment</option>
+                      <option value="DOWNPAYMENT">Downpayment (Installments)</option>
                     </select>
                   </div>
 
@@ -942,6 +1016,48 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                       required={paymentType === "DOWNPAYMENT"}
                     />
                   </div>
+
+                  {paymentType === "DOWNPAYMENT" && (
+                    <>
+                      <div className="bm-field-group">
+                        <label>Finance Charge (%)</label>
+                        <input
+                          className="bm-input"
+                          type="number"
+                          min={0}
+                          max={100}
+                          step="0.01"
+                          placeholder="e.g. 5"
+                          value={interestRate}
+                          onChange={(event) => setInterestRate(event.target.value)}
+                        />
+                      </div>
+                      <div className="bm-field-group">
+                        <label>Number of Installments (Months)</label>
+                        <input
+                          className="bm-input"
+                          type="number"
+                          min={1}
+                          step="1"
+                          placeholder="e.g. 12"
+                          value={installmentMonths}
+                          onChange={(event) => setInstallmentMonths(event.target.value)}
+                        />
+                      </div>
+                      {computedTotalWithInterest != null && (
+                        <>
+                          <div className="bm-field-group">
+                            <label>Total with Finance Charge</label>
+                            <input className="bm-input" value={`Rs. ${computedTotalWithInterest.toLocaleString()}`} readOnly />
+                          </div>
+                          <div className="bm-field-group">
+                            <label>Monthly Installment</label>
+                            <input className="bm-input" value={computedMonthlyInstallment != null ? `Rs. ${computedMonthlyInstallment.toLocaleString()}` : "-"} readOnly />
+                          </div>
+                        </>
+                      )}
+                    </>
+                  )}
                 </>
               )}
 
@@ -958,8 +1074,8 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
               )}
 
               <div className="bm-field-group">
-                <label>Grand Total</label>
-                <input className="bm-input" value={`Rs. ${computedInvoiceGrandTotal.toLocaleString()}`} readOnly />
+                <label>Grand Total{computedTotalWithInterest != null ? " (incl. finance charge)" : ""}</label>
+                <input className="bm-input" value={`Rs. ${(computedTotalWithInterest != null ? computedTotalWithInterest + computedRegistrationTotal : computedInvoiceGrandTotal).toLocaleString()}`} readOnly />
               </div>
 
               <div className="bm-field-group">
