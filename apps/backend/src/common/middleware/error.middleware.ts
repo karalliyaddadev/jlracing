@@ -22,7 +22,7 @@ export function errorHandler(
     if (err.code === "LIMIT_FILE_SIZE") {
       return res.status(413).json({
         success: false,
-        message: "Each image must be 10MB or smaller",
+        message: "File too large. Images must be 10 MB or smaller; PDFs must be 20 MB or smaller.",
       });
     }
     if (err.code === "LIMIT_FILE_COUNT") {
@@ -37,7 +37,10 @@ export function errorHandler(
     });
   }
 
-  if (err instanceof Error && err.message.includes("Only JPEG, PNG, WebP, and AVIF images are allowed")) {
+  if (err instanceof Error && (
+    err.message.includes("Only JPEG, PNG, WebP, and AVIF images are allowed") ||
+    err.message.includes("Only PDF files are allowed")
+  )) {
     return res.status(415).json({
       success: false,
       message: err.message,
