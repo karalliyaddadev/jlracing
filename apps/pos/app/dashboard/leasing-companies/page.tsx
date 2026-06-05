@@ -62,6 +62,10 @@ export default function LeasingCompaniesPage() {
   const [settleAmount, setSettleAmount] = useState("");
   const [settleSaving, setSettleSaving] = useState(false);
   const [settleError, setSettleError] = useState<string | null>(null);
+  const [settlePaymentMethod, setSettlePaymentMethod] = useState<"CASH" | "CHEQUE" | "BANK_TRANSFER">("CASH");
+  const [settleChequeNo, setSettleChequeNo] = useState("");
+  const [settleChequeBank, setSettleChequeBank] = useState("");
+  const [settleChequeDate, setSettleChequeDate] = useState("");
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
@@ -219,6 +223,10 @@ export default function LeasingCompaniesPage() {
     setSettleTarget(entry);
     setSettleAmount(remaining > 0 ? String(remaining) : "");
     setSettleError(null);
+    setSettlePaymentMethod("CASH");
+    setSettleChequeNo("");
+    setSettleChequeBank("");
+    setSettleChequeDate("");
   };
 
   const closeSettleModal = () => {
@@ -226,6 +234,10 @@ export default function LeasingCompaniesPage() {
     setSettleAmount("");
     setSettleError(null);
     setSettleSaving(false);
+    setSettlePaymentMethod("CASH");
+    setSettleChequeNo("");
+    setSettleChequeBank("");
+    setSettleChequeDate("");
   };
 
   const submitSettle = async (event: FormEvent) => {
@@ -251,7 +263,13 @@ export default function LeasingCompaniesPage() {
       const response = await fetch(`${base}/${settleTarget.customer.id}/purchases/${settleTarget.id}/settle`, {
         method: "POST",
         headers: { ...auth, "Content-Type": "application/json" },
-        body: JSON.stringify({ amount }),
+        body: JSON.stringify({
+          amount,
+          paymentMethod: settlePaymentMethod,
+          chequeNo: settlePaymentMethod === "CHEQUE" ? settleChequeNo || undefined : undefined,
+          chequeBank: settlePaymentMethod === "CHEQUE" ? settleChequeBank || undefined : undefined,
+          chequeDate: settlePaymentMethod === "CHEQUE" ? settleChequeDate || undefined : undefined,
+        }),
       });
       const payload = await response.json() as { message?: string };
       if (!response.ok) throw new Error(payload.message ?? "Failed to settle leasing amount");
@@ -451,6 +469,37 @@ export default function LeasingCompaniesPage() {
                 onChange={(event) => setSettleAmount(event.target.value)}
                 required
               />
+            </div>
+
+            <div style={{ marginTop: "1rem", padding: "0.85rem 1rem", border: "1px solid var(--panel-border)", borderRadius: "var(--radius-sm)", background: "var(--panel-bg)" }}>
+              <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: "0.65rem", color: "var(--accent)" }}>How is this being paid?</div>
+              <div className="bm-field-group">
+                <label>Payment Method</label>
+                <div style={{ display: "flex", gap: 20 }}>
+                  {(["CASH", "CHEQUE", "BANK_TRANSFER"] as const).map((m) => (
+                    <label key={m} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "0.875rem", fontWeight: 500 }}>
+                      <input type="radio" checked={settlePaymentMethod === m} onChange={() => setSettlePaymentMethod(m)} style={{ accentColor: "var(--accent)" }} />
+                      {m === "BANK_TRANSFER" ? "Bank Transfer" : m}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {settlePaymentMethod === "CHEQUE" && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                  <div className="bm-field-group">
+                    <label>Cheque No *</label>
+                    <input className="bm-input" value={settleChequeNo} onChange={(e) => setSettleChequeNo(e.target.value)} placeholder="e.g. 001234" />
+                  </div>
+                  <div className="bm-field-group">
+                    <label>Bank</label>
+                    <input className="bm-input" value={settleChequeBank} onChange={(e) => setSettleChequeBank(e.target.value)} placeholder="e.g. HNB" />
+                  </div>
+                  <div className="bm-field-group">
+                    <label>Cheque Date</label>
+                    <input type="date" className="bm-input" value={settleChequeDate} onChange={(e) => setSettleChequeDate(e.target.value)} />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="bm-modal-actions" style={{ marginTop: "1rem" }}>

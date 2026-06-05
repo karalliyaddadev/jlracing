@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const accountTypeValues = ["BANK", "CASH"] as const;
-const paymentMethodValues = ["CASH", "CHEQUE"] as const;
+const paymentMethodValues = ["CASH", "CHEQUE", "BANK_TRANSFER"] as const;
 const voucherTypeValues = [
   "VEHICLE_CLEARANCE",
   "BILL",
@@ -57,6 +57,8 @@ export const receiptQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(200).default(50),
   search: z.string().trim().optional(),
   accountId: z.coerce.number().int().positive().optional(),
+  from: z.string().trim().optional(),
+  to: z.string().trim().optional(),
 });
 
 export const invoiceQueueQuerySchema = z.object({
@@ -67,6 +69,33 @@ export const invoiceQueueQuerySchema = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
   limit: z.coerce.number().int().min(1).max(500).default(100),
+});
+
+export const invoicePaymentQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+  search: z.string().trim().optional(),
+  from: z.string().trim().optional(),
+  to: z.string().trim().optional(),
+});
+
+export const generateReceiptFromPaymentSchema = z.object({
+  accountId: z.number().int().positive("Account is required"),
+  description: z.string().trim().max(500).optional(),
+});
+
+export const createDepositSchema = z.object({
+  accountId: z.number().int().positive("Account is required"),
+  receiptIds: z.array(z.number().int().positive()).min(1, "Select at least one receipt"),
+  notes: z.string().trim().max(500).optional(),
+});
+
+export const depositQuerySchema = z.object({
+  page: z.coerce.number().int().min(1).default(1),
+  limit: z.coerce.number().int().min(1).max(200).default(50),
+  accountId: z.coerce.number().int().positive().optional(),
+  from: z.string().trim().optional(),
+  to: z.string().trim().optional(),
 });
 
 export const voucherQuerySchema = z.object({
@@ -89,5 +118,9 @@ export type CreateVoucherDto = z.infer<typeof createVoucherSchema>;
 export type UpdateVoucherDto = z.infer<typeof updateVoucherSchema>;
 export type ReceiptQueryDto = z.infer<typeof receiptQuerySchema>;
 export type InvoiceQueueQueryDto = z.infer<typeof invoiceQueueQuerySchema>;
+export type InvoicePaymentQueryDto = z.infer<typeof invoicePaymentQuerySchema>;
+export type GenerateReceiptFromPaymentDto = z.infer<typeof generateReceiptFromPaymentSchema>;
+export type CreateDepositDto = z.infer<typeof createDepositSchema>;
+export type DepositQueryDto = z.infer<typeof depositQuerySchema>;
 export type VoucherQueryDto = z.infer<typeof voucherQuerySchema>;
 export type LedgerQueryDto = z.infer<typeof ledgerQuerySchema>;

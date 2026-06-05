@@ -21,6 +21,16 @@ router.post("/receipts/:id/void", controller.voidReceipt);
 router.post("/receipts/:id/bounce", controller.bounceReceipt);
 router.post("/receipts/:id/clear", controller.clearCheque);
 
+// Invoice Payment Queue
+router.get("/payments", controller.getInvoicePayments);
+router.post("/payments/:id/generate-receipt", controller.generateReceiptFromPayment);
+
+// Deposits — list/create before /:id
+router.get("/deposits", controller.getDeposits);
+router.post("/deposits", controller.createDeposit);
+router.get("/deposits/:id", controller.getDeposit);
+router.post("/deposits/:id/reverse", controller.reverseDeposit);
+
 // Vouchers
 router.get("/vouchers", controller.getVouchers);
 router.get("/vouchers/:id", controller.getVoucher);

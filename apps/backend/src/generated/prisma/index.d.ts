@@ -168,6 +168,21 @@ export type AccountVoucher = $Result.DefaultSelection<Prisma.$AccountVoucherPayl
  * 
  */
 export type AccountTransaction = $Result.DefaultSelection<Prisma.$AccountTransactionPayload>
+/**
+ * Model InvoicePayment
+ * 
+ */
+export type InvoicePayment = $Result.DefaultSelection<Prisma.$InvoicePaymentPayload>
+/**
+ * Model AccountDeposit
+ * 
+ */
+export type AccountDeposit = $Result.DefaultSelection<Prisma.$AccountDepositPayload>
+/**
+ * Model AccountDepositItem
+ * 
+ */
+export type AccountDepositItem = $Result.DefaultSelection<Prisma.$AccountDepositItemPayload>
 
 /**
  * Enums
@@ -249,7 +264,8 @@ export type AccountType = (typeof AccountType)[keyof typeof AccountType]
 
 export const PaymentMethod: {
   CASH: 'CASH',
-  CHEQUE: 'CHEQUE'
+  CHEQUE: 'CHEQUE',
+  BANK_TRANSFER: 'BANK_TRANSFER'
 };
 
 export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]
@@ -283,7 +299,8 @@ export type VoucherType = (typeof VoucherType)[keyof typeof VoucherType]
 export const TransactionType: {
   RECEIPT: 'RECEIPT',
   VOUCHER: 'VOUCHER',
-  REVERSAL: 'REVERSAL'
+  REVERSAL: 'REVERSAL',
+  DEPOSIT: 'DEPOSIT'
 };
 
 export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType]
@@ -786,6 +803,36 @@ export class PrismaClient<
     * ```
     */
   get accountTransaction(): Prisma.AccountTransactionDelegate<ExtArgs>;
+
+  /**
+   * `prisma.invoicePayment`: Exposes CRUD operations for the **InvoicePayment** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more InvoicePayments
+    * const invoicePayments = await prisma.invoicePayment.findMany()
+    * ```
+    */
+  get invoicePayment(): Prisma.InvoicePaymentDelegate<ExtArgs>;
+
+  /**
+   * `prisma.accountDeposit`: Exposes CRUD operations for the **AccountDeposit** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AccountDeposits
+    * const accountDeposits = await prisma.accountDeposit.findMany()
+    * ```
+    */
+  get accountDeposit(): Prisma.AccountDepositDelegate<ExtArgs>;
+
+  /**
+   * `prisma.accountDepositItem`: Exposes CRUD operations for the **AccountDepositItem** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AccountDepositItems
+    * const accountDepositItems = await prisma.accountDepositItem.findMany()
+    * ```
+    */
+  get accountDepositItem(): Prisma.AccountDepositItemDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -1257,7 +1304,10 @@ export namespace Prisma {
     Account: 'Account',
     AccountReceipt: 'AccountReceipt',
     AccountVoucher: 'AccountVoucher',
-    AccountTransaction: 'AccountTransaction'
+    AccountTransaction: 'AccountTransaction',
+    InvoicePayment: 'InvoicePayment',
+    AccountDeposit: 'AccountDeposit',
+    AccountDepositItem: 'AccountDepositItem'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1273,7 +1323,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "bike" | "posAdmin" | "bikeBrand" | "bikeModel" | "bikeColor" | "bikeSupplier" | "bikeVehicle" | "bikeVehicleImage" | "bikeVehicleExpense" | "inventoryBrand" | "inventoryCategory" | "inventoryProduct" | "inventoryProductExpense" | "inventoryProductImage" | "posCustomer" | "posLeasingCompany" | "posCustomerDreamBike" | "posCustomerPurchase" | "posInvoiceTerm" | "posInstallment" | "posInstallmentPayment" | "preOrder" | "preOrderImage" | "contactRequest" | "exportVehicle" | "exportVehicleImage" | "account" | "accountReceipt" | "accountVoucher" | "accountTransaction"
+      modelProps: "user" | "bike" | "posAdmin" | "bikeBrand" | "bikeModel" | "bikeColor" | "bikeSupplier" | "bikeVehicle" | "bikeVehicleImage" | "bikeVehicleExpense" | "inventoryBrand" | "inventoryCategory" | "inventoryProduct" | "inventoryProductExpense" | "inventoryProductImage" | "posCustomer" | "posLeasingCompany" | "posCustomerDreamBike" | "posCustomerPurchase" | "posInvoiceTerm" | "posInstallment" | "posInstallmentPayment" | "preOrder" | "preOrderImage" | "contactRequest" | "exportVehicle" | "exportVehicleImage" | "account" | "accountReceipt" | "accountVoucher" | "accountTransaction" | "invoicePayment" | "accountDeposit" | "accountDepositItem"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3447,6 +3497,216 @@ export namespace Prisma {
           }
         }
       }
+      InvoicePayment: {
+        payload: Prisma.$InvoicePaymentPayload<ExtArgs>
+        fields: Prisma.InvoicePaymentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.InvoicePaymentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvoicePaymentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.InvoicePaymentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvoicePaymentPayload>
+          }
+          findFirst: {
+            args: Prisma.InvoicePaymentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvoicePaymentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.InvoicePaymentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvoicePaymentPayload>
+          }
+          findMany: {
+            args: Prisma.InvoicePaymentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvoicePaymentPayload>[]
+          }
+          create: {
+            args: Prisma.InvoicePaymentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvoicePaymentPayload>
+          }
+          createMany: {
+            args: Prisma.InvoicePaymentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.InvoicePaymentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvoicePaymentPayload>[]
+          }
+          delete: {
+            args: Prisma.InvoicePaymentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvoicePaymentPayload>
+          }
+          update: {
+            args: Prisma.InvoicePaymentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvoicePaymentPayload>
+          }
+          deleteMany: {
+            args: Prisma.InvoicePaymentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.InvoicePaymentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.InvoicePaymentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$InvoicePaymentPayload>
+          }
+          aggregate: {
+            args: Prisma.InvoicePaymentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateInvoicePayment>
+          }
+          groupBy: {
+            args: Prisma.InvoicePaymentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<InvoicePaymentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.InvoicePaymentCountArgs<ExtArgs>
+            result: $Utils.Optional<InvoicePaymentCountAggregateOutputType> | number
+          }
+        }
+      }
+      AccountDeposit: {
+        payload: Prisma.$AccountDepositPayload<ExtArgs>
+        fields: Prisma.AccountDepositFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AccountDepositFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AccountDepositFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositPayload>
+          }
+          findFirst: {
+            args: Prisma.AccountDepositFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AccountDepositFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositPayload>
+          }
+          findMany: {
+            args: Prisma.AccountDepositFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositPayload>[]
+          }
+          create: {
+            args: Prisma.AccountDepositCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositPayload>
+          }
+          createMany: {
+            args: Prisma.AccountDepositCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AccountDepositCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositPayload>[]
+          }
+          delete: {
+            args: Prisma.AccountDepositDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositPayload>
+          }
+          update: {
+            args: Prisma.AccountDepositUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositPayload>
+          }
+          deleteMany: {
+            args: Prisma.AccountDepositDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AccountDepositUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.AccountDepositUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositPayload>
+          }
+          aggregate: {
+            args: Prisma.AccountDepositAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAccountDeposit>
+          }
+          groupBy: {
+            args: Prisma.AccountDepositGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AccountDepositGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AccountDepositCountArgs<ExtArgs>
+            result: $Utils.Optional<AccountDepositCountAggregateOutputType> | number
+          }
+        }
+      }
+      AccountDepositItem: {
+        payload: Prisma.$AccountDepositItemPayload<ExtArgs>
+        fields: Prisma.AccountDepositItemFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AccountDepositItemFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositItemPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AccountDepositItemFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositItemPayload>
+          }
+          findFirst: {
+            args: Prisma.AccountDepositItemFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositItemPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AccountDepositItemFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositItemPayload>
+          }
+          findMany: {
+            args: Prisma.AccountDepositItemFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositItemPayload>[]
+          }
+          create: {
+            args: Prisma.AccountDepositItemCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositItemPayload>
+          }
+          createMany: {
+            args: Prisma.AccountDepositItemCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AccountDepositItemCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositItemPayload>[]
+          }
+          delete: {
+            args: Prisma.AccountDepositItemDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositItemPayload>
+          }
+          update: {
+            args: Prisma.AccountDepositItemUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositItemPayload>
+          }
+          deleteMany: {
+            args: Prisma.AccountDepositItemDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AccountDepositItemUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.AccountDepositItemUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountDepositItemPayload>
+          }
+          aggregate: {
+            args: Prisma.AccountDepositItemAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAccountDepositItem>
+          }
+          groupBy: {
+            args: Prisma.AccountDepositItemGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AccountDepositItemGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AccountDepositItemCountArgs<ExtArgs>
+            result: $Utils.Optional<AccountDepositItemCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3961,11 +4221,13 @@ export namespace Prisma {
   export type PosCustomerPurchaseCountOutputType = {
     receipts: number
     installments: number
+    invoicePayments: number
   }
 
   export type PosCustomerPurchaseCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     receipts?: boolean | PosCustomerPurchaseCountOutputTypeCountReceiptsArgs
     installments?: boolean | PosCustomerPurchaseCountOutputTypeCountInstallmentsArgs
+    invoicePayments?: boolean | PosCustomerPurchaseCountOutputTypeCountInvoicePaymentsArgs
   }
 
   // Custom InputTypes
@@ -3991,6 +4253,13 @@ export namespace Prisma {
    */
   export type PosCustomerPurchaseCountOutputTypeCountInstallmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PosInstallmentWhereInput
+  }
+
+  /**
+   * PosCustomerPurchaseCountOutputType without action
+   */
+  export type PosCustomerPurchaseCountOutputTypeCountInvoicePaymentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: InvoicePaymentWhereInput
   }
 
 
@@ -4095,12 +4364,14 @@ export namespace Prisma {
     receipts: number
     vouchers: number
     transactions: number
+    deposits: number
   }
 
   export type AccountCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     receipts?: boolean | AccountCountOutputTypeCountReceiptsArgs
     vouchers?: boolean | AccountCountOutputTypeCountVouchersArgs
     transactions?: boolean | AccountCountOutputTypeCountTransactionsArgs
+    deposits?: boolean | AccountCountOutputTypeCountDepositsArgs
   }
 
   // Custom InputTypes
@@ -4133,6 +4404,13 @@ export namespace Prisma {
    */
   export type AccountCountOutputTypeCountTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AccountTransactionWhereInput
+  }
+
+  /**
+   * AccountCountOutputType without action
+   */
+  export type AccountCountOutputTypeCountDepositsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AccountDepositWhereInput
   }
 
 
@@ -4194,6 +4472,46 @@ export namespace Prisma {
    * AccountVoucherCountOutputType without action
    */
   export type AccountVoucherCountOutputTypeCountTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AccountTransactionWhereInput
+  }
+
+
+  /**
+   * Count Type AccountDepositCountOutputType
+   */
+
+  export type AccountDepositCountOutputType = {
+    items: number
+    transactions: number
+  }
+
+  export type AccountDepositCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    items?: boolean | AccountDepositCountOutputTypeCountItemsArgs
+    transactions?: boolean | AccountDepositCountOutputTypeCountTransactionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * AccountDepositCountOutputType without action
+   */
+  export type AccountDepositCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDepositCountOutputType
+     */
+    select?: AccountDepositCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * AccountDepositCountOutputType without action
+   */
+  export type AccountDepositCountOutputTypeCountItemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AccountDepositItemWhereInput
+  }
+
+  /**
+   * AccountDepositCountOutputType without action
+   */
+  export type AccountDepositCountOutputTypeCountTransactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AccountTransactionWhereInput
   }
 
@@ -22992,6 +23310,7 @@ export namespace Prisma {
     leasingCompany?: boolean | PosCustomerPurchase$leasingCompanyArgs<ExtArgs>
     receipts?: boolean | PosCustomerPurchase$receiptsArgs<ExtArgs>
     installments?: boolean | PosCustomerPurchase$installmentsArgs<ExtArgs>
+    invoicePayments?: boolean | PosCustomerPurchase$invoicePaymentsArgs<ExtArgs>
     _count?: boolean | PosCustomerPurchaseCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["posCustomerPurchase"]>
 
@@ -23062,6 +23381,7 @@ export namespace Prisma {
     leasingCompany?: boolean | PosCustomerPurchase$leasingCompanyArgs<ExtArgs>
     receipts?: boolean | PosCustomerPurchase$receiptsArgs<ExtArgs>
     installments?: boolean | PosCustomerPurchase$installmentsArgs<ExtArgs>
+    invoicePayments?: boolean | PosCustomerPurchase$invoicePaymentsArgs<ExtArgs>
     _count?: boolean | PosCustomerPurchaseCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type PosCustomerPurchaseIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -23080,6 +23400,7 @@ export namespace Prisma {
       leasingCompany: Prisma.$PosLeasingCompanyPayload<ExtArgs> | null
       receipts: Prisma.$AccountReceiptPayload<ExtArgs>[]
       installments: Prisma.$PosInstallmentPayload<ExtArgs>[]
+      invoicePayments: Prisma.$InvoicePaymentPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -23477,6 +23798,7 @@ export namespace Prisma {
     leasingCompany<T extends PosCustomerPurchase$leasingCompanyArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchase$leasingCompanyArgs<ExtArgs>>): Prisma__PosLeasingCompanyClient<$Result.GetResult<Prisma.$PosLeasingCompanyPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     receipts<T extends PosCustomerPurchase$receiptsArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchase$receiptsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountReceiptPayload<ExtArgs>, T, "findMany"> | Null>
     installments<T extends PosCustomerPurchase$installmentsArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchase$installmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PosInstallmentPayload<ExtArgs>, T, "findMany"> | Null>
+    invoicePayments<T extends PosCustomerPurchase$invoicePaymentsArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchase$invoicePaymentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvoicePaymentPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -23931,6 +24253,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: PosInstallmentScalarFieldEnum | PosInstallmentScalarFieldEnum[]
+  }
+
+  /**
+   * PosCustomerPurchase.invoicePayments
+   */
+  export type PosCustomerPurchase$invoicePaymentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InvoicePayment
+     */
+    select?: InvoicePaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvoicePaymentInclude<ExtArgs> | null
+    where?: InvoicePaymentWhereInput
+    orderBy?: InvoicePaymentOrderByWithRelationInput | InvoicePaymentOrderByWithRelationInput[]
+    cursor?: InvoicePaymentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: InvoicePaymentScalarFieldEnum | InvoicePaymentScalarFieldEnum[]
   }
 
   /**
@@ -32447,6 +32789,7 @@ export namespace Prisma {
     receipts?: boolean | Account$receiptsArgs<ExtArgs>
     vouchers?: boolean | Account$vouchersArgs<ExtArgs>
     transactions?: boolean | Account$transactionsArgs<ExtArgs>
+    deposits?: boolean | Account$depositsArgs<ExtArgs>
     _count?: boolean | AccountCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["account"]>
 
@@ -32476,6 +32819,7 @@ export namespace Prisma {
     receipts?: boolean | Account$receiptsArgs<ExtArgs>
     vouchers?: boolean | Account$vouchersArgs<ExtArgs>
     transactions?: boolean | Account$transactionsArgs<ExtArgs>
+    deposits?: boolean | Account$depositsArgs<ExtArgs>
     _count?: boolean | AccountCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type AccountIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -32486,6 +32830,7 @@ export namespace Prisma {
       receipts: Prisma.$AccountReceiptPayload<ExtArgs>[]
       vouchers: Prisma.$AccountVoucherPayload<ExtArgs>[]
       transactions: Prisma.$AccountTransactionPayload<ExtArgs>[]
+      deposits: Prisma.$AccountDepositPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -32863,6 +33208,7 @@ export namespace Prisma {
     receipts<T extends Account$receiptsArgs<ExtArgs> = {}>(args?: Subset<T, Account$receiptsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountReceiptPayload<ExtArgs>, T, "findMany"> | Null>
     vouchers<T extends Account$vouchersArgs<ExtArgs> = {}>(args?: Subset<T, Account$vouchersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountVoucherPayload<ExtArgs>, T, "findMany"> | Null>
     transactions<T extends Account$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, Account$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountTransactionPayload<ExtArgs>, T, "findMany"> | Null>
+    deposits<T extends Account$depositsArgs<ExtArgs> = {}>(args?: Subset<T, Account$depositsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -33274,6 +33620,26 @@ export namespace Prisma {
   }
 
   /**
+   * Account.deposits
+   */
+  export type Account$depositsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDeposit
+     */
+    select?: AccountDepositSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositInclude<ExtArgs> | null
+    where?: AccountDepositWhereInput
+    orderBy?: AccountDepositOrderByWithRelationInput | AccountDepositOrderByWithRelationInput[]
+    cursor?: AccountDepositWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AccountDepositScalarFieldEnum | AccountDepositScalarFieldEnum[]
+  }
+
+  /**
    * Account without action
    */
   export type AccountDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -33329,6 +33695,7 @@ export namespace Prisma {
     chequeStatus: $Enums.ChequeStatus | null
     description: string | null
     isVoided: boolean | null
+    isDeposited: boolean | null
     createdById: number | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -33347,6 +33714,7 @@ export namespace Prisma {
     chequeStatus: $Enums.ChequeStatus | null
     description: string | null
     isVoided: boolean | null
+    isDeposited: boolean | null
     createdById: number | null
     createdAt: Date | null
     updatedAt: Date | null
@@ -33365,6 +33733,7 @@ export namespace Prisma {
     chequeStatus: number
     description: number
     isVoided: number
+    isDeposited: number
     createdById: number
     createdAt: number
     updatedAt: number
@@ -33401,6 +33770,7 @@ export namespace Prisma {
     chequeStatus?: true
     description?: true
     isVoided?: true
+    isDeposited?: true
     createdById?: true
     createdAt?: true
     updatedAt?: true
@@ -33419,6 +33789,7 @@ export namespace Prisma {
     chequeStatus?: true
     description?: true
     isVoided?: true
+    isDeposited?: true
     createdById?: true
     createdAt?: true
     updatedAt?: true
@@ -33437,6 +33808,7 @@ export namespace Prisma {
     chequeStatus?: true
     description?: true
     isVoided?: true
+    isDeposited?: true
     createdById?: true
     createdAt?: true
     updatedAt?: true
@@ -33542,6 +33914,7 @@ export namespace Prisma {
     chequeStatus: $Enums.ChequeStatus | null
     description: string | null
     isVoided: boolean
+    isDeposited: boolean
     createdById: number
     createdAt: Date
     updatedAt: Date
@@ -33579,12 +33952,15 @@ export namespace Prisma {
     chequeStatus?: boolean
     description?: boolean
     isVoided?: boolean
+    isDeposited?: boolean
     createdById?: boolean
     createdAt?: boolean
     updatedAt?: boolean
     account?: boolean | AccountDefaultArgs<ExtArgs>
     purchase?: boolean | PosCustomerPurchaseDefaultArgs<ExtArgs>
     transactions?: boolean | AccountReceipt$transactionsArgs<ExtArgs>
+    depositItem?: boolean | AccountReceipt$depositItemArgs<ExtArgs>
+    invoicePayment?: boolean | AccountReceipt$invoicePaymentArgs<ExtArgs>
     _count?: boolean | AccountReceiptCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["accountReceipt"]>
 
@@ -33601,6 +33977,7 @@ export namespace Prisma {
     chequeStatus?: boolean
     description?: boolean
     isVoided?: boolean
+    isDeposited?: boolean
     createdById?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -33621,6 +33998,7 @@ export namespace Prisma {
     chequeStatus?: boolean
     description?: boolean
     isVoided?: boolean
+    isDeposited?: boolean
     createdById?: boolean
     createdAt?: boolean
     updatedAt?: boolean
@@ -33630,6 +34008,8 @@ export namespace Prisma {
     account?: boolean | AccountDefaultArgs<ExtArgs>
     purchase?: boolean | PosCustomerPurchaseDefaultArgs<ExtArgs>
     transactions?: boolean | AccountReceipt$transactionsArgs<ExtArgs>
+    depositItem?: boolean | AccountReceipt$depositItemArgs<ExtArgs>
+    invoicePayment?: boolean | AccountReceipt$invoicePaymentArgs<ExtArgs>
     _count?: boolean | AccountReceiptCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type AccountReceiptIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -33643,6 +34023,8 @@ export namespace Prisma {
       account: Prisma.$AccountPayload<ExtArgs>
       purchase: Prisma.$PosCustomerPurchasePayload<ExtArgs>
       transactions: Prisma.$AccountTransactionPayload<ExtArgs>[]
+      depositItem: Prisma.$AccountDepositItemPayload<ExtArgs> | null
+      invoicePayment: Prisma.$InvoicePaymentPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -33657,6 +34039,7 @@ export namespace Prisma {
       chequeStatus: $Enums.ChequeStatus | null
       description: string | null
       isVoided: boolean
+      isDeposited: boolean
       createdById: number
       createdAt: Date
       updatedAt: Date
@@ -34027,6 +34410,8 @@ export namespace Prisma {
     account<T extends AccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AccountDefaultArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     purchase<T extends PosCustomerPurchaseDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchaseDefaultArgs<ExtArgs>>): Prisma__PosCustomerPurchaseClient<$Result.GetResult<Prisma.$PosCustomerPurchasePayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     transactions<T extends AccountReceipt$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, AccountReceipt$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountTransactionPayload<ExtArgs>, T, "findMany"> | Null>
+    depositItem<T extends AccountReceipt$depositItemArgs<ExtArgs> = {}>(args?: Subset<T, AccountReceipt$depositItemArgs<ExtArgs>>): Prisma__AccountDepositItemClient<$Result.GetResult<Prisma.$AccountDepositItemPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    invoicePayment<T extends AccountReceipt$invoicePaymentArgs<ExtArgs> = {}>(args?: Subset<T, AccountReceipt$invoicePaymentArgs<ExtArgs>>): Prisma__InvoicePaymentClient<$Result.GetResult<Prisma.$InvoicePaymentPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -34068,6 +34453,7 @@ export namespace Prisma {
     readonly chequeStatus: FieldRef<"AccountReceipt", 'ChequeStatus'>
     readonly description: FieldRef<"AccountReceipt", 'String'>
     readonly isVoided: FieldRef<"AccountReceipt", 'Boolean'>
+    readonly isDeposited: FieldRef<"AccountReceipt", 'Boolean'>
     readonly createdById: FieldRef<"AccountReceipt", 'Int'>
     readonly createdAt: FieldRef<"AccountReceipt", 'DateTime'>
     readonly updatedAt: FieldRef<"AccountReceipt", 'DateTime'>
@@ -34406,6 +34792,36 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AccountTransactionScalarFieldEnum | AccountTransactionScalarFieldEnum[]
+  }
+
+  /**
+   * AccountReceipt.depositItem
+   */
+  export type AccountReceipt$depositItemArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDepositItem
+     */
+    select?: AccountDepositItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositItemInclude<ExtArgs> | null
+    where?: AccountDepositItemWhereInput
+  }
+
+  /**
+   * AccountReceipt.invoicePayment
+   */
+  export type AccountReceipt$invoicePaymentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InvoicePayment
+     */
+    select?: InvoicePaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvoicePaymentInclude<ExtArgs> | null
+    where?: InvoicePaymentWhereInput
   }
 
   /**
@@ -35506,6 +35922,7 @@ export namespace Prisma {
     amount: number | null
     receiptId: number | null
     voucherId: number | null
+    depositId: number | null
     createdById: number | null
   }
 
@@ -35515,6 +35932,7 @@ export namespace Prisma {
     amount: number | null
     receiptId: number | null
     voucherId: number | null
+    depositId: number | null
     createdById: number | null
   }
 
@@ -35526,6 +35944,7 @@ export namespace Prisma {
     amount: number | null
     receiptId: number | null
     voucherId: number | null
+    depositId: number | null
     refNo: string | null
     description: string | null
     chequeNo: string | null
@@ -35542,6 +35961,7 @@ export namespace Prisma {
     amount: number | null
     receiptId: number | null
     voucherId: number | null
+    depositId: number | null
     refNo: string | null
     description: string | null
     chequeNo: string | null
@@ -35558,6 +35978,7 @@ export namespace Prisma {
     amount: number
     receiptId: number
     voucherId: number
+    depositId: number
     refNo: number
     description: number
     chequeNo: number
@@ -35574,6 +35995,7 @@ export namespace Prisma {
     amount?: true
     receiptId?: true
     voucherId?: true
+    depositId?: true
     createdById?: true
   }
 
@@ -35583,6 +36005,7 @@ export namespace Prisma {
     amount?: true
     receiptId?: true
     voucherId?: true
+    depositId?: true
     createdById?: true
   }
 
@@ -35594,6 +36017,7 @@ export namespace Prisma {
     amount?: true
     receiptId?: true
     voucherId?: true
+    depositId?: true
     refNo?: true
     description?: true
     chequeNo?: true
@@ -35610,6 +36034,7 @@ export namespace Prisma {
     amount?: true
     receiptId?: true
     voucherId?: true
+    depositId?: true
     refNo?: true
     description?: true
     chequeNo?: true
@@ -35626,6 +36051,7 @@ export namespace Prisma {
     amount?: true
     receiptId?: true
     voucherId?: true
+    depositId?: true
     refNo?: true
     description?: true
     chequeNo?: true
@@ -35729,6 +36155,7 @@ export namespace Prisma {
     amount: number
     receiptId: number | null
     voucherId: number | null
+    depositId: number | null
     refNo: string | null
     description: string | null
     chequeNo: string | null
@@ -35764,6 +36191,7 @@ export namespace Prisma {
     amount?: boolean
     receiptId?: boolean
     voucherId?: boolean
+    depositId?: boolean
     refNo?: boolean
     description?: boolean
     chequeNo?: boolean
@@ -35773,6 +36201,7 @@ export namespace Prisma {
     account?: boolean | AccountDefaultArgs<ExtArgs>
     receipt?: boolean | AccountTransaction$receiptArgs<ExtArgs>
     voucher?: boolean | AccountTransaction$voucherArgs<ExtArgs>
+    deposit?: boolean | AccountTransaction$depositArgs<ExtArgs>
   }, ExtArgs["result"]["accountTransaction"]>
 
   export type AccountTransactionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -35783,6 +36212,7 @@ export namespace Prisma {
     amount?: boolean
     receiptId?: boolean
     voucherId?: boolean
+    depositId?: boolean
     refNo?: boolean
     description?: boolean
     chequeNo?: boolean
@@ -35792,6 +36222,7 @@ export namespace Prisma {
     account?: boolean | AccountDefaultArgs<ExtArgs>
     receipt?: boolean | AccountTransaction$receiptArgs<ExtArgs>
     voucher?: boolean | AccountTransaction$voucherArgs<ExtArgs>
+    deposit?: boolean | AccountTransaction$depositArgs<ExtArgs>
   }, ExtArgs["result"]["accountTransaction"]>
 
   export type AccountTransactionSelectScalar = {
@@ -35802,6 +36233,7 @@ export namespace Prisma {
     amount?: boolean
     receiptId?: boolean
     voucherId?: boolean
+    depositId?: boolean
     refNo?: boolean
     description?: boolean
     chequeNo?: boolean
@@ -35814,11 +36246,13 @@ export namespace Prisma {
     account?: boolean | AccountDefaultArgs<ExtArgs>
     receipt?: boolean | AccountTransaction$receiptArgs<ExtArgs>
     voucher?: boolean | AccountTransaction$voucherArgs<ExtArgs>
+    deposit?: boolean | AccountTransaction$depositArgs<ExtArgs>
   }
   export type AccountTransactionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     account?: boolean | AccountDefaultArgs<ExtArgs>
     receipt?: boolean | AccountTransaction$receiptArgs<ExtArgs>
     voucher?: boolean | AccountTransaction$voucherArgs<ExtArgs>
+    deposit?: boolean | AccountTransaction$depositArgs<ExtArgs>
   }
 
   export type $AccountTransactionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -35827,6 +36261,7 @@ export namespace Prisma {
       account: Prisma.$AccountPayload<ExtArgs>
       receipt: Prisma.$AccountReceiptPayload<ExtArgs> | null
       voucher: Prisma.$AccountVoucherPayload<ExtArgs> | null
+      deposit: Prisma.$AccountDepositPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -35836,6 +36271,7 @@ export namespace Prisma {
       amount: number
       receiptId: number | null
       voucherId: number | null
+      depositId: number | null
       refNo: string | null
       description: string | null
       chequeNo: string | null
@@ -36209,6 +36645,7 @@ export namespace Prisma {
     account<T extends AccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AccountDefaultArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     receipt<T extends AccountTransaction$receiptArgs<ExtArgs> = {}>(args?: Subset<T, AccountTransaction$receiptArgs<ExtArgs>>): Prisma__AccountReceiptClient<$Result.GetResult<Prisma.$AccountReceiptPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     voucher<T extends AccountTransaction$voucherArgs<ExtArgs> = {}>(args?: Subset<T, AccountTransaction$voucherArgs<ExtArgs>>): Prisma__AccountVoucherClient<$Result.GetResult<Prisma.$AccountVoucherPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    deposit<T extends AccountTransaction$depositArgs<ExtArgs> = {}>(args?: Subset<T, AccountTransaction$depositArgs<ExtArgs>>): Prisma__AccountDepositClient<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -36245,6 +36682,7 @@ export namespace Prisma {
     readonly amount: FieldRef<"AccountTransaction", 'Float'>
     readonly receiptId: FieldRef<"AccountTransaction", 'Int'>
     readonly voucherId: FieldRef<"AccountTransaction", 'Int'>
+    readonly depositId: FieldRef<"AccountTransaction", 'Int'>
     readonly refNo: FieldRef<"AccountTransaction", 'String'>
     readonly description: FieldRef<"AccountTransaction", 'String'>
     readonly chequeNo: FieldRef<"AccountTransaction", 'String'>
@@ -36599,6 +37037,21 @@ export namespace Prisma {
   }
 
   /**
+   * AccountTransaction.deposit
+   */
+  export type AccountTransaction$depositArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDeposit
+     */
+    select?: AccountDepositSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositInclude<ExtArgs> | null
+    where?: AccountDepositWhereInput
+  }
+
+  /**
    * AccountTransaction without action
    */
   export type AccountTransactionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -36610,6 +37063,3116 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: AccountTransactionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model InvoicePayment
+   */
+
+  export type AggregateInvoicePayment = {
+    _count: InvoicePaymentCountAggregateOutputType | null
+    _avg: InvoicePaymentAvgAggregateOutputType | null
+    _sum: InvoicePaymentSumAggregateOutputType | null
+    _min: InvoicePaymentMinAggregateOutputType | null
+    _max: InvoicePaymentMaxAggregateOutputType | null
+  }
+
+  export type InvoicePaymentAvgAggregateOutputType = {
+    id: number | null
+    purchaseId: number | null
+    amount: number | null
+    receiptId: number | null
+  }
+
+  export type InvoicePaymentSumAggregateOutputType = {
+    id: number | null
+    purchaseId: number | null
+    amount: number | null
+    receiptId: number | null
+  }
+
+  export type InvoicePaymentMinAggregateOutputType = {
+    id: number | null
+    purchaseId: number | null
+    amount: number | null
+    paymentMethod: $Enums.PaymentMethod | null
+    chequeNo: string | null
+    chequeBank: string | null
+    chequeDate: Date | null
+    description: string | null
+    paidAt: Date | null
+    receiptId: number | null
+  }
+
+  export type InvoicePaymentMaxAggregateOutputType = {
+    id: number | null
+    purchaseId: number | null
+    amount: number | null
+    paymentMethod: $Enums.PaymentMethod | null
+    chequeNo: string | null
+    chequeBank: string | null
+    chequeDate: Date | null
+    description: string | null
+    paidAt: Date | null
+    receiptId: number | null
+  }
+
+  export type InvoicePaymentCountAggregateOutputType = {
+    id: number
+    purchaseId: number
+    amount: number
+    paymentMethod: number
+    chequeNo: number
+    chequeBank: number
+    chequeDate: number
+    description: number
+    paidAt: number
+    receiptId: number
+    _all: number
+  }
+
+
+  export type InvoicePaymentAvgAggregateInputType = {
+    id?: true
+    purchaseId?: true
+    amount?: true
+    receiptId?: true
+  }
+
+  export type InvoicePaymentSumAggregateInputType = {
+    id?: true
+    purchaseId?: true
+    amount?: true
+    receiptId?: true
+  }
+
+  export type InvoicePaymentMinAggregateInputType = {
+    id?: true
+    purchaseId?: true
+    amount?: true
+    paymentMethod?: true
+    chequeNo?: true
+    chequeBank?: true
+    chequeDate?: true
+    description?: true
+    paidAt?: true
+    receiptId?: true
+  }
+
+  export type InvoicePaymentMaxAggregateInputType = {
+    id?: true
+    purchaseId?: true
+    amount?: true
+    paymentMethod?: true
+    chequeNo?: true
+    chequeBank?: true
+    chequeDate?: true
+    description?: true
+    paidAt?: true
+    receiptId?: true
+  }
+
+  export type InvoicePaymentCountAggregateInputType = {
+    id?: true
+    purchaseId?: true
+    amount?: true
+    paymentMethod?: true
+    chequeNo?: true
+    chequeBank?: true
+    chequeDate?: true
+    description?: true
+    paidAt?: true
+    receiptId?: true
+    _all?: true
+  }
+
+  export type InvoicePaymentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which InvoicePayment to aggregate.
+     */
+    where?: InvoicePaymentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InvoicePayments to fetch.
+     */
+    orderBy?: InvoicePaymentOrderByWithRelationInput | InvoicePaymentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: InvoicePaymentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InvoicePayments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InvoicePayments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned InvoicePayments
+    **/
+    _count?: true | InvoicePaymentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: InvoicePaymentAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: InvoicePaymentSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: InvoicePaymentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: InvoicePaymentMaxAggregateInputType
+  }
+
+  export type GetInvoicePaymentAggregateType<T extends InvoicePaymentAggregateArgs> = {
+        [P in keyof T & keyof AggregateInvoicePayment]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateInvoicePayment[P]>
+      : GetScalarType<T[P], AggregateInvoicePayment[P]>
+  }
+
+
+
+
+  export type InvoicePaymentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: InvoicePaymentWhereInput
+    orderBy?: InvoicePaymentOrderByWithAggregationInput | InvoicePaymentOrderByWithAggregationInput[]
+    by: InvoicePaymentScalarFieldEnum[] | InvoicePaymentScalarFieldEnum
+    having?: InvoicePaymentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: InvoicePaymentCountAggregateInputType | true
+    _avg?: InvoicePaymentAvgAggregateInputType
+    _sum?: InvoicePaymentSumAggregateInputType
+    _min?: InvoicePaymentMinAggregateInputType
+    _max?: InvoicePaymentMaxAggregateInputType
+  }
+
+  export type InvoicePaymentGroupByOutputType = {
+    id: number
+    purchaseId: number
+    amount: number
+    paymentMethod: $Enums.PaymentMethod
+    chequeNo: string | null
+    chequeBank: string | null
+    chequeDate: Date | null
+    description: string | null
+    paidAt: Date
+    receiptId: number | null
+    _count: InvoicePaymentCountAggregateOutputType | null
+    _avg: InvoicePaymentAvgAggregateOutputType | null
+    _sum: InvoicePaymentSumAggregateOutputType | null
+    _min: InvoicePaymentMinAggregateOutputType | null
+    _max: InvoicePaymentMaxAggregateOutputType | null
+  }
+
+  type GetInvoicePaymentGroupByPayload<T extends InvoicePaymentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<InvoicePaymentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof InvoicePaymentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], InvoicePaymentGroupByOutputType[P]>
+            : GetScalarType<T[P], InvoicePaymentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type InvoicePaymentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    purchaseId?: boolean
+    amount?: boolean
+    paymentMethod?: boolean
+    chequeNo?: boolean
+    chequeBank?: boolean
+    chequeDate?: boolean
+    description?: boolean
+    paidAt?: boolean
+    receiptId?: boolean
+    purchase?: boolean | PosCustomerPurchaseDefaultArgs<ExtArgs>
+    receipt?: boolean | InvoicePayment$receiptArgs<ExtArgs>
+  }, ExtArgs["result"]["invoicePayment"]>
+
+  export type InvoicePaymentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    purchaseId?: boolean
+    amount?: boolean
+    paymentMethod?: boolean
+    chequeNo?: boolean
+    chequeBank?: boolean
+    chequeDate?: boolean
+    description?: boolean
+    paidAt?: boolean
+    receiptId?: boolean
+    purchase?: boolean | PosCustomerPurchaseDefaultArgs<ExtArgs>
+    receipt?: boolean | InvoicePayment$receiptArgs<ExtArgs>
+  }, ExtArgs["result"]["invoicePayment"]>
+
+  export type InvoicePaymentSelectScalar = {
+    id?: boolean
+    purchaseId?: boolean
+    amount?: boolean
+    paymentMethod?: boolean
+    chequeNo?: boolean
+    chequeBank?: boolean
+    chequeDate?: boolean
+    description?: boolean
+    paidAt?: boolean
+    receiptId?: boolean
+  }
+
+  export type InvoicePaymentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    purchase?: boolean | PosCustomerPurchaseDefaultArgs<ExtArgs>
+    receipt?: boolean | InvoicePayment$receiptArgs<ExtArgs>
+  }
+  export type InvoicePaymentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    purchase?: boolean | PosCustomerPurchaseDefaultArgs<ExtArgs>
+    receipt?: boolean | InvoicePayment$receiptArgs<ExtArgs>
+  }
+
+  export type $InvoicePaymentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "InvoicePayment"
+    objects: {
+      purchase: Prisma.$PosCustomerPurchasePayload<ExtArgs>
+      receipt: Prisma.$AccountReceiptPayload<ExtArgs> | null
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      purchaseId: number
+      amount: number
+      paymentMethod: $Enums.PaymentMethod
+      chequeNo: string | null
+      chequeBank: string | null
+      chequeDate: Date | null
+      description: string | null
+      paidAt: Date
+      receiptId: number | null
+    }, ExtArgs["result"]["invoicePayment"]>
+    composites: {}
+  }
+
+  type InvoicePaymentGetPayload<S extends boolean | null | undefined | InvoicePaymentDefaultArgs> = $Result.GetResult<Prisma.$InvoicePaymentPayload, S>
+
+  type InvoicePaymentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<InvoicePaymentFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: InvoicePaymentCountAggregateInputType | true
+    }
+
+  export interface InvoicePaymentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['InvoicePayment'], meta: { name: 'InvoicePayment' } }
+    /**
+     * Find zero or one InvoicePayment that matches the filter.
+     * @param {InvoicePaymentFindUniqueArgs} args - Arguments to find a InvoicePayment
+     * @example
+     * // Get one InvoicePayment
+     * const invoicePayment = await prisma.invoicePayment.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends InvoicePaymentFindUniqueArgs>(args: SelectSubset<T, InvoicePaymentFindUniqueArgs<ExtArgs>>): Prisma__InvoicePaymentClient<$Result.GetResult<Prisma.$InvoicePaymentPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one InvoicePayment that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {InvoicePaymentFindUniqueOrThrowArgs} args - Arguments to find a InvoicePayment
+     * @example
+     * // Get one InvoicePayment
+     * const invoicePayment = await prisma.invoicePayment.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends InvoicePaymentFindUniqueOrThrowArgs>(args: SelectSubset<T, InvoicePaymentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__InvoicePaymentClient<$Result.GetResult<Prisma.$InvoicePaymentPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first InvoicePayment that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InvoicePaymentFindFirstArgs} args - Arguments to find a InvoicePayment
+     * @example
+     * // Get one InvoicePayment
+     * const invoicePayment = await prisma.invoicePayment.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends InvoicePaymentFindFirstArgs>(args?: SelectSubset<T, InvoicePaymentFindFirstArgs<ExtArgs>>): Prisma__InvoicePaymentClient<$Result.GetResult<Prisma.$InvoicePaymentPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first InvoicePayment that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InvoicePaymentFindFirstOrThrowArgs} args - Arguments to find a InvoicePayment
+     * @example
+     * // Get one InvoicePayment
+     * const invoicePayment = await prisma.invoicePayment.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends InvoicePaymentFindFirstOrThrowArgs>(args?: SelectSubset<T, InvoicePaymentFindFirstOrThrowArgs<ExtArgs>>): Prisma__InvoicePaymentClient<$Result.GetResult<Prisma.$InvoicePaymentPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more InvoicePayments that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InvoicePaymentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all InvoicePayments
+     * const invoicePayments = await prisma.invoicePayment.findMany()
+     * 
+     * // Get first 10 InvoicePayments
+     * const invoicePayments = await prisma.invoicePayment.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const invoicePaymentWithIdOnly = await prisma.invoicePayment.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends InvoicePaymentFindManyArgs>(args?: SelectSubset<T, InvoicePaymentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvoicePaymentPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a InvoicePayment.
+     * @param {InvoicePaymentCreateArgs} args - Arguments to create a InvoicePayment.
+     * @example
+     * // Create one InvoicePayment
+     * const InvoicePayment = await prisma.invoicePayment.create({
+     *   data: {
+     *     // ... data to create a InvoicePayment
+     *   }
+     * })
+     * 
+     */
+    create<T extends InvoicePaymentCreateArgs>(args: SelectSubset<T, InvoicePaymentCreateArgs<ExtArgs>>): Prisma__InvoicePaymentClient<$Result.GetResult<Prisma.$InvoicePaymentPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many InvoicePayments.
+     * @param {InvoicePaymentCreateManyArgs} args - Arguments to create many InvoicePayments.
+     * @example
+     * // Create many InvoicePayments
+     * const invoicePayment = await prisma.invoicePayment.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends InvoicePaymentCreateManyArgs>(args?: SelectSubset<T, InvoicePaymentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many InvoicePayments and returns the data saved in the database.
+     * @param {InvoicePaymentCreateManyAndReturnArgs} args - Arguments to create many InvoicePayments.
+     * @example
+     * // Create many InvoicePayments
+     * const invoicePayment = await prisma.invoicePayment.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many InvoicePayments and only return the `id`
+     * const invoicePaymentWithIdOnly = await prisma.invoicePayment.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends InvoicePaymentCreateManyAndReturnArgs>(args?: SelectSubset<T, InvoicePaymentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$InvoicePaymentPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a InvoicePayment.
+     * @param {InvoicePaymentDeleteArgs} args - Arguments to delete one InvoicePayment.
+     * @example
+     * // Delete one InvoicePayment
+     * const InvoicePayment = await prisma.invoicePayment.delete({
+     *   where: {
+     *     // ... filter to delete one InvoicePayment
+     *   }
+     * })
+     * 
+     */
+    delete<T extends InvoicePaymentDeleteArgs>(args: SelectSubset<T, InvoicePaymentDeleteArgs<ExtArgs>>): Prisma__InvoicePaymentClient<$Result.GetResult<Prisma.$InvoicePaymentPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one InvoicePayment.
+     * @param {InvoicePaymentUpdateArgs} args - Arguments to update one InvoicePayment.
+     * @example
+     * // Update one InvoicePayment
+     * const invoicePayment = await prisma.invoicePayment.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends InvoicePaymentUpdateArgs>(args: SelectSubset<T, InvoicePaymentUpdateArgs<ExtArgs>>): Prisma__InvoicePaymentClient<$Result.GetResult<Prisma.$InvoicePaymentPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more InvoicePayments.
+     * @param {InvoicePaymentDeleteManyArgs} args - Arguments to filter InvoicePayments to delete.
+     * @example
+     * // Delete a few InvoicePayments
+     * const { count } = await prisma.invoicePayment.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends InvoicePaymentDeleteManyArgs>(args?: SelectSubset<T, InvoicePaymentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more InvoicePayments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InvoicePaymentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many InvoicePayments
+     * const invoicePayment = await prisma.invoicePayment.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends InvoicePaymentUpdateManyArgs>(args: SelectSubset<T, InvoicePaymentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one InvoicePayment.
+     * @param {InvoicePaymentUpsertArgs} args - Arguments to update or create a InvoicePayment.
+     * @example
+     * // Update or create a InvoicePayment
+     * const invoicePayment = await prisma.invoicePayment.upsert({
+     *   create: {
+     *     // ... data to create a InvoicePayment
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the InvoicePayment we want to update
+     *   }
+     * })
+     */
+    upsert<T extends InvoicePaymentUpsertArgs>(args: SelectSubset<T, InvoicePaymentUpsertArgs<ExtArgs>>): Prisma__InvoicePaymentClient<$Result.GetResult<Prisma.$InvoicePaymentPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of InvoicePayments.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InvoicePaymentCountArgs} args - Arguments to filter InvoicePayments to count.
+     * @example
+     * // Count the number of InvoicePayments
+     * const count = await prisma.invoicePayment.count({
+     *   where: {
+     *     // ... the filter for the InvoicePayments we want to count
+     *   }
+     * })
+    **/
+    count<T extends InvoicePaymentCountArgs>(
+      args?: Subset<T, InvoicePaymentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], InvoicePaymentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a InvoicePayment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InvoicePaymentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends InvoicePaymentAggregateArgs>(args: Subset<T, InvoicePaymentAggregateArgs>): Prisma.PrismaPromise<GetInvoicePaymentAggregateType<T>>
+
+    /**
+     * Group by InvoicePayment.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {InvoicePaymentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends InvoicePaymentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: InvoicePaymentGroupByArgs['orderBy'] }
+        : { orderBy?: InvoicePaymentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, InvoicePaymentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetInvoicePaymentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the InvoicePayment model
+   */
+  readonly fields: InvoicePaymentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for InvoicePayment.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__InvoicePaymentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    purchase<T extends PosCustomerPurchaseDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchaseDefaultArgs<ExtArgs>>): Prisma__PosCustomerPurchaseClient<$Result.GetResult<Prisma.$PosCustomerPurchasePayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    receipt<T extends InvoicePayment$receiptArgs<ExtArgs> = {}>(args?: Subset<T, InvoicePayment$receiptArgs<ExtArgs>>): Prisma__AccountReceiptClient<$Result.GetResult<Prisma.$AccountReceiptPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the InvoicePayment model
+   */ 
+  interface InvoicePaymentFieldRefs {
+    readonly id: FieldRef<"InvoicePayment", 'Int'>
+    readonly purchaseId: FieldRef<"InvoicePayment", 'Int'>
+    readonly amount: FieldRef<"InvoicePayment", 'Float'>
+    readonly paymentMethod: FieldRef<"InvoicePayment", 'PaymentMethod'>
+    readonly chequeNo: FieldRef<"InvoicePayment", 'String'>
+    readonly chequeBank: FieldRef<"InvoicePayment", 'String'>
+    readonly chequeDate: FieldRef<"InvoicePayment", 'DateTime'>
+    readonly description: FieldRef<"InvoicePayment", 'String'>
+    readonly paidAt: FieldRef<"InvoicePayment", 'DateTime'>
+    readonly receiptId: FieldRef<"InvoicePayment", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * InvoicePayment findUnique
+   */
+  export type InvoicePaymentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InvoicePayment
+     */
+    select?: InvoicePaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvoicePaymentInclude<ExtArgs> | null
+    /**
+     * Filter, which InvoicePayment to fetch.
+     */
+    where: InvoicePaymentWhereUniqueInput
+  }
+
+  /**
+   * InvoicePayment findUniqueOrThrow
+   */
+  export type InvoicePaymentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InvoicePayment
+     */
+    select?: InvoicePaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvoicePaymentInclude<ExtArgs> | null
+    /**
+     * Filter, which InvoicePayment to fetch.
+     */
+    where: InvoicePaymentWhereUniqueInput
+  }
+
+  /**
+   * InvoicePayment findFirst
+   */
+  export type InvoicePaymentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InvoicePayment
+     */
+    select?: InvoicePaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvoicePaymentInclude<ExtArgs> | null
+    /**
+     * Filter, which InvoicePayment to fetch.
+     */
+    where?: InvoicePaymentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InvoicePayments to fetch.
+     */
+    orderBy?: InvoicePaymentOrderByWithRelationInput | InvoicePaymentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for InvoicePayments.
+     */
+    cursor?: InvoicePaymentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InvoicePayments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InvoicePayments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InvoicePayments.
+     */
+    distinct?: InvoicePaymentScalarFieldEnum | InvoicePaymentScalarFieldEnum[]
+  }
+
+  /**
+   * InvoicePayment findFirstOrThrow
+   */
+  export type InvoicePaymentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InvoicePayment
+     */
+    select?: InvoicePaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvoicePaymentInclude<ExtArgs> | null
+    /**
+     * Filter, which InvoicePayment to fetch.
+     */
+    where?: InvoicePaymentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InvoicePayments to fetch.
+     */
+    orderBy?: InvoicePaymentOrderByWithRelationInput | InvoicePaymentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for InvoicePayments.
+     */
+    cursor?: InvoicePaymentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InvoicePayments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InvoicePayments.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of InvoicePayments.
+     */
+    distinct?: InvoicePaymentScalarFieldEnum | InvoicePaymentScalarFieldEnum[]
+  }
+
+  /**
+   * InvoicePayment findMany
+   */
+  export type InvoicePaymentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InvoicePayment
+     */
+    select?: InvoicePaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvoicePaymentInclude<ExtArgs> | null
+    /**
+     * Filter, which InvoicePayments to fetch.
+     */
+    where?: InvoicePaymentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of InvoicePayments to fetch.
+     */
+    orderBy?: InvoicePaymentOrderByWithRelationInput | InvoicePaymentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing InvoicePayments.
+     */
+    cursor?: InvoicePaymentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` InvoicePayments from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` InvoicePayments.
+     */
+    skip?: number
+    distinct?: InvoicePaymentScalarFieldEnum | InvoicePaymentScalarFieldEnum[]
+  }
+
+  /**
+   * InvoicePayment create
+   */
+  export type InvoicePaymentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InvoicePayment
+     */
+    select?: InvoicePaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvoicePaymentInclude<ExtArgs> | null
+    /**
+     * The data needed to create a InvoicePayment.
+     */
+    data: XOR<InvoicePaymentCreateInput, InvoicePaymentUncheckedCreateInput>
+  }
+
+  /**
+   * InvoicePayment createMany
+   */
+  export type InvoicePaymentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many InvoicePayments.
+     */
+    data: InvoicePaymentCreateManyInput | InvoicePaymentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * InvoicePayment createManyAndReturn
+   */
+  export type InvoicePaymentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InvoicePayment
+     */
+    select?: InvoicePaymentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many InvoicePayments.
+     */
+    data: InvoicePaymentCreateManyInput | InvoicePaymentCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvoicePaymentIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * InvoicePayment update
+   */
+  export type InvoicePaymentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InvoicePayment
+     */
+    select?: InvoicePaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvoicePaymentInclude<ExtArgs> | null
+    /**
+     * The data needed to update a InvoicePayment.
+     */
+    data: XOR<InvoicePaymentUpdateInput, InvoicePaymentUncheckedUpdateInput>
+    /**
+     * Choose, which InvoicePayment to update.
+     */
+    where: InvoicePaymentWhereUniqueInput
+  }
+
+  /**
+   * InvoicePayment updateMany
+   */
+  export type InvoicePaymentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update InvoicePayments.
+     */
+    data: XOR<InvoicePaymentUpdateManyMutationInput, InvoicePaymentUncheckedUpdateManyInput>
+    /**
+     * Filter which InvoicePayments to update
+     */
+    where?: InvoicePaymentWhereInput
+  }
+
+  /**
+   * InvoicePayment upsert
+   */
+  export type InvoicePaymentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InvoicePayment
+     */
+    select?: InvoicePaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvoicePaymentInclude<ExtArgs> | null
+    /**
+     * The filter to search for the InvoicePayment to update in case it exists.
+     */
+    where: InvoicePaymentWhereUniqueInput
+    /**
+     * In case the InvoicePayment found by the `where` argument doesn't exist, create a new InvoicePayment with this data.
+     */
+    create: XOR<InvoicePaymentCreateInput, InvoicePaymentUncheckedCreateInput>
+    /**
+     * In case the InvoicePayment was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<InvoicePaymentUpdateInput, InvoicePaymentUncheckedUpdateInput>
+  }
+
+  /**
+   * InvoicePayment delete
+   */
+  export type InvoicePaymentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InvoicePayment
+     */
+    select?: InvoicePaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvoicePaymentInclude<ExtArgs> | null
+    /**
+     * Filter which InvoicePayment to delete.
+     */
+    where: InvoicePaymentWhereUniqueInput
+  }
+
+  /**
+   * InvoicePayment deleteMany
+   */
+  export type InvoicePaymentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which InvoicePayments to delete
+     */
+    where?: InvoicePaymentWhereInput
+  }
+
+  /**
+   * InvoicePayment.receipt
+   */
+  export type InvoicePayment$receiptArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountReceipt
+     */
+    select?: AccountReceiptSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountReceiptInclude<ExtArgs> | null
+    where?: AccountReceiptWhereInput
+  }
+
+  /**
+   * InvoicePayment without action
+   */
+  export type InvoicePaymentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the InvoicePayment
+     */
+    select?: InvoicePaymentSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: InvoicePaymentInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AccountDeposit
+   */
+
+  export type AggregateAccountDeposit = {
+    _count: AccountDepositCountAggregateOutputType | null
+    _avg: AccountDepositAvgAggregateOutputType | null
+    _sum: AccountDepositSumAggregateOutputType | null
+    _min: AccountDepositMinAggregateOutputType | null
+    _max: AccountDepositMaxAggregateOutputType | null
+  }
+
+  export type AccountDepositAvgAggregateOutputType = {
+    id: number | null
+    accountId: number | null
+    totalAmount: number | null
+    createdById: number | null
+  }
+
+  export type AccountDepositSumAggregateOutputType = {
+    id: number | null
+    accountId: number | null
+    totalAmount: number | null
+    createdById: number | null
+  }
+
+  export type AccountDepositMinAggregateOutputType = {
+    id: number | null
+    depositNo: string | null
+    accountId: number | null
+    totalAmount: number | null
+    notes: string | null
+    isReversed: boolean | null
+    reversedAt: Date | null
+    createdById: number | null
+    createdAt: Date | null
+  }
+
+  export type AccountDepositMaxAggregateOutputType = {
+    id: number | null
+    depositNo: string | null
+    accountId: number | null
+    totalAmount: number | null
+    notes: string | null
+    isReversed: boolean | null
+    reversedAt: Date | null
+    createdById: number | null
+    createdAt: Date | null
+  }
+
+  export type AccountDepositCountAggregateOutputType = {
+    id: number
+    depositNo: number
+    accountId: number
+    totalAmount: number
+    notes: number
+    isReversed: number
+    reversedAt: number
+    createdById: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type AccountDepositAvgAggregateInputType = {
+    id?: true
+    accountId?: true
+    totalAmount?: true
+    createdById?: true
+  }
+
+  export type AccountDepositSumAggregateInputType = {
+    id?: true
+    accountId?: true
+    totalAmount?: true
+    createdById?: true
+  }
+
+  export type AccountDepositMinAggregateInputType = {
+    id?: true
+    depositNo?: true
+    accountId?: true
+    totalAmount?: true
+    notes?: true
+    isReversed?: true
+    reversedAt?: true
+    createdById?: true
+    createdAt?: true
+  }
+
+  export type AccountDepositMaxAggregateInputType = {
+    id?: true
+    depositNo?: true
+    accountId?: true
+    totalAmount?: true
+    notes?: true
+    isReversed?: true
+    reversedAt?: true
+    createdById?: true
+    createdAt?: true
+  }
+
+  export type AccountDepositCountAggregateInputType = {
+    id?: true
+    depositNo?: true
+    accountId?: true
+    totalAmount?: true
+    notes?: true
+    isReversed?: true
+    reversedAt?: true
+    createdById?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type AccountDepositAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AccountDeposit to aggregate.
+     */
+    where?: AccountDepositWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountDeposits to fetch.
+     */
+    orderBy?: AccountDepositOrderByWithRelationInput | AccountDepositOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AccountDepositWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountDeposits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountDeposits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AccountDeposits
+    **/
+    _count?: true | AccountDepositCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AccountDepositAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AccountDepositSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AccountDepositMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AccountDepositMaxAggregateInputType
+  }
+
+  export type GetAccountDepositAggregateType<T extends AccountDepositAggregateArgs> = {
+        [P in keyof T & keyof AggregateAccountDeposit]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAccountDeposit[P]>
+      : GetScalarType<T[P], AggregateAccountDeposit[P]>
+  }
+
+
+
+
+  export type AccountDepositGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AccountDepositWhereInput
+    orderBy?: AccountDepositOrderByWithAggregationInput | AccountDepositOrderByWithAggregationInput[]
+    by: AccountDepositScalarFieldEnum[] | AccountDepositScalarFieldEnum
+    having?: AccountDepositScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AccountDepositCountAggregateInputType | true
+    _avg?: AccountDepositAvgAggregateInputType
+    _sum?: AccountDepositSumAggregateInputType
+    _min?: AccountDepositMinAggregateInputType
+    _max?: AccountDepositMaxAggregateInputType
+  }
+
+  export type AccountDepositGroupByOutputType = {
+    id: number
+    depositNo: string
+    accountId: number
+    totalAmount: number
+    notes: string | null
+    isReversed: boolean
+    reversedAt: Date | null
+    createdById: number
+    createdAt: Date
+    _count: AccountDepositCountAggregateOutputType | null
+    _avg: AccountDepositAvgAggregateOutputType | null
+    _sum: AccountDepositSumAggregateOutputType | null
+    _min: AccountDepositMinAggregateOutputType | null
+    _max: AccountDepositMaxAggregateOutputType | null
+  }
+
+  type GetAccountDepositGroupByPayload<T extends AccountDepositGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AccountDepositGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AccountDepositGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AccountDepositGroupByOutputType[P]>
+            : GetScalarType<T[P], AccountDepositGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AccountDepositSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    depositNo?: boolean
+    accountId?: boolean
+    totalAmount?: boolean
+    notes?: boolean
+    isReversed?: boolean
+    reversedAt?: boolean
+    createdById?: boolean
+    createdAt?: boolean
+    account?: boolean | AccountDefaultArgs<ExtArgs>
+    items?: boolean | AccountDeposit$itemsArgs<ExtArgs>
+    transactions?: boolean | AccountDeposit$transactionsArgs<ExtArgs>
+    _count?: boolean | AccountDepositCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["accountDeposit"]>
+
+  export type AccountDepositSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    depositNo?: boolean
+    accountId?: boolean
+    totalAmount?: boolean
+    notes?: boolean
+    isReversed?: boolean
+    reversedAt?: boolean
+    createdById?: boolean
+    createdAt?: boolean
+    account?: boolean | AccountDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["accountDeposit"]>
+
+  export type AccountDepositSelectScalar = {
+    id?: boolean
+    depositNo?: boolean
+    accountId?: boolean
+    totalAmount?: boolean
+    notes?: boolean
+    isReversed?: boolean
+    reversedAt?: boolean
+    createdById?: boolean
+    createdAt?: boolean
+  }
+
+  export type AccountDepositInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    account?: boolean | AccountDefaultArgs<ExtArgs>
+    items?: boolean | AccountDeposit$itemsArgs<ExtArgs>
+    transactions?: boolean | AccountDeposit$transactionsArgs<ExtArgs>
+    _count?: boolean | AccountDepositCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type AccountDepositIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    account?: boolean | AccountDefaultArgs<ExtArgs>
+  }
+
+  export type $AccountDepositPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AccountDeposit"
+    objects: {
+      account: Prisma.$AccountPayload<ExtArgs>
+      items: Prisma.$AccountDepositItemPayload<ExtArgs>[]
+      transactions: Prisma.$AccountTransactionPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      depositNo: string
+      accountId: number
+      totalAmount: number
+      notes: string | null
+      isReversed: boolean
+      reversedAt: Date | null
+      createdById: number
+      createdAt: Date
+    }, ExtArgs["result"]["accountDeposit"]>
+    composites: {}
+  }
+
+  type AccountDepositGetPayload<S extends boolean | null | undefined | AccountDepositDefaultArgs> = $Result.GetResult<Prisma.$AccountDepositPayload, S>
+
+  type AccountDepositCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<AccountDepositFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: AccountDepositCountAggregateInputType | true
+    }
+
+  export interface AccountDepositDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AccountDeposit'], meta: { name: 'AccountDeposit' } }
+    /**
+     * Find zero or one AccountDeposit that matches the filter.
+     * @param {AccountDepositFindUniqueArgs} args - Arguments to find a AccountDeposit
+     * @example
+     * // Get one AccountDeposit
+     * const accountDeposit = await prisma.accountDeposit.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AccountDepositFindUniqueArgs>(args: SelectSubset<T, AccountDepositFindUniqueArgs<ExtArgs>>): Prisma__AccountDepositClient<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one AccountDeposit that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {AccountDepositFindUniqueOrThrowArgs} args - Arguments to find a AccountDeposit
+     * @example
+     * // Get one AccountDeposit
+     * const accountDeposit = await prisma.accountDeposit.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AccountDepositFindUniqueOrThrowArgs>(args: SelectSubset<T, AccountDepositFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AccountDepositClient<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first AccountDeposit that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountDepositFindFirstArgs} args - Arguments to find a AccountDeposit
+     * @example
+     * // Get one AccountDeposit
+     * const accountDeposit = await prisma.accountDeposit.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AccountDepositFindFirstArgs>(args?: SelectSubset<T, AccountDepositFindFirstArgs<ExtArgs>>): Prisma__AccountDepositClient<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first AccountDeposit that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountDepositFindFirstOrThrowArgs} args - Arguments to find a AccountDeposit
+     * @example
+     * // Get one AccountDeposit
+     * const accountDeposit = await prisma.accountDeposit.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AccountDepositFindFirstOrThrowArgs>(args?: SelectSubset<T, AccountDepositFindFirstOrThrowArgs<ExtArgs>>): Prisma__AccountDepositClient<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more AccountDeposits that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountDepositFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AccountDeposits
+     * const accountDeposits = await prisma.accountDeposit.findMany()
+     * 
+     * // Get first 10 AccountDeposits
+     * const accountDeposits = await prisma.accountDeposit.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const accountDepositWithIdOnly = await prisma.accountDeposit.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AccountDepositFindManyArgs>(args?: SelectSubset<T, AccountDepositFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a AccountDeposit.
+     * @param {AccountDepositCreateArgs} args - Arguments to create a AccountDeposit.
+     * @example
+     * // Create one AccountDeposit
+     * const AccountDeposit = await prisma.accountDeposit.create({
+     *   data: {
+     *     // ... data to create a AccountDeposit
+     *   }
+     * })
+     * 
+     */
+    create<T extends AccountDepositCreateArgs>(args: SelectSubset<T, AccountDepositCreateArgs<ExtArgs>>): Prisma__AccountDepositClient<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many AccountDeposits.
+     * @param {AccountDepositCreateManyArgs} args - Arguments to create many AccountDeposits.
+     * @example
+     * // Create many AccountDeposits
+     * const accountDeposit = await prisma.accountDeposit.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AccountDepositCreateManyArgs>(args?: SelectSubset<T, AccountDepositCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AccountDeposits and returns the data saved in the database.
+     * @param {AccountDepositCreateManyAndReturnArgs} args - Arguments to create many AccountDeposits.
+     * @example
+     * // Create many AccountDeposits
+     * const accountDeposit = await prisma.accountDeposit.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AccountDeposits and only return the `id`
+     * const accountDepositWithIdOnly = await prisma.accountDeposit.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AccountDepositCreateManyAndReturnArgs>(args?: SelectSubset<T, AccountDepositCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a AccountDeposit.
+     * @param {AccountDepositDeleteArgs} args - Arguments to delete one AccountDeposit.
+     * @example
+     * // Delete one AccountDeposit
+     * const AccountDeposit = await prisma.accountDeposit.delete({
+     *   where: {
+     *     // ... filter to delete one AccountDeposit
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AccountDepositDeleteArgs>(args: SelectSubset<T, AccountDepositDeleteArgs<ExtArgs>>): Prisma__AccountDepositClient<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one AccountDeposit.
+     * @param {AccountDepositUpdateArgs} args - Arguments to update one AccountDeposit.
+     * @example
+     * // Update one AccountDeposit
+     * const accountDeposit = await prisma.accountDeposit.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AccountDepositUpdateArgs>(args: SelectSubset<T, AccountDepositUpdateArgs<ExtArgs>>): Prisma__AccountDepositClient<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more AccountDeposits.
+     * @param {AccountDepositDeleteManyArgs} args - Arguments to filter AccountDeposits to delete.
+     * @example
+     * // Delete a few AccountDeposits
+     * const { count } = await prisma.accountDeposit.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AccountDepositDeleteManyArgs>(args?: SelectSubset<T, AccountDepositDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AccountDeposits.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountDepositUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AccountDeposits
+     * const accountDeposit = await prisma.accountDeposit.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AccountDepositUpdateManyArgs>(args: SelectSubset<T, AccountDepositUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one AccountDeposit.
+     * @param {AccountDepositUpsertArgs} args - Arguments to update or create a AccountDeposit.
+     * @example
+     * // Update or create a AccountDeposit
+     * const accountDeposit = await prisma.accountDeposit.upsert({
+     *   create: {
+     *     // ... data to create a AccountDeposit
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AccountDeposit we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AccountDepositUpsertArgs>(args: SelectSubset<T, AccountDepositUpsertArgs<ExtArgs>>): Prisma__AccountDepositClient<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of AccountDeposits.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountDepositCountArgs} args - Arguments to filter AccountDeposits to count.
+     * @example
+     * // Count the number of AccountDeposits
+     * const count = await prisma.accountDeposit.count({
+     *   where: {
+     *     // ... the filter for the AccountDeposits we want to count
+     *   }
+     * })
+    **/
+    count<T extends AccountDepositCountArgs>(
+      args?: Subset<T, AccountDepositCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AccountDepositCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AccountDeposit.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountDepositAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AccountDepositAggregateArgs>(args: Subset<T, AccountDepositAggregateArgs>): Prisma.PrismaPromise<GetAccountDepositAggregateType<T>>
+
+    /**
+     * Group by AccountDeposit.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountDepositGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AccountDepositGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AccountDepositGroupByArgs['orderBy'] }
+        : { orderBy?: AccountDepositGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AccountDepositGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAccountDepositGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AccountDeposit model
+   */
+  readonly fields: AccountDepositFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AccountDeposit.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AccountDepositClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    account<T extends AccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AccountDefaultArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    items<T extends AccountDeposit$itemsArgs<ExtArgs> = {}>(args?: Subset<T, AccountDeposit$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountDepositItemPayload<ExtArgs>, T, "findMany"> | Null>
+    transactions<T extends AccountDeposit$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, AccountDeposit$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountTransactionPayload<ExtArgs>, T, "findMany"> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AccountDeposit model
+   */ 
+  interface AccountDepositFieldRefs {
+    readonly id: FieldRef<"AccountDeposit", 'Int'>
+    readonly depositNo: FieldRef<"AccountDeposit", 'String'>
+    readonly accountId: FieldRef<"AccountDeposit", 'Int'>
+    readonly totalAmount: FieldRef<"AccountDeposit", 'Float'>
+    readonly notes: FieldRef<"AccountDeposit", 'String'>
+    readonly isReversed: FieldRef<"AccountDeposit", 'Boolean'>
+    readonly reversedAt: FieldRef<"AccountDeposit", 'DateTime'>
+    readonly createdById: FieldRef<"AccountDeposit", 'Int'>
+    readonly createdAt: FieldRef<"AccountDeposit", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AccountDeposit findUnique
+   */
+  export type AccountDepositFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDeposit
+     */
+    select?: AccountDepositSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountDeposit to fetch.
+     */
+    where: AccountDepositWhereUniqueInput
+  }
+
+  /**
+   * AccountDeposit findUniqueOrThrow
+   */
+  export type AccountDepositFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDeposit
+     */
+    select?: AccountDepositSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountDeposit to fetch.
+     */
+    where: AccountDepositWhereUniqueInput
+  }
+
+  /**
+   * AccountDeposit findFirst
+   */
+  export type AccountDepositFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDeposit
+     */
+    select?: AccountDepositSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountDeposit to fetch.
+     */
+    where?: AccountDepositWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountDeposits to fetch.
+     */
+    orderBy?: AccountDepositOrderByWithRelationInput | AccountDepositOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AccountDeposits.
+     */
+    cursor?: AccountDepositWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountDeposits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountDeposits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AccountDeposits.
+     */
+    distinct?: AccountDepositScalarFieldEnum | AccountDepositScalarFieldEnum[]
+  }
+
+  /**
+   * AccountDeposit findFirstOrThrow
+   */
+  export type AccountDepositFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDeposit
+     */
+    select?: AccountDepositSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountDeposit to fetch.
+     */
+    where?: AccountDepositWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountDeposits to fetch.
+     */
+    orderBy?: AccountDepositOrderByWithRelationInput | AccountDepositOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AccountDeposits.
+     */
+    cursor?: AccountDepositWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountDeposits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountDeposits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AccountDeposits.
+     */
+    distinct?: AccountDepositScalarFieldEnum | AccountDepositScalarFieldEnum[]
+  }
+
+  /**
+   * AccountDeposit findMany
+   */
+  export type AccountDepositFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDeposit
+     */
+    select?: AccountDepositSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountDeposits to fetch.
+     */
+    where?: AccountDepositWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountDeposits to fetch.
+     */
+    orderBy?: AccountDepositOrderByWithRelationInput | AccountDepositOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AccountDeposits.
+     */
+    cursor?: AccountDepositWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountDeposits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountDeposits.
+     */
+    skip?: number
+    distinct?: AccountDepositScalarFieldEnum | AccountDepositScalarFieldEnum[]
+  }
+
+  /**
+   * AccountDeposit create
+   */
+  export type AccountDepositCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDeposit
+     */
+    select?: AccountDepositSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AccountDeposit.
+     */
+    data: XOR<AccountDepositCreateInput, AccountDepositUncheckedCreateInput>
+  }
+
+  /**
+   * AccountDeposit createMany
+   */
+  export type AccountDepositCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AccountDeposits.
+     */
+    data: AccountDepositCreateManyInput | AccountDepositCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AccountDeposit createManyAndReturn
+   */
+  export type AccountDepositCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDeposit
+     */
+    select?: AccountDepositSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many AccountDeposits.
+     */
+    data: AccountDepositCreateManyInput | AccountDepositCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AccountDeposit update
+   */
+  export type AccountDepositUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDeposit
+     */
+    select?: AccountDepositSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AccountDeposit.
+     */
+    data: XOR<AccountDepositUpdateInput, AccountDepositUncheckedUpdateInput>
+    /**
+     * Choose, which AccountDeposit to update.
+     */
+    where: AccountDepositWhereUniqueInput
+  }
+
+  /**
+   * AccountDeposit updateMany
+   */
+  export type AccountDepositUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AccountDeposits.
+     */
+    data: XOR<AccountDepositUpdateManyMutationInput, AccountDepositUncheckedUpdateManyInput>
+    /**
+     * Filter which AccountDeposits to update
+     */
+    where?: AccountDepositWhereInput
+  }
+
+  /**
+   * AccountDeposit upsert
+   */
+  export type AccountDepositUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDeposit
+     */
+    select?: AccountDepositSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AccountDeposit to update in case it exists.
+     */
+    where: AccountDepositWhereUniqueInput
+    /**
+     * In case the AccountDeposit found by the `where` argument doesn't exist, create a new AccountDeposit with this data.
+     */
+    create: XOR<AccountDepositCreateInput, AccountDepositUncheckedCreateInput>
+    /**
+     * In case the AccountDeposit was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AccountDepositUpdateInput, AccountDepositUncheckedUpdateInput>
+  }
+
+  /**
+   * AccountDeposit delete
+   */
+  export type AccountDepositDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDeposit
+     */
+    select?: AccountDepositSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositInclude<ExtArgs> | null
+    /**
+     * Filter which AccountDeposit to delete.
+     */
+    where: AccountDepositWhereUniqueInput
+  }
+
+  /**
+   * AccountDeposit deleteMany
+   */
+  export type AccountDepositDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AccountDeposits to delete
+     */
+    where?: AccountDepositWhereInput
+  }
+
+  /**
+   * AccountDeposit.items
+   */
+  export type AccountDeposit$itemsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDepositItem
+     */
+    select?: AccountDepositItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositItemInclude<ExtArgs> | null
+    where?: AccountDepositItemWhereInput
+    orderBy?: AccountDepositItemOrderByWithRelationInput | AccountDepositItemOrderByWithRelationInput[]
+    cursor?: AccountDepositItemWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AccountDepositItemScalarFieldEnum | AccountDepositItemScalarFieldEnum[]
+  }
+
+  /**
+   * AccountDeposit.transactions
+   */
+  export type AccountDeposit$transactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountTransaction
+     */
+    select?: AccountTransactionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountTransactionInclude<ExtArgs> | null
+    where?: AccountTransactionWhereInput
+    orderBy?: AccountTransactionOrderByWithRelationInput | AccountTransactionOrderByWithRelationInput[]
+    cursor?: AccountTransactionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AccountTransactionScalarFieldEnum | AccountTransactionScalarFieldEnum[]
+  }
+
+  /**
+   * AccountDeposit without action
+   */
+  export type AccountDepositDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDeposit
+     */
+    select?: AccountDepositSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AccountDepositItem
+   */
+
+  export type AggregateAccountDepositItem = {
+    _count: AccountDepositItemCountAggregateOutputType | null
+    _avg: AccountDepositItemAvgAggregateOutputType | null
+    _sum: AccountDepositItemSumAggregateOutputType | null
+    _min: AccountDepositItemMinAggregateOutputType | null
+    _max: AccountDepositItemMaxAggregateOutputType | null
+  }
+
+  export type AccountDepositItemAvgAggregateOutputType = {
+    id: number | null
+    depositId: number | null
+    receiptId: number | null
+    amount: number | null
+  }
+
+  export type AccountDepositItemSumAggregateOutputType = {
+    id: number | null
+    depositId: number | null
+    receiptId: number | null
+    amount: number | null
+  }
+
+  export type AccountDepositItemMinAggregateOutputType = {
+    id: number | null
+    depositId: number | null
+    receiptId: number | null
+    amount: number | null
+  }
+
+  export type AccountDepositItemMaxAggregateOutputType = {
+    id: number | null
+    depositId: number | null
+    receiptId: number | null
+    amount: number | null
+  }
+
+  export type AccountDepositItemCountAggregateOutputType = {
+    id: number
+    depositId: number
+    receiptId: number
+    amount: number
+    _all: number
+  }
+
+
+  export type AccountDepositItemAvgAggregateInputType = {
+    id?: true
+    depositId?: true
+    receiptId?: true
+    amount?: true
+  }
+
+  export type AccountDepositItemSumAggregateInputType = {
+    id?: true
+    depositId?: true
+    receiptId?: true
+    amount?: true
+  }
+
+  export type AccountDepositItemMinAggregateInputType = {
+    id?: true
+    depositId?: true
+    receiptId?: true
+    amount?: true
+  }
+
+  export type AccountDepositItemMaxAggregateInputType = {
+    id?: true
+    depositId?: true
+    receiptId?: true
+    amount?: true
+  }
+
+  export type AccountDepositItemCountAggregateInputType = {
+    id?: true
+    depositId?: true
+    receiptId?: true
+    amount?: true
+    _all?: true
+  }
+
+  export type AccountDepositItemAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AccountDepositItem to aggregate.
+     */
+    where?: AccountDepositItemWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountDepositItems to fetch.
+     */
+    orderBy?: AccountDepositItemOrderByWithRelationInput | AccountDepositItemOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AccountDepositItemWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountDepositItems from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountDepositItems.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AccountDepositItems
+    **/
+    _count?: true | AccountDepositItemCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AccountDepositItemAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AccountDepositItemSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AccountDepositItemMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AccountDepositItemMaxAggregateInputType
+  }
+
+  export type GetAccountDepositItemAggregateType<T extends AccountDepositItemAggregateArgs> = {
+        [P in keyof T & keyof AggregateAccountDepositItem]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAccountDepositItem[P]>
+      : GetScalarType<T[P], AggregateAccountDepositItem[P]>
+  }
+
+
+
+
+  export type AccountDepositItemGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AccountDepositItemWhereInput
+    orderBy?: AccountDepositItemOrderByWithAggregationInput | AccountDepositItemOrderByWithAggregationInput[]
+    by: AccountDepositItemScalarFieldEnum[] | AccountDepositItemScalarFieldEnum
+    having?: AccountDepositItemScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AccountDepositItemCountAggregateInputType | true
+    _avg?: AccountDepositItemAvgAggregateInputType
+    _sum?: AccountDepositItemSumAggregateInputType
+    _min?: AccountDepositItemMinAggregateInputType
+    _max?: AccountDepositItemMaxAggregateInputType
+  }
+
+  export type AccountDepositItemGroupByOutputType = {
+    id: number
+    depositId: number
+    receiptId: number
+    amount: number
+    _count: AccountDepositItemCountAggregateOutputType | null
+    _avg: AccountDepositItemAvgAggregateOutputType | null
+    _sum: AccountDepositItemSumAggregateOutputType | null
+    _min: AccountDepositItemMinAggregateOutputType | null
+    _max: AccountDepositItemMaxAggregateOutputType | null
+  }
+
+  type GetAccountDepositItemGroupByPayload<T extends AccountDepositItemGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AccountDepositItemGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AccountDepositItemGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AccountDepositItemGroupByOutputType[P]>
+            : GetScalarType<T[P], AccountDepositItemGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AccountDepositItemSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    depositId?: boolean
+    receiptId?: boolean
+    amount?: boolean
+    deposit?: boolean | AccountDepositDefaultArgs<ExtArgs>
+    receipt?: boolean | AccountReceiptDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["accountDepositItem"]>
+
+  export type AccountDepositItemSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    depositId?: boolean
+    receiptId?: boolean
+    amount?: boolean
+    deposit?: boolean | AccountDepositDefaultArgs<ExtArgs>
+    receipt?: boolean | AccountReceiptDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["accountDepositItem"]>
+
+  export type AccountDepositItemSelectScalar = {
+    id?: boolean
+    depositId?: boolean
+    receiptId?: boolean
+    amount?: boolean
+  }
+
+  export type AccountDepositItemInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    deposit?: boolean | AccountDepositDefaultArgs<ExtArgs>
+    receipt?: boolean | AccountReceiptDefaultArgs<ExtArgs>
+  }
+  export type AccountDepositItemIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    deposit?: boolean | AccountDepositDefaultArgs<ExtArgs>
+    receipt?: boolean | AccountReceiptDefaultArgs<ExtArgs>
+  }
+
+  export type $AccountDepositItemPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AccountDepositItem"
+    objects: {
+      deposit: Prisma.$AccountDepositPayload<ExtArgs>
+      receipt: Prisma.$AccountReceiptPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: number
+      depositId: number
+      receiptId: number
+      amount: number
+    }, ExtArgs["result"]["accountDepositItem"]>
+    composites: {}
+  }
+
+  type AccountDepositItemGetPayload<S extends boolean | null | undefined | AccountDepositItemDefaultArgs> = $Result.GetResult<Prisma.$AccountDepositItemPayload, S>
+
+  type AccountDepositItemCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<AccountDepositItemFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: AccountDepositItemCountAggregateInputType | true
+    }
+
+  export interface AccountDepositItemDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AccountDepositItem'], meta: { name: 'AccountDepositItem' } }
+    /**
+     * Find zero or one AccountDepositItem that matches the filter.
+     * @param {AccountDepositItemFindUniqueArgs} args - Arguments to find a AccountDepositItem
+     * @example
+     * // Get one AccountDepositItem
+     * const accountDepositItem = await prisma.accountDepositItem.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AccountDepositItemFindUniqueArgs>(args: SelectSubset<T, AccountDepositItemFindUniqueArgs<ExtArgs>>): Prisma__AccountDepositItemClient<$Result.GetResult<Prisma.$AccountDepositItemPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one AccountDepositItem that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {AccountDepositItemFindUniqueOrThrowArgs} args - Arguments to find a AccountDepositItem
+     * @example
+     * // Get one AccountDepositItem
+     * const accountDepositItem = await prisma.accountDepositItem.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AccountDepositItemFindUniqueOrThrowArgs>(args: SelectSubset<T, AccountDepositItemFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AccountDepositItemClient<$Result.GetResult<Prisma.$AccountDepositItemPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first AccountDepositItem that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountDepositItemFindFirstArgs} args - Arguments to find a AccountDepositItem
+     * @example
+     * // Get one AccountDepositItem
+     * const accountDepositItem = await prisma.accountDepositItem.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AccountDepositItemFindFirstArgs>(args?: SelectSubset<T, AccountDepositItemFindFirstArgs<ExtArgs>>): Prisma__AccountDepositItemClient<$Result.GetResult<Prisma.$AccountDepositItemPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first AccountDepositItem that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountDepositItemFindFirstOrThrowArgs} args - Arguments to find a AccountDepositItem
+     * @example
+     * // Get one AccountDepositItem
+     * const accountDepositItem = await prisma.accountDepositItem.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AccountDepositItemFindFirstOrThrowArgs>(args?: SelectSubset<T, AccountDepositItemFindFirstOrThrowArgs<ExtArgs>>): Prisma__AccountDepositItemClient<$Result.GetResult<Prisma.$AccountDepositItemPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more AccountDepositItems that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountDepositItemFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AccountDepositItems
+     * const accountDepositItems = await prisma.accountDepositItem.findMany()
+     * 
+     * // Get first 10 AccountDepositItems
+     * const accountDepositItems = await prisma.accountDepositItem.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const accountDepositItemWithIdOnly = await prisma.accountDepositItem.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AccountDepositItemFindManyArgs>(args?: SelectSubset<T, AccountDepositItemFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountDepositItemPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a AccountDepositItem.
+     * @param {AccountDepositItemCreateArgs} args - Arguments to create a AccountDepositItem.
+     * @example
+     * // Create one AccountDepositItem
+     * const AccountDepositItem = await prisma.accountDepositItem.create({
+     *   data: {
+     *     // ... data to create a AccountDepositItem
+     *   }
+     * })
+     * 
+     */
+    create<T extends AccountDepositItemCreateArgs>(args: SelectSubset<T, AccountDepositItemCreateArgs<ExtArgs>>): Prisma__AccountDepositItemClient<$Result.GetResult<Prisma.$AccountDepositItemPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many AccountDepositItems.
+     * @param {AccountDepositItemCreateManyArgs} args - Arguments to create many AccountDepositItems.
+     * @example
+     * // Create many AccountDepositItems
+     * const accountDepositItem = await prisma.accountDepositItem.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AccountDepositItemCreateManyArgs>(args?: SelectSubset<T, AccountDepositItemCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AccountDepositItems and returns the data saved in the database.
+     * @param {AccountDepositItemCreateManyAndReturnArgs} args - Arguments to create many AccountDepositItems.
+     * @example
+     * // Create many AccountDepositItems
+     * const accountDepositItem = await prisma.accountDepositItem.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AccountDepositItems and only return the `id`
+     * const accountDepositItemWithIdOnly = await prisma.accountDepositItem.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AccountDepositItemCreateManyAndReturnArgs>(args?: SelectSubset<T, AccountDepositItemCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountDepositItemPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a AccountDepositItem.
+     * @param {AccountDepositItemDeleteArgs} args - Arguments to delete one AccountDepositItem.
+     * @example
+     * // Delete one AccountDepositItem
+     * const AccountDepositItem = await prisma.accountDepositItem.delete({
+     *   where: {
+     *     // ... filter to delete one AccountDepositItem
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AccountDepositItemDeleteArgs>(args: SelectSubset<T, AccountDepositItemDeleteArgs<ExtArgs>>): Prisma__AccountDepositItemClient<$Result.GetResult<Prisma.$AccountDepositItemPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one AccountDepositItem.
+     * @param {AccountDepositItemUpdateArgs} args - Arguments to update one AccountDepositItem.
+     * @example
+     * // Update one AccountDepositItem
+     * const accountDepositItem = await prisma.accountDepositItem.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AccountDepositItemUpdateArgs>(args: SelectSubset<T, AccountDepositItemUpdateArgs<ExtArgs>>): Prisma__AccountDepositItemClient<$Result.GetResult<Prisma.$AccountDepositItemPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more AccountDepositItems.
+     * @param {AccountDepositItemDeleteManyArgs} args - Arguments to filter AccountDepositItems to delete.
+     * @example
+     * // Delete a few AccountDepositItems
+     * const { count } = await prisma.accountDepositItem.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AccountDepositItemDeleteManyArgs>(args?: SelectSubset<T, AccountDepositItemDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AccountDepositItems.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountDepositItemUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AccountDepositItems
+     * const accountDepositItem = await prisma.accountDepositItem.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AccountDepositItemUpdateManyArgs>(args: SelectSubset<T, AccountDepositItemUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one AccountDepositItem.
+     * @param {AccountDepositItemUpsertArgs} args - Arguments to update or create a AccountDepositItem.
+     * @example
+     * // Update or create a AccountDepositItem
+     * const accountDepositItem = await prisma.accountDepositItem.upsert({
+     *   create: {
+     *     // ... data to create a AccountDepositItem
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AccountDepositItem we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AccountDepositItemUpsertArgs>(args: SelectSubset<T, AccountDepositItemUpsertArgs<ExtArgs>>): Prisma__AccountDepositItemClient<$Result.GetResult<Prisma.$AccountDepositItemPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of AccountDepositItems.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountDepositItemCountArgs} args - Arguments to filter AccountDepositItems to count.
+     * @example
+     * // Count the number of AccountDepositItems
+     * const count = await prisma.accountDepositItem.count({
+     *   where: {
+     *     // ... the filter for the AccountDepositItems we want to count
+     *   }
+     * })
+    **/
+    count<T extends AccountDepositItemCountArgs>(
+      args?: Subset<T, AccountDepositItemCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AccountDepositItemCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AccountDepositItem.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountDepositItemAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AccountDepositItemAggregateArgs>(args: Subset<T, AccountDepositItemAggregateArgs>): Prisma.PrismaPromise<GetAccountDepositItemAggregateType<T>>
+
+    /**
+     * Group by AccountDepositItem.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountDepositItemGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AccountDepositItemGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AccountDepositItemGroupByArgs['orderBy'] }
+        : { orderBy?: AccountDepositItemGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AccountDepositItemGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAccountDepositItemGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AccountDepositItem model
+   */
+  readonly fields: AccountDepositItemFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AccountDepositItem.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AccountDepositItemClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    deposit<T extends AccountDepositDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AccountDepositDefaultArgs<ExtArgs>>): Prisma__AccountDepositClient<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    receipt<T extends AccountReceiptDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AccountReceiptDefaultArgs<ExtArgs>>): Prisma__AccountReceiptClient<$Result.GetResult<Prisma.$AccountReceiptPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AccountDepositItem model
+   */ 
+  interface AccountDepositItemFieldRefs {
+    readonly id: FieldRef<"AccountDepositItem", 'Int'>
+    readonly depositId: FieldRef<"AccountDepositItem", 'Int'>
+    readonly receiptId: FieldRef<"AccountDepositItem", 'Int'>
+    readonly amount: FieldRef<"AccountDepositItem", 'Float'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AccountDepositItem findUnique
+   */
+  export type AccountDepositItemFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDepositItem
+     */
+    select?: AccountDepositItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositItemInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountDepositItem to fetch.
+     */
+    where: AccountDepositItemWhereUniqueInput
+  }
+
+  /**
+   * AccountDepositItem findUniqueOrThrow
+   */
+  export type AccountDepositItemFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDepositItem
+     */
+    select?: AccountDepositItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositItemInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountDepositItem to fetch.
+     */
+    where: AccountDepositItemWhereUniqueInput
+  }
+
+  /**
+   * AccountDepositItem findFirst
+   */
+  export type AccountDepositItemFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDepositItem
+     */
+    select?: AccountDepositItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositItemInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountDepositItem to fetch.
+     */
+    where?: AccountDepositItemWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountDepositItems to fetch.
+     */
+    orderBy?: AccountDepositItemOrderByWithRelationInput | AccountDepositItemOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AccountDepositItems.
+     */
+    cursor?: AccountDepositItemWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountDepositItems from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountDepositItems.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AccountDepositItems.
+     */
+    distinct?: AccountDepositItemScalarFieldEnum | AccountDepositItemScalarFieldEnum[]
+  }
+
+  /**
+   * AccountDepositItem findFirstOrThrow
+   */
+  export type AccountDepositItemFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDepositItem
+     */
+    select?: AccountDepositItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositItemInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountDepositItem to fetch.
+     */
+    where?: AccountDepositItemWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountDepositItems to fetch.
+     */
+    orderBy?: AccountDepositItemOrderByWithRelationInput | AccountDepositItemOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AccountDepositItems.
+     */
+    cursor?: AccountDepositItemWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountDepositItems from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountDepositItems.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AccountDepositItems.
+     */
+    distinct?: AccountDepositItemScalarFieldEnum | AccountDepositItemScalarFieldEnum[]
+  }
+
+  /**
+   * AccountDepositItem findMany
+   */
+  export type AccountDepositItemFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDepositItem
+     */
+    select?: AccountDepositItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositItemInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountDepositItems to fetch.
+     */
+    where?: AccountDepositItemWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountDepositItems to fetch.
+     */
+    orderBy?: AccountDepositItemOrderByWithRelationInput | AccountDepositItemOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AccountDepositItems.
+     */
+    cursor?: AccountDepositItemWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountDepositItems from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountDepositItems.
+     */
+    skip?: number
+    distinct?: AccountDepositItemScalarFieldEnum | AccountDepositItemScalarFieldEnum[]
+  }
+
+  /**
+   * AccountDepositItem create
+   */
+  export type AccountDepositItemCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDepositItem
+     */
+    select?: AccountDepositItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositItemInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AccountDepositItem.
+     */
+    data: XOR<AccountDepositItemCreateInput, AccountDepositItemUncheckedCreateInput>
+  }
+
+  /**
+   * AccountDepositItem createMany
+   */
+  export type AccountDepositItemCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AccountDepositItems.
+     */
+    data: AccountDepositItemCreateManyInput | AccountDepositItemCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AccountDepositItem createManyAndReturn
+   */
+  export type AccountDepositItemCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDepositItem
+     */
+    select?: AccountDepositItemSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many AccountDepositItems.
+     */
+    data: AccountDepositItemCreateManyInput | AccountDepositItemCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositItemIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AccountDepositItem update
+   */
+  export type AccountDepositItemUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDepositItem
+     */
+    select?: AccountDepositItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositItemInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AccountDepositItem.
+     */
+    data: XOR<AccountDepositItemUpdateInput, AccountDepositItemUncheckedUpdateInput>
+    /**
+     * Choose, which AccountDepositItem to update.
+     */
+    where: AccountDepositItemWhereUniqueInput
+  }
+
+  /**
+   * AccountDepositItem updateMany
+   */
+  export type AccountDepositItemUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AccountDepositItems.
+     */
+    data: XOR<AccountDepositItemUpdateManyMutationInput, AccountDepositItemUncheckedUpdateManyInput>
+    /**
+     * Filter which AccountDepositItems to update
+     */
+    where?: AccountDepositItemWhereInput
+  }
+
+  /**
+   * AccountDepositItem upsert
+   */
+  export type AccountDepositItemUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDepositItem
+     */
+    select?: AccountDepositItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositItemInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AccountDepositItem to update in case it exists.
+     */
+    where: AccountDepositItemWhereUniqueInput
+    /**
+     * In case the AccountDepositItem found by the `where` argument doesn't exist, create a new AccountDepositItem with this data.
+     */
+    create: XOR<AccountDepositItemCreateInput, AccountDepositItemUncheckedCreateInput>
+    /**
+     * In case the AccountDepositItem was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AccountDepositItemUpdateInput, AccountDepositItemUncheckedUpdateInput>
+  }
+
+  /**
+   * AccountDepositItem delete
+   */
+  export type AccountDepositItemDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDepositItem
+     */
+    select?: AccountDepositItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositItemInclude<ExtArgs> | null
+    /**
+     * Filter which AccountDepositItem to delete.
+     */
+    where: AccountDepositItemWhereUniqueInput
+  }
+
+  /**
+   * AccountDepositItem deleteMany
+   */
+  export type AccountDepositItemDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AccountDepositItems to delete
+     */
+    where?: AccountDepositItemWhereInput
+  }
+
+  /**
+   * AccountDepositItem without action
+   */
+  export type AccountDepositItemDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDepositItem
+     */
+    select?: AccountDepositItemSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositItemInclude<ExtArgs> | null
   }
 
 
@@ -37065,6 +40628,7 @@ export namespace Prisma {
     chequeStatus: 'chequeStatus',
     description: 'description',
     isVoided: 'isVoided',
+    isDeposited: 'isDeposited',
     createdById: 'createdById',
     createdAt: 'createdAt',
     updatedAt: 'updatedAt'
@@ -37097,6 +40661,7 @@ export namespace Prisma {
     amount: 'amount',
     receiptId: 'receiptId',
     voucherId: 'voucherId',
+    depositId: 'depositId',
     refNo: 'refNo',
     description: 'description',
     chequeNo: 'chequeNo',
@@ -37106,6 +40671,47 @@ export namespace Prisma {
   };
 
   export type AccountTransactionScalarFieldEnum = (typeof AccountTransactionScalarFieldEnum)[keyof typeof AccountTransactionScalarFieldEnum]
+
+
+  export const InvoicePaymentScalarFieldEnum: {
+    id: 'id',
+    purchaseId: 'purchaseId',
+    amount: 'amount',
+    paymentMethod: 'paymentMethod',
+    chequeNo: 'chequeNo',
+    chequeBank: 'chequeBank',
+    chequeDate: 'chequeDate',
+    description: 'description',
+    paidAt: 'paidAt',
+    receiptId: 'receiptId'
+  };
+
+  export type InvoicePaymentScalarFieldEnum = (typeof InvoicePaymentScalarFieldEnum)[keyof typeof InvoicePaymentScalarFieldEnum]
+
+
+  export const AccountDepositScalarFieldEnum: {
+    id: 'id',
+    depositNo: 'depositNo',
+    accountId: 'accountId',
+    totalAmount: 'totalAmount',
+    notes: 'notes',
+    isReversed: 'isReversed',
+    reversedAt: 'reversedAt',
+    createdById: 'createdById',
+    createdAt: 'createdAt'
+  };
+
+  export type AccountDepositScalarFieldEnum = (typeof AccountDepositScalarFieldEnum)[keyof typeof AccountDepositScalarFieldEnum]
+
+
+  export const AccountDepositItemScalarFieldEnum: {
+    id: 'id',
+    depositId: 'depositId',
+    receiptId: 'receiptId',
+    amount: 'amount'
+  };
+
+  export type AccountDepositItemScalarFieldEnum = (typeof AccountDepositItemScalarFieldEnum)[keyof typeof AccountDepositItemScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -38758,6 +42364,7 @@ export namespace Prisma {
     leasingCompany?: XOR<PosLeasingCompanyNullableRelationFilter, PosLeasingCompanyWhereInput> | null
     receipts?: AccountReceiptListRelationFilter
     installments?: PosInstallmentListRelationFilter
+    invoicePayments?: InvoicePaymentListRelationFilter
   }
 
   export type PosCustomerPurchaseOrderByWithRelationInput = {
@@ -38792,6 +42399,7 @@ export namespace Prisma {
     leasingCompany?: PosLeasingCompanyOrderByWithRelationInput
     receipts?: AccountReceiptOrderByRelationAggregateInput
     installments?: PosInstallmentOrderByRelationAggregateInput
+    invoicePayments?: InvoicePaymentOrderByRelationAggregateInput
   }
 
   export type PosCustomerPurchaseWhereUniqueInput = Prisma.AtLeast<{
@@ -38829,6 +42437,7 @@ export namespace Prisma {
     leasingCompany?: XOR<PosLeasingCompanyNullableRelationFilter, PosLeasingCompanyWhereInput> | null
     receipts?: AccountReceiptListRelationFilter
     installments?: PosInstallmentListRelationFilter
+    invoicePayments?: InvoicePaymentListRelationFilter
   }, "id">
 
   export type PosCustomerPurchaseOrderByWithAggregationInput = {
@@ -39573,6 +43182,7 @@ export namespace Prisma {
     receipts?: AccountReceiptListRelationFilter
     vouchers?: AccountVoucherListRelationFilter
     transactions?: AccountTransactionListRelationFilter
+    deposits?: AccountDepositListRelationFilter
   }
 
   export type AccountOrderByWithRelationInput = {
@@ -39587,6 +43197,7 @@ export namespace Prisma {
     receipts?: AccountReceiptOrderByRelationAggregateInput
     vouchers?: AccountVoucherOrderByRelationAggregateInput
     transactions?: AccountTransactionOrderByRelationAggregateInput
+    deposits?: AccountDepositOrderByRelationAggregateInput
   }
 
   export type AccountWhereUniqueInput = Prisma.AtLeast<{
@@ -39604,6 +43215,7 @@ export namespace Prisma {
     receipts?: AccountReceiptListRelationFilter
     vouchers?: AccountVoucherListRelationFilter
     transactions?: AccountTransactionListRelationFilter
+    deposits?: AccountDepositListRelationFilter
   }, "id" | "code">
 
   export type AccountOrderByWithAggregationInput = {
@@ -39652,12 +43264,15 @@ export namespace Prisma {
     chequeStatus?: EnumChequeStatusNullableFilter<"AccountReceipt"> | $Enums.ChequeStatus | null
     description?: StringNullableFilter<"AccountReceipt"> | string | null
     isVoided?: BoolFilter<"AccountReceipt"> | boolean
+    isDeposited?: BoolFilter<"AccountReceipt"> | boolean
     createdById?: IntFilter<"AccountReceipt"> | number
     createdAt?: DateTimeFilter<"AccountReceipt"> | Date | string
     updatedAt?: DateTimeFilter<"AccountReceipt"> | Date | string
     account?: XOR<AccountRelationFilter, AccountWhereInput>
     purchase?: XOR<PosCustomerPurchaseRelationFilter, PosCustomerPurchaseWhereInput>
     transactions?: AccountTransactionListRelationFilter
+    depositItem?: XOR<AccountDepositItemNullableRelationFilter, AccountDepositItemWhereInput> | null
+    invoicePayment?: XOR<InvoicePaymentNullableRelationFilter, InvoicePaymentWhereInput> | null
   }
 
   export type AccountReceiptOrderByWithRelationInput = {
@@ -39673,12 +43288,15 @@ export namespace Prisma {
     chequeStatus?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
     isVoided?: SortOrder
+    isDeposited?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
     account?: AccountOrderByWithRelationInput
     purchase?: PosCustomerPurchaseOrderByWithRelationInput
     transactions?: AccountTransactionOrderByRelationAggregateInput
+    depositItem?: AccountDepositItemOrderByWithRelationInput
+    invoicePayment?: InvoicePaymentOrderByWithRelationInput
   }
 
   export type AccountReceiptWhereUniqueInput = Prisma.AtLeast<{
@@ -39697,12 +43315,15 @@ export namespace Prisma {
     chequeStatus?: EnumChequeStatusNullableFilter<"AccountReceipt"> | $Enums.ChequeStatus | null
     description?: StringNullableFilter<"AccountReceipt"> | string | null
     isVoided?: BoolFilter<"AccountReceipt"> | boolean
+    isDeposited?: BoolFilter<"AccountReceipt"> | boolean
     createdById?: IntFilter<"AccountReceipt"> | number
     createdAt?: DateTimeFilter<"AccountReceipt"> | Date | string
     updatedAt?: DateTimeFilter<"AccountReceipt"> | Date | string
     account?: XOR<AccountRelationFilter, AccountWhereInput>
     purchase?: XOR<PosCustomerPurchaseRelationFilter, PosCustomerPurchaseWhereInput>
     transactions?: AccountTransactionListRelationFilter
+    depositItem?: XOR<AccountDepositItemNullableRelationFilter, AccountDepositItemWhereInput> | null
+    invoicePayment?: XOR<InvoicePaymentNullableRelationFilter, InvoicePaymentWhereInput> | null
   }, "id" | "receiptNo">
 
   export type AccountReceiptOrderByWithAggregationInput = {
@@ -39718,6 +43339,7 @@ export namespace Prisma {
     chequeStatus?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
     isVoided?: SortOrder
+    isDeposited?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -39744,6 +43366,7 @@ export namespace Prisma {
     chequeStatus?: EnumChequeStatusNullableWithAggregatesFilter<"AccountReceipt"> | $Enums.ChequeStatus | null
     description?: StringNullableWithAggregatesFilter<"AccountReceipt"> | string | null
     isVoided?: BoolWithAggregatesFilter<"AccountReceipt"> | boolean
+    isDeposited?: BoolWithAggregatesFilter<"AccountReceipt"> | boolean
     createdById?: IntWithAggregatesFilter<"AccountReceipt"> | number
     createdAt?: DateTimeWithAggregatesFilter<"AccountReceipt"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"AccountReceipt"> | Date | string
@@ -39845,6 +43468,7 @@ export namespace Prisma {
     amount?: FloatFilter<"AccountTransaction"> | number
     receiptId?: IntNullableFilter<"AccountTransaction"> | number | null
     voucherId?: IntNullableFilter<"AccountTransaction"> | number | null
+    depositId?: IntNullableFilter<"AccountTransaction"> | number | null
     refNo?: StringNullableFilter<"AccountTransaction"> | string | null
     description?: StringNullableFilter<"AccountTransaction"> | string | null
     chequeNo?: StringNullableFilter<"AccountTransaction"> | string | null
@@ -39854,6 +43478,7 @@ export namespace Prisma {
     account?: XOR<AccountRelationFilter, AccountWhereInput>
     receipt?: XOR<AccountReceiptNullableRelationFilter, AccountReceiptWhereInput> | null
     voucher?: XOR<AccountVoucherNullableRelationFilter, AccountVoucherWhereInput> | null
+    deposit?: XOR<AccountDepositNullableRelationFilter, AccountDepositWhereInput> | null
   }
 
   export type AccountTransactionOrderByWithRelationInput = {
@@ -39864,6 +43489,7 @@ export namespace Prisma {
     amount?: SortOrder
     receiptId?: SortOrderInput | SortOrder
     voucherId?: SortOrderInput | SortOrder
+    depositId?: SortOrderInput | SortOrder
     refNo?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
     chequeNo?: SortOrderInput | SortOrder
@@ -39873,6 +43499,7 @@ export namespace Prisma {
     account?: AccountOrderByWithRelationInput
     receipt?: AccountReceiptOrderByWithRelationInput
     voucher?: AccountVoucherOrderByWithRelationInput
+    deposit?: AccountDepositOrderByWithRelationInput
   }
 
   export type AccountTransactionWhereUniqueInput = Prisma.AtLeast<{
@@ -39886,6 +43513,7 @@ export namespace Prisma {
     amount?: FloatFilter<"AccountTransaction"> | number
     receiptId?: IntNullableFilter<"AccountTransaction"> | number | null
     voucherId?: IntNullableFilter<"AccountTransaction"> | number | null
+    depositId?: IntNullableFilter<"AccountTransaction"> | number | null
     refNo?: StringNullableFilter<"AccountTransaction"> | string | null
     description?: StringNullableFilter<"AccountTransaction"> | string | null
     chequeNo?: StringNullableFilter<"AccountTransaction"> | string | null
@@ -39895,6 +43523,7 @@ export namespace Prisma {
     account?: XOR<AccountRelationFilter, AccountWhereInput>
     receipt?: XOR<AccountReceiptNullableRelationFilter, AccountReceiptWhereInput> | null
     voucher?: XOR<AccountVoucherNullableRelationFilter, AccountVoucherWhereInput> | null
+    deposit?: XOR<AccountDepositNullableRelationFilter, AccountDepositWhereInput> | null
   }, "id">
 
   export type AccountTransactionOrderByWithAggregationInput = {
@@ -39905,6 +43534,7 @@ export namespace Prisma {
     amount?: SortOrder
     receiptId?: SortOrderInput | SortOrder
     voucherId?: SortOrderInput | SortOrder
+    depositId?: SortOrderInput | SortOrder
     refNo?: SortOrderInput | SortOrder
     description?: SortOrderInput | SortOrder
     chequeNo?: SortOrderInput | SortOrder
@@ -39929,12 +43559,236 @@ export namespace Prisma {
     amount?: FloatWithAggregatesFilter<"AccountTransaction"> | number
     receiptId?: IntNullableWithAggregatesFilter<"AccountTransaction"> | number | null
     voucherId?: IntNullableWithAggregatesFilter<"AccountTransaction"> | number | null
+    depositId?: IntNullableWithAggregatesFilter<"AccountTransaction"> | number | null
     refNo?: StringNullableWithAggregatesFilter<"AccountTransaction"> | string | null
     description?: StringNullableWithAggregatesFilter<"AccountTransaction"> | string | null
     chequeNo?: StringNullableWithAggregatesFilter<"AccountTransaction"> | string | null
     isReversal?: BoolWithAggregatesFilter<"AccountTransaction"> | boolean
     createdById?: IntWithAggregatesFilter<"AccountTransaction"> | number
     createdAt?: DateTimeWithAggregatesFilter<"AccountTransaction"> | Date | string
+  }
+
+  export type InvoicePaymentWhereInput = {
+    AND?: InvoicePaymentWhereInput | InvoicePaymentWhereInput[]
+    OR?: InvoicePaymentWhereInput[]
+    NOT?: InvoicePaymentWhereInput | InvoicePaymentWhereInput[]
+    id?: IntFilter<"InvoicePayment"> | number
+    purchaseId?: IntFilter<"InvoicePayment"> | number
+    amount?: FloatFilter<"InvoicePayment"> | number
+    paymentMethod?: EnumPaymentMethodFilter<"InvoicePayment"> | $Enums.PaymentMethod
+    chequeNo?: StringNullableFilter<"InvoicePayment"> | string | null
+    chequeBank?: StringNullableFilter<"InvoicePayment"> | string | null
+    chequeDate?: DateTimeNullableFilter<"InvoicePayment"> | Date | string | null
+    description?: StringNullableFilter<"InvoicePayment"> | string | null
+    paidAt?: DateTimeFilter<"InvoicePayment"> | Date | string
+    receiptId?: IntNullableFilter<"InvoicePayment"> | number | null
+    purchase?: XOR<PosCustomerPurchaseRelationFilter, PosCustomerPurchaseWhereInput>
+    receipt?: XOR<AccountReceiptNullableRelationFilter, AccountReceiptWhereInput> | null
+  }
+
+  export type InvoicePaymentOrderByWithRelationInput = {
+    id?: SortOrder
+    purchaseId?: SortOrder
+    amount?: SortOrder
+    paymentMethod?: SortOrder
+    chequeNo?: SortOrderInput | SortOrder
+    chequeBank?: SortOrderInput | SortOrder
+    chequeDate?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
+    paidAt?: SortOrder
+    receiptId?: SortOrderInput | SortOrder
+    purchase?: PosCustomerPurchaseOrderByWithRelationInput
+    receipt?: AccountReceiptOrderByWithRelationInput
+  }
+
+  export type InvoicePaymentWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    receiptId?: number
+    AND?: InvoicePaymentWhereInput | InvoicePaymentWhereInput[]
+    OR?: InvoicePaymentWhereInput[]
+    NOT?: InvoicePaymentWhereInput | InvoicePaymentWhereInput[]
+    purchaseId?: IntFilter<"InvoicePayment"> | number
+    amount?: FloatFilter<"InvoicePayment"> | number
+    paymentMethod?: EnumPaymentMethodFilter<"InvoicePayment"> | $Enums.PaymentMethod
+    chequeNo?: StringNullableFilter<"InvoicePayment"> | string | null
+    chequeBank?: StringNullableFilter<"InvoicePayment"> | string | null
+    chequeDate?: DateTimeNullableFilter<"InvoicePayment"> | Date | string | null
+    description?: StringNullableFilter<"InvoicePayment"> | string | null
+    paidAt?: DateTimeFilter<"InvoicePayment"> | Date | string
+    purchase?: XOR<PosCustomerPurchaseRelationFilter, PosCustomerPurchaseWhereInput>
+    receipt?: XOR<AccountReceiptNullableRelationFilter, AccountReceiptWhereInput> | null
+  }, "id" | "receiptId">
+
+  export type InvoicePaymentOrderByWithAggregationInput = {
+    id?: SortOrder
+    purchaseId?: SortOrder
+    amount?: SortOrder
+    paymentMethod?: SortOrder
+    chequeNo?: SortOrderInput | SortOrder
+    chequeBank?: SortOrderInput | SortOrder
+    chequeDate?: SortOrderInput | SortOrder
+    description?: SortOrderInput | SortOrder
+    paidAt?: SortOrder
+    receiptId?: SortOrderInput | SortOrder
+    _count?: InvoicePaymentCountOrderByAggregateInput
+    _avg?: InvoicePaymentAvgOrderByAggregateInput
+    _max?: InvoicePaymentMaxOrderByAggregateInput
+    _min?: InvoicePaymentMinOrderByAggregateInput
+    _sum?: InvoicePaymentSumOrderByAggregateInput
+  }
+
+  export type InvoicePaymentScalarWhereWithAggregatesInput = {
+    AND?: InvoicePaymentScalarWhereWithAggregatesInput | InvoicePaymentScalarWhereWithAggregatesInput[]
+    OR?: InvoicePaymentScalarWhereWithAggregatesInput[]
+    NOT?: InvoicePaymentScalarWhereWithAggregatesInput | InvoicePaymentScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"InvoicePayment"> | number
+    purchaseId?: IntWithAggregatesFilter<"InvoicePayment"> | number
+    amount?: FloatWithAggregatesFilter<"InvoicePayment"> | number
+    paymentMethod?: EnumPaymentMethodWithAggregatesFilter<"InvoicePayment"> | $Enums.PaymentMethod
+    chequeNo?: StringNullableWithAggregatesFilter<"InvoicePayment"> | string | null
+    chequeBank?: StringNullableWithAggregatesFilter<"InvoicePayment"> | string | null
+    chequeDate?: DateTimeNullableWithAggregatesFilter<"InvoicePayment"> | Date | string | null
+    description?: StringNullableWithAggregatesFilter<"InvoicePayment"> | string | null
+    paidAt?: DateTimeWithAggregatesFilter<"InvoicePayment"> | Date | string
+    receiptId?: IntNullableWithAggregatesFilter<"InvoicePayment"> | number | null
+  }
+
+  export type AccountDepositWhereInput = {
+    AND?: AccountDepositWhereInput | AccountDepositWhereInput[]
+    OR?: AccountDepositWhereInput[]
+    NOT?: AccountDepositWhereInput | AccountDepositWhereInput[]
+    id?: IntFilter<"AccountDeposit"> | number
+    depositNo?: StringFilter<"AccountDeposit"> | string
+    accountId?: IntFilter<"AccountDeposit"> | number
+    totalAmount?: FloatFilter<"AccountDeposit"> | number
+    notes?: StringNullableFilter<"AccountDeposit"> | string | null
+    isReversed?: BoolFilter<"AccountDeposit"> | boolean
+    reversedAt?: DateTimeNullableFilter<"AccountDeposit"> | Date | string | null
+    createdById?: IntFilter<"AccountDeposit"> | number
+    createdAt?: DateTimeFilter<"AccountDeposit"> | Date | string
+    account?: XOR<AccountRelationFilter, AccountWhereInput>
+    items?: AccountDepositItemListRelationFilter
+    transactions?: AccountTransactionListRelationFilter
+  }
+
+  export type AccountDepositOrderByWithRelationInput = {
+    id?: SortOrder
+    depositNo?: SortOrder
+    accountId?: SortOrder
+    totalAmount?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    isReversed?: SortOrder
+    reversedAt?: SortOrderInput | SortOrder
+    createdById?: SortOrder
+    createdAt?: SortOrder
+    account?: AccountOrderByWithRelationInput
+    items?: AccountDepositItemOrderByRelationAggregateInput
+    transactions?: AccountTransactionOrderByRelationAggregateInput
+  }
+
+  export type AccountDepositWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    depositNo?: string
+    AND?: AccountDepositWhereInput | AccountDepositWhereInput[]
+    OR?: AccountDepositWhereInput[]
+    NOT?: AccountDepositWhereInput | AccountDepositWhereInput[]
+    accountId?: IntFilter<"AccountDeposit"> | number
+    totalAmount?: FloatFilter<"AccountDeposit"> | number
+    notes?: StringNullableFilter<"AccountDeposit"> | string | null
+    isReversed?: BoolFilter<"AccountDeposit"> | boolean
+    reversedAt?: DateTimeNullableFilter<"AccountDeposit"> | Date | string | null
+    createdById?: IntFilter<"AccountDeposit"> | number
+    createdAt?: DateTimeFilter<"AccountDeposit"> | Date | string
+    account?: XOR<AccountRelationFilter, AccountWhereInput>
+    items?: AccountDepositItemListRelationFilter
+    transactions?: AccountTransactionListRelationFilter
+  }, "id" | "depositNo">
+
+  export type AccountDepositOrderByWithAggregationInput = {
+    id?: SortOrder
+    depositNo?: SortOrder
+    accountId?: SortOrder
+    totalAmount?: SortOrder
+    notes?: SortOrderInput | SortOrder
+    isReversed?: SortOrder
+    reversedAt?: SortOrderInput | SortOrder
+    createdById?: SortOrder
+    createdAt?: SortOrder
+    _count?: AccountDepositCountOrderByAggregateInput
+    _avg?: AccountDepositAvgOrderByAggregateInput
+    _max?: AccountDepositMaxOrderByAggregateInput
+    _min?: AccountDepositMinOrderByAggregateInput
+    _sum?: AccountDepositSumOrderByAggregateInput
+  }
+
+  export type AccountDepositScalarWhereWithAggregatesInput = {
+    AND?: AccountDepositScalarWhereWithAggregatesInput | AccountDepositScalarWhereWithAggregatesInput[]
+    OR?: AccountDepositScalarWhereWithAggregatesInput[]
+    NOT?: AccountDepositScalarWhereWithAggregatesInput | AccountDepositScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"AccountDeposit"> | number
+    depositNo?: StringWithAggregatesFilter<"AccountDeposit"> | string
+    accountId?: IntWithAggregatesFilter<"AccountDeposit"> | number
+    totalAmount?: FloatWithAggregatesFilter<"AccountDeposit"> | number
+    notes?: StringNullableWithAggregatesFilter<"AccountDeposit"> | string | null
+    isReversed?: BoolWithAggregatesFilter<"AccountDeposit"> | boolean
+    reversedAt?: DateTimeNullableWithAggregatesFilter<"AccountDeposit"> | Date | string | null
+    createdById?: IntWithAggregatesFilter<"AccountDeposit"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"AccountDeposit"> | Date | string
+  }
+
+  export type AccountDepositItemWhereInput = {
+    AND?: AccountDepositItemWhereInput | AccountDepositItemWhereInput[]
+    OR?: AccountDepositItemWhereInput[]
+    NOT?: AccountDepositItemWhereInput | AccountDepositItemWhereInput[]
+    id?: IntFilter<"AccountDepositItem"> | number
+    depositId?: IntFilter<"AccountDepositItem"> | number
+    receiptId?: IntFilter<"AccountDepositItem"> | number
+    amount?: FloatFilter<"AccountDepositItem"> | number
+    deposit?: XOR<AccountDepositRelationFilter, AccountDepositWhereInput>
+    receipt?: XOR<AccountReceiptRelationFilter, AccountReceiptWhereInput>
+  }
+
+  export type AccountDepositItemOrderByWithRelationInput = {
+    id?: SortOrder
+    depositId?: SortOrder
+    receiptId?: SortOrder
+    amount?: SortOrder
+    deposit?: AccountDepositOrderByWithRelationInput
+    receipt?: AccountReceiptOrderByWithRelationInput
+  }
+
+  export type AccountDepositItemWhereUniqueInput = Prisma.AtLeast<{
+    id?: number
+    receiptId?: number
+    AND?: AccountDepositItemWhereInput | AccountDepositItemWhereInput[]
+    OR?: AccountDepositItemWhereInput[]
+    NOT?: AccountDepositItemWhereInput | AccountDepositItemWhereInput[]
+    depositId?: IntFilter<"AccountDepositItem"> | number
+    amount?: FloatFilter<"AccountDepositItem"> | number
+    deposit?: XOR<AccountDepositRelationFilter, AccountDepositWhereInput>
+    receipt?: XOR<AccountReceiptRelationFilter, AccountReceiptWhereInput>
+  }, "id" | "receiptId">
+
+  export type AccountDepositItemOrderByWithAggregationInput = {
+    id?: SortOrder
+    depositId?: SortOrder
+    receiptId?: SortOrder
+    amount?: SortOrder
+    _count?: AccountDepositItemCountOrderByAggregateInput
+    _avg?: AccountDepositItemAvgOrderByAggregateInput
+    _max?: AccountDepositItemMaxOrderByAggregateInput
+    _min?: AccountDepositItemMinOrderByAggregateInput
+    _sum?: AccountDepositItemSumOrderByAggregateInput
+  }
+
+  export type AccountDepositItemScalarWhereWithAggregatesInput = {
+    AND?: AccountDepositItemScalarWhereWithAggregatesInput | AccountDepositItemScalarWhereWithAggregatesInput[]
+    OR?: AccountDepositItemScalarWhereWithAggregatesInput[]
+    NOT?: AccountDepositItemScalarWhereWithAggregatesInput | AccountDepositItemScalarWhereWithAggregatesInput[]
+    id?: IntWithAggregatesFilter<"AccountDepositItem"> | number
+    depositId?: IntWithAggregatesFilter<"AccountDepositItem"> | number
+    receiptId?: IntWithAggregatesFilter<"AccountDepositItem"> | number
+    amount?: FloatWithAggregatesFilter<"AccountDepositItem"> | number
   }
 
   export type UserCreateInput = {
@@ -41337,6 +45191,7 @@ export namespace Prisma {
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUncheckedCreateInput = {
@@ -41367,6 +45222,7 @@ export namespace Prisma {
     purchasedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUpdateInput = {
@@ -41396,6 +45252,7 @@ export namespace Prisma {
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateInput = {
@@ -41426,6 +45283,7 @@ export namespace Prisma {
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseCreateManyInput = {
@@ -42244,6 +46102,7 @@ export namespace Prisma {
     receipts?: AccountReceiptCreateNestedManyWithoutAccountInput
     vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
     transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositCreateNestedManyWithoutAccountInput
   }
 
   export type AccountUncheckedCreateInput = {
@@ -42258,6 +46117,7 @@ export namespace Prisma {
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutAccountInput
     vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
   }
 
   export type AccountUpdateInput = {
@@ -42271,6 +46131,7 @@ export namespace Prisma {
     receipts?: AccountReceiptUpdateManyWithoutAccountNestedInput
     vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
     transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
   }
 
   export type AccountUncheckedUpdateInput = {
@@ -42285,6 +46146,7 @@ export namespace Prisma {
     receipts?: AccountReceiptUncheckedUpdateManyWithoutAccountNestedInput
     vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
     transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
   }
 
   export type AccountCreateManyInput = {
@@ -42329,12 +46191,15 @@ export namespace Prisma {
     chequeStatus?: $Enums.ChequeStatus | null
     description?: string | null
     isVoided?: boolean
+    isDeposited?: boolean
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
     account: AccountCreateNestedOneWithoutReceiptsInput
     purchase: PosCustomerPurchaseCreateNestedOneWithoutReceiptsInput
     transactions?: AccountTransactionCreateNestedManyWithoutReceiptInput
+    depositItem?: AccountDepositItemCreateNestedOneWithoutReceiptInput
+    invoicePayment?: InvoicePaymentCreateNestedOneWithoutReceiptInput
   }
 
   export type AccountReceiptUncheckedCreateInput = {
@@ -42350,10 +46215,13 @@ export namespace Prisma {
     chequeStatus?: $Enums.ChequeStatus | null
     description?: string | null
     isVoided?: boolean
+    isDeposited?: boolean
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutReceiptInput
+    depositItem?: AccountDepositItemUncheckedCreateNestedOneWithoutReceiptInput
+    invoicePayment?: InvoicePaymentUncheckedCreateNestedOneWithoutReceiptInput
   }
 
   export type AccountReceiptUpdateInput = {
@@ -42366,12 +46234,15 @@ export namespace Prisma {
     chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     account?: AccountUpdateOneRequiredWithoutReceiptsNestedInput
     purchase?: PosCustomerPurchaseUpdateOneRequiredWithoutReceiptsNestedInput
     transactions?: AccountTransactionUpdateManyWithoutReceiptNestedInput
+    depositItem?: AccountDepositItemUpdateOneWithoutReceiptNestedInput
+    invoicePayment?: InvoicePaymentUpdateOneWithoutReceiptNestedInput
   }
 
   export type AccountReceiptUncheckedUpdateInput = {
@@ -42387,10 +46258,13 @@ export namespace Prisma {
     chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: AccountTransactionUncheckedUpdateManyWithoutReceiptNestedInput
+    depositItem?: AccountDepositItemUncheckedUpdateOneWithoutReceiptNestedInput
+    invoicePayment?: InvoicePaymentUncheckedUpdateOneWithoutReceiptNestedInput
   }
 
   export type AccountReceiptCreateManyInput = {
@@ -42406,6 +46280,7 @@ export namespace Prisma {
     chequeStatus?: $Enums.ChequeStatus | null
     description?: string | null
     isVoided?: boolean
+    isDeposited?: boolean
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -42421,6 +46296,7 @@ export namespace Prisma {
     chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -42439,6 +46315,7 @@ export namespace Prisma {
     chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -42548,6 +46425,7 @@ export namespace Prisma {
     account: AccountCreateNestedOneWithoutTransactionsInput
     receipt?: AccountReceiptCreateNestedOneWithoutTransactionsInput
     voucher?: AccountVoucherCreateNestedOneWithoutTransactionsInput
+    deposit?: AccountDepositCreateNestedOneWithoutTransactionsInput
   }
 
   export type AccountTransactionUncheckedCreateInput = {
@@ -42558,6 +46436,7 @@ export namespace Prisma {
     amount: number
     receiptId?: number | null
     voucherId?: number | null
+    depositId?: number | null
     refNo?: string | null
     description?: string | null
     chequeNo?: string | null
@@ -42579,6 +46458,7 @@ export namespace Prisma {
     account?: AccountUpdateOneRequiredWithoutTransactionsNestedInput
     receipt?: AccountReceiptUpdateOneWithoutTransactionsNestedInput
     voucher?: AccountVoucherUpdateOneWithoutTransactionsNestedInput
+    deposit?: AccountDepositUpdateOneWithoutTransactionsNestedInput
   }
 
   export type AccountTransactionUncheckedUpdateInput = {
@@ -42589,6 +46469,7 @@ export namespace Prisma {
     amount?: FloatFieldUpdateOperationsInput | number
     receiptId?: NullableIntFieldUpdateOperationsInput | number | null
     voucherId?: NullableIntFieldUpdateOperationsInput | number | null
+    depositId?: NullableIntFieldUpdateOperationsInput | number | null
     refNo?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -42605,6 +46486,7 @@ export namespace Prisma {
     amount: number
     receiptId?: number | null
     voucherId?: number | null
+    depositId?: number | null
     refNo?: string | null
     description?: string | null
     chequeNo?: string | null
@@ -42633,12 +46515,231 @@ export namespace Prisma {
     amount?: FloatFieldUpdateOperationsInput | number
     receiptId?: NullableIntFieldUpdateOperationsInput | number | null
     voucherId?: NullableIntFieldUpdateOperationsInput | number | null
+    depositId?: NullableIntFieldUpdateOperationsInput | number | null
     refNo?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
     isReversal?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InvoicePaymentCreateInput = {
+    amount: number
+    paymentMethod?: $Enums.PaymentMethod
+    chequeNo?: string | null
+    chequeBank?: string | null
+    chequeDate?: Date | string | null
+    description?: string | null
+    paidAt?: Date | string
+    purchase: PosCustomerPurchaseCreateNestedOneWithoutInvoicePaymentsInput
+    receipt?: AccountReceiptCreateNestedOneWithoutInvoicePaymentInput
+  }
+
+  export type InvoicePaymentUncheckedCreateInput = {
+    id?: number
+    purchaseId: number
+    amount: number
+    paymentMethod?: $Enums.PaymentMethod
+    chequeNo?: string | null
+    chequeBank?: string | null
+    chequeDate?: Date | string | null
+    description?: string | null
+    paidAt?: Date | string
+    receiptId?: number | null
+  }
+
+  export type InvoicePaymentUpdateInput = {
+    amount?: FloatFieldUpdateOperationsInput | number
+    paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeBank?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    purchase?: PosCustomerPurchaseUpdateOneRequiredWithoutInvoicePaymentsNestedInput
+    receipt?: AccountReceiptUpdateOneWithoutInvoicePaymentNestedInput
+  }
+
+  export type InvoicePaymentUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    purchaseId?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+    paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeBank?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receiptId?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type InvoicePaymentCreateManyInput = {
+    id?: number
+    purchaseId: number
+    amount: number
+    paymentMethod?: $Enums.PaymentMethod
+    chequeNo?: string | null
+    chequeBank?: string | null
+    chequeDate?: Date | string | null
+    description?: string | null
+    paidAt?: Date | string
+    receiptId?: number | null
+  }
+
+  export type InvoicePaymentUpdateManyMutationInput = {
+    amount?: FloatFieldUpdateOperationsInput | number
+    paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeBank?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InvoicePaymentUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    purchaseId?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+    paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeBank?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receiptId?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type AccountDepositCreateInput = {
+    depositNo: string
+    totalAmount: number
+    notes?: string | null
+    isReversed?: boolean
+    reversedAt?: Date | string | null
+    createdById: number
+    createdAt?: Date | string
+    account: AccountCreateNestedOneWithoutDepositsInput
+    items?: AccountDepositItemCreateNestedManyWithoutDepositInput
+    transactions?: AccountTransactionCreateNestedManyWithoutDepositInput
+  }
+
+  export type AccountDepositUncheckedCreateInput = {
+    id?: number
+    depositNo: string
+    accountId: number
+    totalAmount: number
+    notes?: string | null
+    isReversed?: boolean
+    reversedAt?: Date | string | null
+    createdById: number
+    createdAt?: Date | string
+    items?: AccountDepositItemUncheckedCreateNestedManyWithoutDepositInput
+    transactions?: AccountTransactionUncheckedCreateNestedManyWithoutDepositInput
+  }
+
+  export type AccountDepositUpdateInput = {
+    depositNo?: StringFieldUpdateOperationsInput | string
+    totalAmount?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversed?: BoolFieldUpdateOperationsInput | boolean
+    reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    account?: AccountUpdateOneRequiredWithoutDepositsNestedInput
+    items?: AccountDepositItemUpdateManyWithoutDepositNestedInput
+    transactions?: AccountTransactionUpdateManyWithoutDepositNestedInput
+  }
+
+  export type AccountDepositUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    depositNo?: StringFieldUpdateOperationsInput | string
+    accountId?: IntFieldUpdateOperationsInput | number
+    totalAmount?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversed?: BoolFieldUpdateOperationsInput | boolean
+    reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    items?: AccountDepositItemUncheckedUpdateManyWithoutDepositNestedInput
+    transactions?: AccountTransactionUncheckedUpdateManyWithoutDepositNestedInput
+  }
+
+  export type AccountDepositCreateManyInput = {
+    id?: number
+    depositNo: string
+    accountId: number
+    totalAmount: number
+    notes?: string | null
+    isReversed?: boolean
+    reversedAt?: Date | string | null
+    createdById: number
+    createdAt?: Date | string
+  }
+
+  export type AccountDepositUpdateManyMutationInput = {
+    depositNo?: StringFieldUpdateOperationsInput | string
+    totalAmount?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversed?: BoolFieldUpdateOperationsInput | boolean
+    reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountDepositUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    depositNo?: StringFieldUpdateOperationsInput | string
+    accountId?: IntFieldUpdateOperationsInput | number
+    totalAmount?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversed?: BoolFieldUpdateOperationsInput | boolean
+    reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountDepositItemCreateInput = {
+    amount: number
+    deposit: AccountDepositCreateNestedOneWithoutItemsInput
+    receipt: AccountReceiptCreateNestedOneWithoutDepositItemInput
+  }
+
+  export type AccountDepositItemUncheckedCreateInput = {
+    id?: number
+    depositId: number
+    receiptId: number
+    amount: number
+  }
+
+  export type AccountDepositItemUpdateInput = {
+    amount?: FloatFieldUpdateOperationsInput | number
+    deposit?: AccountDepositUpdateOneRequiredWithoutItemsNestedInput
+    receipt?: AccountReceiptUpdateOneRequiredWithoutDepositItemNestedInput
+  }
+
+  export type AccountDepositItemUncheckedUpdateInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    depositId?: IntFieldUpdateOperationsInput | number
+    receiptId?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+  }
+
+  export type AccountDepositItemCreateManyInput = {
+    id?: number
+    depositId: number
+    receiptId: number
+    amount: number
+  }
+
+  export type AccountDepositItemUpdateManyMutationInput = {
+    amount?: FloatFieldUpdateOperationsInput | number
+  }
+
+  export type AccountDepositItemUncheckedUpdateManyInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    depositId?: IntFieldUpdateOperationsInput | number
+    receiptId?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -43900,11 +48001,21 @@ export namespace Prisma {
     none?: PosInstallmentWhereInput
   }
 
+  export type InvoicePaymentListRelationFilter = {
+    every?: InvoicePaymentWhereInput
+    some?: InvoicePaymentWhereInput
+    none?: InvoicePaymentWhereInput
+  }
+
   export type AccountReceiptOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type PosInstallmentOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type InvoicePaymentOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -44609,11 +48720,21 @@ export namespace Prisma {
     none?: AccountTransactionWhereInput
   }
 
+  export type AccountDepositListRelationFilter = {
+    every?: AccountDepositWhereInput
+    some?: AccountDepositWhereInput
+    none?: AccountDepositWhereInput
+  }
+
   export type AccountVoucherOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
   export type AccountTransactionOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AccountDepositOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -44689,6 +48810,16 @@ export namespace Prisma {
     isNot?: AccountWhereInput
   }
 
+  export type AccountDepositItemNullableRelationFilter = {
+    is?: AccountDepositItemWhereInput | null
+    isNot?: AccountDepositItemWhereInput | null
+  }
+
+  export type InvoicePaymentNullableRelationFilter = {
+    is?: InvoicePaymentWhereInput | null
+    isNot?: InvoicePaymentWhereInput | null
+  }
+
   export type AccountReceiptCountOrderByAggregateInput = {
     id?: SortOrder
     receiptNo?: SortOrder
@@ -44702,6 +48833,7 @@ export namespace Prisma {
     chequeStatus?: SortOrder
     description?: SortOrder
     isVoided?: SortOrder
+    isDeposited?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -44728,6 +48860,7 @@ export namespace Prisma {
     chequeStatus?: SortOrder
     description?: SortOrder
     isVoided?: SortOrder
+    isDeposited?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -44746,6 +48879,7 @@ export namespace Prisma {
     chequeStatus?: SortOrder
     description?: SortOrder
     isVoided?: SortOrder
+    isDeposited?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
     updatedAt?: SortOrder
@@ -44873,6 +49007,11 @@ export namespace Prisma {
     isNot?: AccountVoucherWhereInput | null
   }
 
+  export type AccountDepositNullableRelationFilter = {
+    is?: AccountDepositWhereInput | null
+    isNot?: AccountDepositWhereInput | null
+  }
+
   export type AccountTransactionCountOrderByAggregateInput = {
     id?: SortOrder
     accountId?: SortOrder
@@ -44881,6 +49020,7 @@ export namespace Prisma {
     amount?: SortOrder
     receiptId?: SortOrder
     voucherId?: SortOrder
+    depositId?: SortOrder
     refNo?: SortOrder
     description?: SortOrder
     chequeNo?: SortOrder
@@ -44895,6 +49035,7 @@ export namespace Prisma {
     amount?: SortOrder
     receiptId?: SortOrder
     voucherId?: SortOrder
+    depositId?: SortOrder
     createdById?: SortOrder
   }
 
@@ -44906,6 +49047,7 @@ export namespace Prisma {
     amount?: SortOrder
     receiptId?: SortOrder
     voucherId?: SortOrder
+    depositId?: SortOrder
     refNo?: SortOrder
     description?: SortOrder
     chequeNo?: SortOrder
@@ -44922,6 +49064,7 @@ export namespace Prisma {
     amount?: SortOrder
     receiptId?: SortOrder
     voucherId?: SortOrder
+    depositId?: SortOrder
     refNo?: SortOrder
     description?: SortOrder
     chequeNo?: SortOrder
@@ -44936,6 +49079,7 @@ export namespace Prisma {
     amount?: SortOrder
     receiptId?: SortOrder
     voucherId?: SortOrder
+    depositId?: SortOrder
     createdById?: SortOrder
   }
 
@@ -44957,6 +49101,164 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumTransactionDirectionFilter<$PrismaModel>
     _max?: NestedEnumTransactionDirectionFilter<$PrismaModel>
+  }
+
+  export type InvoicePaymentCountOrderByAggregateInput = {
+    id?: SortOrder
+    purchaseId?: SortOrder
+    amount?: SortOrder
+    paymentMethod?: SortOrder
+    chequeNo?: SortOrder
+    chequeBank?: SortOrder
+    chequeDate?: SortOrder
+    description?: SortOrder
+    paidAt?: SortOrder
+    receiptId?: SortOrder
+  }
+
+  export type InvoicePaymentAvgOrderByAggregateInput = {
+    id?: SortOrder
+    purchaseId?: SortOrder
+    amount?: SortOrder
+    receiptId?: SortOrder
+  }
+
+  export type InvoicePaymentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    purchaseId?: SortOrder
+    amount?: SortOrder
+    paymentMethod?: SortOrder
+    chequeNo?: SortOrder
+    chequeBank?: SortOrder
+    chequeDate?: SortOrder
+    description?: SortOrder
+    paidAt?: SortOrder
+    receiptId?: SortOrder
+  }
+
+  export type InvoicePaymentMinOrderByAggregateInput = {
+    id?: SortOrder
+    purchaseId?: SortOrder
+    amount?: SortOrder
+    paymentMethod?: SortOrder
+    chequeNo?: SortOrder
+    chequeBank?: SortOrder
+    chequeDate?: SortOrder
+    description?: SortOrder
+    paidAt?: SortOrder
+    receiptId?: SortOrder
+  }
+
+  export type InvoicePaymentSumOrderByAggregateInput = {
+    id?: SortOrder
+    purchaseId?: SortOrder
+    amount?: SortOrder
+    receiptId?: SortOrder
+  }
+
+  export type AccountDepositItemListRelationFilter = {
+    every?: AccountDepositItemWhereInput
+    some?: AccountDepositItemWhereInput
+    none?: AccountDepositItemWhereInput
+  }
+
+  export type AccountDepositItemOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AccountDepositCountOrderByAggregateInput = {
+    id?: SortOrder
+    depositNo?: SortOrder
+    accountId?: SortOrder
+    totalAmount?: SortOrder
+    notes?: SortOrder
+    isReversed?: SortOrder
+    reversedAt?: SortOrder
+    createdById?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AccountDepositAvgOrderByAggregateInput = {
+    id?: SortOrder
+    accountId?: SortOrder
+    totalAmount?: SortOrder
+    createdById?: SortOrder
+  }
+
+  export type AccountDepositMaxOrderByAggregateInput = {
+    id?: SortOrder
+    depositNo?: SortOrder
+    accountId?: SortOrder
+    totalAmount?: SortOrder
+    notes?: SortOrder
+    isReversed?: SortOrder
+    reversedAt?: SortOrder
+    createdById?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AccountDepositMinOrderByAggregateInput = {
+    id?: SortOrder
+    depositNo?: SortOrder
+    accountId?: SortOrder
+    totalAmount?: SortOrder
+    notes?: SortOrder
+    isReversed?: SortOrder
+    reversedAt?: SortOrder
+    createdById?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AccountDepositSumOrderByAggregateInput = {
+    id?: SortOrder
+    accountId?: SortOrder
+    totalAmount?: SortOrder
+    createdById?: SortOrder
+  }
+
+  export type AccountDepositRelationFilter = {
+    is?: AccountDepositWhereInput
+    isNot?: AccountDepositWhereInput
+  }
+
+  export type AccountReceiptRelationFilter = {
+    is?: AccountReceiptWhereInput
+    isNot?: AccountReceiptWhereInput
+  }
+
+  export type AccountDepositItemCountOrderByAggregateInput = {
+    id?: SortOrder
+    depositId?: SortOrder
+    receiptId?: SortOrder
+    amount?: SortOrder
+  }
+
+  export type AccountDepositItemAvgOrderByAggregateInput = {
+    id?: SortOrder
+    depositId?: SortOrder
+    receiptId?: SortOrder
+    amount?: SortOrder
+  }
+
+  export type AccountDepositItemMaxOrderByAggregateInput = {
+    id?: SortOrder
+    depositId?: SortOrder
+    receiptId?: SortOrder
+    amount?: SortOrder
+  }
+
+  export type AccountDepositItemMinOrderByAggregateInput = {
+    id?: SortOrder
+    depositId?: SortOrder
+    receiptId?: SortOrder
+    amount?: SortOrder
+  }
+
+  export type AccountDepositItemSumOrderByAggregateInput = {
+    id?: SortOrder
+    depositId?: SortOrder
+    receiptId?: SortOrder
+    amount?: SortOrder
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -45953,6 +50255,13 @@ export namespace Prisma {
     connect?: PosInstallmentWhereUniqueInput | PosInstallmentWhereUniqueInput[]
   }
 
+  export type InvoicePaymentCreateNestedManyWithoutPurchaseInput = {
+    create?: XOR<InvoicePaymentCreateWithoutPurchaseInput, InvoicePaymentUncheckedCreateWithoutPurchaseInput> | InvoicePaymentCreateWithoutPurchaseInput[] | InvoicePaymentUncheckedCreateWithoutPurchaseInput[]
+    connectOrCreate?: InvoicePaymentCreateOrConnectWithoutPurchaseInput | InvoicePaymentCreateOrConnectWithoutPurchaseInput[]
+    createMany?: InvoicePaymentCreateManyPurchaseInputEnvelope
+    connect?: InvoicePaymentWhereUniqueInput | InvoicePaymentWhereUniqueInput[]
+  }
+
   export type AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput = {
     create?: XOR<AccountReceiptCreateWithoutPurchaseInput, AccountReceiptUncheckedCreateWithoutPurchaseInput> | AccountReceiptCreateWithoutPurchaseInput[] | AccountReceiptUncheckedCreateWithoutPurchaseInput[]
     connectOrCreate?: AccountReceiptCreateOrConnectWithoutPurchaseInput | AccountReceiptCreateOrConnectWithoutPurchaseInput[]
@@ -45965,6 +50274,13 @@ export namespace Prisma {
     connectOrCreate?: PosInstallmentCreateOrConnectWithoutPurchaseInput | PosInstallmentCreateOrConnectWithoutPurchaseInput[]
     createMany?: PosInstallmentCreateManyPurchaseInputEnvelope
     connect?: PosInstallmentWhereUniqueInput | PosInstallmentWhereUniqueInput[]
+  }
+
+  export type InvoicePaymentUncheckedCreateNestedManyWithoutPurchaseInput = {
+    create?: XOR<InvoicePaymentCreateWithoutPurchaseInput, InvoicePaymentUncheckedCreateWithoutPurchaseInput> | InvoicePaymentCreateWithoutPurchaseInput[] | InvoicePaymentUncheckedCreateWithoutPurchaseInput[]
+    connectOrCreate?: InvoicePaymentCreateOrConnectWithoutPurchaseInput | InvoicePaymentCreateOrConnectWithoutPurchaseInput[]
+    createMany?: InvoicePaymentCreateManyPurchaseInputEnvelope
+    connect?: InvoicePaymentWhereUniqueInput | InvoicePaymentWhereUniqueInput[]
   }
 
   export type EnumPosPurchaseItemTypeFieldUpdateOperationsInput = {
@@ -46053,6 +50369,20 @@ export namespace Prisma {
     deleteMany?: PosInstallmentScalarWhereInput | PosInstallmentScalarWhereInput[]
   }
 
+  export type InvoicePaymentUpdateManyWithoutPurchaseNestedInput = {
+    create?: XOR<InvoicePaymentCreateWithoutPurchaseInput, InvoicePaymentUncheckedCreateWithoutPurchaseInput> | InvoicePaymentCreateWithoutPurchaseInput[] | InvoicePaymentUncheckedCreateWithoutPurchaseInput[]
+    connectOrCreate?: InvoicePaymentCreateOrConnectWithoutPurchaseInput | InvoicePaymentCreateOrConnectWithoutPurchaseInput[]
+    upsert?: InvoicePaymentUpsertWithWhereUniqueWithoutPurchaseInput | InvoicePaymentUpsertWithWhereUniqueWithoutPurchaseInput[]
+    createMany?: InvoicePaymentCreateManyPurchaseInputEnvelope
+    set?: InvoicePaymentWhereUniqueInput | InvoicePaymentWhereUniqueInput[]
+    disconnect?: InvoicePaymentWhereUniqueInput | InvoicePaymentWhereUniqueInput[]
+    delete?: InvoicePaymentWhereUniqueInput | InvoicePaymentWhereUniqueInput[]
+    connect?: InvoicePaymentWhereUniqueInput | InvoicePaymentWhereUniqueInput[]
+    update?: InvoicePaymentUpdateWithWhereUniqueWithoutPurchaseInput | InvoicePaymentUpdateWithWhereUniqueWithoutPurchaseInput[]
+    updateMany?: InvoicePaymentUpdateManyWithWhereWithoutPurchaseInput | InvoicePaymentUpdateManyWithWhereWithoutPurchaseInput[]
+    deleteMany?: InvoicePaymentScalarWhereInput | InvoicePaymentScalarWhereInput[]
+  }
+
   export type AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput = {
     create?: XOR<AccountReceiptCreateWithoutPurchaseInput, AccountReceiptUncheckedCreateWithoutPurchaseInput> | AccountReceiptCreateWithoutPurchaseInput[] | AccountReceiptUncheckedCreateWithoutPurchaseInput[]
     connectOrCreate?: AccountReceiptCreateOrConnectWithoutPurchaseInput | AccountReceiptCreateOrConnectWithoutPurchaseInput[]
@@ -46079,6 +50409,20 @@ export namespace Prisma {
     update?: PosInstallmentUpdateWithWhereUniqueWithoutPurchaseInput | PosInstallmentUpdateWithWhereUniqueWithoutPurchaseInput[]
     updateMany?: PosInstallmentUpdateManyWithWhereWithoutPurchaseInput | PosInstallmentUpdateManyWithWhereWithoutPurchaseInput[]
     deleteMany?: PosInstallmentScalarWhereInput | PosInstallmentScalarWhereInput[]
+  }
+
+  export type InvoicePaymentUncheckedUpdateManyWithoutPurchaseNestedInput = {
+    create?: XOR<InvoicePaymentCreateWithoutPurchaseInput, InvoicePaymentUncheckedCreateWithoutPurchaseInput> | InvoicePaymentCreateWithoutPurchaseInput[] | InvoicePaymentUncheckedCreateWithoutPurchaseInput[]
+    connectOrCreate?: InvoicePaymentCreateOrConnectWithoutPurchaseInput | InvoicePaymentCreateOrConnectWithoutPurchaseInput[]
+    upsert?: InvoicePaymentUpsertWithWhereUniqueWithoutPurchaseInput | InvoicePaymentUpsertWithWhereUniqueWithoutPurchaseInput[]
+    createMany?: InvoicePaymentCreateManyPurchaseInputEnvelope
+    set?: InvoicePaymentWhereUniqueInput | InvoicePaymentWhereUniqueInput[]
+    disconnect?: InvoicePaymentWhereUniqueInput | InvoicePaymentWhereUniqueInput[]
+    delete?: InvoicePaymentWhereUniqueInput | InvoicePaymentWhereUniqueInput[]
+    connect?: InvoicePaymentWhereUniqueInput | InvoicePaymentWhereUniqueInput[]
+    update?: InvoicePaymentUpdateWithWhereUniqueWithoutPurchaseInput | InvoicePaymentUpdateWithWhereUniqueWithoutPurchaseInput[]
+    updateMany?: InvoicePaymentUpdateManyWithWhereWithoutPurchaseInput | InvoicePaymentUpdateManyWithWhereWithoutPurchaseInput[]
+    deleteMany?: InvoicePaymentScalarWhereInput | InvoicePaymentScalarWhereInput[]
   }
 
   export type PosCustomerPurchaseCreateNestedOneWithoutInstallmentsInput = {
@@ -46292,6 +50636,13 @@ export namespace Prisma {
     connect?: AccountTransactionWhereUniqueInput | AccountTransactionWhereUniqueInput[]
   }
 
+  export type AccountDepositCreateNestedManyWithoutAccountInput = {
+    create?: XOR<AccountDepositCreateWithoutAccountInput, AccountDepositUncheckedCreateWithoutAccountInput> | AccountDepositCreateWithoutAccountInput[] | AccountDepositUncheckedCreateWithoutAccountInput[]
+    connectOrCreate?: AccountDepositCreateOrConnectWithoutAccountInput | AccountDepositCreateOrConnectWithoutAccountInput[]
+    createMany?: AccountDepositCreateManyAccountInputEnvelope
+    connect?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+  }
+
   export type AccountReceiptUncheckedCreateNestedManyWithoutAccountInput = {
     create?: XOR<AccountReceiptCreateWithoutAccountInput, AccountReceiptUncheckedCreateWithoutAccountInput> | AccountReceiptCreateWithoutAccountInput[] | AccountReceiptUncheckedCreateWithoutAccountInput[]
     connectOrCreate?: AccountReceiptCreateOrConnectWithoutAccountInput | AccountReceiptCreateOrConnectWithoutAccountInput[]
@@ -46311,6 +50662,13 @@ export namespace Prisma {
     connectOrCreate?: AccountTransactionCreateOrConnectWithoutAccountInput | AccountTransactionCreateOrConnectWithoutAccountInput[]
     createMany?: AccountTransactionCreateManyAccountInputEnvelope
     connect?: AccountTransactionWhereUniqueInput | AccountTransactionWhereUniqueInput[]
+  }
+
+  export type AccountDepositUncheckedCreateNestedManyWithoutAccountInput = {
+    create?: XOR<AccountDepositCreateWithoutAccountInput, AccountDepositUncheckedCreateWithoutAccountInput> | AccountDepositCreateWithoutAccountInput[] | AccountDepositUncheckedCreateWithoutAccountInput[]
+    connectOrCreate?: AccountDepositCreateOrConnectWithoutAccountInput | AccountDepositCreateOrConnectWithoutAccountInput[]
+    createMany?: AccountDepositCreateManyAccountInputEnvelope
+    connect?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
   }
 
   export type EnumAccountTypeFieldUpdateOperationsInput = {
@@ -46359,6 +50717,20 @@ export namespace Prisma {
     deleteMany?: AccountTransactionScalarWhereInput | AccountTransactionScalarWhereInput[]
   }
 
+  export type AccountDepositUpdateManyWithoutAccountNestedInput = {
+    create?: XOR<AccountDepositCreateWithoutAccountInput, AccountDepositUncheckedCreateWithoutAccountInput> | AccountDepositCreateWithoutAccountInput[] | AccountDepositUncheckedCreateWithoutAccountInput[]
+    connectOrCreate?: AccountDepositCreateOrConnectWithoutAccountInput | AccountDepositCreateOrConnectWithoutAccountInput[]
+    upsert?: AccountDepositUpsertWithWhereUniqueWithoutAccountInput | AccountDepositUpsertWithWhereUniqueWithoutAccountInput[]
+    createMany?: AccountDepositCreateManyAccountInputEnvelope
+    set?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    disconnect?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    delete?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    connect?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    update?: AccountDepositUpdateWithWhereUniqueWithoutAccountInput | AccountDepositUpdateWithWhereUniqueWithoutAccountInput[]
+    updateMany?: AccountDepositUpdateManyWithWhereWithoutAccountInput | AccountDepositUpdateManyWithWhereWithoutAccountInput[]
+    deleteMany?: AccountDepositScalarWhereInput | AccountDepositScalarWhereInput[]
+  }
+
   export type AccountReceiptUncheckedUpdateManyWithoutAccountNestedInput = {
     create?: XOR<AccountReceiptCreateWithoutAccountInput, AccountReceiptUncheckedCreateWithoutAccountInput> | AccountReceiptCreateWithoutAccountInput[] | AccountReceiptUncheckedCreateWithoutAccountInput[]
     connectOrCreate?: AccountReceiptCreateOrConnectWithoutAccountInput | AccountReceiptCreateOrConnectWithoutAccountInput[]
@@ -46401,6 +50773,20 @@ export namespace Prisma {
     deleteMany?: AccountTransactionScalarWhereInput | AccountTransactionScalarWhereInput[]
   }
 
+  export type AccountDepositUncheckedUpdateManyWithoutAccountNestedInput = {
+    create?: XOR<AccountDepositCreateWithoutAccountInput, AccountDepositUncheckedCreateWithoutAccountInput> | AccountDepositCreateWithoutAccountInput[] | AccountDepositUncheckedCreateWithoutAccountInput[]
+    connectOrCreate?: AccountDepositCreateOrConnectWithoutAccountInput | AccountDepositCreateOrConnectWithoutAccountInput[]
+    upsert?: AccountDepositUpsertWithWhereUniqueWithoutAccountInput | AccountDepositUpsertWithWhereUniqueWithoutAccountInput[]
+    createMany?: AccountDepositCreateManyAccountInputEnvelope
+    set?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    disconnect?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    delete?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    connect?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    update?: AccountDepositUpdateWithWhereUniqueWithoutAccountInput | AccountDepositUpdateWithWhereUniqueWithoutAccountInput[]
+    updateMany?: AccountDepositUpdateManyWithWhereWithoutAccountInput | AccountDepositUpdateManyWithWhereWithoutAccountInput[]
+    deleteMany?: AccountDepositScalarWhereInput | AccountDepositScalarWhereInput[]
+  }
+
   export type AccountCreateNestedOneWithoutReceiptsInput = {
     create?: XOR<AccountCreateWithoutReceiptsInput, AccountUncheckedCreateWithoutReceiptsInput>
     connectOrCreate?: AccountCreateOrConnectWithoutReceiptsInput
@@ -46420,11 +50806,35 @@ export namespace Prisma {
     connect?: AccountTransactionWhereUniqueInput | AccountTransactionWhereUniqueInput[]
   }
 
+  export type AccountDepositItemCreateNestedOneWithoutReceiptInput = {
+    create?: XOR<AccountDepositItemCreateWithoutReceiptInput, AccountDepositItemUncheckedCreateWithoutReceiptInput>
+    connectOrCreate?: AccountDepositItemCreateOrConnectWithoutReceiptInput
+    connect?: AccountDepositItemWhereUniqueInput
+  }
+
+  export type InvoicePaymentCreateNestedOneWithoutReceiptInput = {
+    create?: XOR<InvoicePaymentCreateWithoutReceiptInput, InvoicePaymentUncheckedCreateWithoutReceiptInput>
+    connectOrCreate?: InvoicePaymentCreateOrConnectWithoutReceiptInput
+    connect?: InvoicePaymentWhereUniqueInput
+  }
+
   export type AccountTransactionUncheckedCreateNestedManyWithoutReceiptInput = {
     create?: XOR<AccountTransactionCreateWithoutReceiptInput, AccountTransactionUncheckedCreateWithoutReceiptInput> | AccountTransactionCreateWithoutReceiptInput[] | AccountTransactionUncheckedCreateWithoutReceiptInput[]
     connectOrCreate?: AccountTransactionCreateOrConnectWithoutReceiptInput | AccountTransactionCreateOrConnectWithoutReceiptInput[]
     createMany?: AccountTransactionCreateManyReceiptInputEnvelope
     connect?: AccountTransactionWhereUniqueInput | AccountTransactionWhereUniqueInput[]
+  }
+
+  export type AccountDepositItemUncheckedCreateNestedOneWithoutReceiptInput = {
+    create?: XOR<AccountDepositItemCreateWithoutReceiptInput, AccountDepositItemUncheckedCreateWithoutReceiptInput>
+    connectOrCreate?: AccountDepositItemCreateOrConnectWithoutReceiptInput
+    connect?: AccountDepositItemWhereUniqueInput
+  }
+
+  export type InvoicePaymentUncheckedCreateNestedOneWithoutReceiptInput = {
+    create?: XOR<InvoicePaymentCreateWithoutReceiptInput, InvoicePaymentUncheckedCreateWithoutReceiptInput>
+    connectOrCreate?: InvoicePaymentCreateOrConnectWithoutReceiptInput
+    connect?: InvoicePaymentWhereUniqueInput
   }
 
   export type EnumPaymentMethodFieldUpdateOperationsInput = {
@@ -46465,6 +50875,26 @@ export namespace Prisma {
     deleteMany?: AccountTransactionScalarWhereInput | AccountTransactionScalarWhereInput[]
   }
 
+  export type AccountDepositItemUpdateOneWithoutReceiptNestedInput = {
+    create?: XOR<AccountDepositItemCreateWithoutReceiptInput, AccountDepositItemUncheckedCreateWithoutReceiptInput>
+    connectOrCreate?: AccountDepositItemCreateOrConnectWithoutReceiptInput
+    upsert?: AccountDepositItemUpsertWithoutReceiptInput
+    disconnect?: AccountDepositItemWhereInput | boolean
+    delete?: AccountDepositItemWhereInput | boolean
+    connect?: AccountDepositItemWhereUniqueInput
+    update?: XOR<XOR<AccountDepositItemUpdateToOneWithWhereWithoutReceiptInput, AccountDepositItemUpdateWithoutReceiptInput>, AccountDepositItemUncheckedUpdateWithoutReceiptInput>
+  }
+
+  export type InvoicePaymentUpdateOneWithoutReceiptNestedInput = {
+    create?: XOR<InvoicePaymentCreateWithoutReceiptInput, InvoicePaymentUncheckedCreateWithoutReceiptInput>
+    connectOrCreate?: InvoicePaymentCreateOrConnectWithoutReceiptInput
+    upsert?: InvoicePaymentUpsertWithoutReceiptInput
+    disconnect?: InvoicePaymentWhereInput | boolean
+    delete?: InvoicePaymentWhereInput | boolean
+    connect?: InvoicePaymentWhereUniqueInput
+    update?: XOR<XOR<InvoicePaymentUpdateToOneWithWhereWithoutReceiptInput, InvoicePaymentUpdateWithoutReceiptInput>, InvoicePaymentUncheckedUpdateWithoutReceiptInput>
+  }
+
   export type AccountTransactionUncheckedUpdateManyWithoutReceiptNestedInput = {
     create?: XOR<AccountTransactionCreateWithoutReceiptInput, AccountTransactionUncheckedCreateWithoutReceiptInput> | AccountTransactionCreateWithoutReceiptInput[] | AccountTransactionUncheckedCreateWithoutReceiptInput[]
     connectOrCreate?: AccountTransactionCreateOrConnectWithoutReceiptInput | AccountTransactionCreateOrConnectWithoutReceiptInput[]
@@ -46477,6 +50907,26 @@ export namespace Prisma {
     update?: AccountTransactionUpdateWithWhereUniqueWithoutReceiptInput | AccountTransactionUpdateWithWhereUniqueWithoutReceiptInput[]
     updateMany?: AccountTransactionUpdateManyWithWhereWithoutReceiptInput | AccountTransactionUpdateManyWithWhereWithoutReceiptInput[]
     deleteMany?: AccountTransactionScalarWhereInput | AccountTransactionScalarWhereInput[]
+  }
+
+  export type AccountDepositItemUncheckedUpdateOneWithoutReceiptNestedInput = {
+    create?: XOR<AccountDepositItemCreateWithoutReceiptInput, AccountDepositItemUncheckedCreateWithoutReceiptInput>
+    connectOrCreate?: AccountDepositItemCreateOrConnectWithoutReceiptInput
+    upsert?: AccountDepositItemUpsertWithoutReceiptInput
+    disconnect?: AccountDepositItemWhereInput | boolean
+    delete?: AccountDepositItemWhereInput | boolean
+    connect?: AccountDepositItemWhereUniqueInput
+    update?: XOR<XOR<AccountDepositItemUpdateToOneWithWhereWithoutReceiptInput, AccountDepositItemUpdateWithoutReceiptInput>, AccountDepositItemUncheckedUpdateWithoutReceiptInput>
+  }
+
+  export type InvoicePaymentUncheckedUpdateOneWithoutReceiptNestedInput = {
+    create?: XOR<InvoicePaymentCreateWithoutReceiptInput, InvoicePaymentUncheckedCreateWithoutReceiptInput>
+    connectOrCreate?: InvoicePaymentCreateOrConnectWithoutReceiptInput
+    upsert?: InvoicePaymentUpsertWithoutReceiptInput
+    disconnect?: InvoicePaymentWhereInput | boolean
+    delete?: InvoicePaymentWhereInput | boolean
+    connect?: InvoicePaymentWhereUniqueInput
+    update?: XOR<XOR<InvoicePaymentUpdateToOneWithWhereWithoutReceiptInput, InvoicePaymentUpdateWithoutReceiptInput>, InvoicePaymentUncheckedUpdateWithoutReceiptInput>
   }
 
   export type AccountCreateNestedOneWithoutVouchersInput = {
@@ -46557,6 +51007,12 @@ export namespace Prisma {
     connect?: AccountVoucherWhereUniqueInput
   }
 
+  export type AccountDepositCreateNestedOneWithoutTransactionsInput = {
+    create?: XOR<AccountDepositCreateWithoutTransactionsInput, AccountDepositUncheckedCreateWithoutTransactionsInput>
+    connectOrCreate?: AccountDepositCreateOrConnectWithoutTransactionsInput
+    connect?: AccountDepositWhereUniqueInput
+  }
+
   export type EnumTransactionTypeFieldUpdateOperationsInput = {
     set?: $Enums.TransactionType
   }
@@ -46591,6 +51047,172 @@ export namespace Prisma {
     delete?: AccountVoucherWhereInput | boolean
     connect?: AccountVoucherWhereUniqueInput
     update?: XOR<XOR<AccountVoucherUpdateToOneWithWhereWithoutTransactionsInput, AccountVoucherUpdateWithoutTransactionsInput>, AccountVoucherUncheckedUpdateWithoutTransactionsInput>
+  }
+
+  export type AccountDepositUpdateOneWithoutTransactionsNestedInput = {
+    create?: XOR<AccountDepositCreateWithoutTransactionsInput, AccountDepositUncheckedCreateWithoutTransactionsInput>
+    connectOrCreate?: AccountDepositCreateOrConnectWithoutTransactionsInput
+    upsert?: AccountDepositUpsertWithoutTransactionsInput
+    disconnect?: AccountDepositWhereInput | boolean
+    delete?: AccountDepositWhereInput | boolean
+    connect?: AccountDepositWhereUniqueInput
+    update?: XOR<XOR<AccountDepositUpdateToOneWithWhereWithoutTransactionsInput, AccountDepositUpdateWithoutTransactionsInput>, AccountDepositUncheckedUpdateWithoutTransactionsInput>
+  }
+
+  export type PosCustomerPurchaseCreateNestedOneWithoutInvoicePaymentsInput = {
+    create?: XOR<PosCustomerPurchaseCreateWithoutInvoicePaymentsInput, PosCustomerPurchaseUncheckedCreateWithoutInvoicePaymentsInput>
+    connectOrCreate?: PosCustomerPurchaseCreateOrConnectWithoutInvoicePaymentsInput
+    connect?: PosCustomerPurchaseWhereUniqueInput
+  }
+
+  export type AccountReceiptCreateNestedOneWithoutInvoicePaymentInput = {
+    create?: XOR<AccountReceiptCreateWithoutInvoicePaymentInput, AccountReceiptUncheckedCreateWithoutInvoicePaymentInput>
+    connectOrCreate?: AccountReceiptCreateOrConnectWithoutInvoicePaymentInput
+    connect?: AccountReceiptWhereUniqueInput
+  }
+
+  export type PosCustomerPurchaseUpdateOneRequiredWithoutInvoicePaymentsNestedInput = {
+    create?: XOR<PosCustomerPurchaseCreateWithoutInvoicePaymentsInput, PosCustomerPurchaseUncheckedCreateWithoutInvoicePaymentsInput>
+    connectOrCreate?: PosCustomerPurchaseCreateOrConnectWithoutInvoicePaymentsInput
+    upsert?: PosCustomerPurchaseUpsertWithoutInvoicePaymentsInput
+    connect?: PosCustomerPurchaseWhereUniqueInput
+    update?: XOR<XOR<PosCustomerPurchaseUpdateToOneWithWhereWithoutInvoicePaymentsInput, PosCustomerPurchaseUpdateWithoutInvoicePaymentsInput>, PosCustomerPurchaseUncheckedUpdateWithoutInvoicePaymentsInput>
+  }
+
+  export type AccountReceiptUpdateOneWithoutInvoicePaymentNestedInput = {
+    create?: XOR<AccountReceiptCreateWithoutInvoicePaymentInput, AccountReceiptUncheckedCreateWithoutInvoicePaymentInput>
+    connectOrCreate?: AccountReceiptCreateOrConnectWithoutInvoicePaymentInput
+    upsert?: AccountReceiptUpsertWithoutInvoicePaymentInput
+    disconnect?: AccountReceiptWhereInput | boolean
+    delete?: AccountReceiptWhereInput | boolean
+    connect?: AccountReceiptWhereUniqueInput
+    update?: XOR<XOR<AccountReceiptUpdateToOneWithWhereWithoutInvoicePaymentInput, AccountReceiptUpdateWithoutInvoicePaymentInput>, AccountReceiptUncheckedUpdateWithoutInvoicePaymentInput>
+  }
+
+  export type AccountCreateNestedOneWithoutDepositsInput = {
+    create?: XOR<AccountCreateWithoutDepositsInput, AccountUncheckedCreateWithoutDepositsInput>
+    connectOrCreate?: AccountCreateOrConnectWithoutDepositsInput
+    connect?: AccountWhereUniqueInput
+  }
+
+  export type AccountDepositItemCreateNestedManyWithoutDepositInput = {
+    create?: XOR<AccountDepositItemCreateWithoutDepositInput, AccountDepositItemUncheckedCreateWithoutDepositInput> | AccountDepositItemCreateWithoutDepositInput[] | AccountDepositItemUncheckedCreateWithoutDepositInput[]
+    connectOrCreate?: AccountDepositItemCreateOrConnectWithoutDepositInput | AccountDepositItemCreateOrConnectWithoutDepositInput[]
+    createMany?: AccountDepositItemCreateManyDepositInputEnvelope
+    connect?: AccountDepositItemWhereUniqueInput | AccountDepositItemWhereUniqueInput[]
+  }
+
+  export type AccountTransactionCreateNestedManyWithoutDepositInput = {
+    create?: XOR<AccountTransactionCreateWithoutDepositInput, AccountTransactionUncheckedCreateWithoutDepositInput> | AccountTransactionCreateWithoutDepositInput[] | AccountTransactionUncheckedCreateWithoutDepositInput[]
+    connectOrCreate?: AccountTransactionCreateOrConnectWithoutDepositInput | AccountTransactionCreateOrConnectWithoutDepositInput[]
+    createMany?: AccountTransactionCreateManyDepositInputEnvelope
+    connect?: AccountTransactionWhereUniqueInput | AccountTransactionWhereUniqueInput[]
+  }
+
+  export type AccountDepositItemUncheckedCreateNestedManyWithoutDepositInput = {
+    create?: XOR<AccountDepositItemCreateWithoutDepositInput, AccountDepositItemUncheckedCreateWithoutDepositInput> | AccountDepositItemCreateWithoutDepositInput[] | AccountDepositItemUncheckedCreateWithoutDepositInput[]
+    connectOrCreate?: AccountDepositItemCreateOrConnectWithoutDepositInput | AccountDepositItemCreateOrConnectWithoutDepositInput[]
+    createMany?: AccountDepositItemCreateManyDepositInputEnvelope
+    connect?: AccountDepositItemWhereUniqueInput | AccountDepositItemWhereUniqueInput[]
+  }
+
+  export type AccountTransactionUncheckedCreateNestedManyWithoutDepositInput = {
+    create?: XOR<AccountTransactionCreateWithoutDepositInput, AccountTransactionUncheckedCreateWithoutDepositInput> | AccountTransactionCreateWithoutDepositInput[] | AccountTransactionUncheckedCreateWithoutDepositInput[]
+    connectOrCreate?: AccountTransactionCreateOrConnectWithoutDepositInput | AccountTransactionCreateOrConnectWithoutDepositInput[]
+    createMany?: AccountTransactionCreateManyDepositInputEnvelope
+    connect?: AccountTransactionWhereUniqueInput | AccountTransactionWhereUniqueInput[]
+  }
+
+  export type AccountUpdateOneRequiredWithoutDepositsNestedInput = {
+    create?: XOR<AccountCreateWithoutDepositsInput, AccountUncheckedCreateWithoutDepositsInput>
+    connectOrCreate?: AccountCreateOrConnectWithoutDepositsInput
+    upsert?: AccountUpsertWithoutDepositsInput
+    connect?: AccountWhereUniqueInput
+    update?: XOR<XOR<AccountUpdateToOneWithWhereWithoutDepositsInput, AccountUpdateWithoutDepositsInput>, AccountUncheckedUpdateWithoutDepositsInput>
+  }
+
+  export type AccountDepositItemUpdateManyWithoutDepositNestedInput = {
+    create?: XOR<AccountDepositItemCreateWithoutDepositInput, AccountDepositItemUncheckedCreateWithoutDepositInput> | AccountDepositItemCreateWithoutDepositInput[] | AccountDepositItemUncheckedCreateWithoutDepositInput[]
+    connectOrCreate?: AccountDepositItemCreateOrConnectWithoutDepositInput | AccountDepositItemCreateOrConnectWithoutDepositInput[]
+    upsert?: AccountDepositItemUpsertWithWhereUniqueWithoutDepositInput | AccountDepositItemUpsertWithWhereUniqueWithoutDepositInput[]
+    createMany?: AccountDepositItemCreateManyDepositInputEnvelope
+    set?: AccountDepositItemWhereUniqueInput | AccountDepositItemWhereUniqueInput[]
+    disconnect?: AccountDepositItemWhereUniqueInput | AccountDepositItemWhereUniqueInput[]
+    delete?: AccountDepositItemWhereUniqueInput | AccountDepositItemWhereUniqueInput[]
+    connect?: AccountDepositItemWhereUniqueInput | AccountDepositItemWhereUniqueInput[]
+    update?: AccountDepositItemUpdateWithWhereUniqueWithoutDepositInput | AccountDepositItemUpdateWithWhereUniqueWithoutDepositInput[]
+    updateMany?: AccountDepositItemUpdateManyWithWhereWithoutDepositInput | AccountDepositItemUpdateManyWithWhereWithoutDepositInput[]
+    deleteMany?: AccountDepositItemScalarWhereInput | AccountDepositItemScalarWhereInput[]
+  }
+
+  export type AccountTransactionUpdateManyWithoutDepositNestedInput = {
+    create?: XOR<AccountTransactionCreateWithoutDepositInput, AccountTransactionUncheckedCreateWithoutDepositInput> | AccountTransactionCreateWithoutDepositInput[] | AccountTransactionUncheckedCreateWithoutDepositInput[]
+    connectOrCreate?: AccountTransactionCreateOrConnectWithoutDepositInput | AccountTransactionCreateOrConnectWithoutDepositInput[]
+    upsert?: AccountTransactionUpsertWithWhereUniqueWithoutDepositInput | AccountTransactionUpsertWithWhereUniqueWithoutDepositInput[]
+    createMany?: AccountTransactionCreateManyDepositInputEnvelope
+    set?: AccountTransactionWhereUniqueInput | AccountTransactionWhereUniqueInput[]
+    disconnect?: AccountTransactionWhereUniqueInput | AccountTransactionWhereUniqueInput[]
+    delete?: AccountTransactionWhereUniqueInput | AccountTransactionWhereUniqueInput[]
+    connect?: AccountTransactionWhereUniqueInput | AccountTransactionWhereUniqueInput[]
+    update?: AccountTransactionUpdateWithWhereUniqueWithoutDepositInput | AccountTransactionUpdateWithWhereUniqueWithoutDepositInput[]
+    updateMany?: AccountTransactionUpdateManyWithWhereWithoutDepositInput | AccountTransactionUpdateManyWithWhereWithoutDepositInput[]
+    deleteMany?: AccountTransactionScalarWhereInput | AccountTransactionScalarWhereInput[]
+  }
+
+  export type AccountDepositItemUncheckedUpdateManyWithoutDepositNestedInput = {
+    create?: XOR<AccountDepositItemCreateWithoutDepositInput, AccountDepositItemUncheckedCreateWithoutDepositInput> | AccountDepositItemCreateWithoutDepositInput[] | AccountDepositItemUncheckedCreateWithoutDepositInput[]
+    connectOrCreate?: AccountDepositItemCreateOrConnectWithoutDepositInput | AccountDepositItemCreateOrConnectWithoutDepositInput[]
+    upsert?: AccountDepositItemUpsertWithWhereUniqueWithoutDepositInput | AccountDepositItemUpsertWithWhereUniqueWithoutDepositInput[]
+    createMany?: AccountDepositItemCreateManyDepositInputEnvelope
+    set?: AccountDepositItemWhereUniqueInput | AccountDepositItemWhereUniqueInput[]
+    disconnect?: AccountDepositItemWhereUniqueInput | AccountDepositItemWhereUniqueInput[]
+    delete?: AccountDepositItemWhereUniqueInput | AccountDepositItemWhereUniqueInput[]
+    connect?: AccountDepositItemWhereUniqueInput | AccountDepositItemWhereUniqueInput[]
+    update?: AccountDepositItemUpdateWithWhereUniqueWithoutDepositInput | AccountDepositItemUpdateWithWhereUniqueWithoutDepositInput[]
+    updateMany?: AccountDepositItemUpdateManyWithWhereWithoutDepositInput | AccountDepositItemUpdateManyWithWhereWithoutDepositInput[]
+    deleteMany?: AccountDepositItemScalarWhereInput | AccountDepositItemScalarWhereInput[]
+  }
+
+  export type AccountTransactionUncheckedUpdateManyWithoutDepositNestedInput = {
+    create?: XOR<AccountTransactionCreateWithoutDepositInput, AccountTransactionUncheckedCreateWithoutDepositInput> | AccountTransactionCreateWithoutDepositInput[] | AccountTransactionUncheckedCreateWithoutDepositInput[]
+    connectOrCreate?: AccountTransactionCreateOrConnectWithoutDepositInput | AccountTransactionCreateOrConnectWithoutDepositInput[]
+    upsert?: AccountTransactionUpsertWithWhereUniqueWithoutDepositInput | AccountTransactionUpsertWithWhereUniqueWithoutDepositInput[]
+    createMany?: AccountTransactionCreateManyDepositInputEnvelope
+    set?: AccountTransactionWhereUniqueInput | AccountTransactionWhereUniqueInput[]
+    disconnect?: AccountTransactionWhereUniqueInput | AccountTransactionWhereUniqueInput[]
+    delete?: AccountTransactionWhereUniqueInput | AccountTransactionWhereUniqueInput[]
+    connect?: AccountTransactionWhereUniqueInput | AccountTransactionWhereUniqueInput[]
+    update?: AccountTransactionUpdateWithWhereUniqueWithoutDepositInput | AccountTransactionUpdateWithWhereUniqueWithoutDepositInput[]
+    updateMany?: AccountTransactionUpdateManyWithWhereWithoutDepositInput | AccountTransactionUpdateManyWithWhereWithoutDepositInput[]
+    deleteMany?: AccountTransactionScalarWhereInput | AccountTransactionScalarWhereInput[]
+  }
+
+  export type AccountDepositCreateNestedOneWithoutItemsInput = {
+    create?: XOR<AccountDepositCreateWithoutItemsInput, AccountDepositUncheckedCreateWithoutItemsInput>
+    connectOrCreate?: AccountDepositCreateOrConnectWithoutItemsInput
+    connect?: AccountDepositWhereUniqueInput
+  }
+
+  export type AccountReceiptCreateNestedOneWithoutDepositItemInput = {
+    create?: XOR<AccountReceiptCreateWithoutDepositItemInput, AccountReceiptUncheckedCreateWithoutDepositItemInput>
+    connectOrCreate?: AccountReceiptCreateOrConnectWithoutDepositItemInput
+    connect?: AccountReceiptWhereUniqueInput
+  }
+
+  export type AccountDepositUpdateOneRequiredWithoutItemsNestedInput = {
+    create?: XOR<AccountDepositCreateWithoutItemsInput, AccountDepositUncheckedCreateWithoutItemsInput>
+    connectOrCreate?: AccountDepositCreateOrConnectWithoutItemsInput
+    upsert?: AccountDepositUpsertWithoutItemsInput
+    connect?: AccountDepositWhereUniqueInput
+    update?: XOR<XOR<AccountDepositUpdateToOneWithWhereWithoutItemsInput, AccountDepositUpdateWithoutItemsInput>, AccountDepositUncheckedUpdateWithoutItemsInput>
+  }
+
+  export type AccountReceiptUpdateOneRequiredWithoutDepositItemNestedInput = {
+    create?: XOR<AccountReceiptCreateWithoutDepositItemInput, AccountReceiptUncheckedCreateWithoutDepositItemInput>
+    connectOrCreate?: AccountReceiptCreateOrConnectWithoutDepositItemInput
+    upsert?: AccountReceiptUpsertWithoutDepositItemInput
+    connect?: AccountReceiptWhereUniqueInput
+    update?: XOR<XOR<AccountReceiptUpdateToOneWithWhereWithoutDepositItemInput, AccountReceiptUpdateWithoutDepositItemInput>, AccountReceiptUncheckedUpdateWithoutDepositItemInput>
   }
 
   export type NestedIntFilter<$PrismaModel = never> = {
@@ -47719,6 +52341,7 @@ export namespace Prisma {
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUncheckedCreateWithoutBikeVehicleInput = {
@@ -47748,6 +52371,7 @@ export namespace Prisma {
     purchasedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseCreateOrConnectWithoutBikeVehicleInput = {
@@ -48540,6 +53164,7 @@ export namespace Prisma {
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUncheckedCreateWithoutInventoryProductInput = {
@@ -48569,6 +53194,7 @@ export namespace Prisma {
     purchasedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseCreateOrConnectWithoutInventoryProductInput = {
@@ -49007,6 +53633,7 @@ export namespace Prisma {
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUncheckedCreateWithoutCustomerInput = {
@@ -49036,6 +53663,7 @@ export namespace Prisma {
     purchasedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseCreateOrConnectWithoutCustomerInput = {
@@ -49106,6 +53734,7 @@ export namespace Prisma {
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUncheckedCreateWithoutLeasingCompanyInput = {
@@ -49135,6 +53764,7 @@ export namespace Prisma {
     purchasedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseCreateOrConnectWithoutLeasingCompanyInput = {
@@ -49549,11 +54179,14 @@ export namespace Prisma {
     chequeStatus?: $Enums.ChequeStatus | null
     description?: string | null
     isVoided?: boolean
+    isDeposited?: boolean
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
     account: AccountCreateNestedOneWithoutReceiptsInput
     transactions?: AccountTransactionCreateNestedManyWithoutReceiptInput
+    depositItem?: AccountDepositItemCreateNestedOneWithoutReceiptInput
+    invoicePayment?: InvoicePaymentCreateNestedOneWithoutReceiptInput
   }
 
   export type AccountReceiptUncheckedCreateWithoutPurchaseInput = {
@@ -49568,10 +54201,13 @@ export namespace Prisma {
     chequeStatus?: $Enums.ChequeStatus | null
     description?: string | null
     isVoided?: boolean
+    isDeposited?: boolean
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutReceiptInput
+    depositItem?: AccountDepositItemUncheckedCreateNestedOneWithoutReceiptInput
+    invoicePayment?: InvoicePaymentUncheckedCreateNestedOneWithoutReceiptInput
   }
 
   export type AccountReceiptCreateOrConnectWithoutPurchaseInput = {
@@ -49624,6 +54260,39 @@ export namespace Prisma {
 
   export type PosInstallmentCreateManyPurchaseInputEnvelope = {
     data: PosInstallmentCreateManyPurchaseInput | PosInstallmentCreateManyPurchaseInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type InvoicePaymentCreateWithoutPurchaseInput = {
+    amount: number
+    paymentMethod?: $Enums.PaymentMethod
+    chequeNo?: string | null
+    chequeBank?: string | null
+    chequeDate?: Date | string | null
+    description?: string | null
+    paidAt?: Date | string
+    receipt?: AccountReceiptCreateNestedOneWithoutInvoicePaymentInput
+  }
+
+  export type InvoicePaymentUncheckedCreateWithoutPurchaseInput = {
+    id?: number
+    amount: number
+    paymentMethod?: $Enums.PaymentMethod
+    chequeNo?: string | null
+    chequeBank?: string | null
+    chequeDate?: Date | string | null
+    description?: string | null
+    paidAt?: Date | string
+    receiptId?: number | null
+  }
+
+  export type InvoicePaymentCreateOrConnectWithoutPurchaseInput = {
+    where: InvoicePaymentWhereUniqueInput
+    create: XOR<InvoicePaymentCreateWithoutPurchaseInput, InvoicePaymentUncheckedCreateWithoutPurchaseInput>
+  }
+
+  export type InvoicePaymentCreateManyPurchaseInputEnvelope = {
+    data: InvoicePaymentCreateManyPurchaseInput | InvoicePaymentCreateManyPurchaseInput[]
     skipDuplicates?: boolean
   }
 
@@ -49851,6 +54520,7 @@ export namespace Prisma {
     chequeStatus?: EnumChequeStatusNullableFilter<"AccountReceipt"> | $Enums.ChequeStatus | null
     description?: StringNullableFilter<"AccountReceipt"> | string | null
     isVoided?: BoolFilter<"AccountReceipt"> | boolean
+    isDeposited?: BoolFilter<"AccountReceipt"> | boolean
     createdById?: IntFilter<"AccountReceipt"> | number
     createdAt?: DateTimeFilter<"AccountReceipt"> | Date | string
     updatedAt?: DateTimeFilter<"AccountReceipt"> | Date | string
@@ -49892,6 +54562,38 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"PosInstallment"> | Date | string
   }
 
+  export type InvoicePaymentUpsertWithWhereUniqueWithoutPurchaseInput = {
+    where: InvoicePaymentWhereUniqueInput
+    update: XOR<InvoicePaymentUpdateWithoutPurchaseInput, InvoicePaymentUncheckedUpdateWithoutPurchaseInput>
+    create: XOR<InvoicePaymentCreateWithoutPurchaseInput, InvoicePaymentUncheckedCreateWithoutPurchaseInput>
+  }
+
+  export type InvoicePaymentUpdateWithWhereUniqueWithoutPurchaseInput = {
+    where: InvoicePaymentWhereUniqueInput
+    data: XOR<InvoicePaymentUpdateWithoutPurchaseInput, InvoicePaymentUncheckedUpdateWithoutPurchaseInput>
+  }
+
+  export type InvoicePaymentUpdateManyWithWhereWithoutPurchaseInput = {
+    where: InvoicePaymentScalarWhereInput
+    data: XOR<InvoicePaymentUpdateManyMutationInput, InvoicePaymentUncheckedUpdateManyWithoutPurchaseInput>
+  }
+
+  export type InvoicePaymentScalarWhereInput = {
+    AND?: InvoicePaymentScalarWhereInput | InvoicePaymentScalarWhereInput[]
+    OR?: InvoicePaymentScalarWhereInput[]
+    NOT?: InvoicePaymentScalarWhereInput | InvoicePaymentScalarWhereInput[]
+    id?: IntFilter<"InvoicePayment"> | number
+    purchaseId?: IntFilter<"InvoicePayment"> | number
+    amount?: FloatFilter<"InvoicePayment"> | number
+    paymentMethod?: EnumPaymentMethodFilter<"InvoicePayment"> | $Enums.PaymentMethod
+    chequeNo?: StringNullableFilter<"InvoicePayment"> | string | null
+    chequeBank?: StringNullableFilter<"InvoicePayment"> | string | null
+    chequeDate?: DateTimeNullableFilter<"InvoicePayment"> | Date | string | null
+    description?: StringNullableFilter<"InvoicePayment"> | string | null
+    paidAt?: DateTimeFilter<"InvoicePayment"> | Date | string
+    receiptId?: IntNullableFilter<"InvoicePayment"> | number | null
+  }
+
   export type PosCustomerPurchaseCreateWithoutInstallmentsInput = {
     itemType?: $Enums.PosPurchaseItemType
     purchaseMode?: $Enums.PosPurchaseMode
@@ -49918,6 +54620,7 @@ export namespace Prisma {
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUncheckedCreateWithoutInstallmentsInput = {
@@ -49947,6 +54650,7 @@ export namespace Prisma {
     quantity?: number
     purchasedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseCreateOrConnectWithoutInstallmentsInput = {
@@ -50016,6 +54720,7 @@ export namespace Prisma {
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateWithoutInstallmentsInput = {
@@ -50045,6 +54750,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosInstallmentPaymentUpsertWithWhereUniqueWithoutInstallmentInput = {
@@ -50453,11 +55159,14 @@ export namespace Prisma {
     chequeStatus?: $Enums.ChequeStatus | null
     description?: string | null
     isVoided?: boolean
+    isDeposited?: boolean
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
     purchase: PosCustomerPurchaseCreateNestedOneWithoutReceiptsInput
     transactions?: AccountTransactionCreateNestedManyWithoutReceiptInput
+    depositItem?: AccountDepositItemCreateNestedOneWithoutReceiptInput
+    invoicePayment?: InvoicePaymentCreateNestedOneWithoutReceiptInput
   }
 
   export type AccountReceiptUncheckedCreateWithoutAccountInput = {
@@ -50472,10 +55181,13 @@ export namespace Prisma {
     chequeStatus?: $Enums.ChequeStatus | null
     description?: string | null
     isVoided?: boolean
+    isDeposited?: boolean
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutReceiptInput
+    depositItem?: AccountDepositItemUncheckedCreateNestedOneWithoutReceiptInput
+    invoicePayment?: InvoicePaymentUncheckedCreateNestedOneWithoutReceiptInput
   }
 
   export type AccountReceiptCreateOrConnectWithoutAccountInput = {
@@ -50535,6 +55247,7 @@ export namespace Prisma {
     createdAt?: Date | string
     receipt?: AccountReceiptCreateNestedOneWithoutTransactionsInput
     voucher?: AccountVoucherCreateNestedOneWithoutTransactionsInput
+    deposit?: AccountDepositCreateNestedOneWithoutTransactionsInput
   }
 
   export type AccountTransactionUncheckedCreateWithoutAccountInput = {
@@ -50544,6 +55257,7 @@ export namespace Prisma {
     amount: number
     receiptId?: number | null
     voucherId?: number | null
+    depositId?: number | null
     refNo?: string | null
     description?: string | null
     chequeNo?: string | null
@@ -50559,6 +55273,41 @@ export namespace Prisma {
 
   export type AccountTransactionCreateManyAccountInputEnvelope = {
     data: AccountTransactionCreateManyAccountInput | AccountTransactionCreateManyAccountInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AccountDepositCreateWithoutAccountInput = {
+    depositNo: string
+    totalAmount: number
+    notes?: string | null
+    isReversed?: boolean
+    reversedAt?: Date | string | null
+    createdById: number
+    createdAt?: Date | string
+    items?: AccountDepositItemCreateNestedManyWithoutDepositInput
+    transactions?: AccountTransactionCreateNestedManyWithoutDepositInput
+  }
+
+  export type AccountDepositUncheckedCreateWithoutAccountInput = {
+    id?: number
+    depositNo: string
+    totalAmount: number
+    notes?: string | null
+    isReversed?: boolean
+    reversedAt?: Date | string | null
+    createdById: number
+    createdAt?: Date | string
+    items?: AccountDepositItemUncheckedCreateNestedManyWithoutDepositInput
+    transactions?: AccountTransactionUncheckedCreateNestedManyWithoutDepositInput
+  }
+
+  export type AccountDepositCreateOrConnectWithoutAccountInput = {
+    where: AccountDepositWhereUniqueInput
+    create: XOR<AccountDepositCreateWithoutAccountInput, AccountDepositUncheckedCreateWithoutAccountInput>
+  }
+
+  export type AccountDepositCreateManyAccountInputEnvelope = {
+    data: AccountDepositCreateManyAccountInput | AccountDepositCreateManyAccountInput[]
     skipDuplicates?: boolean
   }
 
@@ -50637,12 +55386,44 @@ export namespace Prisma {
     amount?: FloatFilter<"AccountTransaction"> | number
     receiptId?: IntNullableFilter<"AccountTransaction"> | number | null
     voucherId?: IntNullableFilter<"AccountTransaction"> | number | null
+    depositId?: IntNullableFilter<"AccountTransaction"> | number | null
     refNo?: StringNullableFilter<"AccountTransaction"> | string | null
     description?: StringNullableFilter<"AccountTransaction"> | string | null
     chequeNo?: StringNullableFilter<"AccountTransaction"> | string | null
     isReversal?: BoolFilter<"AccountTransaction"> | boolean
     createdById?: IntFilter<"AccountTransaction"> | number
     createdAt?: DateTimeFilter<"AccountTransaction"> | Date | string
+  }
+
+  export type AccountDepositUpsertWithWhereUniqueWithoutAccountInput = {
+    where: AccountDepositWhereUniqueInput
+    update: XOR<AccountDepositUpdateWithoutAccountInput, AccountDepositUncheckedUpdateWithoutAccountInput>
+    create: XOR<AccountDepositCreateWithoutAccountInput, AccountDepositUncheckedCreateWithoutAccountInput>
+  }
+
+  export type AccountDepositUpdateWithWhereUniqueWithoutAccountInput = {
+    where: AccountDepositWhereUniqueInput
+    data: XOR<AccountDepositUpdateWithoutAccountInput, AccountDepositUncheckedUpdateWithoutAccountInput>
+  }
+
+  export type AccountDepositUpdateManyWithWhereWithoutAccountInput = {
+    where: AccountDepositScalarWhereInput
+    data: XOR<AccountDepositUpdateManyMutationInput, AccountDepositUncheckedUpdateManyWithoutAccountInput>
+  }
+
+  export type AccountDepositScalarWhereInput = {
+    AND?: AccountDepositScalarWhereInput | AccountDepositScalarWhereInput[]
+    OR?: AccountDepositScalarWhereInput[]
+    NOT?: AccountDepositScalarWhereInput | AccountDepositScalarWhereInput[]
+    id?: IntFilter<"AccountDeposit"> | number
+    depositNo?: StringFilter<"AccountDeposit"> | string
+    accountId?: IntFilter<"AccountDeposit"> | number
+    totalAmount?: FloatFilter<"AccountDeposit"> | number
+    notes?: StringNullableFilter<"AccountDeposit"> | string | null
+    isReversed?: BoolFilter<"AccountDeposit"> | boolean
+    reversedAt?: DateTimeNullableFilter<"AccountDeposit"> | Date | string | null
+    createdById?: IntFilter<"AccountDeposit"> | number
+    createdAt?: DateTimeFilter<"AccountDeposit"> | Date | string
   }
 
   export type AccountCreateWithoutReceiptsInput = {
@@ -50655,6 +55436,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
     transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositCreateNestedManyWithoutAccountInput
   }
 
   export type AccountUncheckedCreateWithoutReceiptsInput = {
@@ -50668,6 +55450,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
   }
 
   export type AccountCreateOrConnectWithoutReceiptsInput = {
@@ -50701,6 +55484,7 @@ export namespace Prisma {
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseUncheckedCreateWithoutReceiptsInput = {
@@ -50730,6 +55514,7 @@ export namespace Prisma {
     quantity?: number
     purchasedAt?: Date | string
     installments?: PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentUncheckedCreateNestedManyWithoutPurchaseInput
   }
 
   export type PosCustomerPurchaseCreateOrConnectWithoutReceiptsInput = {
@@ -50749,6 +55534,7 @@ export namespace Prisma {
     createdAt?: Date | string
     account: AccountCreateNestedOneWithoutTransactionsInput
     voucher?: AccountVoucherCreateNestedOneWithoutTransactionsInput
+    deposit?: AccountDepositCreateNestedOneWithoutTransactionsInput
   }
 
   export type AccountTransactionUncheckedCreateWithoutReceiptInput = {
@@ -50758,6 +55544,7 @@ export namespace Prisma {
     direction: $Enums.TransactionDirection
     amount: number
     voucherId?: number | null
+    depositId?: number | null
     refNo?: string | null
     description?: string | null
     chequeNo?: string | null
@@ -50774,6 +55561,50 @@ export namespace Prisma {
   export type AccountTransactionCreateManyReceiptInputEnvelope = {
     data: AccountTransactionCreateManyReceiptInput | AccountTransactionCreateManyReceiptInput[]
     skipDuplicates?: boolean
+  }
+
+  export type AccountDepositItemCreateWithoutReceiptInput = {
+    amount: number
+    deposit: AccountDepositCreateNestedOneWithoutItemsInput
+  }
+
+  export type AccountDepositItemUncheckedCreateWithoutReceiptInput = {
+    id?: number
+    depositId: number
+    amount: number
+  }
+
+  export type AccountDepositItemCreateOrConnectWithoutReceiptInput = {
+    where: AccountDepositItemWhereUniqueInput
+    create: XOR<AccountDepositItemCreateWithoutReceiptInput, AccountDepositItemUncheckedCreateWithoutReceiptInput>
+  }
+
+  export type InvoicePaymentCreateWithoutReceiptInput = {
+    amount: number
+    paymentMethod?: $Enums.PaymentMethod
+    chequeNo?: string | null
+    chequeBank?: string | null
+    chequeDate?: Date | string | null
+    description?: string | null
+    paidAt?: Date | string
+    purchase: PosCustomerPurchaseCreateNestedOneWithoutInvoicePaymentsInput
+  }
+
+  export type InvoicePaymentUncheckedCreateWithoutReceiptInput = {
+    id?: number
+    purchaseId: number
+    amount: number
+    paymentMethod?: $Enums.PaymentMethod
+    chequeNo?: string | null
+    chequeBank?: string | null
+    chequeDate?: Date | string | null
+    description?: string | null
+    paidAt?: Date | string
+  }
+
+  export type InvoicePaymentCreateOrConnectWithoutReceiptInput = {
+    where: InvoicePaymentWhereUniqueInput
+    create: XOR<InvoicePaymentCreateWithoutReceiptInput, InvoicePaymentUncheckedCreateWithoutReceiptInput>
   }
 
   export type AccountUpsertWithoutReceiptsInput = {
@@ -50797,6 +55628,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
     transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
   }
 
   export type AccountUncheckedUpdateWithoutReceiptsInput = {
@@ -50810,6 +55642,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
     transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
   }
 
   export type PosCustomerPurchaseUpsertWithoutReceiptsInput = {
@@ -50849,6 +55682,7 @@ export namespace Prisma {
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateWithoutReceiptsInput = {
@@ -50878,6 +55712,7 @@ export namespace Prisma {
     quantity?: IntFieldUpdateOperationsInput | number
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     installments?: PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type AccountTransactionUpsertWithWhereUniqueWithoutReceiptInput = {
@@ -50896,6 +55731,62 @@ export namespace Prisma {
     data: XOR<AccountTransactionUpdateManyMutationInput, AccountTransactionUncheckedUpdateManyWithoutReceiptInput>
   }
 
+  export type AccountDepositItemUpsertWithoutReceiptInput = {
+    update: XOR<AccountDepositItemUpdateWithoutReceiptInput, AccountDepositItemUncheckedUpdateWithoutReceiptInput>
+    create: XOR<AccountDepositItemCreateWithoutReceiptInput, AccountDepositItemUncheckedCreateWithoutReceiptInput>
+    where?: AccountDepositItemWhereInput
+  }
+
+  export type AccountDepositItemUpdateToOneWithWhereWithoutReceiptInput = {
+    where?: AccountDepositItemWhereInput
+    data: XOR<AccountDepositItemUpdateWithoutReceiptInput, AccountDepositItemUncheckedUpdateWithoutReceiptInput>
+  }
+
+  export type AccountDepositItemUpdateWithoutReceiptInput = {
+    amount?: FloatFieldUpdateOperationsInput | number
+    deposit?: AccountDepositUpdateOneRequiredWithoutItemsNestedInput
+  }
+
+  export type AccountDepositItemUncheckedUpdateWithoutReceiptInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    depositId?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+  }
+
+  export type InvoicePaymentUpsertWithoutReceiptInput = {
+    update: XOR<InvoicePaymentUpdateWithoutReceiptInput, InvoicePaymentUncheckedUpdateWithoutReceiptInput>
+    create: XOR<InvoicePaymentCreateWithoutReceiptInput, InvoicePaymentUncheckedCreateWithoutReceiptInput>
+    where?: InvoicePaymentWhereInput
+  }
+
+  export type InvoicePaymentUpdateToOneWithWhereWithoutReceiptInput = {
+    where?: InvoicePaymentWhereInput
+    data: XOR<InvoicePaymentUpdateWithoutReceiptInput, InvoicePaymentUncheckedUpdateWithoutReceiptInput>
+  }
+
+  export type InvoicePaymentUpdateWithoutReceiptInput = {
+    amount?: FloatFieldUpdateOperationsInput | number
+    paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeBank?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    purchase?: PosCustomerPurchaseUpdateOneRequiredWithoutInvoicePaymentsNestedInput
+  }
+
+  export type InvoicePaymentUncheckedUpdateWithoutReceiptInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    purchaseId?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+    paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeBank?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type AccountCreateWithoutVouchersInput = {
     name: string
     code: string
@@ -50906,6 +55797,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     receipts?: AccountReceiptCreateNestedManyWithoutAccountInput
     transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositCreateNestedManyWithoutAccountInput
   }
 
   export type AccountUncheckedCreateWithoutVouchersInput = {
@@ -50919,6 +55811,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutAccountInput
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
   }
 
   export type AccountCreateOrConnectWithoutVouchersInput = {
@@ -50938,6 +55831,7 @@ export namespace Prisma {
     createdAt?: Date | string
     account: AccountCreateNestedOneWithoutTransactionsInput
     receipt?: AccountReceiptCreateNestedOneWithoutTransactionsInput
+    deposit?: AccountDepositCreateNestedOneWithoutTransactionsInput
   }
 
   export type AccountTransactionUncheckedCreateWithoutVoucherInput = {
@@ -50947,6 +55841,7 @@ export namespace Prisma {
     direction: $Enums.TransactionDirection
     amount: number
     receiptId?: number | null
+    depositId?: number | null
     refNo?: string | null
     description?: string | null
     chequeNo?: string | null
@@ -50986,6 +55881,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUpdateManyWithoutAccountNestedInput
     transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
   }
 
   export type AccountUncheckedUpdateWithoutVouchersInput = {
@@ -50999,6 +55895,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutAccountNestedInput
     transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
   }
 
   export type AccountTransactionUpsertWithWhereUniqueWithoutVoucherInput = {
@@ -51027,6 +55924,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     receipts?: AccountReceiptCreateNestedManyWithoutAccountInput
     vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositCreateNestedManyWithoutAccountInput
   }
 
   export type AccountUncheckedCreateWithoutTransactionsInput = {
@@ -51040,6 +55938,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutAccountInput
     vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
   }
 
   export type AccountCreateOrConnectWithoutTransactionsInput = {
@@ -51057,11 +55956,14 @@ export namespace Prisma {
     chequeStatus?: $Enums.ChequeStatus | null
     description?: string | null
     isVoided?: boolean
+    isDeposited?: boolean
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
     account: AccountCreateNestedOneWithoutReceiptsInput
     purchase: PosCustomerPurchaseCreateNestedOneWithoutReceiptsInput
+    depositItem?: AccountDepositItemCreateNestedOneWithoutReceiptInput
+    invoicePayment?: InvoicePaymentCreateNestedOneWithoutReceiptInput
   }
 
   export type AccountReceiptUncheckedCreateWithoutTransactionsInput = {
@@ -51077,9 +55979,12 @@ export namespace Prisma {
     chequeStatus?: $Enums.ChequeStatus | null
     description?: string | null
     isVoided?: boolean
+    isDeposited?: boolean
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
+    depositItem?: AccountDepositItemUncheckedCreateNestedOneWithoutReceiptInput
+    invoicePayment?: InvoicePaymentUncheckedCreateNestedOneWithoutReceiptInput
   }
 
   export type AccountReceiptCreateOrConnectWithoutTransactionsInput = {
@@ -51117,6 +56022,36 @@ export namespace Prisma {
     create: XOR<AccountVoucherCreateWithoutTransactionsInput, AccountVoucherUncheckedCreateWithoutTransactionsInput>
   }
 
+  export type AccountDepositCreateWithoutTransactionsInput = {
+    depositNo: string
+    totalAmount: number
+    notes?: string | null
+    isReversed?: boolean
+    reversedAt?: Date | string | null
+    createdById: number
+    createdAt?: Date | string
+    account: AccountCreateNestedOneWithoutDepositsInput
+    items?: AccountDepositItemCreateNestedManyWithoutDepositInput
+  }
+
+  export type AccountDepositUncheckedCreateWithoutTransactionsInput = {
+    id?: number
+    depositNo: string
+    accountId: number
+    totalAmount: number
+    notes?: string | null
+    isReversed?: boolean
+    reversedAt?: Date | string | null
+    createdById: number
+    createdAt?: Date | string
+    items?: AccountDepositItemUncheckedCreateNestedManyWithoutDepositInput
+  }
+
+  export type AccountDepositCreateOrConnectWithoutTransactionsInput = {
+    where: AccountDepositWhereUniqueInput
+    create: XOR<AccountDepositCreateWithoutTransactionsInput, AccountDepositUncheckedCreateWithoutTransactionsInput>
+  }
+
   export type AccountUpsertWithoutTransactionsInput = {
     update: XOR<AccountUpdateWithoutTransactionsInput, AccountUncheckedUpdateWithoutTransactionsInput>
     create: XOR<AccountCreateWithoutTransactionsInput, AccountUncheckedCreateWithoutTransactionsInput>
@@ -51138,6 +56073,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUpdateManyWithoutAccountNestedInput
     vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
   }
 
   export type AccountUncheckedUpdateWithoutTransactionsInput = {
@@ -51151,6 +56087,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutAccountNestedInput
     vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
   }
 
   export type AccountReceiptUpsertWithoutTransactionsInput = {
@@ -51174,11 +56111,14 @@ export namespace Prisma {
     chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     account?: AccountUpdateOneRequiredWithoutReceiptsNestedInput
     purchase?: PosCustomerPurchaseUpdateOneRequiredWithoutReceiptsNestedInput
+    depositItem?: AccountDepositItemUpdateOneWithoutReceiptNestedInput
+    invoicePayment?: InvoicePaymentUpdateOneWithoutReceiptNestedInput
   }
 
   export type AccountReceiptUncheckedUpdateWithoutTransactionsInput = {
@@ -51194,9 +56134,12 @@ export namespace Prisma {
     chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    depositItem?: AccountDepositItemUncheckedUpdateOneWithoutReceiptNestedInput
+    invoicePayment?: InvoicePaymentUncheckedUpdateOneWithoutReceiptNestedInput
   }
 
   export type AccountVoucherUpsertWithoutTransactionsInput = {
@@ -51233,6 +56176,612 @@ export namespace Prisma {
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountDepositUpsertWithoutTransactionsInput = {
+    update: XOR<AccountDepositUpdateWithoutTransactionsInput, AccountDepositUncheckedUpdateWithoutTransactionsInput>
+    create: XOR<AccountDepositCreateWithoutTransactionsInput, AccountDepositUncheckedCreateWithoutTransactionsInput>
+    where?: AccountDepositWhereInput
+  }
+
+  export type AccountDepositUpdateToOneWithWhereWithoutTransactionsInput = {
+    where?: AccountDepositWhereInput
+    data: XOR<AccountDepositUpdateWithoutTransactionsInput, AccountDepositUncheckedUpdateWithoutTransactionsInput>
+  }
+
+  export type AccountDepositUpdateWithoutTransactionsInput = {
+    depositNo?: StringFieldUpdateOperationsInput | string
+    totalAmount?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversed?: BoolFieldUpdateOperationsInput | boolean
+    reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    account?: AccountUpdateOneRequiredWithoutDepositsNestedInput
+    items?: AccountDepositItemUpdateManyWithoutDepositNestedInput
+  }
+
+  export type AccountDepositUncheckedUpdateWithoutTransactionsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    depositNo?: StringFieldUpdateOperationsInput | string
+    accountId?: IntFieldUpdateOperationsInput | number
+    totalAmount?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversed?: BoolFieldUpdateOperationsInput | boolean
+    reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    items?: AccountDepositItemUncheckedUpdateManyWithoutDepositNestedInput
+  }
+
+  export type PosCustomerPurchaseCreateWithoutInvoicePaymentsInput = {
+    itemType?: $Enums.PosPurchaseItemType
+    purchaseMode?: $Enums.PosPurchaseMode
+    invoiceGroupCode?: string | null
+    currentSellingPrice?: number | null
+    finalSellingPrice: number
+    paymentType?: $Enums.PosPaymentType
+    downPaymentAmount?: number
+    remainingAmount?: number
+    settlementStatus?: $Enums.PosSettlementStatus
+    purchaseChannel?: $Enums.PosPurchaseChannel
+    leasingDownPaymentAmount?: number
+    leasingFinancedAmount?: number
+    hasRegistrationFee?: boolean
+    registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
+    quantity?: number
+    purchasedAt?: Date | string
+    customer: PosCustomerCreateNestedOneWithoutPurchasesInput
+    bikeVehicle?: BikeVehicleCreateNestedOneWithoutCustomerPurchasesInput
+    inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
+    leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
+    receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
+    installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
+  }
+
+  export type PosCustomerPurchaseUncheckedCreateWithoutInvoicePaymentsInput = {
+    id?: number
+    customerId: number
+    itemType?: $Enums.PosPurchaseItemType
+    purchaseMode?: $Enums.PosPurchaseMode
+    invoiceGroupCode?: string | null
+    bikeVehicleId?: number | null
+    inventoryProductId?: number | null
+    currentSellingPrice?: number | null
+    finalSellingPrice: number
+    paymentType?: $Enums.PosPaymentType
+    downPaymentAmount?: number
+    remainingAmount?: number
+    settlementStatus?: $Enums.PosSettlementStatus
+    purchaseChannel?: $Enums.PosPurchaseChannel
+    leasingCompanyId?: number | null
+    leasingDownPaymentAmount?: number
+    leasingFinancedAmount?: number
+    hasRegistrationFee?: boolean
+    registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
+    quantity?: number
+    purchasedAt?: Date | string
+    receipts?: AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput
+    installments?: PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput
+  }
+
+  export type PosCustomerPurchaseCreateOrConnectWithoutInvoicePaymentsInput = {
+    where: PosCustomerPurchaseWhereUniqueInput
+    create: XOR<PosCustomerPurchaseCreateWithoutInvoicePaymentsInput, PosCustomerPurchaseUncheckedCreateWithoutInvoicePaymentsInput>
+  }
+
+  export type AccountReceiptCreateWithoutInvoicePaymentInput = {
+    receiptNo: string
+    amount: number
+    paymentMethod?: $Enums.PaymentMethod
+    chequeNo?: string | null
+    chequeBank?: string | null
+    chequeDate?: Date | string | null
+    chequeStatus?: $Enums.ChequeStatus | null
+    description?: string | null
+    isVoided?: boolean
+    isDeposited?: boolean
+    createdById: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    account: AccountCreateNestedOneWithoutReceiptsInput
+    purchase: PosCustomerPurchaseCreateNestedOneWithoutReceiptsInput
+    transactions?: AccountTransactionCreateNestedManyWithoutReceiptInput
+    depositItem?: AccountDepositItemCreateNestedOneWithoutReceiptInput
+  }
+
+  export type AccountReceiptUncheckedCreateWithoutInvoicePaymentInput = {
+    id?: number
+    receiptNo: string
+    purchaseId: number
+    accountId: number
+    amount: number
+    paymentMethod?: $Enums.PaymentMethod
+    chequeNo?: string | null
+    chequeBank?: string | null
+    chequeDate?: Date | string | null
+    chequeStatus?: $Enums.ChequeStatus | null
+    description?: string | null
+    isVoided?: boolean
+    isDeposited?: boolean
+    createdById: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: AccountTransactionUncheckedCreateNestedManyWithoutReceiptInput
+    depositItem?: AccountDepositItemUncheckedCreateNestedOneWithoutReceiptInput
+  }
+
+  export type AccountReceiptCreateOrConnectWithoutInvoicePaymentInput = {
+    where: AccountReceiptWhereUniqueInput
+    create: XOR<AccountReceiptCreateWithoutInvoicePaymentInput, AccountReceiptUncheckedCreateWithoutInvoicePaymentInput>
+  }
+
+  export type PosCustomerPurchaseUpsertWithoutInvoicePaymentsInput = {
+    update: XOR<PosCustomerPurchaseUpdateWithoutInvoicePaymentsInput, PosCustomerPurchaseUncheckedUpdateWithoutInvoicePaymentsInput>
+    create: XOR<PosCustomerPurchaseCreateWithoutInvoicePaymentsInput, PosCustomerPurchaseUncheckedCreateWithoutInvoicePaymentsInput>
+    where?: PosCustomerPurchaseWhereInput
+  }
+
+  export type PosCustomerPurchaseUpdateToOneWithWhereWithoutInvoicePaymentsInput = {
+    where?: PosCustomerPurchaseWhereInput
+    data: XOR<PosCustomerPurchaseUpdateWithoutInvoicePaymentsInput, PosCustomerPurchaseUncheckedUpdateWithoutInvoicePaymentsInput>
+  }
+
+  export type PosCustomerPurchaseUpdateWithoutInvoicePaymentsInput = {
+    itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
+    purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
+    invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    finalSellingPrice?: FloatFieldUpdateOperationsInput | number
+    paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
+    downPaymentAmount?: FloatFieldUpdateOperationsInput | number
+    remainingAmount?: FloatFieldUpdateOperationsInput | number
+    settlementStatus?: EnumPosSettlementStatusFieldUpdateOperationsInput | $Enums.PosSettlementStatus
+    purchaseChannel?: EnumPosPurchaseChannelFieldUpdateOperationsInput | $Enums.PosPurchaseChannel
+    leasingDownPaymentAmount?: FloatFieldUpdateOperationsInput | number
+    leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
+    hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
+    registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
+    quantity?: IntFieldUpdateOperationsInput | number
+    purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
+    bikeVehicle?: BikeVehicleUpdateOneWithoutCustomerPurchasesNestedInput
+    inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
+    leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
+    receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
+    installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
+  }
+
+  export type PosCustomerPurchaseUncheckedUpdateWithoutInvoicePaymentsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    customerId?: IntFieldUpdateOperationsInput | number
+    itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
+    purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
+    invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
+    inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    finalSellingPrice?: FloatFieldUpdateOperationsInput | number
+    paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
+    downPaymentAmount?: FloatFieldUpdateOperationsInput | number
+    remainingAmount?: FloatFieldUpdateOperationsInput | number
+    settlementStatus?: EnumPosSettlementStatusFieldUpdateOperationsInput | $Enums.PosSettlementStatus
+    purchaseChannel?: EnumPosPurchaseChannelFieldUpdateOperationsInput | $Enums.PosPurchaseChannel
+    leasingCompanyId?: NullableIntFieldUpdateOperationsInput | number | null
+    leasingDownPaymentAmount?: FloatFieldUpdateOperationsInput | number
+    leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
+    hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
+    registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
+    quantity?: IntFieldUpdateOperationsInput | number
+    purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receipts?: AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput
+    installments?: PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput
+  }
+
+  export type AccountReceiptUpsertWithoutInvoicePaymentInput = {
+    update: XOR<AccountReceiptUpdateWithoutInvoicePaymentInput, AccountReceiptUncheckedUpdateWithoutInvoicePaymentInput>
+    create: XOR<AccountReceiptCreateWithoutInvoicePaymentInput, AccountReceiptUncheckedCreateWithoutInvoicePaymentInput>
+    where?: AccountReceiptWhereInput
+  }
+
+  export type AccountReceiptUpdateToOneWithWhereWithoutInvoicePaymentInput = {
+    where?: AccountReceiptWhereInput
+    data: XOR<AccountReceiptUpdateWithoutInvoicePaymentInput, AccountReceiptUncheckedUpdateWithoutInvoicePaymentInput>
+  }
+
+  export type AccountReceiptUpdateWithoutInvoicePaymentInput = {
+    receiptNo?: StringFieldUpdateOperationsInput | string
+    amount?: FloatFieldUpdateOperationsInput | number
+    paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeBank?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    account?: AccountUpdateOneRequiredWithoutReceiptsNestedInput
+    purchase?: PosCustomerPurchaseUpdateOneRequiredWithoutReceiptsNestedInput
+    transactions?: AccountTransactionUpdateManyWithoutReceiptNestedInput
+    depositItem?: AccountDepositItemUpdateOneWithoutReceiptNestedInput
+  }
+
+  export type AccountReceiptUncheckedUpdateWithoutInvoicePaymentInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    receiptNo?: StringFieldUpdateOperationsInput | string
+    purchaseId?: IntFieldUpdateOperationsInput | number
+    accountId?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+    paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeBank?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: AccountTransactionUncheckedUpdateManyWithoutReceiptNestedInput
+    depositItem?: AccountDepositItemUncheckedUpdateOneWithoutReceiptNestedInput
+  }
+
+  export type AccountCreateWithoutDepositsInput = {
+    name: string
+    code: string
+    type?: $Enums.AccountType
+    openingBalance?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    receipts?: AccountReceiptCreateNestedManyWithoutAccountInput
+    vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
+    transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
+  }
+
+  export type AccountUncheckedCreateWithoutDepositsInput = {
+    id?: number
+    name: string
+    code: string
+    type?: $Enums.AccountType
+    openingBalance?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    receipts?: AccountReceiptUncheckedCreateNestedManyWithoutAccountInput
+    vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
+    transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
+  }
+
+  export type AccountCreateOrConnectWithoutDepositsInput = {
+    where: AccountWhereUniqueInput
+    create: XOR<AccountCreateWithoutDepositsInput, AccountUncheckedCreateWithoutDepositsInput>
+  }
+
+  export type AccountDepositItemCreateWithoutDepositInput = {
+    amount: number
+    receipt: AccountReceiptCreateNestedOneWithoutDepositItemInput
+  }
+
+  export type AccountDepositItemUncheckedCreateWithoutDepositInput = {
+    id?: number
+    receiptId: number
+    amount: number
+  }
+
+  export type AccountDepositItemCreateOrConnectWithoutDepositInput = {
+    where: AccountDepositItemWhereUniqueInput
+    create: XOR<AccountDepositItemCreateWithoutDepositInput, AccountDepositItemUncheckedCreateWithoutDepositInput>
+  }
+
+  export type AccountDepositItemCreateManyDepositInputEnvelope = {
+    data: AccountDepositItemCreateManyDepositInput | AccountDepositItemCreateManyDepositInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AccountTransactionCreateWithoutDepositInput = {
+    type: $Enums.TransactionType
+    direction: $Enums.TransactionDirection
+    amount: number
+    refNo?: string | null
+    description?: string | null
+    chequeNo?: string | null
+    isReversal?: boolean
+    createdById: number
+    createdAt?: Date | string
+    account: AccountCreateNestedOneWithoutTransactionsInput
+    receipt?: AccountReceiptCreateNestedOneWithoutTransactionsInput
+    voucher?: AccountVoucherCreateNestedOneWithoutTransactionsInput
+  }
+
+  export type AccountTransactionUncheckedCreateWithoutDepositInput = {
+    id?: number
+    accountId: number
+    type: $Enums.TransactionType
+    direction: $Enums.TransactionDirection
+    amount: number
+    receiptId?: number | null
+    voucherId?: number | null
+    refNo?: string | null
+    description?: string | null
+    chequeNo?: string | null
+    isReversal?: boolean
+    createdById: number
+    createdAt?: Date | string
+  }
+
+  export type AccountTransactionCreateOrConnectWithoutDepositInput = {
+    where: AccountTransactionWhereUniqueInput
+    create: XOR<AccountTransactionCreateWithoutDepositInput, AccountTransactionUncheckedCreateWithoutDepositInput>
+  }
+
+  export type AccountTransactionCreateManyDepositInputEnvelope = {
+    data: AccountTransactionCreateManyDepositInput | AccountTransactionCreateManyDepositInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AccountUpsertWithoutDepositsInput = {
+    update: XOR<AccountUpdateWithoutDepositsInput, AccountUncheckedUpdateWithoutDepositsInput>
+    create: XOR<AccountCreateWithoutDepositsInput, AccountUncheckedCreateWithoutDepositsInput>
+    where?: AccountWhereInput
+  }
+
+  export type AccountUpdateToOneWithWhereWithoutDepositsInput = {
+    where?: AccountWhereInput
+    data: XOR<AccountUpdateWithoutDepositsInput, AccountUncheckedUpdateWithoutDepositsInput>
+  }
+
+  export type AccountUpdateWithoutDepositsInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    openingBalance?: FloatFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receipts?: AccountReceiptUpdateManyWithoutAccountNestedInput
+    vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
+    transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
+  }
+
+  export type AccountUncheckedUpdateWithoutDepositsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    openingBalance?: FloatFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receipts?: AccountReceiptUncheckedUpdateManyWithoutAccountNestedInput
+    vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
+    transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
+  }
+
+  export type AccountDepositItemUpsertWithWhereUniqueWithoutDepositInput = {
+    where: AccountDepositItemWhereUniqueInput
+    update: XOR<AccountDepositItemUpdateWithoutDepositInput, AccountDepositItemUncheckedUpdateWithoutDepositInput>
+    create: XOR<AccountDepositItemCreateWithoutDepositInput, AccountDepositItemUncheckedCreateWithoutDepositInput>
+  }
+
+  export type AccountDepositItemUpdateWithWhereUniqueWithoutDepositInput = {
+    where: AccountDepositItemWhereUniqueInput
+    data: XOR<AccountDepositItemUpdateWithoutDepositInput, AccountDepositItemUncheckedUpdateWithoutDepositInput>
+  }
+
+  export type AccountDepositItemUpdateManyWithWhereWithoutDepositInput = {
+    where: AccountDepositItemScalarWhereInput
+    data: XOR<AccountDepositItemUpdateManyMutationInput, AccountDepositItemUncheckedUpdateManyWithoutDepositInput>
+  }
+
+  export type AccountDepositItemScalarWhereInput = {
+    AND?: AccountDepositItemScalarWhereInput | AccountDepositItemScalarWhereInput[]
+    OR?: AccountDepositItemScalarWhereInput[]
+    NOT?: AccountDepositItemScalarWhereInput | AccountDepositItemScalarWhereInput[]
+    id?: IntFilter<"AccountDepositItem"> | number
+    depositId?: IntFilter<"AccountDepositItem"> | number
+    receiptId?: IntFilter<"AccountDepositItem"> | number
+    amount?: FloatFilter<"AccountDepositItem"> | number
+  }
+
+  export type AccountTransactionUpsertWithWhereUniqueWithoutDepositInput = {
+    where: AccountTransactionWhereUniqueInput
+    update: XOR<AccountTransactionUpdateWithoutDepositInput, AccountTransactionUncheckedUpdateWithoutDepositInput>
+    create: XOR<AccountTransactionCreateWithoutDepositInput, AccountTransactionUncheckedCreateWithoutDepositInput>
+  }
+
+  export type AccountTransactionUpdateWithWhereUniqueWithoutDepositInput = {
+    where: AccountTransactionWhereUniqueInput
+    data: XOR<AccountTransactionUpdateWithoutDepositInput, AccountTransactionUncheckedUpdateWithoutDepositInput>
+  }
+
+  export type AccountTransactionUpdateManyWithWhereWithoutDepositInput = {
+    where: AccountTransactionScalarWhereInput
+    data: XOR<AccountTransactionUpdateManyMutationInput, AccountTransactionUncheckedUpdateManyWithoutDepositInput>
+  }
+
+  export type AccountDepositCreateWithoutItemsInput = {
+    depositNo: string
+    totalAmount: number
+    notes?: string | null
+    isReversed?: boolean
+    reversedAt?: Date | string | null
+    createdById: number
+    createdAt?: Date | string
+    account: AccountCreateNestedOneWithoutDepositsInput
+    transactions?: AccountTransactionCreateNestedManyWithoutDepositInput
+  }
+
+  export type AccountDepositUncheckedCreateWithoutItemsInput = {
+    id?: number
+    depositNo: string
+    accountId: number
+    totalAmount: number
+    notes?: string | null
+    isReversed?: boolean
+    reversedAt?: Date | string | null
+    createdById: number
+    createdAt?: Date | string
+    transactions?: AccountTransactionUncheckedCreateNestedManyWithoutDepositInput
+  }
+
+  export type AccountDepositCreateOrConnectWithoutItemsInput = {
+    where: AccountDepositWhereUniqueInput
+    create: XOR<AccountDepositCreateWithoutItemsInput, AccountDepositUncheckedCreateWithoutItemsInput>
+  }
+
+  export type AccountReceiptCreateWithoutDepositItemInput = {
+    receiptNo: string
+    amount: number
+    paymentMethod?: $Enums.PaymentMethod
+    chequeNo?: string | null
+    chequeBank?: string | null
+    chequeDate?: Date | string | null
+    chequeStatus?: $Enums.ChequeStatus | null
+    description?: string | null
+    isVoided?: boolean
+    isDeposited?: boolean
+    createdById: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    account: AccountCreateNestedOneWithoutReceiptsInput
+    purchase: PosCustomerPurchaseCreateNestedOneWithoutReceiptsInput
+    transactions?: AccountTransactionCreateNestedManyWithoutReceiptInput
+    invoicePayment?: InvoicePaymentCreateNestedOneWithoutReceiptInput
+  }
+
+  export type AccountReceiptUncheckedCreateWithoutDepositItemInput = {
+    id?: number
+    receiptNo: string
+    purchaseId: number
+    accountId: number
+    amount: number
+    paymentMethod?: $Enums.PaymentMethod
+    chequeNo?: string | null
+    chequeBank?: string | null
+    chequeDate?: Date | string | null
+    chequeStatus?: $Enums.ChequeStatus | null
+    description?: string | null
+    isVoided?: boolean
+    isDeposited?: boolean
+    createdById: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: AccountTransactionUncheckedCreateNestedManyWithoutReceiptInput
+    invoicePayment?: InvoicePaymentUncheckedCreateNestedOneWithoutReceiptInput
+  }
+
+  export type AccountReceiptCreateOrConnectWithoutDepositItemInput = {
+    where: AccountReceiptWhereUniqueInput
+    create: XOR<AccountReceiptCreateWithoutDepositItemInput, AccountReceiptUncheckedCreateWithoutDepositItemInput>
+  }
+
+  export type AccountDepositUpsertWithoutItemsInput = {
+    update: XOR<AccountDepositUpdateWithoutItemsInput, AccountDepositUncheckedUpdateWithoutItemsInput>
+    create: XOR<AccountDepositCreateWithoutItemsInput, AccountDepositUncheckedCreateWithoutItemsInput>
+    where?: AccountDepositWhereInput
+  }
+
+  export type AccountDepositUpdateToOneWithWhereWithoutItemsInput = {
+    where?: AccountDepositWhereInput
+    data: XOR<AccountDepositUpdateWithoutItemsInput, AccountDepositUncheckedUpdateWithoutItemsInput>
+  }
+
+  export type AccountDepositUpdateWithoutItemsInput = {
+    depositNo?: StringFieldUpdateOperationsInput | string
+    totalAmount?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversed?: BoolFieldUpdateOperationsInput | boolean
+    reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    account?: AccountUpdateOneRequiredWithoutDepositsNestedInput
+    transactions?: AccountTransactionUpdateManyWithoutDepositNestedInput
+  }
+
+  export type AccountDepositUncheckedUpdateWithoutItemsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    depositNo?: StringFieldUpdateOperationsInput | string
+    accountId?: IntFieldUpdateOperationsInput | number
+    totalAmount?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversed?: BoolFieldUpdateOperationsInput | boolean
+    reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: AccountTransactionUncheckedUpdateManyWithoutDepositNestedInput
+  }
+
+  export type AccountReceiptUpsertWithoutDepositItemInput = {
+    update: XOR<AccountReceiptUpdateWithoutDepositItemInput, AccountReceiptUncheckedUpdateWithoutDepositItemInput>
+    create: XOR<AccountReceiptCreateWithoutDepositItemInput, AccountReceiptUncheckedCreateWithoutDepositItemInput>
+    where?: AccountReceiptWhereInput
+  }
+
+  export type AccountReceiptUpdateToOneWithWhereWithoutDepositItemInput = {
+    where?: AccountReceiptWhereInput
+    data: XOR<AccountReceiptUpdateWithoutDepositItemInput, AccountReceiptUncheckedUpdateWithoutDepositItemInput>
+  }
+
+  export type AccountReceiptUpdateWithoutDepositItemInput = {
+    receiptNo?: StringFieldUpdateOperationsInput | string
+    amount?: FloatFieldUpdateOperationsInput | number
+    paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeBank?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    account?: AccountUpdateOneRequiredWithoutReceiptsNestedInput
+    purchase?: PosCustomerPurchaseUpdateOneRequiredWithoutReceiptsNestedInput
+    transactions?: AccountTransactionUpdateManyWithoutReceiptNestedInput
+    invoicePayment?: InvoicePaymentUpdateOneWithoutReceiptNestedInput
+  }
+
+  export type AccountReceiptUncheckedUpdateWithoutDepositItemInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    receiptNo?: StringFieldUpdateOperationsInput | string
+    purchaseId?: IntFieldUpdateOperationsInput | number
+    accountId?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+    paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeBank?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: AccountTransactionUncheckedUpdateManyWithoutReceiptNestedInput
+    invoicePayment?: InvoicePaymentUncheckedUpdateOneWithoutReceiptNestedInput
   }
 
   export type BikeModelCreateManyBrandInput = {
@@ -51824,6 +57373,7 @@ export namespace Prisma {
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateWithoutBikeVehicleInput = {
@@ -51853,6 +57403,7 @@ export namespace Prisma {
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateManyWithoutBikeVehicleInput = {
@@ -52171,6 +57722,7 @@ export namespace Prisma {
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateWithoutInventoryProductInput = {
@@ -52200,6 +57752,7 @@ export namespace Prisma {
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateManyWithoutInventoryProductInput = {
@@ -52305,6 +57858,7 @@ export namespace Prisma {
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateWithoutCustomerInput = {
@@ -52334,6 +57888,7 @@ export namespace Prisma {
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateManyWithoutCustomerInput = {
@@ -52416,6 +57971,7 @@ export namespace Prisma {
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateWithoutLeasingCompanyInput = {
@@ -52445,6 +58001,7 @@ export namespace Prisma {
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUncheckedUpdateManyWithoutPurchaseNestedInput
   }
 
   export type PosCustomerPurchaseUncheckedUpdateManyWithoutLeasingCompanyInput = {
@@ -52486,6 +58043,7 @@ export namespace Prisma {
     chequeStatus?: $Enums.ChequeStatus | null
     description?: string | null
     isVoided?: boolean
+    isDeposited?: boolean
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -52507,6 +58065,18 @@ export namespace Prisma {
     updatedAt?: Date | string
   }
 
+  export type InvoicePaymentCreateManyPurchaseInput = {
+    id?: number
+    amount: number
+    paymentMethod?: $Enums.PaymentMethod
+    chequeNo?: string | null
+    chequeBank?: string | null
+    chequeDate?: Date | string | null
+    description?: string | null
+    paidAt?: Date | string
+    receiptId?: number | null
+  }
+
   export type AccountReceiptUpdateWithoutPurchaseInput = {
     receiptNo?: StringFieldUpdateOperationsInput | string
     amount?: FloatFieldUpdateOperationsInput | number
@@ -52517,11 +58087,14 @@ export namespace Prisma {
     chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     account?: AccountUpdateOneRequiredWithoutReceiptsNestedInput
     transactions?: AccountTransactionUpdateManyWithoutReceiptNestedInput
+    depositItem?: AccountDepositItemUpdateOneWithoutReceiptNestedInput
+    invoicePayment?: InvoicePaymentUpdateOneWithoutReceiptNestedInput
   }
 
   export type AccountReceiptUncheckedUpdateWithoutPurchaseInput = {
@@ -52536,10 +58109,13 @@ export namespace Prisma {
     chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: AccountTransactionUncheckedUpdateManyWithoutReceiptNestedInput
+    depositItem?: AccountDepositItemUncheckedUpdateOneWithoutReceiptNestedInput
+    invoicePayment?: InvoicePaymentUncheckedUpdateOneWithoutReceiptNestedInput
   }
 
   export type AccountReceiptUncheckedUpdateManyWithoutPurchaseInput = {
@@ -52554,6 +58130,7 @@ export namespace Prisma {
     chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -52606,6 +58183,41 @@ export namespace Prisma {
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type InvoicePaymentUpdateWithoutPurchaseInput = {
+    amount?: FloatFieldUpdateOperationsInput | number
+    paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeBank?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receipt?: AccountReceiptUpdateOneWithoutInvoicePaymentNestedInput
+  }
+
+  export type InvoicePaymentUncheckedUpdateWithoutPurchaseInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+    paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeBank?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receiptId?: NullableIntFieldUpdateOperationsInput | number | null
+  }
+
+  export type InvoicePaymentUncheckedUpdateManyWithoutPurchaseInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+    paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeBank?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    paidAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receiptId?: NullableIntFieldUpdateOperationsInput | number | null
   }
 
   export type PosInstallmentPaymentCreateManyInstallmentInput = {
@@ -52713,6 +58325,7 @@ export namespace Prisma {
     chequeStatus?: $Enums.ChequeStatus | null
     description?: string | null
     isVoided?: boolean
+    isDeposited?: boolean
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
@@ -52737,10 +58350,22 @@ export namespace Prisma {
     amount: number
     receiptId?: number | null
     voucherId?: number | null
+    depositId?: number | null
     refNo?: string | null
     description?: string | null
     chequeNo?: string | null
     isReversal?: boolean
+    createdById: number
+    createdAt?: Date | string
+  }
+
+  export type AccountDepositCreateManyAccountInput = {
+    id?: number
+    depositNo: string
+    totalAmount: number
+    notes?: string | null
+    isReversed?: boolean
+    reversedAt?: Date | string | null
     createdById: number
     createdAt?: Date | string
   }
@@ -52755,11 +58380,14 @@ export namespace Prisma {
     chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     purchase?: PosCustomerPurchaseUpdateOneRequiredWithoutReceiptsNestedInput
     transactions?: AccountTransactionUpdateManyWithoutReceiptNestedInput
+    depositItem?: AccountDepositItemUpdateOneWithoutReceiptNestedInput
+    invoicePayment?: InvoicePaymentUpdateOneWithoutReceiptNestedInput
   }
 
   export type AccountReceiptUncheckedUpdateWithoutAccountInput = {
@@ -52774,10 +58402,13 @@ export namespace Prisma {
     chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     transactions?: AccountTransactionUncheckedUpdateManyWithoutReceiptNestedInput
+    depositItem?: AccountDepositItemUncheckedUpdateOneWithoutReceiptNestedInput
+    invoicePayment?: InvoicePaymentUncheckedUpdateOneWithoutReceiptNestedInput
   }
 
   export type AccountReceiptUncheckedUpdateManyWithoutAccountInput = {
@@ -52792,6 +58423,7 @@ export namespace Prisma {
     chequeStatus?: NullableEnumChequeStatusFieldUpdateOperationsInput | $Enums.ChequeStatus | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
+    isDeposited?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -52846,6 +58478,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipt?: AccountReceiptUpdateOneWithoutTransactionsNestedInput
     voucher?: AccountVoucherUpdateOneWithoutTransactionsNestedInput
+    deposit?: AccountDepositUpdateOneWithoutTransactionsNestedInput
   }
 
   export type AccountTransactionUncheckedUpdateWithoutAccountInput = {
@@ -52855,6 +58488,7 @@ export namespace Prisma {
     amount?: FloatFieldUpdateOperationsInput | number
     receiptId?: NullableIntFieldUpdateOperationsInput | number | null
     voucherId?: NullableIntFieldUpdateOperationsInput | number | null
+    depositId?: NullableIntFieldUpdateOperationsInput | number | null
     refNo?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -52870,10 +58504,47 @@ export namespace Prisma {
     amount?: FloatFieldUpdateOperationsInput | number
     receiptId?: NullableIntFieldUpdateOperationsInput | number | null
     voucherId?: NullableIntFieldUpdateOperationsInput | number | null
+    depositId?: NullableIntFieldUpdateOperationsInput | number | null
     refNo?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
     isReversal?: BoolFieldUpdateOperationsInput | boolean
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountDepositUpdateWithoutAccountInput = {
+    depositNo?: StringFieldUpdateOperationsInput | string
+    totalAmount?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversed?: BoolFieldUpdateOperationsInput | boolean
+    reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    items?: AccountDepositItemUpdateManyWithoutDepositNestedInput
+    transactions?: AccountTransactionUpdateManyWithoutDepositNestedInput
+  }
+
+  export type AccountDepositUncheckedUpdateWithoutAccountInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    depositNo?: StringFieldUpdateOperationsInput | string
+    totalAmount?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversed?: BoolFieldUpdateOperationsInput | boolean
+    reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    items?: AccountDepositItemUncheckedUpdateManyWithoutDepositNestedInput
+    transactions?: AccountTransactionUncheckedUpdateManyWithoutDepositNestedInput
+  }
+
+  export type AccountDepositUncheckedUpdateManyWithoutAccountInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    depositNo?: StringFieldUpdateOperationsInput | string
+    totalAmount?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversed?: BoolFieldUpdateOperationsInput | boolean
+    reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
@@ -52885,6 +58556,7 @@ export namespace Prisma {
     direction: $Enums.TransactionDirection
     amount: number
     voucherId?: number | null
+    depositId?: number | null
     refNo?: string | null
     description?: string | null
     chequeNo?: string | null
@@ -52905,6 +58577,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     account?: AccountUpdateOneRequiredWithoutTransactionsNestedInput
     voucher?: AccountVoucherUpdateOneWithoutTransactionsNestedInput
+    deposit?: AccountDepositUpdateOneWithoutTransactionsNestedInput
   }
 
   export type AccountTransactionUncheckedUpdateWithoutReceiptInput = {
@@ -52914,6 +58587,7 @@ export namespace Prisma {
     direction?: EnumTransactionDirectionFieldUpdateOperationsInput | $Enums.TransactionDirection
     amount?: FloatFieldUpdateOperationsInput | number
     voucherId?: NullableIntFieldUpdateOperationsInput | number | null
+    depositId?: NullableIntFieldUpdateOperationsInput | number | null
     refNo?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -52929,6 +58603,7 @@ export namespace Prisma {
     direction?: EnumTransactionDirectionFieldUpdateOperationsInput | $Enums.TransactionDirection
     amount?: FloatFieldUpdateOperationsInput | number
     voucherId?: NullableIntFieldUpdateOperationsInput | number | null
+    depositId?: NullableIntFieldUpdateOperationsInput | number | null
     refNo?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -52944,6 +58619,7 @@ export namespace Prisma {
     direction: $Enums.TransactionDirection
     amount: number
     receiptId?: number | null
+    depositId?: number | null
     refNo?: string | null
     description?: string | null
     chequeNo?: string | null
@@ -52964,6 +58640,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     account?: AccountUpdateOneRequiredWithoutTransactionsNestedInput
     receipt?: AccountReceiptUpdateOneWithoutTransactionsNestedInput
+    deposit?: AccountDepositUpdateOneWithoutTransactionsNestedInput
   }
 
   export type AccountTransactionUncheckedUpdateWithoutVoucherInput = {
@@ -52973,6 +58650,7 @@ export namespace Prisma {
     direction?: EnumTransactionDirectionFieldUpdateOperationsInput | $Enums.TransactionDirection
     amount?: FloatFieldUpdateOperationsInput | number
     receiptId?: NullableIntFieldUpdateOperationsInput | number | null
+    depositId?: NullableIntFieldUpdateOperationsInput | number | null
     refNo?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -52988,6 +58666,93 @@ export namespace Prisma {
     direction?: EnumTransactionDirectionFieldUpdateOperationsInput | $Enums.TransactionDirection
     amount?: FloatFieldUpdateOperationsInput | number
     receiptId?: NullableIntFieldUpdateOperationsInput | number | null
+    depositId?: NullableIntFieldUpdateOperationsInput | number | null
+    refNo?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversal?: BoolFieldUpdateOperationsInput | boolean
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountDepositItemCreateManyDepositInput = {
+    id?: number
+    receiptId: number
+    amount: number
+  }
+
+  export type AccountTransactionCreateManyDepositInput = {
+    id?: number
+    accountId: number
+    type: $Enums.TransactionType
+    direction: $Enums.TransactionDirection
+    amount: number
+    receiptId?: number | null
+    voucherId?: number | null
+    refNo?: string | null
+    description?: string | null
+    chequeNo?: string | null
+    isReversal?: boolean
+    createdById: number
+    createdAt?: Date | string
+  }
+
+  export type AccountDepositItemUpdateWithoutDepositInput = {
+    amount?: FloatFieldUpdateOperationsInput | number
+    receipt?: AccountReceiptUpdateOneRequiredWithoutDepositItemNestedInput
+  }
+
+  export type AccountDepositItemUncheckedUpdateWithoutDepositInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    receiptId?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+  }
+
+  export type AccountDepositItemUncheckedUpdateManyWithoutDepositInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    receiptId?: IntFieldUpdateOperationsInput | number
+    amount?: FloatFieldUpdateOperationsInput | number
+  }
+
+  export type AccountTransactionUpdateWithoutDepositInput = {
+    type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+    direction?: EnumTransactionDirectionFieldUpdateOperationsInput | $Enums.TransactionDirection
+    amount?: FloatFieldUpdateOperationsInput | number
+    refNo?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversal?: BoolFieldUpdateOperationsInput | boolean
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    account?: AccountUpdateOneRequiredWithoutTransactionsNestedInput
+    receipt?: AccountReceiptUpdateOneWithoutTransactionsNestedInput
+    voucher?: AccountVoucherUpdateOneWithoutTransactionsNestedInput
+  }
+
+  export type AccountTransactionUncheckedUpdateWithoutDepositInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    accountId?: IntFieldUpdateOperationsInput | number
+    type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+    direction?: EnumTransactionDirectionFieldUpdateOperationsInput | $Enums.TransactionDirection
+    amount?: FloatFieldUpdateOperationsInput | number
+    receiptId?: NullableIntFieldUpdateOperationsInput | number | null
+    voucherId?: NullableIntFieldUpdateOperationsInput | number | null
+    refNo?: NullableStringFieldUpdateOperationsInput | string | null
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversal?: BoolFieldUpdateOperationsInput | boolean
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountTransactionUncheckedUpdateManyWithoutDepositInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    accountId?: IntFieldUpdateOperationsInput | number
+    type?: EnumTransactionTypeFieldUpdateOperationsInput | $Enums.TransactionType
+    direction?: EnumTransactionDirectionFieldUpdateOperationsInput | $Enums.TransactionDirection
+    amount?: FloatFieldUpdateOperationsInput | number
+    receiptId?: NullableIntFieldUpdateOperationsInput | number | null
+    voucherId?: NullableIntFieldUpdateOperationsInput | number | null
     refNo?: NullableStringFieldUpdateOperationsInput | string | null
     description?: NullableStringFieldUpdateOperationsInput | string | null
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -53065,6 +58830,10 @@ export namespace Prisma {
      * @deprecated Use AccountVoucherCountOutputTypeDefaultArgs instead
      */
     export type AccountVoucherCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AccountVoucherCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use AccountDepositCountOutputTypeDefaultArgs instead
+     */
+    export type AccountDepositCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AccountDepositCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use UserDefaultArgs instead
      */
@@ -53189,6 +58958,18 @@ export namespace Prisma {
      * @deprecated Use AccountTransactionDefaultArgs instead
      */
     export type AccountTransactionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AccountTransactionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use InvoicePaymentDefaultArgs instead
+     */
+    export type InvoicePaymentArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = InvoicePaymentDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use AccountDepositDefaultArgs instead
+     */
+    export type AccountDepositArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AccountDepositDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use AccountDepositItemDefaultArgs instead
+     */
+    export type AccountDepositItemArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AccountDepositItemDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany
