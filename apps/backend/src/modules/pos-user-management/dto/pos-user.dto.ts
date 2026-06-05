@@ -95,6 +95,10 @@ export const createPurchaseSchema = z
       .int()
       .min(1, "Installment months must be at least 1")
       .optional(),
+    paymentMethod: z.enum(["CASH", "CHEQUE", "BANK_TRANSFER"]).optional(),
+    chequeNo: z.string().trim().max(80).optional(),
+    chequeBank: z.string().trim().max(80).optional(),
+    chequeDate: z.string().trim().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.purchaseType === "BIKE" && !data.bikeVehicleId) {
@@ -177,6 +181,10 @@ export const settlePurchaseSchema = z.object({
   installmentId: z.number().int().positive().optional(),
   isPartial: z.boolean().optional(),
   penaltyRate: z.number().min(0).max(100).optional(),
+  paymentMethod: z.enum(["CASH", "CHEQUE", "BANK_TRANSFER"]).optional(),
+  chequeNo: z.string().trim().max(80).optional(),
+  chequeBank: z.string().trim().max(80).optional(),
+  chequeDate: z.string().trim().optional(),
 });
 
 export const createInvoiceAccountSchema = z.object({

@@ -107,6 +107,11 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
   const [bikeOptions, setBikeOptions] = useState<BikeOption[]>([]);
   const [leasingCompanies, setLeasingCompanies] = useState<LeasingCompanyOption[]>([]);
 
+  const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CHEQUE" | "BANK_TRANSFER">("CASH");
+  const [paymentChequeNo, setPaymentChequeNo] = useState("");
+  const [paymentChequeBank, setPaymentChequeBank] = useState("");
+  const [paymentChequeDate, setPaymentChequeDate] = useState("");
+
   const [selectedUserId, setSelectedUserId] = useState<number | "">("");
   const [showAddUser, setShowAddUser] = useState(false);
   const [userForm, setUserForm] = useState<UserFormState>(EMPTY_USER_FORM);
@@ -546,6 +551,10 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
           registrationFeeAmount: itemType === "BIKE" && hasRegistrationFee ? Number(registrationFeeAmount || "0") : undefined,
           interestRate: paymentType === "DOWNPAYMENT" && parsedInterestRate > 0 ? parsedInterestRate : undefined,
           installmentMonths: paymentType === "DOWNPAYMENT" && parsedInstallmentMonths >= 1 ? parsedInstallmentMonths : undefined,
+          paymentMethod,
+          chequeNo: paymentMethod === "CHEQUE" ? paymentChequeNo || undefined : undefined,
+          chequeBank: paymentMethod === "CHEQUE" ? paymentChequeBank || undefined : undefined,
+          chequeDate: paymentMethod === "CHEQUE" ? paymentChequeDate || undefined : undefined,
         }),
       });
 
@@ -1083,6 +1092,41 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                 <input className="bm-input" value={`Rs. ${computedRemaining.toLocaleString()}`} readOnly />
               </div>
             </div>
+
+            {purchaseMode === "SINGLE" && (
+              <div style={{ marginTop: "1.25rem", padding: "1rem", border: "1px solid var(--panel-border)", borderRadius: "var(--radius-sm)", background: "var(--panel-bg)" }}>
+                <div style={{ fontWeight: 600, fontSize: "0.88rem", marginBottom: "0.75rem", color: "var(--accent)" }}>How is this being paid?</div>
+                <div className="users-form-grid">
+                  <div className="bm-field-group users-span-2">
+                    <label>Payment Method</label>
+                    <div style={{ display: "flex", gap: 20 }}>
+                      {(["CASH", "CHEQUE", "BANK_TRANSFER"] as const).map((m) => (
+                        <label key={m} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "0.875rem", fontWeight: 500 }}>
+                          <input type="radio" checked={paymentMethod === m} onChange={() => setPaymentMethod(m)} style={{ accentColor: "var(--accent)" }} />
+                          {m === "BANK_TRANSFER" ? "Bank Transfer" : m}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  {paymentMethod === "CHEQUE" && (
+                    <>
+                      <div className="bm-field-group">
+                        <label>Cheque No *</label>
+                        <input className="bm-input" value={paymentChequeNo} onChange={(e) => setPaymentChequeNo(e.target.value)} placeholder="e.g. 001234" />
+                      </div>
+                      <div className="bm-field-group">
+                        <label>Bank</label>
+                        <input className="bm-input" value={paymentChequeBank} onChange={(e) => setPaymentChequeBank(e.target.value)} placeholder="e.g. HNB" />
+                      </div>
+                      <div className="bm-field-group">
+                        <label>Cheque Date</label>
+                        <input type="date" className="bm-input" value={paymentChequeDate} onChange={(e) => setPaymentChequeDate(e.target.value)} />
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="bm-modal-actions" style={{ marginTop: "1rem" }}>
               <button type="submit" className="btn-accent" disabled={saving}>{saving ? "Saving..." : "Confirm Sale"}</button>

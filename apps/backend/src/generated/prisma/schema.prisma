@@ -53,6 +53,7 @@ enum AccountType {
 enum PaymentMethod {
   CASH
   CHEQUE
+  BANK_TRANSFER
 }
 
 enum ChequeStatus {
@@ -78,6 +79,7 @@ enum TransactionType {
   RECEIPT
   VOUCHER
   REVERSAL
+  DEPOSIT
 }
 
 enum TransactionDirection {
@@ -392,6 +394,7 @@ model PosCustomerPurchase {
   leasingCompany           PosLeasingCompany?  @relation(fields: [leasingCompanyId], references: [id], onDelete: SetNull)
   receipts                 AccountReceipt[]
   installments             PosInstallment[]
+  invoicePayments          InvoicePayment[]
 
   @@index([customerId])
   @@index([invoiceGroupCode])
@@ -564,29 +567,33 @@ model Account {
   receipts       AccountReceipt[]
   vouchers       AccountVoucher[]
   transactions   AccountTransaction[]
+  deposits       AccountDeposit[]
 
   @@map("accounts")
 }
 
 model AccountReceipt {
-  id            Int                  @id @default(autoincrement())
-  receiptNo     String               @unique
-  purchaseId    Int
-  accountId     Int
-  amount        Float
-  paymentMethod PaymentMethod        @default(CASH)
-  chequeNo      String?
-  chequeBank    String?
-  chequeDate    DateTime?
-  chequeStatus  ChequeStatus?
-  description   String?
-  isVoided      Boolean              @default(false)
-  createdById   Int
-  createdAt     DateTime             @default(now())
-  updatedAt     DateTime             @updatedAt
-  account       Account              @relation(fields: [accountId], references: [id])
-  purchase      PosCustomerPurchase  @relation(fields: [purchaseId], references: [id])
-  transactions  AccountTransaction[]
+  id             Int                  @id @default(autoincrement())
+  receiptNo      String               @unique
+  purchaseId     Int
+  accountId      Int
+  amount         Float
+  paymentMethod  PaymentMethod        @default(CASH)
+  chequeNo       String?
+  chequeBank     String?
+  chequeDate     DateTime?
+  chequeStatus   ChequeStatus?
+  description    String?
+  isVoided       Boolean              @default(false)
+  isDeposited    Boolean              @default(false)
+  createdById    Int
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  account        Account              @relation(fields: [accountId], references: [id])
+  purchase       PosCustomerPurchase  @relation(fields: [purchaseId], references: [id])
+  transactions   AccountTransaction[]
+  depositItem    AccountDepositItem?
+  invoicePayment InvoicePayment?      @relation("InvoicePaymentReceipt")
 
   @@index([purchaseId])
   @@index([accountId])
@@ -619,6 +626,7 @@ model AccountTransaction {
   amount      Float
   receiptId   Int?
   voucherId   Int?
+  depositId   Int?
   refNo       String?
   description String?
   chequeNo    String?
@@ -628,9 +636,59 @@ model AccountTransaction {
   account     Account              @relation(fields: [accountId], references: [id])
   receipt     AccountReceipt?      @relation(fields: [receiptId], references: [id])
   voucher     AccountVoucher?      @relation(fields: [voucherId], references: [id])
+  deposit     AccountDeposit?      @relation(fields: [depositId], references: [id])
 
   @@index([accountId])
   @@index([receiptId])
   @@index([voucherId])
+  @@index([depositId])
   @@map("account_transactions")
+}
+
+model InvoicePayment {
+  id            Int                 @id @default(autoincrement())
+  purchaseId    Int
+  amount        Float
+  paymentMethod PaymentMethod       @default(CASH)
+  chequeNo      String?
+  chequeBank    String?
+  chequeDate    DateTime?
+  description   String?
+  paidAt        DateTime            @default(now())
+  receiptId     Int?                @unique
+  purchase      PosCustomerPurchase @relation(fields: [purchaseId], references: [id])
+  receipt       AccountReceipt?     @relation("InvoicePaymentReceipt", fields: [receiptId], references: [id])
+
+  @@index([purchaseId])
+  @@map("invoice_payments")
+}
+
+model AccountDeposit {
+  id           Int                  @id @default(autoincrement())
+  depositNo    String               @unique
+  accountId    Int
+  totalAmount  Float
+  notes        String?
+  isReversed   Boolean              @default(false)
+  reversedAt   DateTime?
+  createdById  Int
+  createdAt    DateTime             @default(now())
+  account      Account              @relation(fields: [accountId], references: [id])
+  items        AccountDepositItem[]
+  transactions AccountTransaction[]
+
+  @@index([accountId])
+  @@map("account_deposits")
+}
+
+model AccountDepositItem {
+  id        Int            @id @default(autoincrement())
+  depositId Int
+  receiptId Int            @unique
+  amount    Float
+  deposit   AccountDeposit @relation(fields: [depositId], references: [id])
+  receipt   AccountReceipt @relation(fields: [receiptId], references: [id])
+
+  @@index([depositId])
+  @@map("account_deposit_items")
 }

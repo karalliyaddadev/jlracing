@@ -10,6 +10,10 @@ import {
   updateVoucherSchema,
   receiptQuerySchema,
   invoiceQueueQuerySchema,
+  invoicePaymentQuerySchema,
+  generateReceiptFromPaymentSchema,
+  createDepositSchema,
+  depositQuerySchema,
   voucherQuerySchema,
   ledgerQuerySchema,
 } from "./dto/account.dto";
@@ -138,6 +142,65 @@ export async function clearCheque(req: Request, res: Response, next: NextFunctio
   try {
     const id = parseId(req.params.id);
     return sendSuccess(res, await service.clearCheque(id));
+  } catch (e) {
+    return next(e);
+  }
+}
+
+// ─── Invoice Payment Queue ────────────────────────────────────────────────────
+
+export async function getInvoicePayments(req: Request, res: Response, next: NextFunction) {
+  try {
+    const dto = validate(invoicePaymentQuerySchema, req.query);
+    return sendSuccess(res, await service.listInvoicePayments(dto));
+  } catch (e) {
+    return next(e);
+  }
+}
+
+export async function generateReceiptFromPayment(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = parseId(req.params.id);
+    const dto = validate(generateReceiptFromPaymentSchema, req.body);
+    return sendCreated(res, await service.generateReceiptFromPayment(id, dto, getAdminId(req)));
+  } catch (e) {
+    return next(e);
+  }
+}
+
+// ─── Deposits ─────────────────────────────────────────────────────────────────
+
+export async function getDeposits(req: Request, res: Response, next: NextFunction) {
+  try {
+    const dto = validate(depositQuerySchema, req.query);
+    return sendSuccess(res, await service.listDeposits(dto));
+  } catch (e) {
+    return next(e);
+  }
+}
+
+export async function getDeposit(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = parseId(req.params.id);
+    return sendSuccess(res, await service.getDeposit(id));
+  } catch (e) {
+    return next(e);
+  }
+}
+
+export async function createDeposit(req: Request, res: Response, next: NextFunction) {
+  try {
+    const dto = validate(createDepositSchema, req.body);
+    return sendCreated(res, await service.createDeposit(dto, getAdminId(req)));
+  } catch (e) {
+    return next(e);
+  }
+}
+
+export async function reverseDeposit(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = parseId(req.params.id);
+    return sendSuccess(res, await service.reverseDeposit(id, getAdminId(req)));
   } catch (e) {
     return next(e);
   }

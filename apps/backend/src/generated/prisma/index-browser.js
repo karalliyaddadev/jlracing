@@ -476,6 +476,7 @@ exports.Prisma.AccountReceiptScalarFieldEnum = {
   chequeStatus: 'chequeStatus',
   description: 'description',
   isVoided: 'isVoided',
+  isDeposited: 'isDeposited',
   createdById: 'createdById',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
@@ -502,12 +503,45 @@ exports.Prisma.AccountTransactionScalarFieldEnum = {
   amount: 'amount',
   receiptId: 'receiptId',
   voucherId: 'voucherId',
+  depositId: 'depositId',
   refNo: 'refNo',
   description: 'description',
   chequeNo: 'chequeNo',
   isReversal: 'isReversal',
   createdById: 'createdById',
   createdAt: 'createdAt'
+};
+
+exports.Prisma.InvoicePaymentScalarFieldEnum = {
+  id: 'id',
+  purchaseId: 'purchaseId',
+  amount: 'amount',
+  paymentMethod: 'paymentMethod',
+  chequeNo: 'chequeNo',
+  chequeBank: 'chequeBank',
+  chequeDate: 'chequeDate',
+  description: 'description',
+  paidAt: 'paidAt',
+  receiptId: 'receiptId'
+};
+
+exports.Prisma.AccountDepositScalarFieldEnum = {
+  id: 'id',
+  depositNo: 'depositNo',
+  accountId: 'accountId',
+  totalAmount: 'totalAmount',
+  notes: 'notes',
+  isReversed: 'isReversed',
+  reversedAt: 'reversedAt',
+  createdById: 'createdById',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AccountDepositItemScalarFieldEnum = {
+  id: 'id',
+  depositId: 'depositId',
+  receiptId: 'receiptId',
+  amount: 'amount'
 };
 
 exports.Prisma.SortOrder = {
@@ -573,7 +607,8 @@ exports.AccountType = exports.$Enums.AccountType = {
 
 exports.PaymentMethod = exports.$Enums.PaymentMethod = {
   CASH: 'CASH',
-  CHEQUE: 'CHEQUE'
+  CHEQUE: 'CHEQUE',
+  BANK_TRANSFER: 'BANK_TRANSFER'
 };
 
 exports.ChequeStatus = exports.$Enums.ChequeStatus = {
@@ -598,7 +633,8 @@ exports.VoucherType = exports.$Enums.VoucherType = {
 exports.TransactionType = exports.$Enums.TransactionType = {
   RECEIPT: 'RECEIPT',
   VOUCHER: 'VOUCHER',
-  REVERSAL: 'REVERSAL'
+  REVERSAL: 'REVERSAL',
+  DEPOSIT: 'DEPOSIT'
 };
 
 exports.TransactionDirection = exports.$Enums.TransactionDirection = {
@@ -637,7 +673,10 @@ exports.Prisma.ModelName = {
   Account: 'Account',
   AccountReceipt: 'AccountReceipt',
   AccountVoucher: 'AccountVoucher',
-  AccountTransaction: 'AccountTransaction'
+  AccountTransaction: 'AccountTransaction',
+  InvoicePayment: 'InvoicePayment',
+  AccountDeposit: 'AccountDeposit',
+  AccountDepositItem: 'AccountDepositItem'
 };
 
 /**

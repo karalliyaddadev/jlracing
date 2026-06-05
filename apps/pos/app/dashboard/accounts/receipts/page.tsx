@@ -1,26 +1,29 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
-import { IconAccounts, IconEdit, IconPlus } from "../../../lib/icons";
+import { IconAccounts, IconEdit } from "../../../lib/icons";
 
-type Account = { id: number; name: string; code: string; type: string };
+type Account = { id: number; name: string; code: string; type: string; isActive: boolean };
 
-type InvoiceRow = {
+type InvoicePaymentRow = {
   id: number;
+  purchaseId: number;
+  amount: number;
+  paymentMethod: "CASH" | "CHEQUE" | "BANK_TRANSFER";
+  chequeNo?: string | null;
+  chequeBank?: string | null;
+  chequeDate?: string | null;
+  description?: string | null;
+  paidAt: string;
   invoiceRef: string;
-  customer: { id: number; firstName: string; lastName: string; nic: string; mobileNumber: string; address: string };
   itemLabel: string;
-  itemType: string;
-  purchaseChannel: string;
-  paymentType: string;
-  finalSellingPrice: number;
-  totalReceivable: number;
-  totalReceipted: number;
-  outstanding: number;
-  receiptCount: number;
-  purchasedAt: string;
+  purchase: {
+    id: number;
+    invoiceGroupCode?: string | null;
+    customer: { firstName: string; lastName: string; nic: string; mobileNumber: string };
+  };
 };
 
 type ReceiptRow = {
@@ -28,17 +31,29 @@ type ReceiptRow = {
   receiptNo: string;
   createdAt: string;
   amount: number;
-  paymentMethod: "CASH" | "CHEQUE";
+  paymentMethod: "CASH" | "CHEQUE" | "BANK_TRANSFER";
   chequeNo?: string | null;
   chequeBank?: string | null;
   chequeStatus?: "PENDING" | "CLEARED" | "BOUNCED" | null;
   isVoided: boolean;
+  isDeposited: boolean;
   description?: string | null;
   account: { id: number; name: string; code: string };
   purchase: { id: number; invoiceGroupCode?: string | null; customer: { firstName: string; lastName: string; nic: string } };
 };
 
-const EMPTY_RECEIPT_FORM = {
+type DepositRow = {
+  id: number;
+  depositNo: string;
+  createdAt: string;
+  totalAmount: number;
+  isReversed: boolean;
+  receiptCount: number;
+  account: { id: number; name: string; code: string };
+  notes?: string | null;
+};
+
+const EMPTY_EDIT_FORM = {
   purchaseId: 0,
   accountId: 0,
   amount: 0,
@@ -60,120 +75,102 @@ function formatDate(d: string) {
 export default function ReceiptsPage() {
   const { token } = useAdmin();
   const [accounts, setAccounts] = useState<Account[]>([]);
-  const [invoices, setInvoices] = useState<InvoiceRow[]>([]);
+
+  // Payment queue
+  const [payments, setPayments] = useState<InvoicePaymentRow[]>([]);
+  const [loadingPayments, setLoadingPayments] = useState(true);
+  const [paymentSearch, setPaymentSearch] = useState("");
+  const [generatePayment, setGeneratePayment] = useState<InvoicePaymentRow | null>(null);
+  const [genAccountId, setGenAccountId] = useState(0);
+  const [genDescription, setGenDescription] = useState("");
+  const [genError, setGenError] = useState("");
+  const [genSaving, setGenSaving] = useState(false);
+
+  // Receipts
   const [receipts, setReceipts] = useState<ReceiptRow[]>([]);
-  const [loadingInvoices, setLoadingInvoices] = useState(true);
+  const [total, setTotal] = useState(0);
   const [loadingReceipts, setLoadingReceipts] = useState(true);
-  const [showAll, setShowAll] = useState(false);
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState(new Date().toISOString().split("T")[0]);
   const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
-  const [historyOpen, setHistoryOpen] = useState(false);
+  const [selectedReceiptIds, setSelectedReceiptIds] = useState<Set<number>>(new Set());
 
-  const [panelInvoice, setPanelInvoice] = useState<InvoiceRow | null>(null);
-  const [form, setForm] = useState(EMPTY_RECEIPT_FORM);
-  const [saving, setSaving] = useState(false);
-  const [formError, setFormError] = useState("");
-  const lastAccountRef = useRef<number>(0);
-
-  const [printData, setPrintData] = useState<{ receiptId: number } | null>(null);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [printReceipt, setPrintReceipt] = useState<any>(null);
-
   const [editingReceipt, setEditingReceipt] = useState<ReceiptRow | null>(null);
-  const [editForm, setEditForm] = useState(EMPTY_RECEIPT_FORM);
+  const [editForm, setEditForm] = useState(EMPTY_EDIT_FORM);
   const [editError, setEditError] = useState("");
   const [editSaving, setEditSaving] = useState(false);
+
+  // Deposits
+  const [deposits, setDeposits] = useState<DepositRow[]>([]);
+  const [depositAccountId, setDepositAccountId] = useState(0);
+  const [depositNotes, setDepositNotes] = useState("");
+  const [depositError, setDepositError] = useState("");
+  const [depositSaving, setDepositSaving] = useState(false);
+  const [showDepositHistory, setShowDepositHistory] = useState(false);
 
   async function fetchAccounts() {
     const res = await fetch(`${API_URL}/api/pos/accounts/chart`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const d = await res.json();
-    setAccounts((d.data ?? []).filter((a: Account & { isActive: boolean }) => a.isActive));
+    setAccounts((d.data ?? []).filter((a: Account) => a.isActive));
   }
 
-  const fetchInvoices = useCallback(async () => {
-    setLoadingInvoices(true);
-    const params = new URLSearchParams();
-    if (search) params.set("search", search);
-    params.set("showAll", showAll ? "true" : "false");
-    if (fromDate) params.set("from", fromDate);
-    if (toDate) params.set("to", toDate);
-    params.set("limit", "200");
-    const res = await fetch(`${API_URL}/api/pos/accounts/receipts/invoices?${params}`, {
+  const fetchPayments = useCallback(async () => {
+    setLoadingPayments(true);
+    const params = new URLSearchParams({ limit: "200" });
+    if (paymentSearch.trim()) params.set("search", paymentSearch.trim());
+    const res = await fetch(`${API_URL}/api/pos/accounts/payments?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const d = await res.json();
-    setInvoices(d.data ?? []);
-    setLoadingInvoices(false);
-  }, [token, search, showAll, fromDate, toDate]);
+    setPayments(d.data?.data ?? []);
+    setLoadingPayments(false);
+  }, [token, paymentSearch]);
 
-  async function fetchReceipts() {
+  const fetchReceipts = useCallback(async () => {
     setLoadingReceipts(true);
-    const res = await fetch(`${API_URL}/api/pos/accounts/receipts?limit=100`, {
+    const params = new URLSearchParams({ limit: "200" });
+    if (search.trim()) params.set("search", search.trim());
+    if (fromDate) params.set("from", fromDate);
+    if (toDate) params.set("to", toDate);
+    const res = await fetch(`${API_URL}/api/pos/accounts/receipts?${params}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
     const d = await res.json();
     setReceipts(d.data?.data ?? []);
+    setTotal(d.data?.pagination?.total ?? 0);
     setLoadingReceipts(false);
-  }
+  }, [token, search, fromDate, toDate]);
+
+  const fetchDeposits = useCallback(async () => {
+    const res = await fetch(`${API_URL}/api/pos/accounts/deposits?limit=50`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    const d = await res.json();
+    setDeposits(d.data?.data ?? []);
+  }, [token]);
 
   useEffect(() => {
     if (token) {
       fetchAccounts();
-      fetchReceipts();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token]);
 
   useEffect(() => {
-    if (token) fetchInvoices();
-  }, [token, fetchInvoices]);
+    if (token) fetchPayments();
+  }, [token, fetchPayments]);
 
-  function openPanel(inv: InvoiceRow) {
-    setPanelInvoice(inv);
-    setForm({ ...EMPTY_RECEIPT_FORM, purchaseId: inv.id, amount: inv.outstanding, accountId: lastAccountRef.current });
-    setFormError("");
-  }
+  useEffect(() => {
+    if (token) fetchReceipts();
+  }, [token, fetchReceipts]);
 
-  async function submitReceipt() {
-    if (!form.accountId) { setFormError("Please select an account"); return; }
-    if (!form.amount || form.amount <= 0) { setFormError("Enter a valid amount"); return; }
-    if (form.paymentMethod === "CHEQUE" && !form.chequeNo.trim()) { setFormError("Cheque number is required"); return; }
-    setSaving(true);
-    setFormError("");
-    try {
-      const body: Record<string, unknown> = {
-        purchaseId: form.purchaseId,
-        accountId: form.accountId,
-        amount: form.amount,
-        paymentMethod: form.paymentMethod,
-        description: form.description || undefined,
-      };
-      if (form.paymentMethod === "CHEQUE") {
-        body.chequeNo = form.chequeNo;
-        body.chequeBank = form.chequeBank || undefined;
-        body.chequeDate = form.chequeDate || undefined;
-      }
-      const res = await fetch(`${API_URL}/api/pos/accounts/receipts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify(body),
-      });
-      const d = await res.json();
-      if (!res.ok) { setFormError(d.message ?? "Failed to create receipt"); return; }
-      lastAccountRef.current = form.accountId;
-      setPanelInvoice(null);
-      fetchInvoices();
-      fetchReceipts();
-      setPrintData({ receiptId: d.data.id });
-      fetchReceiptForPrint(d.data.id);
-    } catch {
-      setFormError("Network error");
-    } finally {
-      setSaving(false);
-    }
-  }
+  useEffect(() => {
+    if (token) fetchDeposits();
+  }, [token, fetchDeposits]);
 
   async function fetchReceiptForPrint(id: number) {
     const res = await fetch(`${API_URL}/api/pos/accounts/receipts/${id}`, {
@@ -183,6 +180,38 @@ export default function ReceiptsPage() {
     setPrintReceipt(d.data);
   }
 
+  // Generate receipt from payment
+  function openGenerateModal(p: InvoicePaymentRow) {
+    setGeneratePayment(p);
+    setGenAccountId(0);
+    setGenDescription("");
+    setGenError("");
+  }
+
+  async function submitGenerateReceipt() {
+    if (!generatePayment) return;
+    if (!genAccountId) { setGenError("Please select an account"); return; }
+    setGenSaving(true);
+    setGenError("");
+    try {
+      const res = await fetch(`${API_URL}/api/pos/accounts/payments/${generatePayment.id}/generate-receipt`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ accountId: genAccountId, description: genDescription || undefined }),
+      });
+      const d = await res.json();
+      if (!res.ok) { setGenError(d.message ?? "Failed to generate receipt"); setGenSaving(false); return; }
+      setGeneratePayment(null);
+      await Promise.all([fetchPayments(), fetchReceipts()]);
+      if (d.data?.id) fetchReceiptForPrint(d.data.id);
+    } catch {
+      setGenError("Network error");
+    } finally {
+      setGenSaving(false);
+    }
+  }
+
+  // Receipts actions
   async function handleVoid(id: number) {
     if (!confirm("Void this receipt? This will reverse the ledger entry.")) return;
     await fetch(`${API_URL}/api/pos/accounts/receipts/${id}/void`, {
@@ -190,7 +219,6 @@ export default function ReceiptsPage() {
       headers: { Authorization: `Bearer ${token}` },
     });
     fetchReceipts();
-    fetchInvoices();
   }
 
   async function handleBounce(id: number) {
@@ -200,7 +228,6 @@ export default function ReceiptsPage() {
       headers: { Authorization: `Bearer ${token}` },
     });
     fetchReceipts();
-    fetchInvoices();
   }
 
   async function handleClearCheque(id: number) {
@@ -217,7 +244,7 @@ export default function ReceiptsPage() {
       purchaseId: r.purchase.id,
       accountId: r.account.id,
       amount: r.amount,
-      paymentMethod: r.paymentMethod,
+      paymentMethod: (r.paymentMethod === "BANK_TRANSFER" ? "CASH" : r.paymentMethod) as "CASH" | "CHEQUE",
       chequeNo: r.chequeNo ?? "",
       chequeBank: r.chequeBank ?? "",
       chequeDate: "",
@@ -253,7 +280,6 @@ export default function ReceiptsPage() {
       }
       setEditingReceipt(null);
       fetchReceipts();
-      fetchInvoices();
     } catch {
       setEditError("Network error");
     } finally {
@@ -261,15 +287,61 @@ export default function ReceiptsPage() {
     }
   }
 
+  // Deposit selection
+  function toggleReceiptSelection(id: number) {
+    setSelectedReceiptIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id); else next.add(id);
+      return next;
+    });
+  }
+
+  const selectedReceipts = receipts.filter((r) => selectedReceiptIds.has(r.id));
+  const selectedTotal = selectedReceipts.reduce((s, r) => s + r.amount, 0);
+
+  async function submitDeposit() {
+    if (selectedReceiptIds.size === 0) return;
+    if (!depositAccountId) { setDepositError("Please select an account"); return; }
+    setDepositSaving(true);
+    setDepositError("");
+    try {
+      const res = await fetch(`${API_URL}/api/pos/accounts/deposits`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ accountId: depositAccountId, receiptIds: [...selectedReceiptIds], notes: depositNotes || undefined }),
+      });
+      const d = await res.json();
+      if (!res.ok) { setDepositError(d.message ?? "Failed to create deposit"); setDepositSaving(false); return; }
+      setSelectedReceiptIds(new Set());
+      setDepositNotes("");
+      setDepositAccountId(0);
+      await Promise.all([fetchReceipts(), fetchDeposits()]);
+    } catch {
+      setDepositError("Network error");
+    } finally {
+      setDepositSaving(false);
+    }
+  }
+
+  async function handleReverseDeposit(id: number) {
+    if (!confirm("Reverse this deposit? The receipts will become undeposited and a reversal ledger entry will be created.")) return;
+    await fetch(`${API_URL}/api/pos/accounts/deposits/${id}/reverse`, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    await Promise.all([fetchReceipts(), fetchDeposits()]);
+  }
+
   function chequeStatusBadge(r: ReceiptRow) {
     if (r.paymentMethod !== "CHEQUE") return null;
     if (r.chequeStatus === "CLEARED") return <span className="badge badge-active">Cheque Cleared</span>;
-    if (r.chequeStatus === "BOUNCED") return <span className="badge" style={{ background: "var(--danger-bg)", color: "var(--danger)" }}>Cheque Bounced</span>;
+    if (r.chequeStatus === "BOUNCED") return <span className="badge" style={{ background: "var(--danger-bg)", color: "var(--danger)" }}>Bounced</span>;
     return <span className="badge badge-pending">Cheque Pending</span>;
   }
 
-  const outstandingCount = invoices.filter((i) => i.outstanding > 0).length;
-  const totalOutstanding = invoices.filter((i) => i.outstanding > 0).reduce((s, i) => s + i.outstanding, 0);
+  const activeReceipts = receipts.filter((r) => !r.isVoided);
+  const totalReceiptsAmount = activeReceipts.reduce((s, r) => s + r.amount, 0);
+  const depositableReceipts = receipts.filter((r) => !r.isVoided && !r.isDeposited);
 
   return (
     <div className="bm-page">
@@ -277,34 +349,119 @@ export default function ReceiptsPage() {
         <div className="page-title-row">
           <span className="page-title-icon"><IconAccounts /></span>
           <div>
-            <h1 className="page-title">Receipts</h1>
-            <p className="page-subtitle">Record cash received from customers</p>
+            <h1 className="page-title">Receipt Management</h1>
+            <p className="page-subtitle">Review payments, generate receipts, and manage end-of-day deposits</p>
           </div>
         </div>
       </div>
 
       {/* Summary stats */}
-      <div className="bm-stats-grid" style={{ gridTemplateColumns: "repeat(2,minmax(0,1fr))" }}>
+      <div className="bm-stats-grid" style={{ gridTemplateColumns: "repeat(3,minmax(0,1fr))" }}>
         <div className="bm-stat-card bm-stat-card-soft">
-          <div className="bm-stat-label">Outstanding Invoices</div>
-          <div className="bm-stat-value">{outstandingCount}</div>
-          <div className="bm-stat-sub">invoices need payment</div>
+          <div className="bm-stat-label">Pending Receipt Generation</div>
+          <div className="bm-stat-value">{payments.length}</div>
+          <div className="bm-stat-sub">payments awaiting receipt</div>
         </div>
         <div className="bm-stat-card">
-          <div className="bm-stat-label">Total Outstanding</div>
-          <div className="bm-stat-value" style={{ fontSize: "1.15rem", color: "var(--warning)" }}>{formatRs(totalOutstanding)}</div>
-          <div className="bm-stat-sub">across all invoices</div>
+          <div className="bm-stat-label">Receipts (filtered)</div>
+          <div className="bm-stat-value">{activeReceipts.length}</div>
+          <div className="bm-stat-sub">{formatRs(totalReceiptsAmount)}</div>
+        </div>
+        <div className="bm-stat-card bm-stat-card-soft">
+          <div className="bm-stat-label">Ready to Deposit</div>
+          <div className="bm-stat-value">{depositableReceipts.length}</div>
+          <div className="bm-stat-sub">{formatRs(depositableReceipts.reduce((s, r) => s + r.amount, 0))}</div>
         </div>
       </div>
 
-      {/* Filter bar */}
-      <div className="bm-filter-card">
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 140px 140px auto auto", gap: "0.75rem", alignItems: "end" }}>
+      {/* ── Section 1: Payment Queue ── */}
+      <div className="bm-table-card" style={{ marginBottom: "1.5rem" }}>
+        <div className="panel-header">
+          <div className="panel-title-row">
+            <span style={{ color: "var(--accent)" }}><IconAccounts /></span>
+            <h3>Payment Queue — Generate Receipts</h3>
+            <span className="badge badge-pending" style={{ marginLeft: 8 }}>{payments.length} pending</span>
+          </div>
+          <div style={{ display: "flex", gap: "0.5rem", alignItems: "center" }}>
+            <input
+              className="bm-input"
+              style={{ width: 220, height: 34 }}
+              placeholder="Search customer or invoice..."
+              value={paymentSearch}
+              onChange={(e) => setPaymentSearch(e.target.value)}
+            />
+          </div>
+        </div>
+        {loadingPayments ? (
+          <div className="bm-table-empty">Loading payment queue...</div>
+        ) : payments.length === 0 ? (
+          <div className="bm-table-empty">No pending payments — all payments have receipts generated.</div>
+        ) : (
+          <div className="data-table-wrap">
+            <table className="data-table">
+              <thead>
+                <tr>
+                  <th>Invoice Ref</th>
+                  <th>Customer</th>
+                  <th>Item</th>
+                  <th style={{ textAlign: "right" }}>Amount</th>
+                  <th>Method</th>
+                  <th>Paid At</th>
+                  <th>Description</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {payments.map((p) => (
+                  <tr key={p.id}>
+                    <td>
+                      <span style={{ fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 700, color: "var(--accent)" }}>
+                        {p.invoiceRef}
+                      </span>
+                    </td>
+                    <td>
+                      <div style={{ fontWeight: 600 }}>{p.purchase.customer.firstName} {p.purchase.customer.lastName}</div>
+                      <div className="td-muted" style={{ fontSize: "0.78rem" }}>{p.purchase.customer.nic}</div>
+                    </td>
+                    <td className="td-muted" style={{ fontSize: "0.82rem", maxWidth: 180 }}>{p.itemLabel}</td>
+                    <td style={{ textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums", color: "var(--success)" }}>
+                      {formatRs(p.amount)}
+                    </td>
+                    <td>
+                      <span className={`badge ${p.paymentMethod === "CHEQUE" ? "badge-review" : "badge-active"}`}>
+                        {p.paymentMethod}
+                      </span>
+                      {p.paymentMethod === "CHEQUE" && p.chequeNo && (
+                        <div className="td-muted" style={{ fontSize: "0.75rem" }}>#{p.chequeNo}</div>
+                      )}
+                    </td>
+                    <td className="td-muted">{formatDate(p.paidAt)}</td>
+                    <td className="td-muted" style={{ fontSize: "0.82rem" }}>{p.description ?? "—"}</td>
+                    <td>
+                      <button
+                        className="btn-accent"
+                        style={{ fontSize: "0.78rem", padding: "4px 12px" }}
+                        onClick={() => openGenerateModal(p)}
+                      >
+                        Generate Receipt
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* ── Section 2: Receipts + Deposit Selection ── */}
+      <div className="bm-filter-card" style={{ marginBottom: "1rem" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 160px 160px", gap: "0.75rem", alignItems: "end" }}>
           <div className="bm-field-group" style={{ marginBottom: 0 }}>
             <label className="users-label">Search</label>
             <input
               className="bm-input"
-              placeholder="Customer name or NIC..."
+              placeholder="Receipt no, customer name or NIC..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -317,123 +474,71 @@ export default function ReceiptsPage() {
             <label className="users-label">To Date</label>
             <input type="date" className="bm-input" value={toDate} onChange={(e) => setToDate(e.target.value)} />
           </div>
-          <div style={{ paddingBottom: 2 }}>
-            <label style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "0.82rem", color: "var(--text-soft)", fontWeight: 500, whiteSpace: "nowrap" }}>
-              <input
-                type="checkbox"
-                checked={showAll}
-                onChange={(e) => setShowAll(e.target.checked)}
-                style={{ accentColor: "var(--accent)" }}
-              />
-              Show all invoices
-            </label>
-          </div>
         </div>
       </div>
 
-      {/* Invoice queue */}
-      <div className="bm-table-card">
+      <div className="bm-table-card" style={{ marginBottom: "1.5rem" }}>
         <div className="panel-header">
           <div className="panel-title-row">
             <span style={{ color: "var(--accent)" }}><IconAccounts /></span>
-            <h3>{showAll ? "All Invoices" : "Outstanding Invoices"}</h3>
+            <h3>Receipt History</h3>
+            {selectedReceiptIds.size > 0 && (
+              <span className="badge badge-pending" style={{ marginLeft: 8 }}>
+                {selectedReceiptIds.size} selected — {formatRs(selectedTotal)}
+              </span>
+            )}
           </div>
+          {selectedReceiptIds.size > 0 && (
+            <button className="btn-outline" style={{ fontSize: "0.8rem" }} onClick={() => setSelectedReceiptIds(new Set())}>
+              Clear selection
+            </button>
+          )}
         </div>
-        {loadingInvoices ? (
-          <div className="bm-table-empty">Loading invoices...</div>
-        ) : invoices.length === 0 ? (
-          <div className="bm-table-empty">No outstanding invoices — all caught up!</div>
+        {loadingReceipts ? (
+          <div className="bm-table-empty">Loading receipts...</div>
         ) : (
           <div className="data-table-wrap">
             <table className="data-table">
               <thead>
                 <tr>
+                  <th style={{ width: 36 }}>
+                    <input
+                      type="checkbox"
+                      checked={depositableReceipts.length > 0 && depositableReceipts.every((r) => selectedReceiptIds.has(r.id))}
+                      onChange={(e) => {
+                        if (e.target.checked) setSelectedReceiptIds(new Set(depositableReceipts.map((r) => r.id)));
+                        else setSelectedReceiptIds(new Set());
+                      }}
+                      title="Select all depositable"
+                    />
+                  </th>
+                  <th>Receipt No</th>
+                  <th>Date</th>
                   <th>Invoice Ref</th>
                   <th>Customer</th>
-                  <th>Item</th>
-                  <th style={{ textAlign: "right" }}>Total Amount</th>
-                  <th style={{ textAlign: "right" }}>Receipted</th>
-                  <th style={{ textAlign: "right" }}>Outstanding</th>
-                  <th>Date</th>
-                  <th></th>
+                  <th style={{ textAlign: "right" }}>Amount</th>
+                  <th>Method</th>
+                  <th>Account</th>
+                  <th>Status</th>
+                  <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {invoices.map((inv) => (
-                  <tr key={inv.id}>
-                    <td>
-                      <span style={{ fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 700, color: "var(--accent)" }}>
-                        {inv.invoiceRef}
-                      </span>
-                    </td>
-                    <td>
-                      <div style={{ fontWeight: 600 }}>{inv.customer.firstName} {inv.customer.lastName}</div>
-                      <div className="td-muted" style={{ fontSize: "0.78rem" }}>{inv.customer.nic}</div>
-                    </td>
-                    <td className="td-muted">{inv.itemLabel}</td>
-                    <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{formatRs(inv.totalReceivable)}</td>
-                    <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums", color: "var(--success)" }}>{formatRs(inv.totalReceipted)}</td>
-                    <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
-                      <span style={{ color: inv.outstanding > 0 ? "var(--warning)" : "var(--success)", fontWeight: 600 }}>
-                        {formatRs(inv.outstanding)}
-                      </span>
-                    </td>
-                    <td className="td-muted">{formatDate(inv.purchasedAt)}</td>
-                    <td>
-                      <button
-                        className="btn-accent"
-                        style={{ display: "flex", alignItems: "center", gap: 4, padding: "0.35rem 0.75rem", fontSize: "0.78rem" }}
-                        onClick={() => openPanel(inv)}
-                      >
-                        <IconPlus /> Receipt
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* Receipt history — collapsible */}
-      <div className="bm-table-card">
-        <button
-          type="button"
-          className="panel-header"
-          onClick={() => setHistoryOpen(!historyOpen)}
-          style={{ width: "100%", background: "none", border: "none", cursor: "pointer", textAlign: "left" }}
-        >
-          <div className="panel-title-row" style={{ flex: 1 }}>
-            <span style={{ color: "var(--accent)" }}><IconAccounts /></span>
-            <h3>Receipt History</h3>
-          </div>
-          <span style={{ color: "var(--text-xsoft)", fontSize: "0.8rem" }}>{historyOpen ? "▲ hide" : "▼ show"}</span>
-        </button>
-        {historyOpen && (
-          loadingReceipts ? (
-            <div className="bm-table-empty">Loading receipts...</div>
-          ) : (
-            <div className="data-table-wrap">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Receipt No</th>
-                    <th>Date</th>
-                    <th>Invoice Ref</th>
-                    <th>Customer</th>
-                    <th style={{ textAlign: "right" }}>Amount</th>
-                    <th>Method</th>
-                    <th>Account</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {receipts.length === 0 ? (
-                    <tr><td colSpan={9} className="bm-table-empty">No receipts yet</td></tr>
-                  ) : receipts.map((r) => (
-                    <tr key={r.id} style={{ opacity: r.isVoided ? 0.5 : 1 }}>
+                {receipts.length === 0 ? (
+                  <tr><td colSpan={10} className="bm-table-empty">No receipts found</td></tr>
+                ) : receipts.map((r) => {
+                  const canSelect = !r.isVoided && !r.isDeposited;
+                  return (
+                    <tr key={r.id} style={{ opacity: r.isVoided ? 0.5 : 1, background: selectedReceiptIds.has(r.id) ? "var(--accent-bg, #f0f7ff)" : undefined }}>
+                      <td>
+                        {canSelect && (
+                          <input
+                            type="checkbox"
+                            checked={selectedReceiptIds.has(r.id)}
+                            onChange={() => toggleReceiptSelection(r.id)}
+                          />
+                        )}
+                      </td>
                       <td>
                         <span style={{ fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 700, color: "var(--accent)" }}>
                           {r.receiptNo}
@@ -441,7 +546,10 @@ export default function ReceiptsPage() {
                       </td>
                       <td className="td-muted">{formatDate(r.createdAt)}</td>
                       <td className="td-muted">{r.purchase.invoiceGroupCode ?? `INV-${String(r.purchase.id).padStart(5, "0")}`}</td>
-                      <td>{r.purchase.customer.firstName} {r.purchase.customer.lastName}</td>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{r.purchase.customer.firstName} {r.purchase.customer.lastName}</div>
+                        <div className="td-muted" style={{ fontSize: "0.78rem" }}>{r.purchase.customer.nic}</div>
+                      </td>
                       <td style={{ textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{formatRs(r.amount)}</td>
                       <td>
                         <span className={`badge ${r.paymentMethod === "CHEQUE" ? "badge-review" : "badge-active"}`}>
@@ -452,18 +560,15 @@ export default function ReceiptsPage() {
                       <td>
                         {r.isVoided
                           ? <span className="badge" style={{ background: "var(--danger-bg)", color: "var(--danger)" }}>Voided</span>
+                          : r.isDeposited
+                          ? <span className="badge" style={{ background: "var(--success-bg, #e6f9f0)", color: "var(--success)" }}>Deposited</span>
                           : chequeStatusBadge(r) ?? <span className="badge badge-active">Active</span>
                         }
                       </td>
                       <td>
                         <div className="bm-row-actions">
-                          <button
-                            className="bm-action-btn"
-                            style={{ fontSize: "0.9rem" }}
-                            onClick={() => { fetchReceiptForPrint(r.id); setPrintData({ receiptId: r.id }); }}
-                            title="Print"
-                          >🖨</button>
-                          {!r.isVoided && (
+                          <button className="bm-action-btn" style={{ fontSize: "0.9rem" }} onClick={() => fetchReceiptForPrint(r.id)} title="Print">🖨</button>
+                          {!r.isVoided && !r.isDeposited && (
                             <button className="bm-action-btn bm-edit-btn" onClick={() => openEdit(r)} title="Edit"><IconEdit /></button>
                           )}
                           {!r.isVoided && r.paymentMethod === "CHEQUE" && r.chequeStatus === "PENDING" && (
@@ -472,10 +577,109 @@ export default function ReceiptsPage() {
                               <button className="bm-action-btn" style={{ borderColor: "var(--danger)", color: "var(--danger)" }} onClick={() => handleBounce(r.id)}>Bounced</button>
                             </>
                           )}
-                          {!r.isVoided && (
+                          {!r.isVoided && !r.isDeposited && (
                             <button className="bm-action-btn" style={{ borderColor: "var(--danger)", color: "var(--danger)" }} onClick={() => handleVoid(r.id)}>Void</button>
                           )}
                         </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+
+      {/* ── Section 3: Deposit Panel ── */}
+      {selectedReceiptIds.size > 0 && (
+        <div className="bm-table-card" style={{ marginBottom: "1.5rem", borderColor: "var(--accent)" }}>
+          <div className="panel-header">
+            <div className="panel-title-row">
+              <span style={{ color: "var(--accent)" }}><IconAccounts /></span>
+              <h3>Create Deposit</h3>
+              <span className="badge badge-pending" style={{ marginLeft: 8 }}>{selectedReceiptIds.size} receipts — {formatRs(selectedTotal)}</span>
+            </div>
+          </div>
+          <div style={{ padding: "1rem 1.25rem" }}>
+            {depositError && <div className="bm-alert bm-alert-error" style={{ marginBottom: 12 }}>{depositError}</div>}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: "1rem", alignItems: "end" }}>
+              <div className="bm-field-group" style={{ marginBottom: 0 }}>
+                <label className="users-label">Deposit to Account *</label>
+                <select className="bm-select" value={depositAccountId} onChange={(e) => setDepositAccountId(Number(e.target.value))}>
+                  <option value={0}>— Select Account —</option>
+                  {accounts.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
+                </select>
+              </div>
+              <div className="bm-field-group" style={{ marginBottom: 0 }}>
+                <label className="users-label">Notes (optional)</label>
+                <input className="bm-input" placeholder="e.g. Cash collected today" value={depositNotes} onChange={(e) => setDepositNotes(e.target.value)} />
+              </div>
+              <button className="btn-accent" onClick={submitDeposit} disabled={depositSaving} style={{ height: 38 }}>
+                {depositSaving ? "Creating..." : "Create Deposit"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Deposit history */}
+      <div className="bm-table-card">
+        <div className="panel-header" style={{ cursor: "pointer" }} onClick={() => setShowDepositHistory((v) => !v)}>
+          <div className="panel-title-row">
+            <span style={{ color: "var(--accent)" }}><IconAccounts /></span>
+            <h3>Deposit History</h3>
+            <span className="badge" style={{ marginLeft: 8, background: "var(--bg-soft)", color: "var(--text-soft)" }}>{deposits.length}</span>
+          </div>
+          <button className="btn-outline" style={{ fontSize: "0.78rem" }}>{showDepositHistory ? "Hide" : "Show"}</button>
+        </div>
+        {showDepositHistory && (
+          deposits.length === 0 ? (
+            <div className="bm-table-empty">No deposits yet.</div>
+          ) : (
+            <div className="data-table-wrap">
+              <table className="data-table">
+                <thead>
+                  <tr>
+                    <th>Deposit No</th>
+                    <th>Date</th>
+                    <th>Account</th>
+                    <th>Receipts</th>
+                    <th style={{ textAlign: "right" }}>Total</th>
+                    <th>Status</th>
+                    <th>Notes</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {deposits.map((d) => (
+                    <tr key={d.id} style={{ opacity: d.isReversed ? 0.5 : 1 }}>
+                      <td>
+                        <span style={{ fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 700, color: "var(--accent)" }}>
+                          {d.depositNo}
+                        </span>
+                      </td>
+                      <td className="td-muted">{formatDate(d.createdAt)}</td>
+                      <td className="td-muted">{d.account.name}</td>
+                      <td className="td-muted">{d.receiptCount} receipt{d.receiptCount !== 1 ? "s" : ""}</td>
+                      <td style={{ textAlign: "right", fontWeight: 600 }}>{formatRs(d.totalAmount)}</td>
+                      <td>
+                        {d.isReversed
+                          ? <span className="badge" style={{ background: "var(--danger-bg)", color: "var(--danger)" }}>Reversed</span>
+                          : <span className="badge badge-active">Deposited</span>
+                        }
+                      </td>
+                      <td className="td-muted" style={{ fontSize: "0.82rem" }}>{d.notes ?? "—"}</td>
+                      <td>
+                        {!d.isReversed && (
+                          <button
+                            className="bm-action-btn"
+                            style={{ borderColor: "var(--danger)", color: "var(--danger)" }}
+                            onClick={() => handleReverseDeposit(d.id)}
+                          >
+                            Reverse
+                          </button>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -486,91 +690,38 @@ export default function ReceiptsPage() {
         )}
       </div>
 
-      {/* Create receipt panel */}
-      {panelInvoice && (
-        <div className="bm-modal-backdrop" onClick={() => setPanelInvoice(null)}>
-          <div className="bm-modal bm-modal-lg" onClick={(e) => e.stopPropagation()}>
-            <button className="bm-modal-close" onClick={() => setPanelInvoice(null)}>✕</button>
-            <h2 className="bm-modal-title">Create Receipt</h2>
+      {/* Generate Receipt Modal */}
+      {generatePayment && (
+        <div className="bm-modal-backdrop" onClick={() => setGeneratePayment(null)}>
+          <div className="bm-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="bm-modal-close" onClick={() => setGeneratePayment(null)}>✕</button>
+            <h2 className="bm-modal-title">Generate Receipt</h2>
             <div className="bm-modal-body">
-              {/* Invoice info block */}
-              <div style={{ padding: "0.75rem 1rem", background: "var(--accent-bg)", border: "1px solid rgba(201,168,76,0.25)", borderRadius: "var(--radius-sm)", marginBottom: 16 }}>
-                <div style={{ fontWeight: 700 }}>{panelInvoice.customer.firstName} {panelInvoice.customer.lastName}</div>
-                <div className="td-muted" style={{ fontSize: "0.8rem" }}>{panelInvoice.invoiceRef} · {panelInvoice.itemLabel}</div>
-                <div style={{ marginTop: 6, fontSize: "0.85rem" }}>
-                  Outstanding: <strong style={{ color: "var(--warning)" }}>{formatRs(panelInvoice.outstanding)}</strong>
-                </div>
-              </div>
-
-              {formError && <div className="bm-alert bm-alert-error" style={{ marginBottom: 12 }}>{formError}</div>}
-
+              {genError && <div className="bm-alert bm-alert-error" style={{ marginBottom: 12 }}>{genError}</div>}
               <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
-                <div className="bm-field-group">
-                  <label className="users-label">Amount Received (Rs.) *</label>
-                  <input
-                    className="bm-input"
-                    type="number"
-                    min={0}
-                    value={form.amount}
-                    onChange={(e) => setForm({ ...form, amount: Number(e.target.value) })}
-                  />
+                <div style={{ padding: "0.75rem", background: "var(--bg-soft)", borderRadius: "var(--radius-sm)", fontSize: "0.85rem" }}>
+                  <div><strong>Invoice:</strong> {generatePayment.invoiceRef}</div>
+                  <div><strong>Customer:</strong> {generatePayment.purchase.customer.firstName} {generatePayment.purchase.customer.lastName}</div>
+                  <div><strong>Amount:</strong> <span style={{ color: "var(--success)", fontWeight: 700 }}>{formatRs(generatePayment.amount)}</span></div>
+                  <div><strong>Method:</strong> {generatePayment.paymentMethod}{generatePayment.chequeNo ? ` — Cheque #${generatePayment.chequeNo}` : ""}</div>
                 </div>
-
-                <div className="bm-field-group">
-                  <label className="users-label">Payment Method *</label>
-                  <div style={{ display: "flex", gap: 20 }}>
-                    {(["CASH", "CHEQUE"] as const).map((m) => (
-                      <label key={m} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "0.875rem", fontWeight: 500 }}>
-                        <input type="radio" checked={form.paymentMethod === m} onChange={() => setForm({ ...form, paymentMethod: m })} style={{ accentColor: "var(--accent)" }} />
-                        {m}
-                      </label>
-                    ))}
-                  </div>
-                </div>
-
-                {form.paymentMethod === "CHEQUE" && (
-                  <>
-                    <div className="bm-field-group">
-                      <label className="users-label">Cheque No *</label>
-                      <input className="bm-input" value={form.chequeNo} onChange={(e) => setForm({ ...form, chequeNo: e.target.value })} />
-                    </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
-                      <div className="bm-field-group">
-                        <label className="users-label">Bank</label>
-                        <input className="bm-input" value={form.chequeBank} onChange={(e) => setForm({ ...form, chequeBank: e.target.value })} placeholder="e.g. HNB" />
-                      </div>
-                      <div className="bm-field-group">
-                        <label className="users-label">Cheque Date</label>
-                        <input className="bm-input" type="date" value={form.chequeDate} onChange={(e) => setForm({ ...form, chequeDate: e.target.value })} />
-                      </div>
-                    </div>
-                  </>
-                )}
-
                 <div className="bm-field-group">
                   <label className="users-label">Deposit to Account *</label>
-                  <select
-                    className="bm-select"
-                    value={form.accountId}
-                    onChange={(e) => setForm({ ...form, accountId: Number(e.target.value) })}
-                  >
-                    <option value={0}>— Select account —</option>
-                    {accounts.map((a) => (
-                      <option key={a.id} value={a.id}>{a.name} ({a.code})</option>
-                    ))}
+                  <select className="bm-select" value={genAccountId} onChange={(e) => setGenAccountId(Number(e.target.value))}>
+                    <option value={0}>— Select Account —</option>
+                    {accounts.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
                   </select>
                 </div>
-
                 <div className="bm-field-group">
                   <label className="users-label">Description (optional)</label>
-                  <input className="bm-input" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} />
+                  <input className="bm-input" value={genDescription} onChange={(e) => setGenDescription(e.target.value)} placeholder="Add a note..." />
                 </div>
               </div>
             </div>
             <div className="bm-modal-actions">
-              <button className="btn-outline" onClick={() => setPanelInvoice(null)}>Cancel</button>
-              <button className="btn-accent" onClick={submitReceipt} disabled={saving}>
-                {saving ? "Saving..." : "Create Receipt"}
+              <button className="btn-outline" onClick={() => setGeneratePayment(null)}>Cancel</button>
+              <button className="btn-accent" onClick={submitGenerateReceipt} disabled={genSaving}>
+                {genSaving ? "Generating..." : "Generate Receipt"}
               </button>
             </div>
           </div>
@@ -631,10 +782,10 @@ export default function ReceiptsPage() {
       )}
 
       {/* Print receipt modal */}
-      {printData && printReceipt && (
-        <div className="bm-modal-backdrop print-hide" onClick={() => { setPrintData(null); setPrintReceipt(null); }}>
+      {printReceipt && (
+        <div className="bm-modal-backdrop print-hide" onClick={() => setPrintReceipt(null)}>
           <div className="bm-modal bm-modal-lg invoice-print-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="bm-modal-close print-hide" onClick={() => { setPrintData(null); setPrintReceipt(null); }}>✕</button>
+            <button className="bm-modal-close print-hide" onClick={() => setPrintReceipt(null)}>✕</button>
             <h2 className="bm-modal-title print-hide">Receipt — {printReceipt.receiptNo}</h2>
             <div className="bm-modal-body">
               <div style={{ padding: "1.25rem", border: "1px solid var(--panel-border)", borderRadius: "var(--radius-md)", background: "var(--bg)" }}>
@@ -681,7 +832,7 @@ export default function ReceiptsPage() {
               </div>
             </div>
             <div className="bm-modal-actions print-hide">
-              <button className="btn-outline print-hide" onClick={() => { setPrintData(null); setPrintReceipt(null); }}>Close</button>
+              <button className="btn-outline print-hide" onClick={() => setPrintReceipt(null)}>Close</button>
               <button className="btn-accent print-hide" onClick={() => window.print()}>🖨 Print Receipt</button>
             </div>
           </div>

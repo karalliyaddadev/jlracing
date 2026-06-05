@@ -712,6 +712,34 @@ export async function deletePosUser(id: number) {
   await prisma.posCustomer.delete({ where: { id } });
 }
 
+async function createInvoicePaymentRecord(
+  purchaseId: number,
+  dto: CreatePurchaseDto,
+  invoiceGroupCode: string | null | undefined,
+) {
+  let amount = 0;
+  if (dto.purchaseChannel === "LEASING") {
+    amount = dto.leasingDownPaymentAmount ?? 0;
+  } else if (dto.paymentType === "DOWNPAYMENT" || (dto.downPaymentAmount != null && dto.downPaymentAmount > 0 && dto.downPaymentAmount < dto.finalSellingPrice)) {
+    amount = dto.downPaymentAmount ?? 0;
+  } else {
+    amount = dto.finalSellingPrice + (dto.hasRegistrationFee ? (dto.registrationFeeAmount ?? 0) : 0);
+  }
+  if (amount <= 0) return;
+  const invoiceRef = invoiceGroupCode ?? `INV-${String(purchaseId).padStart(5, "0")}`;
+  await prisma.invoicePayment.create({
+    data: {
+      purchaseId,
+      amount,
+      paymentMethod: (dto.paymentMethod ?? "CASH") as any,
+      chequeNo: dto.chequeNo,
+      chequeBank: dto.chequeBank,
+      chequeDate: dto.chequeDate ? new Date(dto.chequeDate) : undefined,
+      description: `Initial payment — ${invoiceRef}`,
+    },
+  });
+}
+
 export async function createPurchase(
   customerId: number,
   dto: CreatePurchaseDto,
@@ -1002,6 +1030,8 @@ export async function createPurchase(
       return purchase;
     });
 
+    await createInvoicePaymentRecord(result.id, dto, result.invoiceGroupCode);
+
     return {
       id: result.id,
       itemType: "BIKE",
@@ -1196,6 +1226,8 @@ export async function createPurchase(
 
     return purchase;
   });
+
+  await createInvoicePaymentRecord(result.id, dto, result.invoiceGroupCode);
 
   return {
     id: result.id,
@@ -1881,6 +1913,23 @@ export async function settlePurchase(
       }
     }
   });
+
+  if (settleAmount > 0) {
+    const invoiceRef = basePurchase.invoiceGroupCode
+      ? basePurchase.invoiceGroupCode
+      : `INV-${String(basePurchase.id).padStart(5, "0")}`;
+    await prisma.invoicePayment.create({
+      data: {
+        purchaseId: basePurchase.id,
+        amount: settleAmount,
+        paymentMethod: (dto.paymentMethod ?? "CASH") as any,
+        chequeNo: dto.chequeNo,
+        chequeBank: dto.chequeBank,
+        chequeDate: dto.chequeDate ? new Date(dto.chequeDate) : undefined,
+        description: `Installment payment — ${invoiceRef}`,
+      },
+    });
+  }
 
   const refreshed = await getPurchaseModelClient(prisma as any).findMany({
     where: {

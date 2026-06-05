@@ -15,6 +15,10 @@ import type {
   UpdateVoucherDto,
   ReceiptQueryDto,
   InvoiceQueueQueryDto,
+  InvoicePaymentQueryDto,
+  GenerateReceiptFromPaymentDto,
+  CreateDepositDto,
+  DepositQueryDto,
   VoucherQueryDto,
   LedgerQueryDto,
 } from "./dto/account.dto";
@@ -44,6 +48,7 @@ function voucherTypeLabel(type: string): string {
 
 function calculateTotalReceivable(p: {
   finalSellingPrice: number;
+  totalWithInterest: number | null;
   hasRegistrationFee: boolean;
   registrationFeeAmount: number;
   purchaseChannel: string;
@@ -53,7 +58,7 @@ function calculateTotalReceivable(p: {
   if (p.purchaseChannel === "LEASING") {
     return p.leasingDownPaymentAmount + regFee;
   }
-  return p.finalSellingPrice + regFee;
+  return (p.totalWithInterest ?? p.finalSellingPrice) + regFee;
 }
 
 // ─── Chart of Accounts ────────────────────────────────────────────────────────
@@ -197,8 +202,12 @@ export async function listPurchasesForReceipt(dto: InvoiceQueueQueryDto) {
 export async function listReceipts(dto: ReceiptQueryDto) {
   const skip = (dto.page - 1) * dto.limit;
 
+  const fromDate = dto.from ? new Date(`${dto.from}T00:00:00`) : undefined;
+  const toDate = dto.to ? new Date(`${dto.to}T23:59:59.999`) : undefined;
+
   const where = {
     ...(dto.accountId && { accountId: dto.accountId }),
+    ...(fromDate || toDate ? { createdAt: { ...(fromDate && { gte: fromDate }), ...(toDate && { lte: toDate }) } } : {}),
     ...(dto.search?.trim() && {
       OR: [
         { receiptNo: { contains: dto.search, mode: "insensitive" as const } },
@@ -636,6 +645,303 @@ export async function getVoucherById(id: number) {
   });
   if (!voucher) throw AppError.notFound("Voucher not found");
   return { ...voucher, typeLabel: voucherTypeLabel(voucher.type) };
+}
+
+// ─── Invoice Payment Queue ────────────────────────────────────────────────────
+
+export async function listInvoicePayments(dto: InvoicePaymentQueryDto) {
+  const skip = (dto.page - 1) * dto.limit;
+
+  const fromDate = dto.from ? new Date(`${dto.from}T00:00:00`) : undefined;
+  const toDate = dto.to ? new Date(`${dto.to}T23:59:59.999`) : undefined;
+
+  const searchClause = dto.search?.trim()
+    ? {
+        purchase: {
+          OR: [
+            { customer: { firstName: { contains: dto.search, mode: "insensitive" as const } } },
+            { customer: { lastName: { contains: dto.search, mode: "insensitive" as const } } },
+            { customer: { nic: { contains: dto.search, mode: "insensitive" as const } } },
+            { invoiceGroupCode: { contains: dto.search, mode: "insensitive" as const } },
+          ],
+        },
+      }
+    : {};
+
+  const where = {
+    receiptId: null,
+    ...searchClause,
+    ...(fromDate || toDate
+      ? { paidAt: { ...(fromDate && { gte: fromDate }), ...(toDate && { lte: toDate }) } }
+      : {}),
+  };
+
+  const [total, payments] = await Promise.all([
+    prisma.invoicePayment.count({ where }),
+    prisma.invoicePayment.findMany({
+      where,
+      include: {
+        purchase: {
+          select: {
+            id: true,
+            invoiceGroupCode: true,
+            customer: { select: { firstName: true, lastName: true, nic: true, mobileNumber: true } },
+            bikeVehicle: {
+              select: { displayId: true, brand: { select: { name: true } }, model: { select: { name: true } } },
+            },
+            inventoryProduct: { select: { displayId: true, name: true } },
+          },
+        },
+      },
+      orderBy: { paidAt: "desc" },
+      skip,
+      take: dto.limit,
+    }),
+  ]);
+
+  const data = payments.map((p) => ({
+    ...p,
+    invoiceRef: p.purchase.invoiceGroupCode ?? `INV-${String(p.purchaseId).padStart(5, "0")}`,
+    itemLabel: p.purchase.bikeVehicle
+      ? `${p.purchase.bikeVehicle.brand.name} ${p.purchase.bikeVehicle.model.name} (${p.purchase.bikeVehicle.displayId})`
+      : p.purchase.inventoryProduct
+      ? `${p.purchase.inventoryProduct.name} (${p.purchase.inventoryProduct.displayId})`
+      : "—",
+  }));
+
+  return {
+    data,
+    pagination: { total, page: dto.page, limit: dto.limit, pages: Math.ceil(total / dto.limit) },
+  };
+}
+
+export async function generateReceiptFromPayment(
+  paymentId: number,
+  dto: GenerateReceiptFromPaymentDto,
+  adminId: number,
+) {
+  const payment = await prisma.invoicePayment.findUnique({
+    where: { id: paymentId },
+    include: { purchase: true },
+  });
+  if (!payment) throw AppError.notFound("Invoice payment not found");
+  if (payment.receiptId !== null) throw new AppError("Receipt already generated for this payment", 400);
+
+  const account = await prisma.account.findUnique({ where: { id: dto.accountId } });
+  if (!account || !account.isActive) throw AppError.notFound("Account not found or inactive");
+
+  const isChecque = payment.paymentMethod === PaymentMethod.CHEQUE;
+
+  return prisma.$transaction(async (tx) => {
+    const created = await tx.accountReceipt.create({
+      data: {
+        receiptNo: "TEMP",
+        purchaseId: payment.purchaseId,
+        accountId: dto.accountId,
+        amount: payment.amount,
+        paymentMethod: payment.paymentMethod,
+        chequeNo: isChecque ? (payment.chequeNo ?? undefined) : undefined,
+        chequeBank: isChecque ? (payment.chequeBank ?? undefined) : undefined,
+        chequeDate: isChecque ? (payment.chequeDate ?? undefined) : undefined,
+        chequeStatus: isChecque ? ChequeStatus.PENDING : undefined,
+        description: dto.description ?? payment.description ?? undefined,
+        createdById: adminId,
+      },
+    });
+
+    const receiptNo = `REC-${String(created.id).padStart(5, "0")}`;
+
+    const [receipt] = await Promise.all([
+      tx.accountReceipt.update({
+        where: { id: created.id },
+        data: { receiptNo },
+        include: {
+          account: { select: { id: true, name: true, code: true } },
+          purchase: {
+            select: {
+              id: true,
+              invoiceGroupCode: true,
+              customer: { select: { firstName: true, lastName: true, nic: true, mobileNumber: true, address: true } },
+              bikeVehicle: {
+                select: { displayId: true, brand: { select: { name: true } }, model: { select: { name: true } } },
+              },
+              inventoryProduct: { select: { displayId: true, name: true } },
+            },
+          },
+        },
+      }),
+      tx.accountTransaction.create({
+        data: {
+          accountId: dto.accountId,
+          type: TransactionType.RECEIPT,
+          direction: TransactionDirection.DR,
+          amount: payment.amount,
+          receiptId: created.id,
+          refNo: receiptNo,
+          description: dto.description ?? payment.description ?? undefined,
+          chequeNo: isChecque ? (payment.chequeNo ?? undefined) : undefined,
+          createdById: adminId,
+        },
+      }),
+      tx.invoicePayment.update({
+        where: { id: paymentId },
+        data: { receiptId: created.id },
+      }),
+    ]);
+
+    return receipt;
+  });
+}
+
+// ─── Deposits ─────────────────────────────────────────────────────────────────
+
+export async function listDeposits(dto: DepositQueryDto) {
+  const skip = (dto.page - 1) * dto.limit;
+  const fromDate = dto.from ? new Date(`${dto.from}T00:00:00`) : undefined;
+  const toDate = dto.to ? new Date(`${dto.to}T23:59:59.999`) : undefined;
+
+  const where = {
+    ...(dto.accountId && { accountId: dto.accountId }),
+    ...(fromDate || toDate
+      ? { createdAt: { ...(fromDate && { gte: fromDate }), ...(toDate && { lte: toDate }) } }
+      : {}),
+  };
+
+  const [total, deposits] = await Promise.all([
+    prisma.accountDeposit.count({ where }),
+    prisma.accountDeposit.findMany({
+      where,
+      include: {
+        account: { select: { id: true, name: true, code: true } },
+        items: { select: { id: true, receiptId: true, amount: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: dto.limit,
+    }),
+  ]);
+
+  return {
+    data: deposits.map((d) => ({ ...d, receiptCount: d.items.length })),
+    pagination: { total, page: dto.page, limit: dto.limit, pages: Math.ceil(total / dto.limit) },
+  };
+}
+
+export async function getDeposit(id: number) {
+  const deposit = await prisma.accountDeposit.findUnique({
+    where: { id },
+    include: {
+      account: { select: { id: true, name: true, code: true } },
+      items: {
+        include: {
+          receipt: {
+            include: {
+              purchase: {
+                select: {
+                  id: true,
+                  invoiceGroupCode: true,
+                  customer: { select: { firstName: true, lastName: true, nic: true } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  });
+  if (!deposit) throw AppError.notFound("Deposit not found");
+  return deposit;
+}
+
+export async function createDeposit(dto: CreateDepositDto, adminId: number) {
+  const account = await prisma.account.findUnique({ where: { id: dto.accountId } });
+  if (!account || !account.isActive) throw AppError.notFound("Account not found or inactive");
+
+  const receipts = await prisma.accountReceipt.findMany({
+    where: { id: { in: dto.receiptIds }, isVoided: false, isDeposited: false },
+  });
+
+  if (receipts.length !== dto.receiptIds.length) {
+    throw new AppError("Some receipts are invalid, already deposited, or voided", 400);
+  }
+
+  const totalAmount = receipts.reduce((sum, r) => sum + r.amount, 0);
+
+  return prisma.$transaction(async (tx) => {
+    const deposit = await tx.accountDeposit.create({
+      data: {
+        depositNo: "TEMP",
+        accountId: dto.accountId,
+        totalAmount,
+        notes: dto.notes,
+        createdById: adminId,
+      },
+    });
+
+    const depositNo = `DEP-${String(deposit.id).padStart(5, "0")}`;
+
+    await Promise.all([
+      tx.accountDeposit.update({ where: { id: deposit.id }, data: { depositNo } }),
+      tx.accountDepositItem.createMany({
+        data: receipts.map((r) => ({ depositId: deposit.id, receiptId: r.id, amount: r.amount })),
+      }),
+      tx.accountReceipt.updateMany({
+        where: { id: { in: dto.receiptIds } },
+        data: { isDeposited: true },
+      }),
+      tx.accountTransaction.create({
+        data: {
+          accountId: dto.accountId,
+          type: TransactionType.DEPOSIT,
+          direction: TransactionDirection.DR,
+          amount: totalAmount,
+          depositId: deposit.id,
+          refNo: depositNo,
+          description: dto.notes ?? `Deposit batch ${depositNo}`,
+          createdById: adminId,
+        },
+      }),
+    ]);
+
+    return { ...deposit, depositNo, receiptCount: receipts.length };
+  });
+}
+
+export async function reverseDeposit(depositId: number, adminId: number) {
+  const deposit = await prisma.accountDeposit.findUnique({
+    where: { id: depositId },
+    include: { items: true },
+  });
+  if (!deposit) throw AppError.notFound("Deposit not found");
+  if (deposit.isReversed) throw new AppError("Deposit is already reversed", 400);
+
+  return prisma.$transaction(async (tx) => {
+    await tx.accountDeposit.update({
+      where: { id: depositId },
+      data: { isReversed: true, reversedAt: new Date() },
+    });
+
+    await tx.accountReceipt.updateMany({
+      where: { id: { in: deposit.items.map((i) => i.receiptId) } },
+      data: { isDeposited: false },
+    });
+
+    await tx.accountTransaction.create({
+      data: {
+        accountId: deposit.accountId,
+        type: TransactionType.REVERSAL,
+        direction: TransactionDirection.CR,
+        amount: deposit.totalAmount,
+        depositId,
+        refNo: deposit.depositNo,
+        description: `Reversal of deposit ${deposit.depositNo}`,
+        isReversal: true,
+        createdById: adminId,
+      },
+    });
+
+    return { message: "Deposit reversed successfully" };
+  });
 }
 
 // ─── General Ledger ───────────────────────────────────────────────────────────
