@@ -15,6 +15,9 @@ type VoucherRow = {
   typeLabel: string;
   amount: number;
   description?: string | null;
+  payee?: string | null;
+  paymentDate?: string | null;
+  referenceNo?: string | null;
   isVoided: boolean;
   account: { id: number; name: string; code: string };
 };
@@ -32,7 +35,15 @@ const VOUCHER_TYPES = [
   { value: "ADVANCE_REFUND", label: "Advance Invoice Refund" },
 ];
 
-const EMPTY_FORM = { accountId: 0, type: "", amount: 0, description: "" };
+const EMPTY_FORM = {
+  accountId: 0,
+  type: "",
+  amount: 0,
+  description: "",
+  payee: "",
+  paymentDate: new Date().toISOString().split("T")[0],
+  referenceNo: "",
+};
 
 function formatRs(v: number) {
   return `Rs. ${v.toLocaleString("en-LK", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -51,8 +62,18 @@ export default function VouchersPage() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
 
+  const [availableBalance, setAvailableBalance] = useState<number | null>(null);
+  const [balanceLoading, setBalanceLoading] = useState(false);
+
   const [editingVoucher, setEditingVoucher] = useState<VoucherRow | null>(null);
-  const [editForm, setEditForm] = useState({ type: "", amount: 0, description: "" });
+  const [editForm, setEditForm] = useState({
+    type: "",
+    amount: 0,
+    description: "",
+    payee: "",
+    paymentDate: "",
+    referenceNo: "",
+  });
   const [editError, setEditError] = useState("");
   const [editSaving, setEditSaving] = useState(false);
 
@@ -76,6 +97,22 @@ export default function VouchersPage() {
     setLoading(false);
   }
 
+  async function fetchBalance(accountId: number) {
+    if (!accountId) { setAvailableBalance(null); return; }
+    setBalanceLoading(true);
+    try {
+      const res = await fetch(`${API_URL}/api/pos/accounts/chart/${accountId}/balance`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const d = await res.json();
+      setAvailableBalance(d.data?.balance ?? null);
+    } catch {
+      setAvailableBalance(null);
+    } finally {
+      setBalanceLoading(false);
+    }
+  }
+
   useEffect(() => {
     if (token) {
       fetchAccounts();
@@ -93,11 +130,20 @@ export default function VouchersPage() {
       const res = await fetch(`${API_URL}/api/pos/accounts/vouchers`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ accountId: form.accountId, type: form.type, amount: form.amount, description: form.description || undefined }),
+        body: JSON.stringify({
+          accountId: form.accountId,
+          type: form.type,
+          amount: form.amount,
+          description: form.description || undefined,
+          payee: form.payee || undefined,
+          paymentDate: form.paymentDate || undefined,
+          referenceNo: form.referenceNo || undefined,
+        }),
       });
       const d = await res.json();
       if (!res.ok) { setFormError(d.message ?? "Failed to create"); return; }
       setForm(EMPTY_FORM);
+      setAvailableBalance(null);
       setPrintVoucher(d.data);
       fetchVouchers();
     } catch {
@@ -118,7 +164,14 @@ export default function VouchersPage() {
 
   function openEdit(v: VoucherRow) {
     setEditingVoucher(v);
-    setEditForm({ type: v.type, amount: v.amount, description: v.description ?? "" });
+    setEditForm({
+      type: v.type,
+      amount: v.amount,
+      description: v.description ?? "",
+      payee: v.payee ?? "",
+      paymentDate: v.paymentDate ? v.paymentDate.split("T")[0] : "",
+      referenceNo: v.referenceNo ?? "",
+    });
     setEditError("");
   }
 
@@ -130,7 +183,14 @@ export default function VouchersPage() {
       const res = await fetch(`${API_URL}/api/pos/accounts/vouchers/${editingVoucher.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ type: editForm.type || undefined, amount: editForm.amount, description: editForm.description || undefined }),
+        body: JSON.stringify({
+          type: editForm.type || undefined,
+          amount: editForm.amount,
+          description: editForm.description || undefined,
+          payee: editForm.payee || undefined,
+          paymentDate: editForm.paymentDate || undefined,
+          referenceNo: editForm.referenceNo || undefined,
+        }),
       });
       if (!res.ok) { const d = await res.json(); setEditError(d.message ?? "Failed"); return; }
       setEditingVoucher(null);
@@ -175,10 +235,56 @@ export default function VouchersPage() {
           </div>
           <div className="bm-field-group">
             <label className="users-label">From Account *</label>
-            <select className="bm-select" value={form.accountId} onChange={(e) => setForm({ ...form, accountId: Number(e.target.value) })}>
+            <select
+              className="bm-select"
+              value={form.accountId}
+              onChange={(e) => {
+                const id = Number(e.target.value);
+                setForm({ ...form, accountId: id });
+                fetchBalance(id);
+              }}
+            >
               <option value={0}>— Select account —</option>
               {accounts.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
             </select>
+            {form.accountId > 0 && (
+              <div style={{ marginTop: 4, fontSize: "0.78rem" }}>
+                {balanceLoading
+                  ? <span style={{ color: "var(--text-soft)" }}>Loading balance...</span>
+                  : availableBalance !== null
+                    ? <span style={{ color: availableBalance >= 0 ? "var(--success, #16a34a)" : "var(--danger, #dc2626)", fontWeight: 600 }}>
+                        Available: {formatRs(availableBalance)}
+                      </span>
+                    : null}
+              </div>
+            )}
+          </div>
+          <div className="bm-field-group">
+            <label className="users-label">Payee / Recipient</label>
+            <input
+              className="bm-input"
+              value={form.payee}
+              onChange={(e) => setForm({ ...form, payee: e.target.value })}
+              placeholder="e.g. employee name, supplier..."
+            />
+          </div>
+          <div className="bm-field-group">
+            <label className="users-label">Payment Date</label>
+            <input
+              className="bm-input"
+              type="date"
+              value={form.paymentDate}
+              onChange={(e) => setForm({ ...form, paymentDate: e.target.value })}
+            />
+          </div>
+          <div className="bm-field-group">
+            <label className="users-label">Reference No.</label>
+            <input
+              className="bm-input"
+              value={form.referenceNo}
+              onChange={(e) => setForm({ ...form, referenceNo: e.target.value })}
+              placeholder="Cheque no., bill ref..."
+            />
           </div>
           <div className="bm-field-group">
             <label className="users-label">Description (optional)</label>
@@ -210,8 +316,11 @@ export default function VouchersPage() {
                   <th>Voucher No</th>
                   <th>Date</th>
                   <th>Type</th>
+                  <th>Payee</th>
+                  <th>Payment Date</th>
                   <th style={{ textAlign: "right" }}>Amount</th>
                   <th>Account</th>
+                  <th>Ref No.</th>
                   <th>Description</th>
                   <th>Status</th>
                   <th>Actions</th>
@@ -219,7 +328,7 @@ export default function VouchersPage() {
               </thead>
               <tbody>
                 {vouchers.length === 0 ? (
-                  <tr><td colSpan={8} className="bm-table-empty">No vouchers yet</td></tr>
+                  <tr><td colSpan={11} className="bm-table-empty">No vouchers yet</td></tr>
                 ) : vouchers.map((v) => (
                   <tr key={v.id} style={{ opacity: v.isVoided ? 0.5 : 1 }}>
                     <td>
@@ -229,8 +338,13 @@ export default function VouchersPage() {
                     </td>
                     <td className="td-muted">{formatDate(v.createdAt)}</td>
                     <td>{v.typeLabel}</td>
+                    <td className="td-muted">{v.payee ?? "—"}</td>
+                    <td className="td-muted">
+                      {v.paymentDate ? formatDate(v.paymentDate) : formatDate(v.createdAt)}
+                    </td>
                     <td style={{ textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{formatRs(v.amount)}</td>
                     <td className="td-muted">{v.account.name}</td>
+                    <td className="td-muted" style={{ fontFamily: "monospace", fontSize: "0.8rem" }}>{v.referenceNo ?? "—"}</td>
                     <td className="td-muted">{v.description ?? "—"}</td>
                     <td>
                       {v.isVoided
@@ -277,6 +391,18 @@ export default function VouchersPage() {
                   <input className="bm-input" type="number" min={0} value={editForm.amount} onChange={(e) => setEditForm({ ...editForm, amount: Number(e.target.value) })} />
                 </div>
                 <div className="bm-field-group">
+                  <label className="users-label">Payee / Recipient</label>
+                  <input className="bm-input" value={editForm.payee} onChange={(e) => setEditForm({ ...editForm, payee: e.target.value })} />
+                </div>
+                <div className="bm-field-group">
+                  <label className="users-label">Payment Date</label>
+                  <input className="bm-input" type="date" value={editForm.paymentDate} onChange={(e) => setEditForm({ ...editForm, paymentDate: e.target.value })} />
+                </div>
+                <div className="bm-field-group">
+                  <label className="users-label">Reference No.</label>
+                  <input className="bm-input" value={editForm.referenceNo} onChange={(e) => setEditForm({ ...editForm, referenceNo: e.target.value })} />
+                </div>
+                <div className="bm-field-group">
                   <label className="users-label">Description</label>
                   <input className="bm-input" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
                 </div>
@@ -307,7 +433,9 @@ export default function VouchersPage() {
                   <div style={{ textAlign: "right" }}>
                     <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--accent)" }}>PAYMENT VOUCHER</div>
                     <div style={{ fontSize: "0.82rem", color: "var(--text-soft)" }}>Voucher No: <strong style={{ color: "var(--text)" }}>{printVoucher.voucherNo}</strong></div>
-                    <div style={{ fontSize: "0.82rem", color: "var(--text-soft)" }}>Date: {formatDate(printVoucher.createdAt)}</div>
+                    <div style={{ fontSize: "0.82rem", color: "var(--text-soft)" }}>
+                      Date: {printVoucher.paymentDate ? formatDate(printVoucher.paymentDate) : formatDate(printVoucher.createdAt)}
+                    </div>
                   </div>
                 </div>
                 <hr style={{ margin: "12px 0", borderColor: "var(--panel-border)" }} />
@@ -316,7 +444,15 @@ export default function VouchersPage() {
                     <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Payment Type</td><td style={{ textAlign: "right", fontWeight: 600 }}>{printVoucher.typeLabel}</td></tr>
                     <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Amount</td><td style={{ textAlign: "right", fontWeight: 700, color: "var(--accent)" }}>{formatRs(printVoucher.amount)}</td></tr>
                     <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>From Account</td><td style={{ textAlign: "right" }}>{printVoucher.account.name} ({printVoucher.account.code})</td></tr>
-                    {printVoucher.description && <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Description</td><td style={{ textAlign: "right" }}>{printVoucher.description}</td></tr>}
+                    {printVoucher.payee && (
+                      <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Payee / Recipient</td><td style={{ textAlign: "right", fontWeight: 600 }}>{printVoucher.payee}</td></tr>
+                    )}
+                    {printVoucher.referenceNo && (
+                      <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Reference No.</td><td style={{ textAlign: "right" }}>{printVoucher.referenceNo}</td></tr>
+                    )}
+                    {printVoucher.description && (
+                      <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Description</td><td style={{ textAlign: "right" }}>{printVoucher.description}</td></tr>
+                    )}
                   </tbody>
                 </table>
                 <hr style={{ margin: "16px 0", borderColor: "var(--panel-border)" }} />

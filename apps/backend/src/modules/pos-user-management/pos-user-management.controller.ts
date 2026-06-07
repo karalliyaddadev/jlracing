@@ -14,6 +14,7 @@ import {
   updateLeasingCompanySchema,
   updateInvoiceTermSchema,
   updatePosUserSchema,
+  updatePurchaseSchema,
 } from "./dto/pos-user.dto";
 import * as service from "./pos-user-management.service";
 
@@ -193,6 +194,20 @@ export async function getPurchaseInstallments(
       req.params.purchaseId,
     );
     return sendSuccess(res, await service.getPurchaseInstallments(purchaseId));
+  } catch (error) {
+    return next(error);
+  }
+}
+
+export async function updatePurchase(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  try {
+    const purchaseId = parsePositiveIntParam("purchaseId", req.params.purchaseId);
+    const dto = validate(updatePurchaseSchema, req.body);
+    return sendSuccess(res, await service.updatePurchase(purchaseId, dto));
   } catch (error) {
     return next(error);
   }

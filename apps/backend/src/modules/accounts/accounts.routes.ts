@@ -10,6 +10,7 @@ router.get("/chart", controller.getAccounts);
 router.post("/chart", controller.createAccount);
 router.patch("/chart/:id", controller.updateAccount);
 router.post("/chart/:id/toggle", controller.toggleAccount);
+router.get("/chart/:id/balance", controller.getAccountBalance);
 
 // Receipts — invoice queue must come before /:id to avoid route conflict
 router.get("/receipts/invoices", controller.getPurchasesForReceipt);

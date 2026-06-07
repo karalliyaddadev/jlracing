@@ -386,7 +386,7 @@ export async function voidReceipt(id: number, adminId: number) {
   return prisma.$transaction(async (tx) => {
     await tx.accountReceipt.update({ where: { id }, data: { isVoided: true } });
 
-    if (originalTx) {
+    if (originalTx && receipt.accountId) {
       await tx.accountTransaction.create({
         data: {
           accountId: receipt.accountId,
@@ -420,7 +420,9 @@ export async function bounceReceipt(id: number, adminId: number) {
   }
 
   const originalTx = receipt.transactions.find(
-    (t) => t.type === TransactionType.RECEIPT && !t.isReversal
+    (t) =>
+      (t.type === TransactionType.RECEIPT || t.type === TransactionType.DEPOSIT) &&
+      !t.isReversal
   );
 
   return prisma.$transaction(async (tx) => {
@@ -429,7 +431,7 @@ export async function bounceReceipt(id: number, adminId: number) {
       data: { chequeStatus: ChequeStatus.BOUNCED },
     });
 
-    if (originalTx) {
+    if (originalTx && receipt.accountId) {
       await tx.accountTransaction.create({
         data: {
           accountId: receipt.accountId,
@@ -530,6 +532,23 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
   const account = await prisma.account.findUnique({ where: { id: dto.accountId } });
   if (!account || !account.isActive) throw AppError.notFound("Account not found or inactive");
 
+  const allTx = await prisma.accountTransaction.findMany({
+    where: { accountId: dto.accountId },
+    select: { direction: true, amount: true },
+  });
+  const currentBalance =
+    account.openingBalance +
+    allTx.reduce(
+      (sum, t) => sum + (t.direction === TransactionDirection.DR ? t.amount : -t.amount),
+      0
+    );
+  if (currentBalance < dto.amount) {
+    throw new AppError(
+      `Insufficient funds. Available balance: Rs. ${currentBalance.toLocaleString("en-LK", { minimumFractionDigits: 2 })}`,
+      400
+    );
+  }
+
   return prisma.$transaction(async (tx) => {
     const created = await tx.accountVoucher.create({
       data: {
@@ -538,6 +557,9 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
         type: dto.type,
         amount: dto.amount,
         description: dto.description,
+        payee: dto.payee,
+        paymentDate: dto.paymentDate,
+        referenceNo: dto.referenceNo,
         createdById: adminId,
       },
     });
@@ -595,6 +617,9 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
         ...(dto.type !== undefined && { type: dto.type }),
         ...(dto.amount !== undefined && { amount: dto.amount }),
         ...(dto.description !== undefined && { description: dto.description }),
+        ...(dto.payee !== undefined && { payee: dto.payee }),
+        ...(dto.paymentDate !== undefined && { paymentDate: dto.paymentDate }),
+        ...(dto.referenceNo !== undefined && { referenceNo: dto.referenceNo }),
       },
       include: { account: { select: { id: true, name: true, code: true } } },
     });
@@ -727,9 +752,6 @@ export async function generateReceiptFromPayment(
   if (!payment) throw AppError.notFound("Invoice payment not found");
   if (payment.receiptId !== null) throw new AppError("Receipt already generated for this payment", 400);
 
-  const account = await prisma.account.findUnique({ where: { id: dto.accountId } });
-  if (!account || !account.isActive) throw AppError.notFound("Account not found or inactive");
-
   const isChecque = payment.paymentMethod === PaymentMethod.CHEQUE;
 
   return prisma.$transaction(async (tx) => {
@@ -737,7 +759,6 @@ export async function generateReceiptFromPayment(
       data: {
         receiptNo: "TEMP",
         purchaseId: payment.purchaseId,
-        accountId: dto.accountId,
         amount: payment.amount,
         paymentMethod: payment.paymentMethod,
         chequeNo: isChecque ? (payment.chequeNo ?? undefined) : undefined,
@@ -768,19 +789,6 @@ export async function generateReceiptFromPayment(
               inventoryProduct: { select: { displayId: true, name: true } },
             },
           },
-        },
-      }),
-      tx.accountTransaction.create({
-        data: {
-          accountId: dto.accountId,
-          type: TransactionType.RECEIPT,
-          direction: TransactionDirection.DR,
-          amount: payment.amount,
-          receiptId: created.id,
-          refNo: receiptNo,
-          description: dto.description ?? payment.description ?? undefined,
-          chequeNo: isChecque ? (payment.chequeNo ?? undefined) : undefined,
-          createdById: adminId,
         },
       }),
       tx.invoicePayment.update({
@@ -868,6 +876,12 @@ export async function createDeposit(dto: CreateDepositDto, adminId: number) {
   const totalAmount = receipts.reduce((sum, r) => sum + r.amount, 0);
 
   return prisma.$transaction(async (tx) => {
+    // Receipts are confirmed isDeposited=false above, so any existing deposit items
+    // for them must belong to previously reversed deposits. Remove them so re-deposit works.
+    await tx.accountDepositItem.deleteMany({
+      where: { receiptId: { in: receipts.map((r) => r.id) } },
+    });
+
     const deposit = await tx.accountDeposit.create({
       data: {
         depositNo: "TEMP",
@@ -887,7 +901,7 @@ export async function createDeposit(dto: CreateDepositDto, adminId: number) {
       }),
       tx.accountReceipt.updateMany({
         where: { id: { in: dto.receiptIds } },
-        data: { isDeposited: true },
+        data: { isDeposited: true, accountId: dto.accountId },
       }),
       tx.accountTransaction.create({
         data: {
@@ -920,6 +934,10 @@ export async function reverseDeposit(depositId: number, adminId: number) {
       where: { id: depositId },
       data: { isReversed: true, reversedAt: new Date() },
     });
+
+    // Remove deposit items so the same receipts can be re-deposited after reversal.
+    // The AccountDeposit record + AccountTransaction provide the full audit trail.
+    await tx.accountDepositItem.deleteMany({ where: { depositId } });
 
     await tx.accountReceipt.updateMany({
       where: { id: { in: deposit.items.map((i) => i.receiptId) } },
@@ -986,7 +1004,13 @@ export async function getLedger(dto: LedgerQueryDto) {
     return {
       id: t.id,
       type: t.type,
-      typeLabel: t.isReversal ? "Reversal" : t.type === TransactionType.RECEIPT ? "Receipt" : "Voucher",
+      typeLabel: t.isReversal
+        ? "Reversal"
+        : t.type === TransactionType.RECEIPT
+        ? "Receipt"
+        : t.type === TransactionType.DEPOSIT
+        ? "Deposit"
+        : "Voucher",
       refNo: t.refNo,
       createdById: t.createdById,
       date: t.createdAt,
@@ -1009,4 +1033,25 @@ export async function getLedger(dto: LedgerQueryDto) {
     totalCr,
     closingBalance: openingBalance + totalDr - totalCr,
   };
+}
+
+// ─── Account Balance ──────────────────────────────────────────────────────────
+
+export async function getAccountBalance(accountId: number) {
+  const account = await prisma.account.findUnique({ where: { id: accountId } });
+  if (!account) throw AppError.notFound("Account not found");
+
+  const transactions = await prisma.accountTransaction.findMany({
+    where: { accountId },
+    select: { direction: true, amount: true },
+  });
+
+  const balance =
+    account.openingBalance +
+    transactions.reduce(
+      (sum, t) => sum + (t.direction === TransactionDirection.DR ? t.amount : -t.amount),
+      0
+    );
+
+  return { accountId, balance };
 }

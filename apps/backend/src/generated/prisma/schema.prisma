@@ -607,6 +607,9 @@ model AccountVoucher {
   type         VoucherType
   amount       Float
   description  String?
+  payee        String?
+  paymentDate  DateTime?
+  referenceNo  String?
   isVoided     Boolean              @default(false)
   createdById  Int
   createdAt    DateTime             @default(now())
