@@ -618,7 +618,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "D:\\Files\\KaraliyaddaOne\\jlracing\\apps\\backend\\src\\generated\\prisma",
+      "value": "/root/projects/jlracing/jlracing/apps/backend/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -627,12 +627,12 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "windows",
+        "value": "debian-openssl-3.0.x",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "D:\\Files\\KaraliyaddaOne\\jlracing\\apps\\backend\\prisma\\schema.prisma",
+    "sourceFilePath": "/root/projects/jlracing/jlracing/apps/backend/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
