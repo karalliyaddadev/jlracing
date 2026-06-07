@@ -576,7 +576,7 @@ model AccountReceipt {
   id               Int                  @id @default(autoincrement())
   receiptNo        String               @unique
   purchaseId       Int
-  accountId        Int
+  accountId        Int?
   amount           Float
   paymentMethod    PaymentMethod        @default(CASH)
   chequeNo         String?
@@ -589,7 +589,7 @@ model AccountReceipt {
   createdById      Int
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
-  account          Account              @relation(fields: [accountId], references: [id])
+  account          Account?             @relation(fields: [accountId], references: [id])
   purchase         PosCustomerPurchase  @relation(fields: [purchaseId], references: [id])
   transactions     AccountTransaction[]
   depositItem      AccountDepositItem?
@@ -607,6 +607,9 @@ model AccountVoucher {
   type         VoucherType
   amount       Float
   description  String?
+  payee        String?
+  paymentDate  DateTime?
+  referenceNo  String?
   isVoided     Boolean              @default(false)
   createdById  Int
   createdAt    DateTime             @default(now())

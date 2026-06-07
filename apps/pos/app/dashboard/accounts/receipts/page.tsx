@@ -38,7 +38,7 @@ type ReceiptRow = {
   isVoided: boolean;
   isDeposited: boolean;
   description?: string | null;
-  account: { id: number; name: string; code: string };
+  account: { id: number; name: string; code: string } | null;
   purchase: { id: number; invoiceGroupCode?: string | null; customer: { firstName: string; lastName: string; nic: string } };
 };
 
@@ -55,7 +55,6 @@ type DepositRow = {
 
 const EMPTY_EDIT_FORM = {
   purchaseId: 0,
-  accountId: 0,
   amount: 0,
   paymentMethod: "CASH" as "CASH" | "CHEQUE",
   chequeNo: "",
@@ -81,7 +80,6 @@ export default function ReceiptsPage() {
   const [loadingPayments, setLoadingPayments] = useState(true);
   const [paymentSearch, setPaymentSearch] = useState("");
   const [generatePayment, setGeneratePayment] = useState<InvoicePaymentRow | null>(null);
-  const [genAccountId, setGenAccountId] = useState(0);
   const [genDescription, setGenDescription] = useState("");
   const [genError, setGenError] = useState("");
   const [genSaving, setGenSaving] = useState(false);
@@ -183,21 +181,19 @@ export default function ReceiptsPage() {
   // Generate receipt from payment
   function openGenerateModal(p: InvoicePaymentRow) {
     setGeneratePayment(p);
-    setGenAccountId(0);
     setGenDescription("");
     setGenError("");
   }
 
   async function submitGenerateReceipt() {
     if (!generatePayment) return;
-    if (!genAccountId) { setGenError("Please select an account"); return; }
     setGenSaving(true);
     setGenError("");
     try {
       const res = await fetch(`${API_URL}/api/pos/accounts/payments/${generatePayment.id}/generate-receipt`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ accountId: genAccountId, description: genDescription || undefined }),
+        body: JSON.stringify({ description: genDescription || undefined }),
       });
       const d = await res.json();
       if (!res.ok) { setGenError(d.message ?? "Failed to generate receipt"); setGenSaving(false); return; }
@@ -213,7 +209,7 @@ export default function ReceiptsPage() {
 
   // Receipts actions
   async function handleVoid(id: number) {
-    if (!confirm("Void this receipt? This will reverse the ledger entry.")) return;
+    if (!confirm("Void this receipt? This cannot be undone.")) return;
     await fetch(`${API_URL}/api/pos/accounts/receipts/${id}/void`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
@@ -221,9 +217,12 @@ export default function ReceiptsPage() {
     fetchReceipts();
   }
 
-  async function handleBounce(id: number) {
-    if (!confirm("Mark this cheque as bounced? The ledger entry will be reversed.")) return;
-    await fetch(`${API_URL}/api/pos/accounts/receipts/${id}/bounce`, {
+  async function handleBounce(r: ReceiptRow) {
+    const msg = r.isDeposited
+      ? "Mark this cheque as bounced? A reversal entry will be created in the ledger."
+      : "Mark this cheque as bounced? This receipt is not yet deposited, so no ledger entry will be changed.";
+    if (!confirm(msg)) return;
+    await fetch(`${API_URL}/api/pos/accounts/receipts/${r.id}/bounce`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -242,7 +241,6 @@ export default function ReceiptsPage() {
     setEditingReceipt(r);
     setEditForm({
       purchaseId: r.purchase.id,
-      accountId: r.account.id,
       amount: r.amount,
       paymentMethod: (r.paymentMethod === "BANK_TRANSFER" ? "CASH" : r.paymentMethod) as "CASH" | "CHEQUE",
       chequeNo: r.chequeNo ?? "",
@@ -259,7 +257,6 @@ export default function ReceiptsPage() {
     setEditError("");
     try {
       const body: Record<string, unknown> = {
-        accountId: editForm.accountId,
         amount: editForm.amount,
         paymentMethod: editForm.paymentMethod,
         description: editForm.description || undefined,
@@ -341,7 +338,9 @@ export default function ReceiptsPage() {
 
   const activeReceipts = receipts.filter((r) => !r.isVoided);
   const totalReceiptsAmount = activeReceipts.reduce((s, r) => s + r.amount, 0);
-  const depositableReceipts = receipts.filter((r) => !r.isVoided && !r.isDeposited);
+  const depositableReceipts = receipts.filter(
+    (r) => !r.isVoided && !r.isDeposited && r.chequeStatus !== "BOUNCED"
+  );
 
   return (
     <div className="bm-page">
@@ -527,7 +526,7 @@ export default function ReceiptsPage() {
                 {receipts.length === 0 ? (
                   <tr><td colSpan={10} className="bm-table-empty">No receipts found</td></tr>
                 ) : receipts.map((r) => {
-                  const canSelect = !r.isVoided && !r.isDeposited;
+                  const canSelect = !r.isVoided && !r.isDeposited && r.chequeStatus !== "BOUNCED";
                   return (
                     <tr key={r.id} style={{ opacity: r.isVoided ? 0.5 : 1, background: selectedReceiptIds.has(r.id) ? "var(--accent-bg, #f0f7ff)" : undefined }}>
                       <td>
@@ -556,7 +555,7 @@ export default function ReceiptsPage() {
                           {r.paymentMethod}
                         </span>
                       </td>
-                      <td className="td-muted">{r.account.name}</td>
+                      <td className="td-muted">{r.account?.name ?? "—"}</td>
                       <td>
                         {r.isVoided
                           ? <span className="badge" style={{ background: "var(--danger-bg)", color: "var(--danger)" }}>Voided</span>
@@ -574,7 +573,7 @@ export default function ReceiptsPage() {
                           {!r.isVoided && r.paymentMethod === "CHEQUE" && r.chequeStatus === "PENDING" && (
                             <>
                               <button className="bm-action-btn" style={{ borderColor: "var(--success)", color: "var(--success)" }} onClick={() => handleClearCheque(r.id)}>Cleared</button>
-                              <button className="bm-action-btn" style={{ borderColor: "var(--danger)", color: "var(--danger)" }} onClick={() => handleBounce(r.id)}>Bounced</button>
+                              <button className="bm-action-btn" style={{ borderColor: "var(--danger)", color: "var(--danger)" }} onClick={() => handleBounce(r)}>Bounced</button>
                             </>
                           )}
                           {!r.isVoided && !r.isDeposited && (
@@ -706,13 +705,6 @@ export default function ReceiptsPage() {
                   <div><strong>Method:</strong> {generatePayment.paymentMethod}{generatePayment.chequeNo ? ` — Cheque #${generatePayment.chequeNo}` : ""}</div>
                 </div>
                 <div className="bm-field-group">
-                  <label className="users-label">Deposit to Account *</label>
-                  <select className="bm-select" value={genAccountId} onChange={(e) => setGenAccountId(Number(e.target.value))}>
-                    <option value={0}>— Select Account —</option>
-                    {accounts.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
-                  </select>
-                </div>
-                <div className="bm-field-group">
                   <label className="users-label">Description (optional)</label>
                   <input className="bm-input" value={genDescription} onChange={(e) => setGenDescription(e.target.value)} placeholder="Add a note..." />
                 </div>
@@ -758,13 +750,6 @@ export default function ReceiptsPage() {
                     <input className="bm-input" value={editForm.chequeNo} onChange={(e) => setEditForm({ ...editForm, chequeNo: e.target.value })} />
                   </div>
                 )}
-                <div className="bm-field-group">
-                  <label className="users-label">Account</label>
-                  <select className="bm-select" value={editForm.accountId} onChange={(e) => setEditForm({ ...editForm, accountId: Number(e.target.value) })}>
-                    <option value={0}>— Select —</option>
-                    {accounts.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
-                  </select>
-                </div>
                 <div className="bm-field-group">
                   <label className="users-label">Description</label>
                   <input className="bm-input" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
@@ -820,7 +805,7 @@ export default function ReceiptsPage() {
                         {printReceipt.chequeBank && <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Cheque Bank</td><td style={{ textAlign: "right" }}>{printReceipt.chequeBank}</td></tr>}
                       </>
                     )}
-                    <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Deposited to Account</td><td style={{ textAlign: "right" }}>{printReceipt.account?.name}</td></tr>
+                    {printReceipt.account && <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Deposited to Account</td><td style={{ textAlign: "right" }}>{printReceipt.account.name}</td></tr>}
                     {printReceipt.description && <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Notes</td><td style={{ textAlign: "right" }}>{printReceipt.description}</td></tr>}
                   </tbody>
                 </table>

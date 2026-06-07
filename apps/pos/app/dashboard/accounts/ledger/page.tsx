@@ -236,8 +236,21 @@ export default function LedgerPage() {
                 ) : result.rows.map((row) => (
                   <tr key={row.id} style={{ background: row.typeLabel === "Reversal" ? "rgba(220,38,38,0.04)" : undefined }}>
                     <td>
-                      <span className={`badge ${row.typeLabel === "Receipt" ? "badge-active" : row.typeLabel === "Voucher" ? "badge-review" : "badge-pending"}`}
-                        style={row.typeLabel === "Reversal" ? { background: "var(--danger-bg)", color: "var(--danger)" } : {}}>
+                      <span
+                        className={`badge ${
+                          row.typeLabel === "Receipt" ? "badge-active"
+                          : row.typeLabel === "Deposit" ? "badge-active"
+                          : row.typeLabel === "Voucher" ? "badge-review"
+                          : "badge-pending"
+                        }`}
+                        style={
+                          row.typeLabel === "Reversal"
+                            ? { background: "var(--danger-bg)", color: "var(--danger)" }
+                            : row.typeLabel === "Deposit"
+                            ? { background: "var(--info-bg, #dbeafe)", color: "var(--info, #2563eb)" }
+                            : {}
+                        }
+                      >
                         {row.typeLabel}
                       </span>
                     </td>

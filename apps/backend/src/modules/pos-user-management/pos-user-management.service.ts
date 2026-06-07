@@ -14,6 +14,7 @@ import type {
   UpdateLeasingCompanyDto,
   UpdateInvoiceTermDto,
   UpdatePosUserDto,
+  UpdatePurchaseDto,
 } from "./dto/pos-user.dto";
 
 const PROVINCE_DISTRICT_MAP = {
@@ -1964,6 +1965,227 @@ export async function settlePurchase(
     settlementStatus: totalRemainingAfter > 0 ? "TO_SETTLE" : "SETTLED",
     updatedEntries: refreshed,
   };
+}
+
+export async function updatePurchase(
+  purchaseId: number,
+  dto: UpdatePurchaseDto,
+) {
+  const purchase = await getPurchaseModelClient(prisma as any).findUnique({
+    where: { id: purchaseId },
+    include: {
+      invoicePayments: {
+        select: { id: true, amount: true, receiptId: true },
+        orderBy: { id: "asc" },
+      },
+      installments: {
+        select: {
+          id: true,
+          installmentNo: true,
+          dueDate: true,
+          dueAmount: true,
+          paidAmount: true,
+          status: true,
+        },
+      },
+    },
+  });
+  if (!purchase) throw AppError.notFound("Purchase not found");
+
+  if ((purchase as any).purchaseChannel === "LEASING") {
+    throw new AppError("Leasing purchases cannot be edited via this endpoint", 400);
+  }
+  if ((purchase as any).purchaseMode === "BULK") {
+    throw new AppError("Bulk purchases cannot be edited via this endpoint", 400);
+  }
+
+  if (
+    dto.downPaymentAmount !== undefined &&
+    (purchase as any).paymentType !== "DOWNPAYMENT"
+  ) {
+    throw AppError.validation({
+      downPaymentAmount: ["Only applicable to DOWNPAYMENT purchases"],
+    });
+  }
+  if (
+    dto.registrationFeeAmount !== undefined &&
+    !(purchase as any).hasRegistrationFee
+  ) {
+    throw AppError.validation({
+      registrationFeeAmount: ["This purchase has no registration fee"],
+    });
+  }
+
+  const oldFSP: number = (purchase as any).finalSellingPrice;
+  const newFSP = roundCurrency(dto.finalSellingPrice ?? oldFSP);
+
+  const oldDown: number = (purchase as any).downPaymentAmount ?? 0;
+  const newDown =
+    (purchase as any).paymentType === "DIRECT"
+      ? newFSP
+      : roundCurrency(dto.downPaymentAmount ?? oldDown);
+
+  const newRegFee = (purchase as any).hasRegistrationFee
+    ? roundCurrency(
+        dto.registrationFeeAmount ?? (purchase as any).registrationFeeAmount ?? 0,
+      )
+    : ((purchase as any).registrationFeeAmount ?? 0);
+
+  const newRemaining =
+    (purchase as any).paymentType === "DIRECT"
+      ? 0
+      : roundCurrency(
+          ((purchase as any).remainingAmount ?? 0) + (newFSP - oldFSP),
+        );
+
+  if (newRemaining < 0) {
+    const minFSP = roundCurrency(oldFSP - ((purchase as any).remainingAmount ?? 0));
+    throw new AppError(
+      `This edit would create a negative balance. Minimum finalSellingPrice: Rs. ${minFSP.toLocaleString("en-LK")}`,
+      400,
+    );
+  }
+  if (
+    (purchase as any).paymentType === "DOWNPAYMENT" &&
+    newDown > newFSP
+  ) {
+    throw AppError.validation({
+      downPaymentAmount: ["Cannot exceed final selling price"],
+    });
+  }
+
+  const newStatus = newRemaining <= 0 ? "SETTLED" : "TO_SETTLE";
+
+  const hasInstallmentPlan =
+    ((purchase as any).installmentMonths ?? 0) > 0 &&
+    (purchase as any).interestRate != null;
+
+  let newTotalWithInterest: number | null = (purchase as any).totalWithInterest ?? null;
+  let newMonthly: number | null = (purchase as any).monthlyInstallmentAmount ?? null;
+
+  if (hasInstallmentPlan && dto.finalSellingPrice !== undefined) {
+    newTotalWithInterest = roundCurrency(
+      newFSP * (1 + ((purchase as any).interestRate as number) / 100),
+    );
+    newMonthly = roundCurrency(
+      newTotalWithInterest / ((purchase as any).installmentMonths as number),
+    );
+  }
+
+  const installments: Array<{
+    id: number;
+    installmentNo: number;
+    dueDate: Date;
+    dueAmount: number;
+    paidAmount: number;
+    status: string;
+  }> = (purchase as any).installments ?? [];
+
+  const allInstallmentsPending =
+    installments.length > 0 &&
+    installments.every((i) => i.status === "PENDING" && i.paidAmount === 0);
+
+  const invoicePayments: Array<{ id: number; amount: number; receiptId: number | null }> =
+    (purchase as any).invoicePayments ?? [];
+  const initialPayment = invoicePayments[0] ?? null;
+
+  const newPaymentAmount =
+    (purchase as any).paymentType === "DIRECT"
+      ? roundCurrency(
+          newFSP + ((purchase as any).hasRegistrationFee ? newRegFee : 0),
+        )
+      : newDown;
+
+  await prisma.$transaction(async (tx) => {
+    await getPurchaseModelClient(tx as any).update({
+      where: { id: purchaseId },
+      data: {
+        finalSellingPrice: newFSP,
+        downPaymentAmount: newDown,
+        remainingAmount: newRemaining,
+        settlementStatus: newStatus as any,
+        registrationFeeAmount: newRegFee,
+        ...(newTotalWithInterest != null
+          ? { totalWithInterest: newTotalWithInterest }
+          : {}),
+        ...(newMonthly != null ? { monthlyInstallmentAmount: newMonthly } : {}),
+      },
+    });
+
+    if (initialPayment && initialPayment.receiptId === null) {
+      await tx.invoicePayment.update({
+        where: { id: initialPayment.id },
+        data: { amount: newPaymentAmount },
+      });
+    }
+
+    if (
+      hasInstallmentPlan &&
+      allInstallmentsPending &&
+      dto.finalSellingPrice !== undefined
+    ) {
+      await (tx as any).posInstallment.deleteMany({ where: { purchaseId } });
+
+      const baseDate = new Date((purchase as any).purchasedAt);
+      const months = (purchase as any).installmentMonths as number;
+      const installmentData = Array.from({ length: months }, (_, i) => {
+        const dueDate = new Date(baseDate);
+        dueDate.setMonth(dueDate.getMonth() + i + 1);
+        const isLast = i === months - 1;
+        const dueAmount = isLast
+          ? roundCurrency(newTotalWithInterest! - newMonthly! * (months - 1))
+          : newMonthly!;
+        return { purchaseId, installmentNo: i + 1, dueDate, dueAmount };
+      });
+      await (tx as any).posInstallment.createMany({ data: installmentData });
+
+      const newInstallments = await (tx as any).posInstallment.findMany({
+        where: { purchaseId },
+        orderBy: { installmentNo: "asc" },
+      });
+      let dp = newDown;
+      for (const inst of newInstallments) {
+        if (dp <= 0) break;
+        const pay = roundCurrency(Math.min(dp, inst.dueAmount));
+        dp = roundCurrency(dp - pay);
+        const fullyPaid = pay >= inst.dueAmount;
+        await (tx as any).posInstallment.update({
+          where: { id: inst.id },
+          data: fullyPaid
+            ? {
+                paidAmount: pay,
+                status: "PAID",
+                isPartial: false,
+                settledAt: new Date(),
+              }
+            : { paidAmount: pay, status: "PARTIAL", isPartial: true },
+        });
+        await (tx as any).posInstallmentPayment.create({
+          data: {
+            installmentId: inst.id,
+            amount: pay,
+            penaltyAmount: 0,
+            note: "Initial advance payment (re-applied after invoice edit)",
+            paidAt: new Date(),
+          },
+        });
+      }
+    }
+  });
+
+  return getPurchaseModelClient(prisma as any).findUniqueOrThrow({
+    where: { id: purchaseId },
+    select: {
+      id: true,
+      finalSellingPrice: true,
+      downPaymentAmount: true,
+      remainingAmount: true,
+      settlementStatus: true,
+      registrationFeeAmount: true,
+      totalWithInterest: true,
+      monthlyInstallmentAmount: true,
+    },
+  });
 }
 
 export async function getPurchaseInstallments(purchaseId: number) {

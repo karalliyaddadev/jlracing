@@ -218,12 +218,23 @@ export const updateInvoiceTermSchema = createInvoiceTermSchema
     message: "At least one field is required",
   });
 
+export const updatePurchaseSchema = z
+  .object({
+    finalSellingPrice: z.number().min(0).optional(),
+    downPaymentAmount: z.number().min(0).optional(),
+    registrationFeeAmount: z.number().min(0).optional(),
+  })
+  .refine((d) => Object.keys(d).length > 0, {
+    message: "At least one field must be provided",
+  });
+
 export type CreatePosUserDto = z.infer<typeof createPosUserSchema>;
 export type UpdatePosUserDto = z.infer<typeof updatePosUserSchema>;
 export type PosUserQueryDto = z.infer<typeof posUserQuerySchema>;
 export type CreatePurchaseDto = z.infer<typeof createPurchaseSchema>;
 export type PurchaseQueryDto = z.infer<typeof purchaseQuerySchema>;
 export type SettlePurchaseDto = z.infer<typeof settlePurchaseSchema>;
+export type UpdatePurchaseDto = z.infer<typeof updatePurchaseSchema>;
 export type GetInstallmentsDto = { purchaseId: number };
 export type CreateInvoiceTermDto = z.infer<typeof createInvoiceTermSchema>;
 export type UpdateInvoiceTermDto = z.infer<typeof updateInvoiceTermSchema>;

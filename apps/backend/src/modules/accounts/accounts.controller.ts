@@ -264,3 +264,14 @@ export async function getLedger(req: Request, res: Response, next: NextFunction)
     return next(e);
   }
 }
+
+// ─── Account Balance ──────────────────────────────────────────────────────────
+
+export async function getAccountBalance(req: Request, res: Response, next: NextFunction) {
+  try {
+    const id = parseId(req.params.id);
+    return sendSuccess(res, await service.getAccountBalance(id));
+  } catch (e) {
+    return next(e);
+  }
+}

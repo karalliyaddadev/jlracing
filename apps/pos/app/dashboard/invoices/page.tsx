@@ -222,6 +222,14 @@ export default function InvoicesPage() {
 
   const [isPreparingPrint, setIsPreparingPrint] = useState(false);
 
+  const [editingEntry, setEditingEntry] = useState<Purchase | null>(null);
+  const [editFsp, setEditFsp] = useState("");
+  const [editDown, setEditDown] = useState("");
+  const [editRegFee, setEditRegFee] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editHasReceipts, setEditHasReceipts] = useState(false);
+
   const handlePrintInvoice = useCallback((_invoice: InvoiceRow) => {
     setIsPreparingPrint(true);
     requestAnimationFrame(() => {
@@ -229,6 +237,54 @@ export default function InvoicesPage() {
       setIsPreparingPrint(false);
     });
   }, []);
+
+  function openEditModal(invoice: InvoiceRow) {
+    const entry = invoice.entries[0];
+    setEditFsp(String(entry.finalSellingPrice));
+    setEditDown(String(entry.downPaymentAmount ?? ""));
+    setEditRegFee(String(entry.registrationFeeAmount ?? ""));
+    setEditError(null);
+    const outstanding = entry.finalSellingPrice - (entry.downPaymentAmount ?? 0);
+    setEditHasReceipts((entry.remainingAmount ?? 0) < outstanding);
+    setEditingEntry(entry);
+  }
+
+  async function submitEditInvoice() {
+    if (!editingEntry) return;
+    const fsp = parseFloat(editFsp);
+    if (!isFinite(fsp) || fsp < 0) {
+      setEditError("Final selling price must be a valid positive number");
+      return;
+    }
+    const body: Record<string, number> = { finalSellingPrice: fsp };
+    if (editingEntry.paymentType === "DOWNPAYMENT") {
+      const down = parseFloat(editDown);
+      if (!isFinite(down) || down < 0) { setEditError("Down payment must be a valid number"); return; }
+      body.downPaymentAmount = down;
+    }
+    if (editingEntry.hasRegistrationFee) {
+      const reg = parseFloat(editRegFee);
+      if (!isFinite(reg) || reg <= 0) { setEditError("Registration fee must be greater than 0"); return; }
+      body.registrationFeeAmount = reg;
+    }
+    setEditSaving(true);
+    setEditError(null);
+    try {
+      const res = await fetch(`${base}/purchases/${editingEntry.id}`, {
+        method: "PATCH",
+        headers: { ...auth, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const payload = await res.json() as { message?: string };
+      if (!res.ok) { setEditError(payload.message ?? "Failed to update invoice"); return; }
+      setEditingEntry(null);
+      void invoicesQuery.refetch();
+    } catch {
+      setEditError("Network error. Please try again.");
+    } finally {
+      setEditSaving(false);
+    }
+  }
 
   useEffect(() => {
     if (!selectedInvoice) { setInvoiceInstallments([]); return; }
@@ -496,7 +552,14 @@ export default function InvoicesPage() {
                     )}
                   </td>
                   <td>
-                    <button type="button" className="btn-outline" onClick={() => setSelectedInvoice(invoice)}>View Invoice</button>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <button type="button" className="btn-outline" onClick={() => setSelectedInvoice(invoice)}>View Invoice</button>
+                      {invoice.purchaseModeText === "Single" && invoice.entries[0]?.purchaseChannel !== "LEASING" ? (
+                        <button type="button" className="btn-outline" onClick={() => openEditModal(invoice)}>Edit</button>
+                      ) : (
+                        <button type="button" className="btn-outline" disabled title="Bulk or leasing invoices cannot be edited here">Edit</button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -733,6 +796,75 @@ export default function InvoicesPage() {
                 {invoiceSupportLoading || isPreparingPrint ? "Preparing Invoice..." : "Print Invoice"}
               </button>
               <button type="button" className="btn-outline" onClick={() => setSelectedInvoice(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editingEntry && (
+        <div className="bm-modal-backdrop" onClick={() => setEditingEntry(null)}>
+          <div className="bm-modal" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="bm-modal-close" onClick={() => setEditingEntry(null)}>×</button>
+            <h3 className="bm-modal-title">Edit Invoice</h3>
+            <div className="bm-modal-body">
+              {editHasReceipts && (
+                <div style={{ background: "var(--amber-bg, #fef3c7)", border: "1px solid var(--amber, #f59e0b)", borderRadius: 6, padding: "0.75rem", marginBottom: "1rem", fontSize: "0.85rem", color: "var(--amber-dark, #92400e)" }}>
+                  Warning: Payments for this invoice may already be receipted. Editing amounts may create a discrepancy with existing receipts.
+                </div>
+              )}
+              {editError && (
+                <div className="bm-alert bm-alert-error" style={{ marginBottom: "0.75rem" }}>{editError}</div>
+              )}
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <div className="bm-field-group">
+                  <label className="users-label">Final Selling Price (Rs.)</label>
+                  <input
+                    className="bm-input"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={editFsp}
+                    onChange={(e) => setEditFsp(e.target.value)}
+                  />
+                </div>
+                {editingEntry.paymentType === "DOWNPAYMENT" && (
+                  <div className="bm-field-group">
+                    <label className="users-label">Down Payment Amount (Rs.)</label>
+                    <input
+                      className="bm-input"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={editDown}
+                      onChange={(e) => setEditDown(e.target.value)}
+                    />
+                  </div>
+                )}
+                {editingEntry.hasRegistrationFee && (
+                  <div className="bm-field-group">
+                    <label className="users-label">Registration Fee (Rs.)</label>
+                    <input
+                      className="bm-input"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={editRegFee}
+                      onChange={(e) => setEditRegFee(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="bm-modal-actions">
+              <button type="button" className="btn-outline" onClick={() => setEditingEntry(null)}>Cancel</button>
+              <button
+                type="button"
+                className="btn-accent"
+                onClick={() => void submitEditInvoice()}
+                disabled={editSaving}
+              >
+                {editSaving ? "Saving..." : "Save Changes"}
+              </button>
             </div>
           </div>
         </div>

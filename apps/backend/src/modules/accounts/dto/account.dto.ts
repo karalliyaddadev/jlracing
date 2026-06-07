@@ -46,6 +46,9 @@ export const createVoucherSchema = z.object({
   type: z.enum(voucherTypeValues),
   amount: z.number().positive("Amount must be greater than 0"),
   description: z.string().trim().max(500).optional(),
+  payee: z.string().trim().max(200).optional(),
+  paymentDate: z.string().optional().transform((v) => (v ? new Date(v) : undefined)),
+  referenceNo: z.string().trim().max(100).optional(),
 });
 
 export const updateVoucherSchema = createVoucherSchema
@@ -80,7 +83,6 @@ export const invoicePaymentQuerySchema = z.object({
 });
 
 export const generateReceiptFromPaymentSchema = z.object({
-  accountId: z.number().int().positive("Account is required"),
   description: z.string().trim().max(500).optional(),
 });
 

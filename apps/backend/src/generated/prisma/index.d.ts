@@ -33905,7 +33905,7 @@ export namespace Prisma {
     id: number
     receiptNo: string
     purchaseId: number
-    accountId: number
+    accountId: number | null
     amount: number
     paymentMethod: $Enums.PaymentMethod
     chequeNo: string | null
@@ -33956,7 +33956,7 @@ export namespace Prisma {
     createdById?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    account?: boolean | AccountDefaultArgs<ExtArgs>
+    account?: boolean | AccountReceipt$accountArgs<ExtArgs>
     purchase?: boolean | PosCustomerPurchaseDefaultArgs<ExtArgs>
     transactions?: boolean | AccountReceipt$transactionsArgs<ExtArgs>
     depositItem?: boolean | AccountReceipt$depositItemArgs<ExtArgs>
@@ -33981,7 +33981,7 @@ export namespace Prisma {
     createdById?: boolean
     createdAt?: boolean
     updatedAt?: boolean
-    account?: boolean | AccountDefaultArgs<ExtArgs>
+    account?: boolean | AccountReceipt$accountArgs<ExtArgs>
     purchase?: boolean | PosCustomerPurchaseDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["accountReceipt"]>
 
@@ -34005,7 +34005,7 @@ export namespace Prisma {
   }
 
   export type AccountReceiptInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    account?: boolean | AccountDefaultArgs<ExtArgs>
+    account?: boolean | AccountReceipt$accountArgs<ExtArgs>
     purchase?: boolean | PosCustomerPurchaseDefaultArgs<ExtArgs>
     transactions?: boolean | AccountReceipt$transactionsArgs<ExtArgs>
     depositItem?: boolean | AccountReceipt$depositItemArgs<ExtArgs>
@@ -34013,14 +34013,14 @@ export namespace Prisma {
     _count?: boolean | AccountReceiptCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type AccountReceiptIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
-    account?: boolean | AccountDefaultArgs<ExtArgs>
+    account?: boolean | AccountReceipt$accountArgs<ExtArgs>
     purchase?: boolean | PosCustomerPurchaseDefaultArgs<ExtArgs>
   }
 
   export type $AccountReceiptPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "AccountReceipt"
     objects: {
-      account: Prisma.$AccountPayload<ExtArgs>
+      account: Prisma.$AccountPayload<ExtArgs> | null
       purchase: Prisma.$PosCustomerPurchasePayload<ExtArgs>
       transactions: Prisma.$AccountTransactionPayload<ExtArgs>[]
       depositItem: Prisma.$AccountDepositItemPayload<ExtArgs> | null
@@ -34030,7 +34030,7 @@ export namespace Prisma {
       id: number
       receiptNo: string
       purchaseId: number
-      accountId: number
+      accountId: number | null
       amount: number
       paymentMethod: $Enums.PaymentMethod
       chequeNo: string | null
@@ -34407,7 +34407,7 @@ export namespace Prisma {
    */
   export interface Prisma__AccountReceiptClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
-    account<T extends AccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AccountDefaultArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    account<T extends AccountReceipt$accountArgs<ExtArgs> = {}>(args?: Subset<T, AccountReceipt$accountArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     purchase<T extends PosCustomerPurchaseDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchaseDefaultArgs<ExtArgs>>): Prisma__PosCustomerPurchaseClient<$Result.GetResult<Prisma.$PosCustomerPurchasePayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     transactions<T extends AccountReceipt$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, AccountReceipt$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountTransactionPayload<ExtArgs>, T, "findMany"> | Null>
     depositItem<T extends AccountReceipt$depositItemArgs<ExtArgs> = {}>(args?: Subset<T, AccountReceipt$depositItemArgs<ExtArgs>>): Prisma__AccountDepositItemClient<$Result.GetResult<Prisma.$AccountDepositItemPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
@@ -34775,6 +34775,21 @@ export namespace Prisma {
   }
 
   /**
+   * AccountReceipt.account
+   */
+  export type AccountReceipt$accountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Account
+     */
+    select?: AccountSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountInclude<ExtArgs> | null
+    where?: AccountWhereInput
+  }
+
+  /**
    * AccountReceipt.transactions
    */
   export type AccountReceipt$transactionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -34872,6 +34887,9 @@ export namespace Prisma {
     type: $Enums.VoucherType | null
     amount: number | null
     description: string | null
+    payee: string | null
+    paymentDate: Date | null
+    referenceNo: string | null
     isVoided: boolean | null
     createdById: number | null
     createdAt: Date | null
@@ -34885,6 +34903,9 @@ export namespace Prisma {
     type: $Enums.VoucherType | null
     amount: number | null
     description: string | null
+    payee: string | null
+    paymentDate: Date | null
+    referenceNo: string | null
     isVoided: boolean | null
     createdById: number | null
     createdAt: Date | null
@@ -34898,6 +34919,9 @@ export namespace Prisma {
     type: number
     amount: number
     description: number
+    payee: number
+    paymentDate: number
+    referenceNo: number
     isVoided: number
     createdById: number
     createdAt: number
@@ -34927,6 +34951,9 @@ export namespace Prisma {
     type?: true
     amount?: true
     description?: true
+    payee?: true
+    paymentDate?: true
+    referenceNo?: true
     isVoided?: true
     createdById?: true
     createdAt?: true
@@ -34940,6 +34967,9 @@ export namespace Prisma {
     type?: true
     amount?: true
     description?: true
+    payee?: true
+    paymentDate?: true
+    referenceNo?: true
     isVoided?: true
     createdById?: true
     createdAt?: true
@@ -34953,6 +34983,9 @@ export namespace Prisma {
     type?: true
     amount?: true
     description?: true
+    payee?: true
+    paymentDate?: true
+    referenceNo?: true
     isVoided?: true
     createdById?: true
     createdAt?: true
@@ -35053,6 +35086,9 @@ export namespace Prisma {
     type: $Enums.VoucherType
     amount: number
     description: string | null
+    payee: string | null
+    paymentDate: Date | null
+    referenceNo: string | null
     isVoided: boolean
     createdById: number
     createdAt: Date
@@ -35085,6 +35121,9 @@ export namespace Prisma {
     type?: boolean
     amount?: boolean
     description?: boolean
+    payee?: boolean
+    paymentDate?: boolean
+    referenceNo?: boolean
     isVoided?: boolean
     createdById?: boolean
     createdAt?: boolean
@@ -35101,6 +35140,9 @@ export namespace Prisma {
     type?: boolean
     amount?: boolean
     description?: boolean
+    payee?: boolean
+    paymentDate?: boolean
+    referenceNo?: boolean
     isVoided?: boolean
     createdById?: boolean
     createdAt?: boolean
@@ -35115,6 +35157,9 @@ export namespace Prisma {
     type?: boolean
     amount?: boolean
     description?: boolean
+    payee?: boolean
+    paymentDate?: boolean
+    referenceNo?: boolean
     isVoided?: boolean
     createdById?: boolean
     createdAt?: boolean
@@ -35143,6 +35188,9 @@ export namespace Prisma {
       type: $Enums.VoucherType
       amount: number
       description: string | null
+      payee: string | null
+      paymentDate: Date | null
+      referenceNo: string | null
       isVoided: boolean
       createdById: number
       createdAt: Date
@@ -35548,6 +35596,9 @@ export namespace Prisma {
     readonly type: FieldRef<"AccountVoucher", 'VoucherType'>
     readonly amount: FieldRef<"AccountVoucher", 'Float'>
     readonly description: FieldRef<"AccountVoucher", 'String'>
+    readonly payee: FieldRef<"AccountVoucher", 'String'>
+    readonly paymentDate: FieldRef<"AccountVoucher", 'DateTime'>
+    readonly referenceNo: FieldRef<"AccountVoucher", 'String'>
     readonly isVoided: FieldRef<"AccountVoucher", 'Boolean'>
     readonly createdById: FieldRef<"AccountVoucher", 'Int'>
     readonly createdAt: FieldRef<"AccountVoucher", 'DateTime'>
@@ -40644,6 +40695,9 @@ export namespace Prisma {
     type: 'type',
     amount: 'amount',
     description: 'description',
+    payee: 'payee',
+    paymentDate: 'paymentDate',
+    referenceNo: 'referenceNo',
     isVoided: 'isVoided',
     createdById: 'createdById',
     createdAt: 'createdAt',
@@ -43255,7 +43309,7 @@ export namespace Prisma {
     id?: IntFilter<"AccountReceipt"> | number
     receiptNo?: StringFilter<"AccountReceipt"> | string
     purchaseId?: IntFilter<"AccountReceipt"> | number
-    accountId?: IntFilter<"AccountReceipt"> | number
+    accountId?: IntNullableFilter<"AccountReceipt"> | number | null
     amount?: FloatFilter<"AccountReceipt"> | number
     paymentMethod?: EnumPaymentMethodFilter<"AccountReceipt"> | $Enums.PaymentMethod
     chequeNo?: StringNullableFilter<"AccountReceipt"> | string | null
@@ -43268,7 +43322,7 @@ export namespace Prisma {
     createdById?: IntFilter<"AccountReceipt"> | number
     createdAt?: DateTimeFilter<"AccountReceipt"> | Date | string
     updatedAt?: DateTimeFilter<"AccountReceipt"> | Date | string
-    account?: XOR<AccountRelationFilter, AccountWhereInput>
+    account?: XOR<AccountNullableRelationFilter, AccountWhereInput> | null
     purchase?: XOR<PosCustomerPurchaseRelationFilter, PosCustomerPurchaseWhereInput>
     transactions?: AccountTransactionListRelationFilter
     depositItem?: XOR<AccountDepositItemNullableRelationFilter, AccountDepositItemWhereInput> | null
@@ -43279,7 +43333,7 @@ export namespace Prisma {
     id?: SortOrder
     receiptNo?: SortOrder
     purchaseId?: SortOrder
-    accountId?: SortOrder
+    accountId?: SortOrderInput | SortOrder
     amount?: SortOrder
     paymentMethod?: SortOrder
     chequeNo?: SortOrderInput | SortOrder
@@ -43306,7 +43360,7 @@ export namespace Prisma {
     OR?: AccountReceiptWhereInput[]
     NOT?: AccountReceiptWhereInput | AccountReceiptWhereInput[]
     purchaseId?: IntFilter<"AccountReceipt"> | number
-    accountId?: IntFilter<"AccountReceipt"> | number
+    accountId?: IntNullableFilter<"AccountReceipt"> | number | null
     amount?: FloatFilter<"AccountReceipt"> | number
     paymentMethod?: EnumPaymentMethodFilter<"AccountReceipt"> | $Enums.PaymentMethod
     chequeNo?: StringNullableFilter<"AccountReceipt"> | string | null
@@ -43319,7 +43373,7 @@ export namespace Prisma {
     createdById?: IntFilter<"AccountReceipt"> | number
     createdAt?: DateTimeFilter<"AccountReceipt"> | Date | string
     updatedAt?: DateTimeFilter<"AccountReceipt"> | Date | string
-    account?: XOR<AccountRelationFilter, AccountWhereInput>
+    account?: XOR<AccountNullableRelationFilter, AccountWhereInput> | null
     purchase?: XOR<PosCustomerPurchaseRelationFilter, PosCustomerPurchaseWhereInput>
     transactions?: AccountTransactionListRelationFilter
     depositItem?: XOR<AccountDepositItemNullableRelationFilter, AccountDepositItemWhereInput> | null
@@ -43330,7 +43384,7 @@ export namespace Prisma {
     id?: SortOrder
     receiptNo?: SortOrder
     purchaseId?: SortOrder
-    accountId?: SortOrder
+    accountId?: SortOrderInput | SortOrder
     amount?: SortOrder
     paymentMethod?: SortOrder
     chequeNo?: SortOrderInput | SortOrder
@@ -43357,7 +43411,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"AccountReceipt"> | number
     receiptNo?: StringWithAggregatesFilter<"AccountReceipt"> | string
     purchaseId?: IntWithAggregatesFilter<"AccountReceipt"> | number
-    accountId?: IntWithAggregatesFilter<"AccountReceipt"> | number
+    accountId?: IntNullableWithAggregatesFilter<"AccountReceipt"> | number | null
     amount?: FloatWithAggregatesFilter<"AccountReceipt"> | number
     paymentMethod?: EnumPaymentMethodWithAggregatesFilter<"AccountReceipt"> | $Enums.PaymentMethod
     chequeNo?: StringNullableWithAggregatesFilter<"AccountReceipt"> | string | null
@@ -43382,6 +43436,9 @@ export namespace Prisma {
     type?: EnumVoucherTypeFilter<"AccountVoucher"> | $Enums.VoucherType
     amount?: FloatFilter<"AccountVoucher"> | number
     description?: StringNullableFilter<"AccountVoucher"> | string | null
+    payee?: StringNullableFilter<"AccountVoucher"> | string | null
+    paymentDate?: DateTimeNullableFilter<"AccountVoucher"> | Date | string | null
+    referenceNo?: StringNullableFilter<"AccountVoucher"> | string | null
     isVoided?: BoolFilter<"AccountVoucher"> | boolean
     createdById?: IntFilter<"AccountVoucher"> | number
     createdAt?: DateTimeFilter<"AccountVoucher"> | Date | string
@@ -43397,6 +43454,9 @@ export namespace Prisma {
     type?: SortOrder
     amount?: SortOrder
     description?: SortOrderInput | SortOrder
+    payee?: SortOrderInput | SortOrder
+    paymentDate?: SortOrderInput | SortOrder
+    referenceNo?: SortOrderInput | SortOrder
     isVoided?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
@@ -43415,6 +43475,9 @@ export namespace Prisma {
     type?: EnumVoucherTypeFilter<"AccountVoucher"> | $Enums.VoucherType
     amount?: FloatFilter<"AccountVoucher"> | number
     description?: StringNullableFilter<"AccountVoucher"> | string | null
+    payee?: StringNullableFilter<"AccountVoucher"> | string | null
+    paymentDate?: DateTimeNullableFilter<"AccountVoucher"> | Date | string | null
+    referenceNo?: StringNullableFilter<"AccountVoucher"> | string | null
     isVoided?: BoolFilter<"AccountVoucher"> | boolean
     createdById?: IntFilter<"AccountVoucher"> | number
     createdAt?: DateTimeFilter<"AccountVoucher"> | Date | string
@@ -43430,6 +43493,9 @@ export namespace Prisma {
     type?: SortOrder
     amount?: SortOrder
     description?: SortOrderInput | SortOrder
+    payee?: SortOrderInput | SortOrder
+    paymentDate?: SortOrderInput | SortOrder
+    referenceNo?: SortOrderInput | SortOrder
     isVoided?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
@@ -43451,6 +43517,9 @@ export namespace Prisma {
     type?: EnumVoucherTypeWithAggregatesFilter<"AccountVoucher"> | $Enums.VoucherType
     amount?: FloatWithAggregatesFilter<"AccountVoucher"> | number
     description?: StringNullableWithAggregatesFilter<"AccountVoucher"> | string | null
+    payee?: StringNullableWithAggregatesFilter<"AccountVoucher"> | string | null
+    paymentDate?: DateTimeNullableWithAggregatesFilter<"AccountVoucher"> | Date | string | null
+    referenceNo?: StringNullableWithAggregatesFilter<"AccountVoucher"> | string | null
     isVoided?: BoolWithAggregatesFilter<"AccountVoucher"> | boolean
     createdById?: IntWithAggregatesFilter<"AccountVoucher"> | number
     createdAt?: DateTimeWithAggregatesFilter<"AccountVoucher"> | Date | string
@@ -46195,7 +46264,7 @@ export namespace Prisma {
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
-    account: AccountCreateNestedOneWithoutReceiptsInput
+    account?: AccountCreateNestedOneWithoutReceiptsInput
     purchase: PosCustomerPurchaseCreateNestedOneWithoutReceiptsInput
     transactions?: AccountTransactionCreateNestedManyWithoutReceiptInput
     depositItem?: AccountDepositItemCreateNestedOneWithoutReceiptInput
@@ -46206,7 +46275,7 @@ export namespace Prisma {
     id?: number
     receiptNo: string
     purchaseId: number
-    accountId: number
+    accountId?: number | null
     amount: number
     paymentMethod?: $Enums.PaymentMethod
     chequeNo?: string | null
@@ -46238,7 +46307,7 @@ export namespace Prisma {
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    account?: AccountUpdateOneRequiredWithoutReceiptsNestedInput
+    account?: AccountUpdateOneWithoutReceiptsNestedInput
     purchase?: PosCustomerPurchaseUpdateOneRequiredWithoutReceiptsNestedInput
     transactions?: AccountTransactionUpdateManyWithoutReceiptNestedInput
     depositItem?: AccountDepositItemUpdateOneWithoutReceiptNestedInput
@@ -46249,7 +46318,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     receiptNo?: StringFieldUpdateOperationsInput | string
     purchaseId?: IntFieldUpdateOperationsInput | number
-    accountId?: IntFieldUpdateOperationsInput | number
+    accountId?: NullableIntFieldUpdateOperationsInput | number | null
     amount?: FloatFieldUpdateOperationsInput | number
     paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -46271,7 +46340,7 @@ export namespace Prisma {
     id?: number
     receiptNo: string
     purchaseId: number
-    accountId: number
+    accountId?: number | null
     amount: number
     paymentMethod?: $Enums.PaymentMethod
     chequeNo?: string | null
@@ -46306,7 +46375,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     receiptNo?: StringFieldUpdateOperationsInput | string
     purchaseId?: IntFieldUpdateOperationsInput | number
-    accountId?: IntFieldUpdateOperationsInput | number
+    accountId?: NullableIntFieldUpdateOperationsInput | number | null
     amount?: FloatFieldUpdateOperationsInput | number
     paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -46326,6 +46395,9 @@ export namespace Prisma {
     type: $Enums.VoucherType
     amount: number
     description?: string | null
+    payee?: string | null
+    paymentDate?: Date | string | null
+    referenceNo?: string | null
     isVoided?: boolean
     createdById: number
     createdAt?: Date | string
@@ -46341,6 +46413,9 @@ export namespace Prisma {
     type: $Enums.VoucherType
     amount: number
     description?: string | null
+    payee?: string | null
+    paymentDate?: Date | string | null
+    referenceNo?: string | null
     isVoided?: boolean
     createdById: number
     createdAt?: Date | string
@@ -46353,6 +46428,9 @@ export namespace Prisma {
     type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    payee?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    referenceNo?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -46368,6 +46446,9 @@ export namespace Prisma {
     type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    payee?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    referenceNo?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -46382,6 +46463,9 @@ export namespace Prisma {
     type: $Enums.VoucherType
     amount: number
     description?: string | null
+    payee?: string | null
+    paymentDate?: Date | string | null
+    referenceNo?: string | null
     isVoided?: boolean
     createdById: number
     createdAt?: Date | string
@@ -46393,6 +46477,9 @@ export namespace Prisma {
     type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    payee?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    referenceNo?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -46406,6 +46493,9 @@ export namespace Prisma {
     type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    payee?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    referenceNo?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -48805,9 +48895,9 @@ export namespace Prisma {
     not?: NestedEnumChequeStatusNullableFilter<$PrismaModel> | $Enums.ChequeStatus | null
   }
 
-  export type AccountRelationFilter = {
-    is?: AccountWhereInput
-    isNot?: AccountWhereInput
+  export type AccountNullableRelationFilter = {
+    is?: AccountWhereInput | null
+    isNot?: AccountWhereInput | null
   }
 
   export type AccountDepositItemNullableRelationFilter = {
@@ -48920,6 +49010,11 @@ export namespace Prisma {
     not?: NestedEnumVoucherTypeFilter<$PrismaModel> | $Enums.VoucherType
   }
 
+  export type AccountRelationFilter = {
+    is?: AccountWhereInput
+    isNot?: AccountWhereInput
+  }
+
   export type AccountVoucherCountOrderByAggregateInput = {
     id?: SortOrder
     voucherNo?: SortOrder
@@ -48927,6 +49022,9 @@ export namespace Prisma {
     type?: SortOrder
     amount?: SortOrder
     description?: SortOrder
+    payee?: SortOrder
+    paymentDate?: SortOrder
+    referenceNo?: SortOrder
     isVoided?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
@@ -48947,6 +49045,9 @@ export namespace Prisma {
     type?: SortOrder
     amount?: SortOrder
     description?: SortOrder
+    payee?: SortOrder
+    paymentDate?: SortOrder
+    referenceNo?: SortOrder
     isVoided?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
@@ -48960,6 +49061,9 @@ export namespace Prisma {
     type?: SortOrder
     amount?: SortOrder
     description?: SortOrder
+    payee?: SortOrder
+    paymentDate?: SortOrder
+    referenceNo?: SortOrder
     isVoided?: SortOrder
     createdById?: SortOrder
     createdAt?: SortOrder
@@ -50845,10 +50949,12 @@ export namespace Prisma {
     set?: $Enums.ChequeStatus | null
   }
 
-  export type AccountUpdateOneRequiredWithoutReceiptsNestedInput = {
+  export type AccountUpdateOneWithoutReceiptsNestedInput = {
     create?: XOR<AccountCreateWithoutReceiptsInput, AccountUncheckedCreateWithoutReceiptsInput>
     connectOrCreate?: AccountCreateOrConnectWithoutReceiptsInput
     upsert?: AccountUpsertWithoutReceiptsInput
+    disconnect?: AccountWhereInput | boolean
+    delete?: AccountWhereInput | boolean
     connect?: AccountWhereUniqueInput
     update?: XOR<XOR<AccountUpdateToOneWithWhereWithoutReceiptsInput, AccountUpdateWithoutReceiptsInput>, AccountUncheckedUpdateWithoutReceiptsInput>
   }
@@ -54183,7 +54289,7 @@ export namespace Prisma {
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
-    account: AccountCreateNestedOneWithoutReceiptsInput
+    account?: AccountCreateNestedOneWithoutReceiptsInput
     transactions?: AccountTransactionCreateNestedManyWithoutReceiptInput
     depositItem?: AccountDepositItemCreateNestedOneWithoutReceiptInput
     invoicePayment?: InvoicePaymentCreateNestedOneWithoutReceiptInput
@@ -54192,7 +54298,7 @@ export namespace Prisma {
   export type AccountReceiptUncheckedCreateWithoutPurchaseInput = {
     id?: number
     receiptNo: string
-    accountId: number
+    accountId?: number | null
     amount: number
     paymentMethod?: $Enums.PaymentMethod
     chequeNo?: string | null
@@ -54511,7 +54617,7 @@ export namespace Prisma {
     id?: IntFilter<"AccountReceipt"> | number
     receiptNo?: StringFilter<"AccountReceipt"> | string
     purchaseId?: IntFilter<"AccountReceipt"> | number
-    accountId?: IntFilter<"AccountReceipt"> | number
+    accountId?: IntNullableFilter<"AccountReceipt"> | number | null
     amount?: FloatFilter<"AccountReceipt"> | number
     paymentMethod?: EnumPaymentMethodFilter<"AccountReceipt"> | $Enums.PaymentMethod
     chequeNo?: StringNullableFilter<"AccountReceipt"> | string | null
@@ -55205,6 +55311,9 @@ export namespace Prisma {
     type: $Enums.VoucherType
     amount: number
     description?: string | null
+    payee?: string | null
+    paymentDate?: Date | string | null
+    referenceNo?: string | null
     isVoided?: boolean
     createdById: number
     createdAt?: Date | string
@@ -55218,6 +55327,9 @@ export namespace Prisma {
     type: $Enums.VoucherType
     amount: number
     description?: string | null
+    payee?: string | null
+    paymentDate?: Date | string | null
+    referenceNo?: string | null
     isVoided?: boolean
     createdById: number
     createdAt?: Date | string
@@ -55353,6 +55465,9 @@ export namespace Prisma {
     type?: EnumVoucherTypeFilter<"AccountVoucher"> | $Enums.VoucherType
     amount?: FloatFilter<"AccountVoucher"> | number
     description?: StringNullableFilter<"AccountVoucher"> | string | null
+    payee?: StringNullableFilter<"AccountVoucher"> | string | null
+    paymentDate?: DateTimeNullableFilter<"AccountVoucher"> | Date | string | null
+    referenceNo?: StringNullableFilter<"AccountVoucher"> | string | null
     isVoided?: BoolFilter<"AccountVoucher"> | boolean
     createdById?: IntFilter<"AccountVoucher"> | number
     createdAt?: DateTimeFilter<"AccountVoucher"> | Date | string
@@ -55960,7 +56075,7 @@ export namespace Prisma {
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
-    account: AccountCreateNestedOneWithoutReceiptsInput
+    account?: AccountCreateNestedOneWithoutReceiptsInput
     purchase: PosCustomerPurchaseCreateNestedOneWithoutReceiptsInput
     depositItem?: AccountDepositItemCreateNestedOneWithoutReceiptInput
     invoicePayment?: InvoicePaymentCreateNestedOneWithoutReceiptInput
@@ -55970,7 +56085,7 @@ export namespace Prisma {
     id?: number
     receiptNo: string
     purchaseId: number
-    accountId: number
+    accountId?: number | null
     amount: number
     paymentMethod?: $Enums.PaymentMethod
     chequeNo?: string | null
@@ -55997,6 +56112,9 @@ export namespace Prisma {
     type: $Enums.VoucherType
     amount: number
     description?: string | null
+    payee?: string | null
+    paymentDate?: Date | string | null
+    referenceNo?: string | null
     isVoided?: boolean
     createdById: number
     createdAt?: Date | string
@@ -56011,6 +56129,9 @@ export namespace Prisma {
     type: $Enums.VoucherType
     amount: number
     description?: string | null
+    payee?: string | null
+    paymentDate?: Date | string | null
+    referenceNo?: string | null
     isVoided?: boolean
     createdById: number
     createdAt?: Date | string
@@ -56115,7 +56236,7 @@ export namespace Prisma {
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    account?: AccountUpdateOneRequiredWithoutReceiptsNestedInput
+    account?: AccountUpdateOneWithoutReceiptsNestedInput
     purchase?: PosCustomerPurchaseUpdateOneRequiredWithoutReceiptsNestedInput
     depositItem?: AccountDepositItemUpdateOneWithoutReceiptNestedInput
     invoicePayment?: InvoicePaymentUpdateOneWithoutReceiptNestedInput
@@ -56125,7 +56246,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     receiptNo?: StringFieldUpdateOperationsInput | string
     purchaseId?: IntFieldUpdateOperationsInput | number
-    accountId?: IntFieldUpdateOperationsInput | number
+    accountId?: NullableIntFieldUpdateOperationsInput | number | null
     amount?: FloatFieldUpdateOperationsInput | number
     paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -56158,6 +56279,9 @@ export namespace Prisma {
     type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    payee?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    referenceNo?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -56172,6 +56296,9 @@ export namespace Prisma {
     type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    payee?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    referenceNo?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -56292,7 +56419,7 @@ export namespace Prisma {
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
-    account: AccountCreateNestedOneWithoutReceiptsInput
+    account?: AccountCreateNestedOneWithoutReceiptsInput
     purchase: PosCustomerPurchaseCreateNestedOneWithoutReceiptsInput
     transactions?: AccountTransactionCreateNestedManyWithoutReceiptInput
     depositItem?: AccountDepositItemCreateNestedOneWithoutReceiptInput
@@ -56302,7 +56429,7 @@ export namespace Prisma {
     id?: number
     receiptNo: string
     purchaseId: number
-    accountId: number
+    accountId?: number | null
     amount: number
     paymentMethod?: $Enums.PaymentMethod
     chequeNo?: string | null
@@ -56419,7 +56546,7 @@ export namespace Prisma {
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    account?: AccountUpdateOneRequiredWithoutReceiptsNestedInput
+    account?: AccountUpdateOneWithoutReceiptsNestedInput
     purchase?: PosCustomerPurchaseUpdateOneRequiredWithoutReceiptsNestedInput
     transactions?: AccountTransactionUpdateManyWithoutReceiptNestedInput
     depositItem?: AccountDepositItemUpdateOneWithoutReceiptNestedInput
@@ -56429,7 +56556,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     receiptNo?: StringFieldUpdateOperationsInput | string
     purchaseId?: IntFieldUpdateOperationsInput | number
-    accountId?: IntFieldUpdateOperationsInput | number
+    accountId?: NullableIntFieldUpdateOperationsInput | number | null
     amount?: FloatFieldUpdateOperationsInput | number
     paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -56664,7 +56791,7 @@ export namespace Prisma {
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
-    account: AccountCreateNestedOneWithoutReceiptsInput
+    account?: AccountCreateNestedOneWithoutReceiptsInput
     purchase: PosCustomerPurchaseCreateNestedOneWithoutReceiptsInput
     transactions?: AccountTransactionCreateNestedManyWithoutReceiptInput
     invoicePayment?: InvoicePaymentCreateNestedOneWithoutReceiptInput
@@ -56674,7 +56801,7 @@ export namespace Prisma {
     id?: number
     receiptNo: string
     purchaseId: number
-    accountId: number
+    accountId?: number | null
     amount: number
     paymentMethod?: $Enums.PaymentMethod
     chequeNo?: string | null
@@ -56757,7 +56884,7 @@ export namespace Prisma {
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    account?: AccountUpdateOneRequiredWithoutReceiptsNestedInput
+    account?: AccountUpdateOneWithoutReceiptsNestedInput
     purchase?: PosCustomerPurchaseUpdateOneRequiredWithoutReceiptsNestedInput
     transactions?: AccountTransactionUpdateManyWithoutReceiptNestedInput
     invoicePayment?: InvoicePaymentUpdateOneWithoutReceiptNestedInput
@@ -56767,7 +56894,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     receiptNo?: StringFieldUpdateOperationsInput | string
     purchaseId?: IntFieldUpdateOperationsInput | number
-    accountId?: IntFieldUpdateOperationsInput | number
+    accountId?: NullableIntFieldUpdateOperationsInput | number | null
     amount?: FloatFieldUpdateOperationsInput | number
     paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -58034,7 +58161,7 @@ export namespace Prisma {
   export type AccountReceiptCreateManyPurchaseInput = {
     id?: number
     receiptNo: string
-    accountId: number
+    accountId?: number | null
     amount: number
     paymentMethod?: $Enums.PaymentMethod
     chequeNo?: string | null
@@ -58091,7 +58218,7 @@ export namespace Prisma {
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
-    account?: AccountUpdateOneRequiredWithoutReceiptsNestedInput
+    account?: AccountUpdateOneWithoutReceiptsNestedInput
     transactions?: AccountTransactionUpdateManyWithoutReceiptNestedInput
     depositItem?: AccountDepositItemUpdateOneWithoutReceiptNestedInput
     invoicePayment?: InvoicePaymentUpdateOneWithoutReceiptNestedInput
@@ -58100,7 +58227,7 @@ export namespace Prisma {
   export type AccountReceiptUncheckedUpdateWithoutPurchaseInput = {
     id?: IntFieldUpdateOperationsInput | number
     receiptNo?: StringFieldUpdateOperationsInput | string
-    accountId?: IntFieldUpdateOperationsInput | number
+    accountId?: NullableIntFieldUpdateOperationsInput | number | null
     amount?: FloatFieldUpdateOperationsInput | number
     paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -58121,7 +58248,7 @@ export namespace Prisma {
   export type AccountReceiptUncheckedUpdateManyWithoutPurchaseInput = {
     id?: IntFieldUpdateOperationsInput | number
     receiptNo?: StringFieldUpdateOperationsInput | string
-    accountId?: IntFieldUpdateOperationsInput | number
+    accountId?: NullableIntFieldUpdateOperationsInput | number | null
     amount?: FloatFieldUpdateOperationsInput | number
     paymentMethod?: EnumPaymentMethodFieldUpdateOperationsInput | $Enums.PaymentMethod
     chequeNo?: NullableStringFieldUpdateOperationsInput | string | null
@@ -58337,6 +58464,9 @@ export namespace Prisma {
     type: $Enums.VoucherType
     amount: number
     description?: string | null
+    payee?: string | null
+    paymentDate?: Date | string | null
+    referenceNo?: string | null
     isVoided?: boolean
     createdById: number
     createdAt?: Date | string
@@ -58434,6 +58564,9 @@ export namespace Prisma {
     type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    payee?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    referenceNo?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -58447,6 +58580,9 @@ export namespace Prisma {
     type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    payee?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    referenceNo?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -58460,6 +58596,9 @@ export namespace Prisma {
     type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
+    payee?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    referenceNo?: NullableStringFieldUpdateOperationsInput | string | null
     isVoided?: BoolFieldUpdateOperationsInput | boolean
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
