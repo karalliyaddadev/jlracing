@@ -1,9 +1,33 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { IconInvoice, IconUsers } from "../../lib/icons";
+import { readApiData } from "../../lib/api";
+
+type InstallmentPayment = {
+  id: number;
+  amount: number;
+  penaltyAmount: number;
+  note?: string | null;
+  paidAt: string;
+};
+
+type Installment = {
+  id: number;
+  installmentNo: number;
+  dueDate: string;
+  dueAmount: number;
+  paidAmount: number;
+  isPartial: boolean;
+  penaltyRate: number;
+  penaltyAmount: number;
+  status: "PENDING" | "PARTIAL" | "PAID";
+  settledAt?: string | null;
+  payments?: InstallmentPayment[];
+};
 
 type Purchase = {
   id: number;
@@ -24,6 +48,10 @@ type Purchase = {
   settlementStatus?: "SETTLED" | "TO_SETTLE";
   hasRegistrationFee?: boolean;
   registrationFeeAmount?: number;
+  interestRate?: number | null;
+  installmentMonths?: number | null;
+  monthlyInstallmentAmount?: number | null;
+  totalWithInterest?: number | null;
   customer: {
     id: number;
     firstName: string;
@@ -88,56 +116,188 @@ type InvoiceTerm = {
   isActive: boolean;
 };
 
+type InvoiceAccount = {
+  id: number;
+  accountHolder: string;
+  accountNumber: string;
+  bankName: string;
+  branchName?: string | null;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+function getActiveInvoiceTerms(terms: InvoiceTerm[]) {
+  return terms
+    .filter((term) => term.isActive)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
+    .map((term) => term.text);
+}
+
+function getActiveInvoiceAccounts(accounts: InvoiceAccount[]) {
+  return accounts
+    .filter((account) => account.isActive)
+    .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id);
+}
+
+const HTML_ENTITY_MAP: Record<string, string> = {
+  "&": "&amp;",
+  "<": "&lt;",
+  ">": "&gt;",
+  "\"": "&quot;",
+  "'": "&#39;",
+};
+
+function escapeInvoiceHtml(value: string | number | null | undefined) {
+  return String(value ?? "").replace(/[&<>"']/g, (char) => HTML_ENTITY_MAP[char] ?? char);
+}
+
 export default function InvoicesPage() {
   const { token } = useAdmin();
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
-  const [invoices, setInvoices] = useState<Purchase[]>([]);
-  const [invoiceTerms, setInvoiceTerms] = useState<InvoiceTerm[]>([]);
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
+  const [invoiceInstallments, setInvoiceInstallments] = useState<Installment[]>([]);
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
 
-  const loadInvoices = useCallback(async () => {
-    if (!token) return;
-    setLoading(true);
-    setError(null);
+  const invoicesQuery = useQuery({
+    queryKey: ["pos", "invoices", token],
+    enabled: Boolean(token),
+    staleTime: 0,
+    refetchOnMount: "always",
+    queryFn: async (): Promise<Purchase[]> => {
+      const response = await fetch(`${base}/purchases?page=1&limit=500`, { headers: auth, cache: "no-store" });
+      const payload = await readApiData<{ purchases?: Purchase[] }>(response, "Failed to load invoices");
+      return payload.purchases ?? [];
+    },
+  });
 
-    try {
-      const searchParam = search.trim() ? `&search=${encodeURIComponent(search.trim())}` : "";
-      const response = await fetch(`${base}/purchases?page=1&limit=500${searchParam}`, { headers: auth, cache: "no-store" });
-      const payload = await response.json() as { data?: { purchases?: Purchase[] }; message?: string };
-      if (!response.ok) throw new Error(payload.message ?? "Failed to load invoices");
-      setInvoices(payload.data?.purchases ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load invoices");
-    } finally {
-      setLoading(false);
+  const invoiceTermsQuery = useQuery({
+    queryKey: ["pos", "invoice-terms", token],
+    enabled: Boolean(token),
+    staleTime: 0,
+    refetchOnMount: "always",
+    queryFn: async (): Promise<InvoiceTerm[]> => {
+      try {
+        const response = await fetch(`${base}/invoice-terms`, { headers: auth, cache: "no-store" });
+        const payload = await response.json() as { data?: { terms?: InvoiceTerm[] }; message?: string };
+        if (!response.ok) throw new Error(payload.message ?? "Failed to load invoice terms");
+        return payload.data?.terms ?? [];
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  const invoiceAccountsQuery = useQuery({
+    queryKey: ["pos", "invoice-accounts", token],
+    enabled: Boolean(token),
+    staleTime: 0,
+    refetchOnMount: "always",
+    queryFn: async (): Promise<InvoiceAccount[]> => {
+      try {
+        const response = await fetch(`${base}/invoice-accounts`, { headers: auth, cache: "no-store" });
+        const payload = await readApiData<{ accounts?: InvoiceAccount[] }>(response, "Failed to load invoice accounts");
+        return payload.accounts ?? [];
+      } catch {
+        return [];
+      }
+    },
+  });
+
+  const invoices = invoicesQuery.data ?? [];
+  const invoiceTerms = invoiceTermsQuery.data ?? [];
+  const invoiceAccounts = invoiceAccountsQuery.data ?? [];
+  const loading = invoicesQuery.isLoading;
+  const refreshing = invoicesQuery.isFetching || invoiceTermsQuery.isFetching || invoiceAccountsQuery.isFetching;
+  const visibleError = invoicesQuery.error instanceof Error ? invoicesQuery.error.message : null;
+  const invoiceSupportLoading = invoiceTermsQuery.isLoading || invoiceAccountsQuery.isLoading;
+
+  const handleRefresh = useCallback(() => {
+    void invoicesQuery.refetch();
+    void invoiceTermsQuery.refetch();
+    void invoiceAccountsQuery.refetch();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [isPreparingPrint, setIsPreparingPrint] = useState(false);
+
+  const [editingEntry, setEditingEntry] = useState<Purchase | null>(null);
+  const [editFsp, setEditFsp] = useState("");
+  const [editDown, setEditDown] = useState("");
+  const [editRegFee, setEditRegFee] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editHasReceipts, setEditHasReceipts] = useState(false);
+
+  const handlePrintInvoice = useCallback((_invoice: InvoiceRow) => {
+    setIsPreparingPrint(true);
+    requestAnimationFrame(() => {
+      window.print();
+      setIsPreparingPrint(false);
+    });
+  }, []);
+
+  function openEditModal(invoice: InvoiceRow) {
+    const entry = invoice.entries[0];
+    setEditFsp(String(entry.finalSellingPrice));
+    setEditDown(String(entry.downPaymentAmount ?? ""));
+    setEditRegFee(String(entry.registrationFeeAmount ?? ""));
+    setEditError(null);
+    const outstanding = entry.finalSellingPrice - (entry.downPaymentAmount ?? 0);
+    setEditHasReceipts((entry.remainingAmount ?? 0) < outstanding);
+    setEditingEntry(entry);
+  }
+
+  async function submitEditInvoice() {
+    if (!editingEntry) return;
+    const fsp = parseFloat(editFsp);
+    if (!isFinite(fsp) || fsp < 0) {
+      setEditError("Final selling price must be a valid positive number");
+      return;
     }
-  }, [auth, base, search, token]);
-
-  useEffect(() => {
-    void loadInvoices();
-  }, [loadInvoices]);
-
-  const loadInvoiceTerms = useCallback(async () => {
-    if (!token) return;
-
+    const body: Record<string, number> = { finalSellingPrice: fsp };
+    if (editingEntry.paymentType === "DOWNPAYMENT") {
+      const down = parseFloat(editDown);
+      if (!isFinite(down) || down < 0) { setEditError("Down payment must be a valid number"); return; }
+      body.downPaymentAmount = down;
+    }
+    if (editingEntry.hasRegistrationFee) {
+      const reg = parseFloat(editRegFee);
+      if (!isFinite(reg) || reg <= 0) { setEditError("Registration fee must be greater than 0"); return; }
+      body.registrationFeeAmount = reg;
+    }
+    setEditSaving(true);
+    setEditError(null);
     try {
-      const response = await fetch(`${base}/invoice-terms`, { headers: auth, cache: "no-store" });
-      const payload = await response.json() as { data?: { terms?: InvoiceTerm[] }; message?: string };
-      if (!response.ok) throw new Error(payload.message ?? "Failed to load invoice terms");
-      setInvoiceTerms(payload.data?.terms ?? []);
+      const res = await fetch(`${base}/purchases/${editingEntry.id}`, {
+        method: "PATCH",
+        headers: { ...auth, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const payload = await res.json() as { message?: string };
+      if (!res.ok) { setEditError(payload.message ?? "Failed to update invoice"); return; }
+      setEditingEntry(null);
+      void invoicesQuery.refetch();
     } catch {
-      setInvoiceTerms([]);
+      setEditError("Network error. Please try again.");
+    } finally {
+      setEditSaving(false);
     }
-  }, [auth, base, token]);
+  }
 
   useEffect(() => {
-    void loadInvoiceTerms();
-  }, [loadInvoiceTerms]);
+    if (!selectedInvoice) { setInvoiceInstallments([]); return; }
+    const entry = selectedInvoice.entries.find((e) => (e.installmentMonths ?? 0) > 0);
+    if (!entry) { setInvoiceInstallments([]); return; }
+    void (async () => {
+      try {
+        const resp = await fetch(`${base}/${entry.customer.id}/purchases/${entry.id}/installments`, { headers: auth, cache: "no-store" });
+        const json = await resp.json() as { data?: { installments?: Installment[] } };
+        setInvoiceInstallments(json.data?.installments ?? []);
+      } catch { setInvoiceInstallments([]); }
+    })();
+  }, [auth, base, selectedInvoice]);
 
   const getPurchaseItemMeta = useCallback((entry: Purchase) => {
     if (entry.itemType === "BIKE" && entry.bike) {
@@ -176,7 +336,7 @@ export default function InvoicesPage() {
     const grouped = new Map<string, Purchase[]>();
 
     const heuristicCounts = new Map<string, number>();
-    invoices.forEach((entry) => {
+    invoices.forEach((entry: Purchase) => {
       if (entry.invoiceGroupCode?.trim()) return;
       if (entry.itemType !== "BIKE") return;
       const secondBucket = Math.floor(new Date(entry.purchasedAt).getTime() / 1000);
@@ -184,7 +344,7 @@ export default function InvoicesPage() {
       heuristicCounts.set(key, (heuristicCounts.get(key) ?? 0) + 1);
     });
 
-    invoices.forEach((entry) => {
+    invoices.forEach((entry: Purchase) => {
       const groupCode = entry.invoiceGroupCode?.trim();
       const secondBucket = Math.floor(new Date(entry.purchasedAt).getTime() / 1000);
       const heuristicKey = `${entry.customer.id}:${secondBucket}`;
@@ -259,19 +419,58 @@ export default function InvoicesPage() {
     return rows;
   }, [getPaymentLabel, getPurchaseItemMeta, invoices, isDownPaymentEntry]);
 
+  const filteredInvoiceRows = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    if (!needle) return invoiceRows;
+
+    return invoiceRows.filter((invoice: InvoiceRow) => {
+      const searchableValues = [
+        invoice.invoiceLabel,
+        invoice.customer.firstName,
+        invoice.customer.lastName,
+        invoice.customer.nic,
+        invoice.customer.mobileNumber,
+        invoice.customer.address,
+        invoice.customer.province,
+        invoice.customer.district,
+        invoice.itemTitle,
+        invoice.itemSubtitle,
+        invoice.paymentTypeText,
+        invoice.purchaseModeText,
+        ...invoice.entries.flatMap((entry) => [
+          String(entry.id),
+          entry.customer.nic,
+          entry.customer.mobileNumber,
+          entry.bike?.displayId,
+          entry.bike?.brand,
+          entry.bike?.model,
+          entry.inventory?.displayId,
+          entry.inventory?.name,
+          entry.inventory?.brand,
+        ]),
+      ];
+
+      return searchableValues.some((value) => value?.toLowerCase().includes(needle));
+    });
+  }, [invoiceRows, search]);
+
   const totalInvoiceAmount = useMemo(
     () => invoiceRows.reduce((sum, invoice) => sum + invoice.finalSellingPrice, 0),
     [invoiceRows]
   );
 
-  const activeInvoiceTerms = useMemo(() => {
-    return invoiceTerms
-      .filter((term) => term.isActive)
-      .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
-      .map((term) => term.text);
+  const activeInvoiceTerms = useMemo((): string[] => {
+    return getActiveInvoiceTerms(invoiceTerms);
   }, [invoiceTerms]);
 
-  const getInvoiceGrandTotal = (invoice: InvoiceRow) => invoice.finalSellingPrice + invoice.registrationFeeTotal;
+  const activeInvoiceAccounts = useMemo((): InvoiceAccount[] => {
+    return getActiveInvoiceAccounts(invoiceAccounts);
+  }, [invoiceAccounts]);
+
+  const getInvoiceGrandTotal = (invoice: InvoiceRow) => {
+    const effectiveTotal = invoice.entries.reduce((sum, e) => sum + (e.totalWithInterest ?? e.finalSellingPrice), 0);
+    return effectiveTotal + invoice.registrationFeeTotal;
+  };
 
   return (
     <div className="bm-page">
@@ -285,7 +484,7 @@ export default function InvoicesPage() {
         </div>
       </div>
 
-      {error && <div className="bm-alert bm-alert-error">{error}</div>}
+      {visibleError && <div className="bm-alert bm-alert-error">{visibleError}</div>}
 
       <div className="bm-stats-grid" style={{ marginBottom: "1rem" }}>
         <div className="bm-stat-card bm-stat-card-soft">
@@ -309,7 +508,9 @@ export default function InvoicesPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
-          <button type="button" className="btn-outline" onClick={() => void loadInvoices()}>Refresh</button>
+          <button type="button" className="btn-outline" onClick={handleRefresh} disabled={refreshing}>
+            {refreshing ? "Refreshing..." : "Refresh"}
+          </button>
         </div>
 
         <div className="data-table-wrap">
@@ -321,12 +522,13 @@ export default function InvoicesPage() {
                 <th>Customer</th>
                 <th>Item</th>
                 <th>Final Price</th>
+                <th>Status</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan={6} className="bm-table-empty">Loading invoices...</td></tr>}
-              {!loading && invoiceRows.length === 0 && <tr><td colSpan={6} className="bm-table-empty">No invoices found.</td></tr>}
+              {loading && <tr><td colSpan={7} className="bm-table-empty">Loading invoices...</td></tr>}
+              {!loading && invoiceRows.length === 0 && <tr><td colSpan={7} className="bm-table-empty">No invoices found.</td></tr>}
               {!loading && invoiceRows.map((invoice) => (
                 <tr key={invoice.key}>
                   <td>{invoice.invoiceLabel}</td>
@@ -339,7 +541,25 @@ export default function InvoicesPage() {
                   </td>
                   <td>Rs. {invoice.finalSellingPrice.toLocaleString()}</td>
                   <td>
-                    <button type="button" className="btn-outline" onClick={() => setSelectedInvoice(invoice)}>View Invoice</button>
+                    {(invoice.remainingAmount > 0 || invoice.settlementStatus === "SETTLED") && (
+                      <span style={{
+                        fontWeight: 600,
+                        fontSize: "0.8rem",
+                        color: invoice.settlementStatus === "SETTLED" ? "var(--green)" : "var(--amber, #f59e0b)",
+                      }}>
+                        {invoice.settlementStatus === "SETTLED" ? "Settled" : "To Settle"}
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <button type="button" className="btn-outline" onClick={() => setSelectedInvoice(invoice)}>View Invoice</button>
+                      {invoice.purchaseModeText === "Single" && invoice.entries[0]?.purchaseChannel !== "LEASING" ? (
+                        <button type="button" className="btn-outline" onClick={() => openEditModal(invoice)}>Edit</button>
+                      ) : (
+                        <button type="button" className="btn-outline" disabled title="Bulk or leasing invoices cannot be edited here">Edit</button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -354,7 +574,7 @@ export default function InvoicesPage() {
             <button type="button" className="bm-modal-close" onClick={() => setSelectedInvoice(null)}>x</button>
             <div className="invoice-paper">
               <header className="invoice-paper-header">
-                <img src="/landing/logo.jpg" alt="JL Racing" className="invoice-brand-logo" />
+                <img src="/landing/logoq.png" alt="JL Racing" className="invoice-brand-logo" />
                 <p className="invoice-brand-line">Importers, Exporters & Dealers Of Motorcycles, Motor Vehicles, Machineries & Other</p>
                 <p className="invoice-brand-line">Motorized Equipments With Spare Parts.</p>
                 <p className="invoice-brand-address">No:154, Puttalam Road, Kurunegala, Sri Lanka, Kurunegala</p>
@@ -438,14 +658,34 @@ export default function InvoicesPage() {
                         </tr>
                       </>
                     )}
+                    {(() => {
+                      const interestEntry = selectedInvoice.entries.find((e) => (e.interestRate ?? 0) > 0 && (e.installmentMonths ?? 0) > 0);
+                      if (!interestEntry) return null;
+                      return (
+                        <>
+                          <tr className="invoice-summary-row">
+                            <td className="invoice-desc-cell">Finance Charge ({interestEntry.interestRate}%)</td>
+                            <td className="invoice-col-qty" />
+                            <td className="invoice-col-amount">Rs. {((interestEntry.totalWithInterest ?? 0) - interestEntry.finalSellingPrice).toLocaleString()}</td>
+                            <td className="invoice-col-amount" />
+                          </tr>
+                          <tr className="invoice-summary-row">
+                            <td className="invoice-desc-cell">Monthly Installment × {interestEntry.installmentMonths} months</td>
+                            <td className="invoice-col-qty" />
+                            <td className="invoice-col-amount">Rs. {(interestEntry.monthlyInstallmentAmount ?? 0).toLocaleString()}</td>
+                            <td className="invoice-col-amount" />
+                          </tr>
+                        </>
+                      );
+                    })()}
                     <tr className="invoice-summary-row">
-                      <td className="invoice-desc-cell">Advance</td>
+                      <td className="invoice-desc-cell">Advance Paid</td>
                       <td className="invoice-col-qty" />
                       <td className="invoice-col-amount">Rs. {selectedInvoice.downPaymentAmount.toLocaleString()}</td>
                       <td className="invoice-col-amount" />
                     </tr>
                     <tr className="invoice-summary-row invoice-balance-row">
-                      <td className="invoice-desc-cell">Balance</td>
+                      <td className="invoice-desc-cell">Balance Remaining</td>
                       <td className="invoice-col-qty" />
                       <td className="invoice-col-amount">Rs. {selectedInvoice.remainingAmount.toLocaleString()}</td>
                       <td className="invoice-col-amount" />
@@ -453,7 +693,7 @@ export default function InvoicesPage() {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colSpan={3} className="invoice-total-label">Total</td>
+                      <td colSpan={3} className="invoice-total-label">Grand Total</td>
                       <td className="invoice-total-value">Rs. {getInvoiceGrandTotal(selectedInvoice).toLocaleString()}</td>
                     </tr>
                   </tfoot>
@@ -465,6 +705,71 @@ export default function InvoicesPage() {
                   <span>JL Racing</span>
                   <span>HNB</span>
                 </div>
+
+                {invoiceInstallments.length > 0 && (() => {
+                  const paidCount = invoiceInstallments.filter((i) => i.status === "PAID" || i.status === "PARTIAL").length;
+                  const remainingCount = invoiceInstallments.filter((i) => i.status === "PENDING" || i.status === "PARTIAL").length;
+                  return (
+                    <>
+                      <div className="invoice-divider" />
+                      <strong style={{ display: "block", marginBottom: "0.5rem" }}>
+                        Installment Schedule — {paidCount} of {invoiceInstallments.length} months paid · {remainingCount} remaining
+                      </strong>
+                      <table className="invoice-print-table">
+                        <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>Due Date</th>
+                            <th className="invoice-col-amount">Monthly Due</th>
+                            <th className="invoice-col-amount">Paid</th>
+                            <th className="invoice-col-amount">Penalty</th>
+                            <th className="invoice-col-amount">Balance Due</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {invoiceInstallments.map((inst) => {
+                            const balanceDue = Math.max(0, Math.round((inst.dueAmount + (inst.penaltyAmount ?? 0) - inst.paidAmount) * 100) / 100);
+                            return (
+                              <>
+                                <tr key={inst.id} style={{ opacity: inst.status === "PAID" ? 0.65 : 1 }}>
+                                  <td>{inst.installmentNo}</td>
+                                  <td>
+                                    {new Date(inst.dueDate).toLocaleDateString("en-GB")}
+                                    {inst.settledAt && <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Last: {new Date(inst.settledAt).toLocaleDateString("en-GB")}</div>}
+                                  </td>
+                                  <td className="invoice-col-amount">Rs. {inst.dueAmount.toLocaleString()}</td>
+                                  <td className="invoice-col-amount">{inst.paidAmount > 0 ? `Rs. ${inst.paidAmount.toLocaleString()}` : "—"}</td>
+                                  <td className="invoice-col-amount">{(inst.penaltyAmount ?? 0) > 0 ? `Rs. ${inst.penaltyAmount.toLocaleString()}` : "—"}</td>
+                                  <td className="invoice-col-amount" style={{ fontWeight: balanceDue > 0 ? 600 : undefined, color: balanceDue > 0 ? "var(--amber, #f59e0b)" : undefined }}>
+                                    {balanceDue > 0 ? `Rs. ${balanceDue.toLocaleString()}` : "—"}
+                                  </td>
+                                  <td>
+                                    <span style={{ fontWeight: 600, color: inst.status === "PAID" ? "var(--green)" : inst.status === "PARTIAL" ? "var(--amber, #f59e0b)" : "var(--text-muted)" }}>
+                                      {inst.status}
+                                    </span>
+                                  </td>
+                                </tr>
+                                {inst.payments && inst.payments.length > 0 && inst.payments.map((pay) => (
+                                  <tr key={`pay-${pay.id}`} style={{ background: "var(--panel-bg, #f9f9f9)" }}>
+                                    <td style={{ paddingLeft: "1.2rem", fontSize: "0.78rem", color: "var(--text-muted)" }}>↳</td>
+                                    <td style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{new Date(pay.paidAt).toLocaleDateString("en-GB")}</td>
+                                    <td className="invoice-col-amount" style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{pay.note ?? ""}</td>
+                                    <td className="invoice-col-amount" style={{ fontSize: "0.78rem" }}>Rs. {pay.amount.toLocaleString()}</td>
+                                    <td className="invoice-col-amount" style={{ fontSize: "0.78rem", color: pay.penaltyAmount > 0 ? "var(--amber, #f59e0b)" : "var(--text-muted)" }}>
+                                      {pay.penaltyAmount > 0 ? `Rs. ${pay.penaltyAmount.toLocaleString()}` : "—"}
+                                    </td>
+                                    <td colSpan={2} />
+                                  </tr>
+                                ))}
+                              </>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </>
+                  );
+                })()}
 
                 {activeInvoiceTerms.length > 0 && (
                   <>
@@ -482,8 +787,84 @@ export default function InvoicesPage() {
             </div>
 
             <div className="bm-modal-actions" style={{ marginTop: "1rem" }}>
-              <button type="button" className="btn-accent" onClick={() => window.print()}>Print Invoice</button>
+              <button 
+                type="button" 
+                className="btn-accent" 
+                disabled={invoiceSupportLoading || isPreparingPrint}
+                onClick={() => void handlePrintInvoice(selectedInvoice)}
+              >
+                {invoiceSupportLoading || isPreparingPrint ? "Preparing Invoice..." : "Print Invoice"}
+              </button>
               <button type="button" className="btn-outline" onClick={() => setSelectedInvoice(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editingEntry && (
+        <div className="bm-modal-backdrop" onClick={() => setEditingEntry(null)}>
+          <div className="bm-modal" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="bm-modal-close" onClick={() => setEditingEntry(null)}>×</button>
+            <h3 className="bm-modal-title">Edit Invoice</h3>
+            <div className="bm-modal-body">
+              {editHasReceipts && (
+                <div style={{ background: "var(--amber-bg, #fef3c7)", border: "1px solid var(--amber, #f59e0b)", borderRadius: 6, padding: "0.75rem", marginBottom: "1rem", fontSize: "0.85rem", color: "var(--amber-dark, #92400e)" }}>
+                  Warning: Payments for this invoice may already be receipted. Editing amounts may create a discrepancy with existing receipts.
+                </div>
+              )}
+              {editError && (
+                <div className="bm-alert bm-alert-error" style={{ marginBottom: "0.75rem" }}>{editError}</div>
+              )}
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <div className="bm-field-group">
+                  <label className="users-label">Final Selling Price (Rs.)</label>
+                  <input
+                    className="bm-input"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={editFsp}
+                    onChange={(e) => setEditFsp(e.target.value)}
+                  />
+                </div>
+                {editingEntry.paymentType === "DOWNPAYMENT" && (
+                  <div className="bm-field-group">
+                    <label className="users-label">Down Payment Amount (Rs.)</label>
+                    <input
+                      className="bm-input"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={editDown}
+                      onChange={(e) => setEditDown(e.target.value)}
+                    />
+                  </div>
+                )}
+                {editingEntry.hasRegistrationFee && (
+                  <div className="bm-field-group">
+                    <label className="users-label">Registration Fee (Rs.)</label>
+                    <input
+                      className="bm-input"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={editRegFee}
+                      onChange={(e) => setEditRegFee(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="bm-modal-actions">
+              <button type="button" className="btn-outline" onClick={() => setEditingEntry(null)}>Cancel</button>
+              <button
+                type="button"
+                className="btn-accent"
+                onClick={() => void submitEditInvoice()}
+                disabled={editSaving}
+              >
+                {editSaving ? "Saving..." : "Save Changes"}
+              </button>
             </div>
           </div>
         </div>

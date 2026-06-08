@@ -17,6 +17,7 @@ import preOrdersPosRouter, {
 import contactRequestsPosRouter, {
   publicContactRequestsRouter,
 } from "./modules/contact-requests/contact-requests.routes";
+import accountsRouter from "./modules/accounts/accounts.routes";
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use("/api/pos/user-management", posUserManagementRoutes);
 app.use("/api/pos/pre-orders", preOrdersPosRouter);
 app.use("/api/contact-requests", publicContactRequestsRouter);
 app.use("/api/pos/contact-requests", contactRequestsPosRouter);
+app.use("/api/pos/accounts", accountsRouter);
 
 /* ──────────────────── Error handling ────────────────────── */
 app.use(notFoundHandler);

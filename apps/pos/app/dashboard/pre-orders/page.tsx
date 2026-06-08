@@ -29,6 +29,7 @@ type PreOrder = {
   expectedArrival?: string | null;
   status: string;
   description?: string | null;
+  pdfUrl?: string | null;
   isPublished: boolean;
   sortOrder: number;
   images: PreOrderImage[];
@@ -42,10 +43,16 @@ type Model = { id: number; name: string; brandId: number };
 const MAX_IMAGE_COUNT = 6;
 const MAX_IMAGE_SIZE_BYTES = 10 * 1024 * 1024;
 
+function resolveAssetUrl(assetPath?: string | null) {
+  if (!assetPath) return null;
+  if (/^https?:\/\//i.test(assetPath)) return assetPath;
+  return `${API_URL.replace(/\/$/, "")}${assetPath.startsWith("/") ? "" : "/"}${assetPath}`;
+}
+
 function getPrimaryImageSrc(images: PreOrderImage[]): string | null {
   if (!images?.length) return null;
   const primary = images.find((i) => i.isPrimary) ?? images[0];
-  return `${API_URL}${primary.url}`;
+  return resolveAssetUrl(primary.url);
 }
 
 // â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -95,6 +102,11 @@ export default function PreOrdersManagementPage() {
   const [imageError, setImageError] = useState<string | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
   const [uploadingImages, setUploadingImages] = useState(false);
+
+  // PDF state
+  const [pendingPdf, setPendingPdf] = useState<File | null>(null);
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  const pdfInputRef = useRef<HTMLInputElement>(null);
   const [showNewBrand, setShowNewBrand] = useState(false);
   const [showNewModel, setShowNewModel] = useState(false);
   const [newBrandName, setNewBrandName] = useState("");
@@ -263,6 +275,8 @@ export default function PreOrdersManagementPage() {
     setForm(emptyForm);
     setPendingImages([]);
     setImageError(null);
+    setPendingPdf(null);
+    setPdfError(null);
     setModalError(null);
     setShowNewBrand(false);
     setShowNewModel(false);
@@ -291,6 +305,8 @@ export default function PreOrdersManagementPage() {
     });
     setPendingImages([]);
     setImageError(null);
+    setPendingPdf(null);
+    setPdfError(null);
     setModalError(null);
     setShowNewBrand(false);
     setShowNewModel(false);
@@ -431,6 +447,24 @@ export default function PreOrdersManagementPage() {
         setUploadingImages(false);
       }
 
+      if (pendingPdf) {
+        const fd = new FormData();
+        fd.append("pdf", pendingPdf);
+        const pdfRes = await fetch(`${API_URL}/api/pos/pre-orders/${saved.id}/pdf`, {
+          method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
+          body: fd,
+        });
+        if (!pdfRes.ok) {
+          const errData = await pdfRes.json().catch(() => ({}));
+          throw new Error(
+            (errData as { message?: string }).message ?? "Failed to upload PDF brochure",
+          );
+        }
+      }
+
+      setPendingImages([]);
+      setPendingPdf(null);
       setShowModal(false);
       await fetchPreOrders();
     } catch (err) {
@@ -1087,7 +1121,7 @@ export default function PreOrdersManagementPage() {
                       }
                     >
                       <Image
-                        src={`${API_URL}${img.url}`}
+                        src={resolveAssetUrl(img.url) ?? ""}
                         alt="img"
                         width={72}
                         height={56}
@@ -1207,6 +1241,63 @@ export default function PreOrdersManagementPage() {
                 </button>
               </div>
 
+              {/* PDF Brochure */}
+              <div className="bm-field-group" style={{ marginTop: "0.5rem" }}>
+                <label>Brochure PDF</label>
+                {pdfError && (
+                  <div className="bm-alert bm-alert-error" style={{ marginBottom: 8 }}>
+                    {pdfError}
+                  </div>
+                )}
+                {editingPreOrder?.pdfUrl && !pendingPdf && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                    <a
+                      href={resolveAssetUrl(editingPreOrder.pdfUrl) ?? "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ fontSize: 12, color: "var(--accent)", textDecoration: "underline" }}
+                    >
+                      View current PDF
+                    </a>
+                    <span style={{ fontSize: 11, color: "var(--text-soft)" }}>(upload new to replace)</span>
+                  </div>
+                )}
+                {pendingPdf && (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: 12, color: "var(--text)" }}>{pendingPdf.name}</span>
+                    <button
+                      type="button"
+                      onClick={() => { setPendingPdf(null); if (pdfInputRef.current) pdfInputRef.current.value = ""; }}
+                      style={{ fontSize: 11, color: "var(--text-soft)", background: "none", border: "none", cursor: "pointer" }}
+                    >
+                      ✕ Remove
+                    </button>
+                  </div>
+                )}
+                <input
+                  ref={pdfInputRef}
+                  type="file"
+                  accept="application/pdf"
+                  onChange={(e) => {
+                    setPdfError(null);
+                    const file = e.target.files?.[0] ?? null;
+                    if (file && file.size > 20 * 1024 * 1024) {
+                      setPdfError("PDF exceeds 20 MB limit.");
+                      return;
+                    }
+                    setPendingPdf(file);
+                  }}
+                  style={{ display: "none" }}
+                />
+                <button
+                  type="button"
+                  className="btn-outline"
+                  onClick={() => pdfInputRef.current?.click()}
+                >
+                  {pendingPdf ? "Change PDF" : "Upload PDF"}
+                </button>
+              </div>
+
               <div className="bm-modal-actions">
                 <button
                   type="button"
@@ -1221,9 +1312,9 @@ export default function PreOrdersManagementPage() {
                   disabled={saving || uploadingImages}
                 >
                   {uploadingImages
-                    ? "Uploading imagesâ€¦"
+                    ? "Uploading images…"
                     : saving
-                      ? "Savingâ€¦"
+                      ? "Saving…"
                       : editingPreOrder
                         ? "Save Changes"
                         : "Add Pre Order"}

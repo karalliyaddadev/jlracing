@@ -137,7 +137,7 @@ export default function AboutPage() {
       {/* ── Auctions ── */}
       <section className="abt-auctions">
         <div className="abt-auctions__inner">
-          <FadeIn>
+          <FadeIn className="abt-auctions__top">
             <span className="abt-grad-pill">
               <span className="abt-grad-pill__text">
                 <span className="abt-grad-text">Auctions</span>

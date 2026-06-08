@@ -115,75 +115,6 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* ── FAQ Section ── */}
-      <section className="contact-faq">
-        <div className="contact-faq__inner">
-          <FadeIn className="contact-faq__header">
-            <span className="contact-faq__label">FAQ</span>
-            <h2 className="contact-faq__title">Frequently Asked Questions</h2>
-            <p className="contact-faq__subtitle">
-              Find quick answers to the most common questions about our bikes,
-              spare parts, pre-orders, pricing, and delivery.
-            </p>
-          </FadeIn>
-
-          {faqLoading ? (
-            <div className="contact-faq__loading">Loading…</div>
-          ) : faqCategories.length === 0 ? null : (
-            <>
-              <div className="contact-faq__tabs">
-                {faqCategories.map((cat) => (
-                  <button
-                    key={cat.id}
-                    className={`contact-faq__tab ${activeFaqTab === cat.id ? "contact-faq__tab--active" : ""}`}
-                    onClick={() => {
-                      setActiveFaqTab(cat.id);
-                      setOpenFaqIndex(null);
-                    }}
-                  >
-                    {cat.title}
-                  </button>
-                ))}
-              </div>
-
-              <div className="contact-faq__list">
-                {currentCat?.items.map((item, idx) => (
-                  <div
-                    key={item.id}
-                    className={`contact-faq__item ${openFaqIndex === idx ? "contact-faq__item--open" : ""}`}
-                  >
-                    <button
-                      className="contact-faq__question"
-                      onClick={() =>
-                        setOpenFaqIndex(openFaqIndex === idx ? null : idx)
-                      }
-                    >
-                      <span>{item.question}</span>
-                      <svg
-                        className="contact-faq__chevron"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-                    </button>
-                    {openFaqIndex === idx && (
-                      <div className="contact-faq__answer">
-                        <p>{item.answer}</p>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </>
-          )}
-        </div>
-      </section>
-
       {/* ── Contact Body ── */}
       <section className="contact-body">
         <div className="contact-body__container">
@@ -474,18 +405,87 @@ export default function ContactPage() {
         </div>
       </section>
 
+      {/* ── FAQ Section ── */}
+      <section className="contact-faq">
+        <div className="contact-faq__inner">
+          <FadeIn className="contact-faq__header">
+            <span className="contact-faq__label">FAQ</span>
+            <h2 className="contact-faq__title">Frequently Asked Questions</h2>
+            <p className="contact-faq__subtitle">
+              Find quick answers to the most common questions about our bikes,
+              spare parts, pre-orders, pricing, and delivery.
+            </p>
+          </FadeIn>
+
+          {faqLoading ? (
+            <div className="contact-faq__loading">Loading…</div>
+          ) : faqCategories.length === 0 ? null : (
+            <>
+              <div className="contact-faq__tabs">
+                {faqCategories.map((cat) => (
+                  <button
+                    key={cat.id}
+                    className={`contact-faq__tab ${activeFaqTab === cat.id ? "contact-faq__tab--active" : ""}`}
+                    onClick={() => {
+                      setActiveFaqTab(cat.id);
+                      setOpenFaqIndex(null);
+                    }}
+                  >
+                    {cat.title}
+                  </button>
+                ))}
+              </div>
+
+              <div className="contact-faq__list">
+                {currentCat?.items.slice(0, 6).map((item, idx) => (
+                  <div
+                    key={item.id}
+                    className={`contact-faq__item ${openFaqIndex === idx ? "contact-faq__item--open" : ""}`}
+                  >
+                    <button
+                      className="contact-faq__question"
+                      onClick={() =>
+                        setOpenFaqIndex(openFaqIndex === idx ? null : idx)
+                      }
+                    >
+                      <span>{item.question}</span>
+                      <svg
+                        className="contact-faq__chevron"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
+                    {openFaqIndex === idx && (
+                      <div className="contact-faq__answer">
+                        <p>{item.answer}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      </section>
+
       {/* ── Map Section ── */}
       <section className="contact-map">
         <FadeIn>
           <h2 className="contact-map__title">Visit Our Showroom</h2>
           <p className="contact-map__subtitle">
-            Find our location easily using the map below.
+            No.154 Katugastota – Kurunegala – Puttalam Hwy, Kurunegala 60000
           </p>
         </FadeIn>
         <div className="contact-map__embed">
           <iframe
             title="JL Racing Location"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3957.0!2d80.3621!3d7.4867!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zN8KwMjknMTIuMSJOIDgwwrAyMSc0My42IkU!5e0!3m2!1sen!2slk!4v1"
+            src="https://maps.google.com/maps?q=JL+Racing+No+154+Katugastota+Kurunegala+Puttalam+Highway+Kurunegala+60000+Sri+Lanka&t=&z=17&ie=UTF8&iwloc=&output=embed"
             width="100%"
             height="100%"
             style={{ border: 0 }}
@@ -494,6 +494,16 @@ export default function ContactPage() {
             referrerPolicy="no-referrer-when-downgrade"
           />
         </div>
+        <FadeIn className="contact-map__cta">
+          <a
+            href="https://www.google.com/maps/search/JL+Racing+No.154+Katugastota+Kurunegala+Puttalam+Highway+Kurunegala+60000+Sri+Lanka"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="contact-map__visit-btn"
+          >
+            Visit Us on Google Maps
+          </a>
+        </FadeIn>
       </section>
     </>
   );

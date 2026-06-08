@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { Sidebar } from "../components/Sidebar";
 import { Topbar } from "../components/Topbar";
 import { AdminCtx } from "../components/AdminContext";
+import { QueryProvider } from "../components/QueryProvider";
 import { API_URL, STORAGE_TOKEN, STORAGE_ADMIN } from "../lib/constants";
 import type { PosAdmin } from "../lib/types";
 
@@ -71,14 +72,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <AdminCtx.Provider value={{ admin, token, logout }}>
-      <main className="pos-shell">
-        <Sidebar />
-        <div className="main-area">
-          <Topbar />
-          <div className="page-content">{children}</div>
-        </div>
-      </main>
-    </AdminCtx.Provider>
+    <QueryProvider>
+      <AdminCtx.Provider value={{ admin, token, logout }}>
+        <main className="pos-shell">
+          <Sidebar />
+          <div className="main-area">
+            <Topbar />
+            <div className="page-content">{children}</div>
+          </div>
+        </main>
+      </AdminCtx.Provider>
+    </QueryProvider>
   );
 }
