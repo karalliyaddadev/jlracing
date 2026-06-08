@@ -64,6 +64,11 @@ function preferText(value: unknown, fallback: string | null) {
   return typeof value === "string" && value.trim() ? value : fallback;
 }
 
+function displayText(value: string | null | undefined, fallback = "—") {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : fallback;
+}
+
 function normalizeVoucherRow(voucher: VoucherRow): VoucherRow {
   return {
     ...voucher,
@@ -432,15 +437,15 @@ export default function VouchersPage() {
                     <td className="td-muted">
                       {v.type === "ACCOUNT_TRANSFER"
                         ? v.toAccount ? <span style={{ color: "var(--accent)", fontWeight: 600 }}>→ {v.toAccount.name}</span> : "—"
-                        : (v.payee ?? "—")}
+                        : displayText(v.payee)}
                     </td>
                     <td className="td-muted">
                       {v.paymentDate ? formatDate(v.paymentDate) : formatDate(v.createdAt)}
                     </td>
                     <td style={{ textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{formatRs(v.amount)}</td>
                     <td className="td-muted">{v.account.name}</td>
-                    <td className="td-muted" style={{ fontFamily: "monospace", fontSize: "0.8rem" }}>{v.referenceNo ?? "—"}</td>
-                    <td className="td-muted">{v.description ?? "—"}</td>
+                    <td className="td-muted" style={{ fontFamily: "monospace", fontSize: "0.8rem" }}>{displayText(v.referenceNo)}</td>
+                    <td className="td-muted">{displayText(v.description)}</td>
                     <td>
                       {v.isVoided
                         ? <span className="badge" style={{ background: "var(--danger-bg)", color: "var(--danger)" }}>Voided</span>
@@ -567,15 +572,11 @@ export default function VouchersPage() {
                     {printVoucher.type === "ACCOUNT_TRANSFER" && printVoucher.toAccount && (
                       <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>To Account</td><td style={{ textAlign: "right", fontWeight: 600 }}>{printVoucher.toAccount.name} ({printVoucher.toAccount.code})</td></tr>
                     )}
-                    {printVoucher.type !== "ACCOUNT_TRANSFER" && printVoucher.payee && (
-                      <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Payee / Recipient</td><td style={{ textAlign: "right", fontWeight: 600 }}>{printVoucher.payee}</td></tr>
+                    {printVoucher.type !== "ACCOUNT_TRANSFER" && (
+                      <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Payee / Recipient</td><td style={{ textAlign: "right", fontWeight: 600 }}>{displayText(printVoucher.payee)}</td></tr>
                     )}
-                    {printVoucher.referenceNo && (
-                      <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Reference No.</td><td style={{ textAlign: "right" }}>{printVoucher.referenceNo}</td></tr>
-                    )}
-                    {printVoucher.description && (
-                      <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Description</td><td style={{ textAlign: "right" }}>{printVoucher.description}</td></tr>
-                    )}
+                    <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Reference No.</td><td style={{ textAlign: "right" }}>{displayText(printVoucher.referenceNo)}</td></tr>
+                    <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Description</td><td style={{ textAlign: "right" }}>{displayText(printVoucher.description)}</td></tr>
                   </tbody>
                 </table>
                 <hr style={{ margin: "16px 0", borderColor: "var(--panel-border)" }} />
