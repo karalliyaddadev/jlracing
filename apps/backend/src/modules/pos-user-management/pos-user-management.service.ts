@@ -742,7 +742,7 @@ async function createInvoicePaymentRecord(
     VALUES (
       ${purchaseId},
       ${amount},
-      ${(dto.paymentMethod ?? "CASH") as string},
+      ${dto.paymentMethod ?? "CASH"}::"PaymentMethod",
       ${dto.chequeNo ?? null},
       ${dto.chequeBank ?? null},
       ${dto.chequeDate ? new Date(dto.chequeDate) : null},
