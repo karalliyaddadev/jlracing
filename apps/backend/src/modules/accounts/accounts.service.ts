@@ -1,3 +1,4 @@
+import { Prisma } from "../../generated/prisma";
 import { prisma } from "../../database/prisma.client";
 import { AppError } from "../../common/utils/errors";
 import {
@@ -59,6 +60,49 @@ function calculateTotalReceivable(p: {
     return p.leasingDownPaymentAmount + regFee;
   }
   return (p.totalWithInterest ?? p.finalSellingPrice) + regFee;
+}
+
+type VoucherRow = {
+  id: number;
+  voucherNo: string;
+  accountId: number;
+  type: string;
+  amount: number;
+  description: string | null;
+  payee: string | null;
+  paymentDate: Date | null;
+  referenceNo: string | null;
+  isVoided: boolean;
+  createdById: number;
+  createdAt: Date;
+  updatedAt: Date;
+  accountName: string;
+  accountCode: string;
+  accountType: string;
+};
+
+function mapVoucherRow(row: VoucherRow) {
+  return {
+    id: row.id,
+    voucherNo: row.voucherNo,
+    accountId: row.accountId,
+    type: row.type,
+    amount: row.amount,
+    description: row.description,
+    payee: row.payee,
+    paymentDate: row.paymentDate,
+    referenceNo: row.referenceNo,
+    isVoided: row.isVoided,
+    createdById: row.createdById,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    account: {
+      id: row.accountId,
+      name: row.accountName,
+      code: row.accountCode,
+      type: row.accountType,
+    },
+  };
 }
 
 // ─── Chart of Accounts ────────────────────────────────────────────────────────
@@ -511,19 +555,60 @@ export async function listVouchers(dto: VoucherQueryDto) {
 
   const [total, vouchers] = await Promise.all([
     prisma.accountVoucher.count({ where }),
-    prisma.accountVoucher.findMany({
-      where,
-      include: {
-        account: { select: { id: true, name: true, code: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: dto.limit,
-    }),
+    dto.accountId !== undefined
+      ? prisma.$queryRaw<VoucherRow[]>(Prisma.sql`
+          SELECT
+            v."id",
+            v."voucherNo",
+            v."accountId",
+            v."type",
+            v."amount",
+            v."description",
+            v."payee",
+            v."paymentDate",
+            v."referenceNo",
+            v."isVoided",
+            v."createdById",
+            v."createdAt",
+            v."updatedAt",
+            a."name" AS "accountName",
+            a."code" AS "accountCode",
+            a."type" AS "accountType"
+          FROM "account_vouchers" v
+          INNER JOIN "accounts" a ON a."id" = v."accountId"
+          WHERE v."accountId" = ${dto.accountId}
+          ORDER BY v."createdAt" DESC
+          OFFSET ${skip}
+          LIMIT ${dto.limit}
+        `)
+      : prisma.$queryRaw<VoucherRow[]>(Prisma.sql`
+          SELECT
+            v."id",
+            v."voucherNo",
+            v."accountId",
+            v."type",
+            v."amount",
+            v."description",
+            v."payee",
+            v."paymentDate",
+            v."referenceNo",
+            v."isVoided",
+            v."createdById",
+            v."createdAt",
+            v."updatedAt",
+            a."name" AS "accountName",
+            a."code" AS "accountCode",
+            a."type" AS "accountType"
+          FROM "account_vouchers" v
+          INNER JOIN "accounts" a ON a."id" = v."accountId"
+          ORDER BY v."createdAt" DESC
+          OFFSET ${skip}
+          LIMIT ${dto.limit}
+        `),
   ]);
 
   return {
-    data: vouchers.map((v) => ({ ...v, typeLabel: voucherTypeLabel(v.type) })),
+    data: vouchers.map((v: VoucherRow) => ({ ...mapVoucherRow(v), typeLabel: voucherTypeLabel(v.type) })),
     pagination: { total, page: dto.page, limit: dto.limit, pages: Math.ceil(total / dto.limit) },
   };
 }
@@ -706,12 +791,32 @@ export async function voidVoucher(id: number, adminId: number) {
 }
 
 export async function getVoucherById(id: number) {
-  const voucher = await prisma.accountVoucher.findUnique({
-    where: { id },
-    include: { account: { select: { id: true, name: true, code: true, type: true } } },
-  });
-  if (!voucher) throw AppError.notFound("Voucher not found");
-  return { ...voucher, typeLabel: voucherTypeLabel(voucher.type) };
+  const voucher = await prisma.$queryRaw<VoucherRow[]>(Prisma.sql`
+    SELECT
+      v."id",
+      v."voucherNo",
+      v."accountId",
+      v."type",
+      v."amount",
+      v."description",
+      v."payee",
+      v."paymentDate",
+      v."referenceNo",
+      v."isVoided",
+      v."createdById",
+      v."createdAt",
+      v."updatedAt",
+      a."name" AS "accountName",
+      a."code" AS "accountCode",
+      a."type" AS "accountType"
+    FROM "account_vouchers" v
+    INNER JOIN "accounts" a ON a."id" = v."accountId"
+    WHERE v."id" = ${id}
+    LIMIT 1
+  `);
+  const row = voucher[0];
+  if (!row) throw AppError.notFound("Voucher not found");
+  return { ...mapVoucherRow(row), typeLabel: voucherTypeLabel(row.type) };
 }
 
 // ─── Invoice Payment Queue ────────────────────────────────────────────────────
