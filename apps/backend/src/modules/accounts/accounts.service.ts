@@ -653,7 +653,6 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
           data: {
             voucherNo,
             ...(dto.description !== undefined && { description: dto.description }),
-            ...(dto.payee !== undefined && { payee: dto.payee }),
           },
           include: {
             account: { select: { id: true, name: true, code: true } },
