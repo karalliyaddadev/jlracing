@@ -1,3 +1,4 @@
+import { Prisma } from "../../generated/prisma";
 import { prisma } from "../../database/prisma.client";
 import { AppError } from "../../common/utils/errors";
 import {
@@ -60,6 +61,49 @@ function calculateTotalReceivable(p: {
     return p.leasingDownPaymentAmount + regFee;
   }
   return (p.totalWithInterest ?? p.finalSellingPrice) + regFee;
+}
+
+type VoucherRow = {
+  id: number;
+  voucherNo: string;
+  accountId: number;
+  type: string;
+  amount: number;
+  description: string | null;
+  payee: string | null;
+  paymentDate: Date | null;
+  referenceNo: string | null;
+  isVoided: boolean;
+  createdById: number;
+  createdAt: Date;
+  updatedAt: Date;
+  accountName: string;
+  accountCode: string;
+  accountType: string;
+};
+
+function mapVoucherRow(row: VoucherRow) {
+  return {
+    id: row.id,
+    voucherNo: row.voucherNo,
+    accountId: row.accountId,
+    type: row.type,
+    amount: row.amount,
+    description: row.description,
+    payee: row.payee,
+    paymentDate: row.paymentDate,
+    referenceNo: row.referenceNo,
+    isVoided: row.isVoided,
+    createdById: row.createdById,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    account: {
+      id: row.accountId,
+      name: row.accountName,
+      code: row.accountCode,
+      type: row.accountType,
+    },
+  };
 }
 
 // ─── Chart of Accounts ────────────────────────────────────────────────────────
@@ -525,7 +569,7 @@ export async function listVouchers(dto: VoucherQueryDto) {
   ]);
 
   return {
-    data: vouchers.map((v) => ({ ...v, typeLabel: voucherTypeLabel(v.type) })),
+    data: vouchers.map((v: VoucherRow) => ({ ...mapVoucherRow(v), typeLabel: voucherTypeLabel(v.type) })),
     pagination: { total, page: dto.page, limit: dto.limit, pages: Math.ceil(total / dto.limit) },
   };
 }
@@ -566,12 +610,33 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
         type: dto.type,
         amount: dto.amount,
         description: dto.description,
-        payee: dto.payee,
-        paymentDate: dto.paymentDate,
-        referenceNo: dto.referenceNo,
         createdById: adminId,
       },
     });
+
+    if (dto.referenceNo !== undefined) {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "referenceNo" = ${dto.referenceNo}
+        WHERE "id" = ${created.id}
+      `;
+    }
+
+    if (dto.paymentDate !== undefined) {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "paymentDate" = ${dto.paymentDate}
+        WHERE "id" = ${created.id}
+      `;
+    }
+
+    if (dto.payee !== undefined) {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "payee" = ${dto.payee}
+        WHERE "id" = ${created.id}
+      `;
+    }
 
     const voucherNo = `VCH-${String(created.id).padStart(5, "0")}`;
 
@@ -687,6 +752,30 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
         toAccount: { select: { id: true, name: true, code: true } },
       },
     });
+
+    if (dto.referenceNo !== undefined) {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "referenceNo" = ${dto.referenceNo}
+        WHERE "id" = ${id}
+      `;
+    }
+
+    if (dto.paymentDate !== undefined) {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "paymentDate" = ${dto.paymentDate}
+        WHERE "id" = ${id}
+      `;
+    }
+
+    if (dto.payee !== undefined) {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "payee" = ${dto.payee}
+        WHERE "id" = ${id}
+      `;
+    }
 
     return { ...updated, typeLabel: voucherTypeLabel(updated.type) };
   });

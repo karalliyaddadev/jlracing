@@ -7,7 +7,7 @@
     "predev": "npm run db:generate",
     "dev": "tsx watch src/index.ts",
     "prebuild": "npm run db:generate",
-    "build": "tsc -b tsconfig.build.json --force",
+    "build": "tsc -b tsconfig.build.json --force && cp -r src/generated/prisma dist/generated/prisma",
     "prestart": "npm run build",
     "start": "node dist/index.js",
     "prestart:prod": "npm run build",
