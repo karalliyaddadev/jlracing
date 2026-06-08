@@ -189,10 +189,10 @@ export default function VouchersPage() {
           ? accounts.find((account) => account.id === form.toAccountId) ?? null
           : null),
         typeLabel: d.data.typeLabel ?? buildVoucherTypeLabel(form.type),
-        description: d.data.description ?? form.description || null,
-        payee: d.data.payee ?? (form.type === "ACCOUNT_TRANSFER" ? null : form.payee || null),
-        referenceNo: d.data.referenceNo ?? form.referenceNo || null,
-        paymentDate: d.data.paymentDate ?? form.paymentDate || null,
+        description: d.data.description ?? (form.description || null),
+        payee: d.data.payee ?? (form.type === "ACCOUNT_TRANSFER" ? null : (form.payee || null)),
+        referenceNo: d.data.referenceNo ?? (form.referenceNo || null),
+        paymentDate: d.data.paymentDate ?? (form.paymentDate || null),
       });
       setForm(EMPTY_FORM);
       setAvailableBalance(null);
