@@ -616,33 +616,12 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
         type: dto.type,
         amount: dto.amount,
         description: dto.description,
+        payee: dto.payee,
+        paymentDate: dto.paymentDate,
+        referenceNo: dto.referenceNo,
         createdById: adminId,
       },
     });
-
-    if (dto.referenceNo !== undefined) {
-      await tx.$executeRaw`
-        UPDATE "account_vouchers"
-        SET "referenceNo" = ${dto.referenceNo}
-        WHERE "id" = ${created.id}
-      `;
-    }
-
-    if (dto.paymentDate !== undefined) {
-      await tx.$executeRaw`
-        UPDATE "account_vouchers"
-        SET "paymentDate" = ${dto.paymentDate}
-        WHERE "id" = ${created.id}
-      `;
-    }
-
-    if (dto.payee !== undefined) {
-      await tx.$executeRaw`
-        UPDATE "account_vouchers"
-        SET "payee" = ${dto.payee}
-        WHERE "id" = ${created.id}
-      `;
-    }
 
     const voucherNo = `VCH-${String(created.id).padStart(5, "0")}`;
 
@@ -650,7 +629,13 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
       const [voucher] = await Promise.all([
         tx.accountVoucher.update({
           where: { id: created.id },
-          data: { voucherNo },
+          data: {
+            voucherNo,
+            ...(dto.description !== undefined && { description: dto.description }),
+            ...(dto.referenceNo !== undefined && { referenceNo: dto.referenceNo }),
+            ...(dto.paymentDate !== undefined && { paymentDate: dto.paymentDate }),
+            ...(dto.payee !== undefined && { payee: dto.payee }),
+          },
           include: {
             account: { select: { id: true, name: true, code: true } },
           },
@@ -689,7 +674,13 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
     const [voucher] = await Promise.all([
       tx.accountVoucher.update({
         where: { id: created.id },
-        data: { voucherNo },
+        data: {
+          voucherNo,
+          ...(dto.description !== undefined && { description: dto.description }),
+          ...(dto.referenceNo !== undefined && { referenceNo: dto.referenceNo }),
+          ...(dto.paymentDate !== undefined && { paymentDate: dto.paymentDate }),
+          ...(dto.payee !== undefined && { payee: dto.payee }),
+        },
         include: {
           account: { select: { id: true, name: true, code: true } },
         },
@@ -747,7 +738,7 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
         ...(dto.type !== undefined && { type: dto.type }),
         ...(dto.amount !== undefined && { amount: dto.amount }),
         ...(dto.description !== undefined && { description: dto.description }),
-        ...(!isTransfer && dto.payee !== undefined && { payee: dto.payee }),
+        ...(dto.payee !== undefined && { payee: dto.payee }),
         ...(dto.paymentDate !== undefined && { paymentDate: dto.paymentDate }),
         ...(dto.referenceNo !== undefined && { referenceNo: dto.referenceNo }),
       },
@@ -755,30 +746,6 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
         account: { select: { id: true, name: true, code: true } },
       },
     });
-
-    if (dto.referenceNo !== undefined) {
-      await tx.$executeRaw`
-        UPDATE "account_vouchers"
-        SET "referenceNo" = ${dto.referenceNo}
-        WHERE "id" = ${id}
-      `;
-    }
-
-    if (dto.paymentDate !== undefined) {
-      await tx.$executeRaw`
-        UPDATE "account_vouchers"
-        SET "paymentDate" = ${dto.paymentDate}
-        WHERE "id" = ${id}
-      `;
-    }
-
-    if (dto.payee !== undefined) {
-      await tx.$executeRaw`
-        UPDATE "account_vouchers"
-        SET "payee" = ${dto.payee}
-        WHERE "id" = ${id}
-      `;
-    }
 
     return { ...mapVoucherRow(updated, await resolveVoucherToAccount(tx, updated.toAccountId)), typeLabel: voucherTypeLabel(updated.type) };
   });
