@@ -56,6 +56,34 @@ function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-GB");
 }
 
+function buildVoucherTypeLabel(type: string) {
+  return VOUCHER_TYPES.find((voucherType) => voucherType.value === type)?.label ?? type;
+}
+
+function normalizeVoucherRow(voucher: VoucherRow): VoucherRow {
+  return {
+    ...voucher,
+    description: voucher.description?.trim() || null,
+    payee: voucher.payee?.trim() || null,
+    referenceNo: voucher.referenceNo?.trim() || null,
+    toAccount: voucher.toAccount ?? null,
+    typeLabel: voucher.typeLabel || buildVoucherTypeLabel(voucher.type),
+  };
+}
+
+function mergeVoucherRows(existingRows: VoucherRow[], incomingRows: VoucherRow[]) {
+  const byId = new Map<number, VoucherRow>();
+  for (const row of existingRows) {
+    byId.set(row.id, normalizeVoucherRow(row));
+  }
+  for (const row of incomingRows) {
+    const normalized = normalizeVoucherRow(row);
+    const previous = byId.get(normalized.id);
+    byId.set(normalized.id, previous ? { ...previous, ...normalized, payee: normalized.payee ?? previous.payee, description: normalized.description ?? previous.description, referenceNo: normalized.referenceNo ?? previous.referenceNo } : normalized);
+  }
+  return Array.from(byId.values()).sort((left, right) => right.id - left.id);
+}
+
 export default function VouchersPage() {
   const { token } = useAdmin();
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -98,7 +126,7 @@ export default function VouchersPage() {
     });
     const d = await res.json();
     const rows = Array.isArray(d.data?.data) ? d.data.data : Array.isArray(d.data) ? d.data : [];
-    setVouchers(rows);
+    setVouchers((current) => mergeVoucherRows(current, rows));
     setLoading(false);
   }
 
@@ -154,10 +182,22 @@ export default function VouchersPage() {
       });
       const d = await res.json();
       if (!res.ok) { setFormError(d.message ?? "Failed to create"); return; }
+      const createdVoucher = normalizeVoucherRow({
+        ...d.data,
+        account: d.data.account ?? accounts.find((account) => account.id === form.accountId) ?? { id: form.accountId, name: "", code: "" },
+        toAccount: d.data.toAccount ?? (form.type === "ACCOUNT_TRANSFER"
+          ? accounts.find((account) => account.id === form.toAccountId) ?? null
+          : null),
+        typeLabel: d.data.typeLabel ?? buildVoucherTypeLabel(form.type),
+        description: d.data.description ?? form.description || null,
+        payee: d.data.payee ?? (form.type === "ACCOUNT_TRANSFER" ? null : form.payee || null),
+        referenceNo: d.data.referenceNo ?? form.referenceNo || null,
+        paymentDate: d.data.paymentDate ?? form.paymentDate || null,
+      });
       setForm(EMPTY_FORM);
       setAvailableBalance(null);
-      setPrintVoucher(d.data);
-      setVouchers((current) => [d.data, ...current.filter((voucher) => voucher.id !== d.data.id)]);
+      setPrintVoucher(createdVoucher);
+      setVouchers((current) => mergeVoucherRows([createdVoucher], current.filter((voucher) => voucher.id !== createdVoucher.id)));
       fetchVouchers();
     } catch {
       setFormError("Network error");
