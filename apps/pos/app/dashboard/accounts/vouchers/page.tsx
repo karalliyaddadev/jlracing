@@ -97,7 +97,8 @@ export default function VouchersPage() {
       cache: "no-store",
     });
     const d = await res.json();
-    setVouchers(d.data?.data ?? []);
+    const rows = Array.isArray(d.data?.data) ? d.data.data : Array.isArray(d.data) ? d.data : [];
+    setVouchers(rows);
     setLoading(false);
   }
 
@@ -156,6 +157,7 @@ export default function VouchersPage() {
       setForm(EMPTY_FORM);
       setAvailableBalance(null);
       setPrintVoucher(d.data);
+      setVouchers((current) => [d.data, ...current.filter((voucher) => voucher.id !== d.data.id)]);
       fetchVouchers();
     } catch {
       setFormError("Network error");
