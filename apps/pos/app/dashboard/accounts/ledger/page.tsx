@@ -241,6 +241,7 @@ export default function LedgerPage() {
                           row.typeLabel === "Receipt" ? "badge-active"
                           : row.typeLabel === "Deposit" ? "badge-active"
                           : row.typeLabel === "Voucher" ? "badge-review"
+                          : row.typeLabel === "Transfer" ? "badge-active"
                           : "badge-pending"
                         }`}
                         style={
@@ -248,6 +249,8 @@ export default function LedgerPage() {
                             ? { background: "var(--danger-bg)", color: "var(--danger)" }
                             : row.typeLabel === "Deposit"
                             ? { background: "var(--info-bg, #dbeafe)", color: "var(--info, #2563eb)" }
+                            : row.typeLabel === "Transfer"
+                            ? { background: "#ede9fe", color: "#7c3aed" }
                             : {}
                         }
                       >

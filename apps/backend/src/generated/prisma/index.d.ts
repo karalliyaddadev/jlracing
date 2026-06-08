@@ -290,7 +290,8 @@ export const VoucherType: {
   SALARY: 'SALARY',
   CUSTOMER_REFUND: 'CUSTOMER_REFUND',
   VEHICLE_PURCHASE: 'VEHICLE_PURCHASE',
-  ADVANCE_REFUND: 'ADVANCE_REFUND'
+  ADVANCE_REFUND: 'ADVANCE_REFUND',
+  ACCOUNT_TRANSFER: 'ACCOUNT_TRANSFER'
 };
 
 export type VoucherType = (typeof VoucherType)[keyof typeof VoucherType]
@@ -300,7 +301,8 @@ export const TransactionType: {
   RECEIPT: 'RECEIPT',
   VOUCHER: 'VOUCHER',
   REVERSAL: 'REVERSAL',
-  DEPOSIT: 'DEPOSIT'
+  DEPOSIT: 'DEPOSIT',
+  TRANSFER: 'TRANSFER'
 };
 
 export type TransactionType = (typeof TransactionType)[keyof typeof TransactionType]
@@ -4363,6 +4365,7 @@ export namespace Prisma {
   export type AccountCountOutputType = {
     receipts: number
     vouchers: number
+    toVouchers: number
     transactions: number
     deposits: number
   }
@@ -4370,6 +4373,7 @@ export namespace Prisma {
   export type AccountCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     receipts?: boolean | AccountCountOutputTypeCountReceiptsArgs
     vouchers?: boolean | AccountCountOutputTypeCountVouchersArgs
+    toVouchers?: boolean | AccountCountOutputTypeCountToVouchersArgs
     transactions?: boolean | AccountCountOutputTypeCountTransactionsArgs
     deposits?: boolean | AccountCountOutputTypeCountDepositsArgs
   }
@@ -4396,6 +4400,13 @@ export namespace Prisma {
    * AccountCountOutputType without action
    */
   export type AccountCountOutputTypeCountVouchersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AccountVoucherWhereInput
+  }
+
+  /**
+   * AccountCountOutputType without action
+   */
+  export type AccountCountOutputTypeCountToVouchersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AccountVoucherWhereInput
   }
 
@@ -32788,6 +32799,7 @@ export namespace Prisma {
     updatedAt?: boolean
     receipts?: boolean | Account$receiptsArgs<ExtArgs>
     vouchers?: boolean | Account$vouchersArgs<ExtArgs>
+    toVouchers?: boolean | Account$toVouchersArgs<ExtArgs>
     transactions?: boolean | Account$transactionsArgs<ExtArgs>
     deposits?: boolean | Account$depositsArgs<ExtArgs>
     _count?: boolean | AccountCountOutputTypeDefaultArgs<ExtArgs>
@@ -32818,6 +32830,7 @@ export namespace Prisma {
   export type AccountInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     receipts?: boolean | Account$receiptsArgs<ExtArgs>
     vouchers?: boolean | Account$vouchersArgs<ExtArgs>
+    toVouchers?: boolean | Account$toVouchersArgs<ExtArgs>
     transactions?: boolean | Account$transactionsArgs<ExtArgs>
     deposits?: boolean | Account$depositsArgs<ExtArgs>
     _count?: boolean | AccountCountOutputTypeDefaultArgs<ExtArgs>
@@ -32829,6 +32842,7 @@ export namespace Prisma {
     objects: {
       receipts: Prisma.$AccountReceiptPayload<ExtArgs>[]
       vouchers: Prisma.$AccountVoucherPayload<ExtArgs>[]
+      toVouchers: Prisma.$AccountVoucherPayload<ExtArgs>[]
       transactions: Prisma.$AccountTransactionPayload<ExtArgs>[]
       deposits: Prisma.$AccountDepositPayload<ExtArgs>[]
     }
@@ -33207,6 +33221,7 @@ export namespace Prisma {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     receipts<T extends Account$receiptsArgs<ExtArgs> = {}>(args?: Subset<T, Account$receiptsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountReceiptPayload<ExtArgs>, T, "findMany"> | Null>
     vouchers<T extends Account$vouchersArgs<ExtArgs> = {}>(args?: Subset<T, Account$vouchersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountVoucherPayload<ExtArgs>, T, "findMany"> | Null>
+    toVouchers<T extends Account$toVouchersArgs<ExtArgs> = {}>(args?: Subset<T, Account$toVouchersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountVoucherPayload<ExtArgs>, T, "findMany"> | Null>
     transactions<T extends Account$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, Account$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountTransactionPayload<ExtArgs>, T, "findMany"> | Null>
     deposits<T extends Account$depositsArgs<ExtArgs> = {}>(args?: Subset<T, Account$depositsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "findMany"> | Null>
     /**
@@ -33583,6 +33598,26 @@ export namespace Prisma {
    * Account.vouchers
    */
   export type Account$vouchersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountVoucher
+     */
+    select?: AccountVoucherSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountVoucherInclude<ExtArgs> | null
+    where?: AccountVoucherWhereInput
+    orderBy?: AccountVoucherOrderByWithRelationInput | AccountVoucherOrderByWithRelationInput[]
+    cursor?: AccountVoucherWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AccountVoucherScalarFieldEnum | AccountVoucherScalarFieldEnum[]
+  }
+
+  /**
+   * Account.toVouchers
+   */
+  export type Account$toVouchersArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     /**
      * Select specific fields to fetch from the AccountVoucher
      */
@@ -34869,6 +34904,7 @@ export namespace Prisma {
   export type AccountVoucherAvgAggregateOutputType = {
     id: number | null
     accountId: number | null
+    toAccountId: number | null
     amount: number | null
     createdById: number | null
   }
@@ -34876,6 +34912,7 @@ export namespace Prisma {
   export type AccountVoucherSumAggregateOutputType = {
     id: number | null
     accountId: number | null
+    toAccountId: number | null
     amount: number | null
     createdById: number | null
   }
@@ -34884,6 +34921,7 @@ export namespace Prisma {
     id: number | null
     voucherNo: string | null
     accountId: number | null
+    toAccountId: number | null
     type: $Enums.VoucherType | null
     amount: number | null
     description: string | null
@@ -34900,6 +34938,7 @@ export namespace Prisma {
     id: number | null
     voucherNo: string | null
     accountId: number | null
+    toAccountId: number | null
     type: $Enums.VoucherType | null
     amount: number | null
     description: string | null
@@ -34916,6 +34955,7 @@ export namespace Prisma {
     id: number
     voucherNo: number
     accountId: number
+    toAccountId: number
     type: number
     amount: number
     description: number
@@ -34933,6 +34973,7 @@ export namespace Prisma {
   export type AccountVoucherAvgAggregateInputType = {
     id?: true
     accountId?: true
+    toAccountId?: true
     amount?: true
     createdById?: true
   }
@@ -34940,6 +34981,7 @@ export namespace Prisma {
   export type AccountVoucherSumAggregateInputType = {
     id?: true
     accountId?: true
+    toAccountId?: true
     amount?: true
     createdById?: true
   }
@@ -34948,6 +34990,7 @@ export namespace Prisma {
     id?: true
     voucherNo?: true
     accountId?: true
+    toAccountId?: true
     type?: true
     amount?: true
     description?: true
@@ -34964,6 +35007,7 @@ export namespace Prisma {
     id?: true
     voucherNo?: true
     accountId?: true
+    toAccountId?: true
     type?: true
     amount?: true
     description?: true
@@ -34980,6 +35024,7 @@ export namespace Prisma {
     id?: true
     voucherNo?: true
     accountId?: true
+    toAccountId?: true
     type?: true
     amount?: true
     description?: true
@@ -35083,6 +35128,7 @@ export namespace Prisma {
     id: number
     voucherNo: string
     accountId: number
+    toAccountId: number | null
     type: $Enums.VoucherType
     amount: number
     description: string | null
@@ -35118,6 +35164,7 @@ export namespace Prisma {
     id?: boolean
     voucherNo?: boolean
     accountId?: boolean
+    toAccountId?: boolean
     type?: boolean
     amount?: boolean
     description?: boolean
@@ -35129,6 +35176,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     account?: boolean | AccountDefaultArgs<ExtArgs>
+    toAccount?: boolean | AccountVoucher$toAccountArgs<ExtArgs>
     transactions?: boolean | AccountVoucher$transactionsArgs<ExtArgs>
     _count?: boolean | AccountVoucherCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["accountVoucher"]>
@@ -35137,6 +35185,7 @@ export namespace Prisma {
     id?: boolean
     voucherNo?: boolean
     accountId?: boolean
+    toAccountId?: boolean
     type?: boolean
     amount?: boolean
     description?: boolean
@@ -35148,12 +35197,14 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     account?: boolean | AccountDefaultArgs<ExtArgs>
+    toAccount?: boolean | AccountVoucher$toAccountArgs<ExtArgs>
   }, ExtArgs["result"]["accountVoucher"]>
 
   export type AccountVoucherSelectScalar = {
     id?: boolean
     voucherNo?: boolean
     accountId?: boolean
+    toAccountId?: boolean
     type?: boolean
     amount?: boolean
     description?: boolean
@@ -35168,23 +35219,27 @@ export namespace Prisma {
 
   export type AccountVoucherInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     account?: boolean | AccountDefaultArgs<ExtArgs>
+    toAccount?: boolean | AccountVoucher$toAccountArgs<ExtArgs>
     transactions?: boolean | AccountVoucher$transactionsArgs<ExtArgs>
     _count?: boolean | AccountVoucherCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type AccountVoucherIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     account?: boolean | AccountDefaultArgs<ExtArgs>
+    toAccount?: boolean | AccountVoucher$toAccountArgs<ExtArgs>
   }
 
   export type $AccountVoucherPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "AccountVoucher"
     objects: {
       account: Prisma.$AccountPayload<ExtArgs>
+      toAccount: Prisma.$AccountPayload<ExtArgs> | null
       transactions: Prisma.$AccountTransactionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
       voucherNo: string
       accountId: number
+      toAccountId: number | null
       type: $Enums.VoucherType
       amount: number
       description: string | null
@@ -35560,6 +35615,7 @@ export namespace Prisma {
   export interface Prisma__AccountVoucherClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     account<T extends AccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AccountDefaultArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    toAccount<T extends AccountVoucher$toAccountArgs<ExtArgs> = {}>(args?: Subset<T, AccountVoucher$toAccountArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     transactions<T extends AccountVoucher$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, AccountVoucher$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountTransactionPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -35593,6 +35649,7 @@ export namespace Prisma {
     readonly id: FieldRef<"AccountVoucher", 'Int'>
     readonly voucherNo: FieldRef<"AccountVoucher", 'String'>
     readonly accountId: FieldRef<"AccountVoucher", 'Int'>
+    readonly toAccountId: FieldRef<"AccountVoucher", 'Int'>
     readonly type: FieldRef<"AccountVoucher", 'VoucherType'>
     readonly amount: FieldRef<"AccountVoucher", 'Float'>
     readonly description: FieldRef<"AccountVoucher", 'String'>
@@ -35918,6 +35975,21 @@ export namespace Prisma {
      * Filter which AccountVouchers to delete
      */
     where?: AccountVoucherWhereInput
+  }
+
+  /**
+   * AccountVoucher.toAccount
+   */
+  export type AccountVoucher$toAccountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Account
+     */
+    select?: AccountSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountInclude<ExtArgs> | null
+    where?: AccountWhereInput
   }
 
   /**
@@ -40692,6 +40764,7 @@ export namespace Prisma {
     id: 'id',
     voucherNo: 'voucherNo',
     accountId: 'accountId',
+    toAccountId: 'toAccountId',
     type: 'type',
     amount: 'amount',
     description: 'description',
@@ -43235,6 +43308,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Account"> | Date | string
     receipts?: AccountReceiptListRelationFilter
     vouchers?: AccountVoucherListRelationFilter
+    toVouchers?: AccountVoucherListRelationFilter
     transactions?: AccountTransactionListRelationFilter
     deposits?: AccountDepositListRelationFilter
   }
@@ -43250,6 +43324,7 @@ export namespace Prisma {
     updatedAt?: SortOrder
     receipts?: AccountReceiptOrderByRelationAggregateInput
     vouchers?: AccountVoucherOrderByRelationAggregateInput
+    toVouchers?: AccountVoucherOrderByRelationAggregateInput
     transactions?: AccountTransactionOrderByRelationAggregateInput
     deposits?: AccountDepositOrderByRelationAggregateInput
   }
@@ -43268,6 +43343,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"Account"> | Date | string
     receipts?: AccountReceiptListRelationFilter
     vouchers?: AccountVoucherListRelationFilter
+    toVouchers?: AccountVoucherListRelationFilter
     transactions?: AccountTransactionListRelationFilter
     deposits?: AccountDepositListRelationFilter
   }, "id" | "code">
@@ -43433,6 +43509,7 @@ export namespace Prisma {
     id?: IntFilter<"AccountVoucher"> | number
     voucherNo?: StringFilter<"AccountVoucher"> | string
     accountId?: IntFilter<"AccountVoucher"> | number
+    toAccountId?: IntNullableFilter<"AccountVoucher"> | number | null
     type?: EnumVoucherTypeFilter<"AccountVoucher"> | $Enums.VoucherType
     amount?: FloatFilter<"AccountVoucher"> | number
     description?: StringNullableFilter<"AccountVoucher"> | string | null
@@ -43444,6 +43521,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"AccountVoucher"> | Date | string
     updatedAt?: DateTimeFilter<"AccountVoucher"> | Date | string
     account?: XOR<AccountRelationFilter, AccountWhereInput>
+    toAccount?: XOR<AccountNullableRelationFilter, AccountWhereInput> | null
     transactions?: AccountTransactionListRelationFilter
   }
 
@@ -43451,6 +43529,7 @@ export namespace Prisma {
     id?: SortOrder
     voucherNo?: SortOrder
     accountId?: SortOrder
+    toAccountId?: SortOrderInput | SortOrder
     type?: SortOrder
     amount?: SortOrder
     description?: SortOrderInput | SortOrder
@@ -43462,6 +43541,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     account?: AccountOrderByWithRelationInput
+    toAccount?: AccountOrderByWithRelationInput
     transactions?: AccountTransactionOrderByRelationAggregateInput
   }
 
@@ -43472,6 +43552,7 @@ export namespace Prisma {
     OR?: AccountVoucherWhereInput[]
     NOT?: AccountVoucherWhereInput | AccountVoucherWhereInput[]
     accountId?: IntFilter<"AccountVoucher"> | number
+    toAccountId?: IntNullableFilter<"AccountVoucher"> | number | null
     type?: EnumVoucherTypeFilter<"AccountVoucher"> | $Enums.VoucherType
     amount?: FloatFilter<"AccountVoucher"> | number
     description?: StringNullableFilter<"AccountVoucher"> | string | null
@@ -43483,6 +43564,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"AccountVoucher"> | Date | string
     updatedAt?: DateTimeFilter<"AccountVoucher"> | Date | string
     account?: XOR<AccountRelationFilter, AccountWhereInput>
+    toAccount?: XOR<AccountNullableRelationFilter, AccountWhereInput> | null
     transactions?: AccountTransactionListRelationFilter
   }, "id" | "voucherNo">
 
@@ -43490,6 +43572,7 @@ export namespace Prisma {
     id?: SortOrder
     voucherNo?: SortOrder
     accountId?: SortOrder
+    toAccountId?: SortOrderInput | SortOrder
     type?: SortOrder
     amount?: SortOrder
     description?: SortOrderInput | SortOrder
@@ -43514,6 +43597,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"AccountVoucher"> | number
     voucherNo?: StringWithAggregatesFilter<"AccountVoucher"> | string
     accountId?: IntWithAggregatesFilter<"AccountVoucher"> | number
+    toAccountId?: IntNullableWithAggregatesFilter<"AccountVoucher"> | number | null
     type?: EnumVoucherTypeWithAggregatesFilter<"AccountVoucher"> | $Enums.VoucherType
     amount?: FloatWithAggregatesFilter<"AccountVoucher"> | number
     description?: StringNullableWithAggregatesFilter<"AccountVoucher"> | string | null
@@ -46170,6 +46254,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     receipts?: AccountReceiptCreateNestedManyWithoutAccountInput
     vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
     deposits?: AccountDepositCreateNestedManyWithoutAccountInput
   }
@@ -46185,6 +46270,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutAccountInput
     vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherUncheckedCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
     deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
   }
@@ -46199,6 +46285,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUpdateManyWithoutAccountNestedInput
     vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
     deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
   }
@@ -46214,6 +46301,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutAccountNestedInput
     vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUncheckedUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
     deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
   }
@@ -46403,6 +46491,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     account: AccountCreateNestedOneWithoutVouchersInput
+    toAccount?: AccountCreateNestedOneWithoutToVouchersInput
     transactions?: AccountTransactionCreateNestedManyWithoutVoucherInput
   }
 
@@ -46410,6 +46499,7 @@ export namespace Prisma {
     id?: number
     voucherNo: string
     accountId: number
+    toAccountId?: number | null
     type: $Enums.VoucherType
     amount: number
     description?: string | null
@@ -46436,6 +46526,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     account?: AccountUpdateOneRequiredWithoutVouchersNestedInput
+    toAccount?: AccountUpdateOneWithoutToVouchersNestedInput
     transactions?: AccountTransactionUpdateManyWithoutVoucherNestedInput
   }
 
@@ -46443,6 +46534,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     voucherNo?: StringFieldUpdateOperationsInput | string
     accountId?: IntFieldUpdateOperationsInput | number
+    toAccountId?: NullableIntFieldUpdateOperationsInput | number | null
     type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -46460,6 +46552,7 @@ export namespace Prisma {
     id?: number
     voucherNo: string
     accountId: number
+    toAccountId?: number | null
     type: $Enums.VoucherType
     amount: number
     description?: string | null
@@ -46490,6 +46583,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     voucherNo?: StringFieldUpdateOperationsInput | string
     accountId?: IntFieldUpdateOperationsInput | number
+    toAccountId?: NullableIntFieldUpdateOperationsInput | number | null
     type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -49019,6 +49113,7 @@ export namespace Prisma {
     id?: SortOrder
     voucherNo?: SortOrder
     accountId?: SortOrder
+    toAccountId?: SortOrder
     type?: SortOrder
     amount?: SortOrder
     description?: SortOrder
@@ -49034,6 +49129,7 @@ export namespace Prisma {
   export type AccountVoucherAvgOrderByAggregateInput = {
     id?: SortOrder
     accountId?: SortOrder
+    toAccountId?: SortOrder
     amount?: SortOrder
     createdById?: SortOrder
   }
@@ -49042,6 +49138,7 @@ export namespace Prisma {
     id?: SortOrder
     voucherNo?: SortOrder
     accountId?: SortOrder
+    toAccountId?: SortOrder
     type?: SortOrder
     amount?: SortOrder
     description?: SortOrder
@@ -49058,6 +49155,7 @@ export namespace Prisma {
     id?: SortOrder
     voucherNo?: SortOrder
     accountId?: SortOrder
+    toAccountId?: SortOrder
     type?: SortOrder
     amount?: SortOrder
     description?: SortOrder
@@ -49073,6 +49171,7 @@ export namespace Prisma {
   export type AccountVoucherSumOrderByAggregateInput = {
     id?: SortOrder
     accountId?: SortOrder
+    toAccountId?: SortOrder
     amount?: SortOrder
     createdById?: SortOrder
   }
@@ -50733,6 +50832,13 @@ export namespace Prisma {
     connect?: AccountVoucherWhereUniqueInput | AccountVoucherWhereUniqueInput[]
   }
 
+  export type AccountVoucherCreateNestedManyWithoutToAccountInput = {
+    create?: XOR<AccountVoucherCreateWithoutToAccountInput, AccountVoucherUncheckedCreateWithoutToAccountInput> | AccountVoucherCreateWithoutToAccountInput[] | AccountVoucherUncheckedCreateWithoutToAccountInput[]
+    connectOrCreate?: AccountVoucherCreateOrConnectWithoutToAccountInput | AccountVoucherCreateOrConnectWithoutToAccountInput[]
+    createMany?: AccountVoucherCreateManyToAccountInputEnvelope
+    connect?: AccountVoucherWhereUniqueInput | AccountVoucherWhereUniqueInput[]
+  }
+
   export type AccountTransactionCreateNestedManyWithoutAccountInput = {
     create?: XOR<AccountTransactionCreateWithoutAccountInput, AccountTransactionUncheckedCreateWithoutAccountInput> | AccountTransactionCreateWithoutAccountInput[] | AccountTransactionUncheckedCreateWithoutAccountInput[]
     connectOrCreate?: AccountTransactionCreateOrConnectWithoutAccountInput | AccountTransactionCreateOrConnectWithoutAccountInput[]
@@ -50758,6 +50864,13 @@ export namespace Prisma {
     create?: XOR<AccountVoucherCreateWithoutAccountInput, AccountVoucherUncheckedCreateWithoutAccountInput> | AccountVoucherCreateWithoutAccountInput[] | AccountVoucherUncheckedCreateWithoutAccountInput[]
     connectOrCreate?: AccountVoucherCreateOrConnectWithoutAccountInput | AccountVoucherCreateOrConnectWithoutAccountInput[]
     createMany?: AccountVoucherCreateManyAccountInputEnvelope
+    connect?: AccountVoucherWhereUniqueInput | AccountVoucherWhereUniqueInput[]
+  }
+
+  export type AccountVoucherUncheckedCreateNestedManyWithoutToAccountInput = {
+    create?: XOR<AccountVoucherCreateWithoutToAccountInput, AccountVoucherUncheckedCreateWithoutToAccountInput> | AccountVoucherCreateWithoutToAccountInput[] | AccountVoucherUncheckedCreateWithoutToAccountInput[]
+    connectOrCreate?: AccountVoucherCreateOrConnectWithoutToAccountInput | AccountVoucherCreateOrConnectWithoutToAccountInput[]
+    createMany?: AccountVoucherCreateManyToAccountInputEnvelope
     connect?: AccountVoucherWhereUniqueInput | AccountVoucherWhereUniqueInput[]
   }
 
@@ -50804,6 +50917,20 @@ export namespace Prisma {
     connect?: AccountVoucherWhereUniqueInput | AccountVoucherWhereUniqueInput[]
     update?: AccountVoucherUpdateWithWhereUniqueWithoutAccountInput | AccountVoucherUpdateWithWhereUniqueWithoutAccountInput[]
     updateMany?: AccountVoucherUpdateManyWithWhereWithoutAccountInput | AccountVoucherUpdateManyWithWhereWithoutAccountInput[]
+    deleteMany?: AccountVoucherScalarWhereInput | AccountVoucherScalarWhereInput[]
+  }
+
+  export type AccountVoucherUpdateManyWithoutToAccountNestedInput = {
+    create?: XOR<AccountVoucherCreateWithoutToAccountInput, AccountVoucherUncheckedCreateWithoutToAccountInput> | AccountVoucherCreateWithoutToAccountInput[] | AccountVoucherUncheckedCreateWithoutToAccountInput[]
+    connectOrCreate?: AccountVoucherCreateOrConnectWithoutToAccountInput | AccountVoucherCreateOrConnectWithoutToAccountInput[]
+    upsert?: AccountVoucherUpsertWithWhereUniqueWithoutToAccountInput | AccountVoucherUpsertWithWhereUniqueWithoutToAccountInput[]
+    createMany?: AccountVoucherCreateManyToAccountInputEnvelope
+    set?: AccountVoucherWhereUniqueInput | AccountVoucherWhereUniqueInput[]
+    disconnect?: AccountVoucherWhereUniqueInput | AccountVoucherWhereUniqueInput[]
+    delete?: AccountVoucherWhereUniqueInput | AccountVoucherWhereUniqueInput[]
+    connect?: AccountVoucherWhereUniqueInput | AccountVoucherWhereUniqueInput[]
+    update?: AccountVoucherUpdateWithWhereUniqueWithoutToAccountInput | AccountVoucherUpdateWithWhereUniqueWithoutToAccountInput[]
+    updateMany?: AccountVoucherUpdateManyWithWhereWithoutToAccountInput | AccountVoucherUpdateManyWithWhereWithoutToAccountInput[]
     deleteMany?: AccountVoucherScalarWhereInput | AccountVoucherScalarWhereInput[]
   }
 
@@ -50860,6 +50987,20 @@ export namespace Prisma {
     connect?: AccountVoucherWhereUniqueInput | AccountVoucherWhereUniqueInput[]
     update?: AccountVoucherUpdateWithWhereUniqueWithoutAccountInput | AccountVoucherUpdateWithWhereUniqueWithoutAccountInput[]
     updateMany?: AccountVoucherUpdateManyWithWhereWithoutAccountInput | AccountVoucherUpdateManyWithWhereWithoutAccountInput[]
+    deleteMany?: AccountVoucherScalarWhereInput | AccountVoucherScalarWhereInput[]
+  }
+
+  export type AccountVoucherUncheckedUpdateManyWithoutToAccountNestedInput = {
+    create?: XOR<AccountVoucherCreateWithoutToAccountInput, AccountVoucherUncheckedCreateWithoutToAccountInput> | AccountVoucherCreateWithoutToAccountInput[] | AccountVoucherUncheckedCreateWithoutToAccountInput[]
+    connectOrCreate?: AccountVoucherCreateOrConnectWithoutToAccountInput | AccountVoucherCreateOrConnectWithoutToAccountInput[]
+    upsert?: AccountVoucherUpsertWithWhereUniqueWithoutToAccountInput | AccountVoucherUpsertWithWhereUniqueWithoutToAccountInput[]
+    createMany?: AccountVoucherCreateManyToAccountInputEnvelope
+    set?: AccountVoucherWhereUniqueInput | AccountVoucherWhereUniqueInput[]
+    disconnect?: AccountVoucherWhereUniqueInput | AccountVoucherWhereUniqueInput[]
+    delete?: AccountVoucherWhereUniqueInput | AccountVoucherWhereUniqueInput[]
+    connect?: AccountVoucherWhereUniqueInput | AccountVoucherWhereUniqueInput[]
+    update?: AccountVoucherUpdateWithWhereUniqueWithoutToAccountInput | AccountVoucherUpdateWithWhereUniqueWithoutToAccountInput[]
+    updateMany?: AccountVoucherUpdateManyWithWhereWithoutToAccountInput | AccountVoucherUpdateManyWithWhereWithoutToAccountInput[]
     deleteMany?: AccountVoucherScalarWhereInput | AccountVoucherScalarWhereInput[]
   }
 
@@ -51041,6 +51182,12 @@ export namespace Prisma {
     connect?: AccountWhereUniqueInput
   }
 
+  export type AccountCreateNestedOneWithoutToVouchersInput = {
+    create?: XOR<AccountCreateWithoutToVouchersInput, AccountUncheckedCreateWithoutToVouchersInput>
+    connectOrCreate?: AccountCreateOrConnectWithoutToVouchersInput
+    connect?: AccountWhereUniqueInput
+  }
+
   export type AccountTransactionCreateNestedManyWithoutVoucherInput = {
     create?: XOR<AccountTransactionCreateWithoutVoucherInput, AccountTransactionUncheckedCreateWithoutVoucherInput> | AccountTransactionCreateWithoutVoucherInput[] | AccountTransactionUncheckedCreateWithoutVoucherInput[]
     connectOrCreate?: AccountTransactionCreateOrConnectWithoutVoucherInput | AccountTransactionCreateOrConnectWithoutVoucherInput[]
@@ -51065,6 +51212,16 @@ export namespace Prisma {
     upsert?: AccountUpsertWithoutVouchersInput
     connect?: AccountWhereUniqueInput
     update?: XOR<XOR<AccountUpdateToOneWithWhereWithoutVouchersInput, AccountUpdateWithoutVouchersInput>, AccountUncheckedUpdateWithoutVouchersInput>
+  }
+
+  export type AccountUpdateOneWithoutToVouchersNestedInput = {
+    create?: XOR<AccountCreateWithoutToVouchersInput, AccountUncheckedCreateWithoutToVouchersInput>
+    connectOrCreate?: AccountCreateOrConnectWithoutToVouchersInput
+    upsert?: AccountUpsertWithoutToVouchersInput
+    disconnect?: AccountWhereInput | boolean
+    delete?: AccountWhereInput | boolean
+    connect?: AccountWhereUniqueInput
+    update?: XOR<XOR<AccountUpdateToOneWithWhereWithoutToVouchersInput, AccountUpdateWithoutToVouchersInput>, AccountUncheckedUpdateWithoutToVouchersInput>
   }
 
   export type AccountTransactionUpdateManyWithoutVoucherNestedInput = {
@@ -55318,12 +55475,14 @@ export namespace Prisma {
     createdById: number
     createdAt?: Date | string
     updatedAt?: Date | string
+    toAccount?: AccountCreateNestedOneWithoutToVouchersInput
     transactions?: AccountTransactionCreateNestedManyWithoutVoucherInput
   }
 
   export type AccountVoucherUncheckedCreateWithoutAccountInput = {
     id?: number
     voucherNo: string
+    toAccountId?: number | null
     type: $Enums.VoucherType
     amount: number
     description?: string | null
@@ -55344,6 +55503,49 @@ export namespace Prisma {
 
   export type AccountVoucherCreateManyAccountInputEnvelope = {
     data: AccountVoucherCreateManyAccountInput | AccountVoucherCreateManyAccountInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AccountVoucherCreateWithoutToAccountInput = {
+    voucherNo: string
+    type: $Enums.VoucherType
+    amount: number
+    description?: string | null
+    payee?: string | null
+    paymentDate?: Date | string | null
+    referenceNo?: string | null
+    isVoided?: boolean
+    createdById: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    account: AccountCreateNestedOneWithoutVouchersInput
+    transactions?: AccountTransactionCreateNestedManyWithoutVoucherInput
+  }
+
+  export type AccountVoucherUncheckedCreateWithoutToAccountInput = {
+    id?: number
+    voucherNo: string
+    accountId: number
+    type: $Enums.VoucherType
+    amount: number
+    description?: string | null
+    payee?: string | null
+    paymentDate?: Date | string | null
+    referenceNo?: string | null
+    isVoided?: boolean
+    createdById: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    transactions?: AccountTransactionUncheckedCreateNestedManyWithoutVoucherInput
+  }
+
+  export type AccountVoucherCreateOrConnectWithoutToAccountInput = {
+    where: AccountVoucherWhereUniqueInput
+    create: XOR<AccountVoucherCreateWithoutToAccountInput, AccountVoucherUncheckedCreateWithoutToAccountInput>
+  }
+
+  export type AccountVoucherCreateManyToAccountInputEnvelope = {
+    data: AccountVoucherCreateManyToAccountInput | AccountVoucherCreateManyToAccountInput[]
     skipDuplicates?: boolean
   }
 
@@ -55462,6 +55664,7 @@ export namespace Prisma {
     id?: IntFilter<"AccountVoucher"> | number
     voucherNo?: StringFilter<"AccountVoucher"> | string
     accountId?: IntFilter<"AccountVoucher"> | number
+    toAccountId?: IntNullableFilter<"AccountVoucher"> | number | null
     type?: EnumVoucherTypeFilter<"AccountVoucher"> | $Enums.VoucherType
     amount?: FloatFilter<"AccountVoucher"> | number
     description?: StringNullableFilter<"AccountVoucher"> | string | null
@@ -55472,6 +55675,22 @@ export namespace Prisma {
     createdById?: IntFilter<"AccountVoucher"> | number
     createdAt?: DateTimeFilter<"AccountVoucher"> | Date | string
     updatedAt?: DateTimeFilter<"AccountVoucher"> | Date | string
+  }
+
+  export type AccountVoucherUpsertWithWhereUniqueWithoutToAccountInput = {
+    where: AccountVoucherWhereUniqueInput
+    update: XOR<AccountVoucherUpdateWithoutToAccountInput, AccountVoucherUncheckedUpdateWithoutToAccountInput>
+    create: XOR<AccountVoucherCreateWithoutToAccountInput, AccountVoucherUncheckedCreateWithoutToAccountInput>
+  }
+
+  export type AccountVoucherUpdateWithWhereUniqueWithoutToAccountInput = {
+    where: AccountVoucherWhereUniqueInput
+    data: XOR<AccountVoucherUpdateWithoutToAccountInput, AccountVoucherUncheckedUpdateWithoutToAccountInput>
+  }
+
+  export type AccountVoucherUpdateManyWithWhereWithoutToAccountInput = {
+    where: AccountVoucherScalarWhereInput
+    data: XOR<AccountVoucherUpdateManyMutationInput, AccountVoucherUncheckedUpdateManyWithoutToAccountInput>
   }
 
   export type AccountTransactionUpsertWithWhereUniqueWithoutAccountInput = {
@@ -55550,6 +55769,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
     deposits?: AccountDepositCreateNestedManyWithoutAccountInput
   }
@@ -55564,6 +55784,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherUncheckedCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
     deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
   }
@@ -55742,6 +55963,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
     deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
   }
@@ -55756,6 +55978,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUncheckedUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
     deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
   }
@@ -55911,6 +56134,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     receipts?: AccountReceiptCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
     deposits?: AccountDepositCreateNestedManyWithoutAccountInput
   }
@@ -55925,6 +56149,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherUncheckedCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
     deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
   }
@@ -55932,6 +56157,40 @@ export namespace Prisma {
   export type AccountCreateOrConnectWithoutVouchersInput = {
     where: AccountWhereUniqueInput
     create: XOR<AccountCreateWithoutVouchersInput, AccountUncheckedCreateWithoutVouchersInput>
+  }
+
+  export type AccountCreateWithoutToVouchersInput = {
+    name: string
+    code: string
+    type?: $Enums.AccountType
+    openingBalance?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    receipts?: AccountReceiptCreateNestedManyWithoutAccountInput
+    vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
+    transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositCreateNestedManyWithoutAccountInput
+  }
+
+  export type AccountUncheckedCreateWithoutToVouchersInput = {
+    id?: number
+    name: string
+    code: string
+    type?: $Enums.AccountType
+    openingBalance?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    receipts?: AccountReceiptUncheckedCreateNestedManyWithoutAccountInput
+    vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
+    transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
+  }
+
+  export type AccountCreateOrConnectWithoutToVouchersInput = {
+    where: AccountWhereUniqueInput
+    create: XOR<AccountCreateWithoutToVouchersInput, AccountUncheckedCreateWithoutToVouchersInput>
   }
 
   export type AccountTransactionCreateWithoutVoucherInput = {
@@ -55995,6 +56254,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
     deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
   }
@@ -56009,6 +56269,47 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUncheckedUpdateManyWithoutToAccountNestedInput
+    transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
+  }
+
+  export type AccountUpsertWithoutToVouchersInput = {
+    update: XOR<AccountUpdateWithoutToVouchersInput, AccountUncheckedUpdateWithoutToVouchersInput>
+    create: XOR<AccountCreateWithoutToVouchersInput, AccountUncheckedCreateWithoutToVouchersInput>
+    where?: AccountWhereInput
+  }
+
+  export type AccountUpdateToOneWithWhereWithoutToVouchersInput = {
+    where?: AccountWhereInput
+    data: XOR<AccountUpdateWithoutToVouchersInput, AccountUncheckedUpdateWithoutToVouchersInput>
+  }
+
+  export type AccountUpdateWithoutToVouchersInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    openingBalance?: FloatFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receipts?: AccountReceiptUpdateManyWithoutAccountNestedInput
+    vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
+    transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
+  }
+
+  export type AccountUncheckedUpdateWithoutToVouchersInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    openingBalance?: FloatFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receipts?: AccountReceiptUncheckedUpdateManyWithoutAccountNestedInput
+    vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
     transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
     deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
   }
@@ -56039,6 +56340,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     receipts?: AccountReceiptCreateNestedManyWithoutAccountInput
     vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherCreateNestedManyWithoutToAccountInput
     deposits?: AccountDepositCreateNestedManyWithoutAccountInput
   }
 
@@ -56053,6 +56355,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutAccountInput
     vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherUncheckedCreateNestedManyWithoutToAccountInput
     deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
   }
 
@@ -56120,12 +56423,14 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     account: AccountCreateNestedOneWithoutVouchersInput
+    toAccount?: AccountCreateNestedOneWithoutToVouchersInput
   }
 
   export type AccountVoucherUncheckedCreateWithoutTransactionsInput = {
     id?: number
     voucherNo: string
     accountId: number
+    toAccountId?: number | null
     type: $Enums.VoucherType
     amount: number
     description?: string | null
@@ -56194,6 +56499,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUpdateManyWithoutAccountNestedInput
     vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUpdateManyWithoutToAccountNestedInput
     deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
   }
 
@@ -56208,6 +56514,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutAccountNestedInput
     vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUncheckedUpdateManyWithoutToAccountNestedInput
     deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
   }
 
@@ -56287,12 +56594,14 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     account?: AccountUpdateOneRequiredWithoutVouchersNestedInput
+    toAccount?: AccountUpdateOneWithoutToVouchersNestedInput
   }
 
   export type AccountVoucherUncheckedUpdateWithoutTransactionsInput = {
     id?: IntFieldUpdateOperationsInput | number
     voucherNo?: StringFieldUpdateOperationsInput | string
     accountId?: IntFieldUpdateOperationsInput | number
+    toAccountId?: NullableIntFieldUpdateOperationsInput | number | null
     type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -56583,6 +56892,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     receipts?: AccountReceiptCreateNestedManyWithoutAccountInput
     vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
   }
 
@@ -56597,6 +56907,7 @@ export namespace Prisma {
     updatedAt?: Date | string
     receipts?: AccountReceiptUncheckedCreateNestedManyWithoutAccountInput
     vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherUncheckedCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
   }
 
@@ -56688,6 +56999,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUpdateManyWithoutAccountNestedInput
     vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
   }
 
@@ -56702,6 +57014,7 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     receipts?: AccountReceiptUncheckedUpdateManyWithoutAccountNestedInput
     vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUncheckedUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
   }
 
@@ -58461,6 +58774,23 @@ export namespace Prisma {
   export type AccountVoucherCreateManyAccountInput = {
     id?: number
     voucherNo: string
+    toAccountId?: number | null
+    type: $Enums.VoucherType
+    amount: number
+    description?: string | null
+    payee?: string | null
+    paymentDate?: Date | string | null
+    referenceNo?: string | null
+    isVoided?: boolean
+    createdById: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type AccountVoucherCreateManyToAccountInput = {
+    id?: number
+    voucherNo: string
+    accountId: number
     type: $Enums.VoucherType
     amount: number
     description?: string | null
@@ -58571,12 +58901,14 @@ export namespace Prisma {
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    toAccount?: AccountUpdateOneWithoutToVouchersNestedInput
     transactions?: AccountTransactionUpdateManyWithoutVoucherNestedInput
   }
 
   export type AccountVoucherUncheckedUpdateWithoutAccountInput = {
     id?: IntFieldUpdateOperationsInput | number
     voucherNo?: StringFieldUpdateOperationsInput | string
+    toAccountId?: NullableIntFieldUpdateOperationsInput | number | null
     type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
@@ -58593,6 +58925,56 @@ export namespace Prisma {
   export type AccountVoucherUncheckedUpdateManyWithoutAccountInput = {
     id?: IntFieldUpdateOperationsInput | number
     voucherNo?: StringFieldUpdateOperationsInput | string
+    toAccountId?: NullableIntFieldUpdateOperationsInput | number | null
+    type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
+    amount?: FloatFieldUpdateOperationsInput | number
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    payee?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    referenceNo?: NullableStringFieldUpdateOperationsInput | string | null
+    isVoided?: BoolFieldUpdateOperationsInput | boolean
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountVoucherUpdateWithoutToAccountInput = {
+    voucherNo?: StringFieldUpdateOperationsInput | string
+    type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
+    amount?: FloatFieldUpdateOperationsInput | number
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    payee?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    referenceNo?: NullableStringFieldUpdateOperationsInput | string | null
+    isVoided?: BoolFieldUpdateOperationsInput | boolean
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    account?: AccountUpdateOneRequiredWithoutVouchersNestedInput
+    transactions?: AccountTransactionUpdateManyWithoutVoucherNestedInput
+  }
+
+  export type AccountVoucherUncheckedUpdateWithoutToAccountInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    voucherNo?: StringFieldUpdateOperationsInput | string
+    accountId?: IntFieldUpdateOperationsInput | number
+    type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
+    amount?: FloatFieldUpdateOperationsInput | number
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    payee?: NullableStringFieldUpdateOperationsInput | string | null
+    paymentDate?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    referenceNo?: NullableStringFieldUpdateOperationsInput | string | null
+    isVoided?: BoolFieldUpdateOperationsInput | boolean
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    transactions?: AccountTransactionUncheckedUpdateManyWithoutVoucherNestedInput
+  }
+
+  export type AccountVoucherUncheckedUpdateManyWithoutToAccountInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    voucherNo?: StringFieldUpdateOperationsInput | string
+    accountId?: IntFieldUpdateOperationsInput | number
     type?: EnumVoucherTypeFieldUpdateOperationsInput | $Enums.VoucherType
     amount?: FloatFieldUpdateOperationsInput | number
     description?: NullableStringFieldUpdateOperationsInput | string | null
