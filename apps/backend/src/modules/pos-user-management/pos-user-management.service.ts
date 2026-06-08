@@ -728,17 +728,28 @@ async function createInvoicePaymentRecord(
   }
   if (amount <= 0) return;
   const invoiceRef = invoiceGroupCode ?? `INV-${String(purchaseId).padStart(5, "0")}`;
-  await prisma.invoicePayment.create({
-    data: {
-      purchaseId,
-      amount,
-      paymentMethod: (dto.paymentMethod ?? "CASH") as any,
-      chequeNo: dto.chequeNo,
-      chequeBank: dto.chequeBank,
-      chequeDate: dto.chequeDate ? new Date(dto.chequeDate) : undefined,
-      description: `Initial payment — ${invoiceRef}`,
-    },
-  });
+  await prisma.$executeRaw`
+    INSERT INTO "invoice_payments" (
+      "purchaseId",
+      "amount",
+      "paymentMethod",
+      "chequeNo",
+      "chequeBank",
+      "chequeDate",
+      "description",
+      "paidAt"
+    )
+    VALUES (
+      ${purchaseId},
+      ${amount},
+      ${(dto.paymentMethod ?? "CASH") as string},
+      ${dto.chequeNo ?? null},
+      ${dto.chequeBank ?? null},
+      ${dto.chequeDate ? new Date(dto.chequeDate) : null},
+      ${`Initial payment — ${invoiceRef}`},
+      CURRENT_TIMESTAMP
+    )
+  `;
 }
 
 export async function createPurchase(
