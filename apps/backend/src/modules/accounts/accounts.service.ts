@@ -560,7 +560,6 @@ export async function listVouchers(dto: VoucherQueryDto) {
       where,
       include: {
         account: { select: { id: true, name: true, code: true } },
-        toAccount: { select: { id: true, name: true, code: true } },
       },
       orderBy: { createdAt: "desc" },
       skip,

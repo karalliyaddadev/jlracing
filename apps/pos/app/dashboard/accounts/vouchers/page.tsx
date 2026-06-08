@@ -94,6 +94,7 @@ export default function VouchersPage() {
     setLoading(true);
     const res = await fetch(`${API_URL}/api/pos/accounts/vouchers?limit=100`, {
       headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
     });
     const d = await res.json();
     setVouchers(d.data?.data ?? []);
