@@ -557,10 +557,17 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
         type: dto.type,
         amount: dto.amount,
         description: dto.description,
-        referenceNo: dto.referenceNo,
         createdById: adminId,
       },
     });
+
+    if (dto.referenceNo !== undefined) {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "referenceNo" = ${dto.referenceNo}
+        WHERE "id" = ${created.id}
+      `;
+    }
 
     if (dto.paymentDate !== undefined) {
       await tx.$executeRaw`
@@ -631,10 +638,17 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
         ...(dto.type !== undefined && { type: dto.type }),
         ...(dto.amount !== undefined && { amount: dto.amount }),
         ...(dto.description !== undefined && { description: dto.description }),
-        ...(dto.referenceNo !== undefined && { referenceNo: dto.referenceNo }),
       },
       include: { account: { select: { id: true, name: true, code: true } } },
     });
+
+    if (dto.referenceNo !== undefined) {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "referenceNo" = ${dto.referenceNo}
+        WHERE "id" = ${id}
+      `;
+    }
 
     if (dto.paymentDate !== undefined) {
       await tx.$executeRaw`
