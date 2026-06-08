@@ -60,6 +60,10 @@ function buildVoucherTypeLabel(type: string) {
   return VOUCHER_TYPES.find((voucherType) => voucherType.value === type)?.label ?? type;
 }
 
+function preferText(value: unknown, fallback: string | null) {
+  return typeof value === "string" && value.trim() ? value : fallback;
+}
+
 function normalizeVoucherRow(voucher: VoucherRow): VoucherRow {
   return {
     ...voucher,
@@ -130,6 +134,15 @@ export default function VouchersPage() {
     setLoading(false);
   }
 
+  async function fetchVoucherById(id: number) {
+    const res = await fetch(`${API_URL}/api/pos/accounts/vouchers/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    const d = await res.json();
+    return (d.data ?? null) as VoucherRow | null;
+  }
+
   async function fetchBalance(accountId: number) {
     if (!accountId) { setAvailableBalance(null); return; }
     setBalanceLoading(true);
@@ -182,17 +195,18 @@ export default function VouchersPage() {
       });
       const d = await res.json();
       if (!res.ok) { setFormError(d.message ?? "Failed to create"); return; }
+      const freshVoucher = (await fetchVoucherById(d.data.id)) ?? d.data;
       const createdVoucher = normalizeVoucherRow({
-        ...d.data,
-        account: d.data.account ?? accounts.find((account) => account.id === form.accountId) ?? { id: form.accountId, name: "", code: "" },
-        toAccount: d.data.toAccount ?? (form.type === "ACCOUNT_TRANSFER"
+        ...freshVoucher,
+        account: freshVoucher.account ?? accounts.find((account) => account.id === form.accountId) ?? { id: form.accountId, name: "", code: "" },
+        toAccount: freshVoucher.toAccount ?? (form.type === "ACCOUNT_TRANSFER"
           ? accounts.find((account) => account.id === form.toAccountId) ?? null
           : null),
-        typeLabel: d.data.typeLabel ?? buildVoucherTypeLabel(form.type),
-        description: d.data.description ?? (form.description || null),
-        payee: d.data.payee ?? (form.type === "ACCOUNT_TRANSFER" ? null : (form.payee || null)),
-        referenceNo: d.data.referenceNo ?? (form.referenceNo || null),
-        paymentDate: d.data.paymentDate ?? (form.paymentDate || null),
+        typeLabel: freshVoucher.typeLabel ?? buildVoucherTypeLabel(form.type),
+        description: preferText(freshVoucher.description, form.description || null),
+        payee: preferText(freshVoucher.payee, form.type === "ACCOUNT_TRANSFER" ? null : (form.payee || null)),
+        referenceNo: preferText(freshVoucher.referenceNo, form.referenceNo || null),
+        paymentDate: preferText(freshVoucher.paymentDate, form.paymentDate || null),
       });
       setForm(EMPTY_FORM);
       setAvailableBalance(null);
