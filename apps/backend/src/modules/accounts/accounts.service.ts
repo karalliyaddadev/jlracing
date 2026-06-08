@@ -616,7 +616,6 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
         type: dto.type,
         amount: dto.amount,
         description: dto.description,
-        paymentDate: dto.paymentDate,
         referenceNo: dto.referenceNo,
         createdById: adminId,
       },
@@ -626,6 +625,14 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
       await tx.$executeRaw`
         UPDATE "account_vouchers"
         SET "payee" = ${dto.payee}
+        WHERE "id" = ${created.id}
+      `;
+    }
+
+    if (dto.paymentDate !== undefined) {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "paymentDate" = ${dto.paymentDate}
         WHERE "id" = ${created.id}
       `;
     }
@@ -640,7 +647,6 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
             voucherNo,
             ...(dto.description !== undefined && { description: dto.description }),
             ...(dto.referenceNo !== undefined && { referenceNo: dto.referenceNo }),
-            ...(dto.paymentDate !== undefined && { paymentDate: dto.paymentDate }),
             ...(dto.payee !== undefined && { payee: dto.payee }),
           },
           include: {
@@ -745,7 +751,6 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
         ...(dto.type !== undefined && { type: dto.type }),
         ...(dto.amount !== undefined && { amount: dto.amount }),
         ...(dto.description !== undefined && { description: dto.description }),
-        ...(dto.paymentDate !== undefined && { paymentDate: dto.paymentDate }),
         ...(dto.referenceNo !== undefined && { referenceNo: dto.referenceNo }),
       },
       include: {
@@ -757,6 +762,14 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
       await tx.$executeRaw`
         UPDATE "account_vouchers"
         SET "payee" = ${dto.payee}
+        WHERE "id" = ${id}
+      `;
+    }
+
+    if (dto.paymentDate !== undefined) {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "paymentDate" = ${dto.paymentDate}
         WHERE "id" = ${id}
       `;
     }
