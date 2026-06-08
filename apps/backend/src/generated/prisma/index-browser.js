@@ -486,6 +486,7 @@ exports.Prisma.AccountVoucherScalarFieldEnum = {
   id: 'id',
   voucherNo: 'voucherNo',
   accountId: 'accountId',
+  toAccountId: 'toAccountId',
   type: 'type',
   amount: 'amount',
   description: 'description',
@@ -630,14 +631,16 @@ exports.VoucherType = exports.$Enums.VoucherType = {
   SALARY: 'SALARY',
   CUSTOMER_REFUND: 'CUSTOMER_REFUND',
   VEHICLE_PURCHASE: 'VEHICLE_PURCHASE',
-  ADVANCE_REFUND: 'ADVANCE_REFUND'
+  ADVANCE_REFUND: 'ADVANCE_REFUND',
+  ACCOUNT_TRANSFER: 'ACCOUNT_TRANSFER'
 };
 
 exports.TransactionType = exports.$Enums.TransactionType = {
   RECEIPT: 'RECEIPT',
   VOUCHER: 'VOUCHER',
   REVERSAL: 'REVERSAL',
-  DEPOSIT: 'DEPOSIT'
+  DEPOSIT: 'DEPOSIT',
+  TRANSFER: 'TRANSFER'
 };
 
 exports.TransactionDirection = exports.$Enums.TransactionDirection = {

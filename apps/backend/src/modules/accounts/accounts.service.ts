@@ -43,6 +43,7 @@ function voucherTypeLabel(type: string): string {
     CUSTOMER_REFUND: "Customer Refund",
     VEHICLE_PURCHASE: "Vehicle Purchase",
     ADVANCE_REFUND: "Advance Invoice Refund",
+    ACCOUNT_TRANSFER: "Account Transfer",
   };
   return map[type] ?? type;
 }
@@ -555,56 +556,16 @@ export async function listVouchers(dto: VoucherQueryDto) {
 
   const [total, vouchers] = await Promise.all([
     prisma.accountVoucher.count({ where }),
-    dto.accountId !== undefined
-      ? prisma.$queryRaw<VoucherRow[]>(Prisma.sql`
-          SELECT
-            v."id",
-            v."voucherNo",
-            v."accountId",
-            v."type",
-            v."amount",
-            v."description",
-            v."payee",
-            v."paymentDate",
-            v."referenceNo",
-            v."isVoided",
-            v."createdById",
-            v."createdAt",
-            v."updatedAt",
-            a."name" AS "accountName",
-            a."code" AS "accountCode",
-            a."type" AS "accountType"
-          FROM "account_vouchers" v
-          INNER JOIN "accounts" a ON a."id" = v."accountId"
-          WHERE v."accountId" = ${dto.accountId}
-          ORDER BY v."createdAt" DESC
-          OFFSET ${skip}
-          LIMIT ${dto.limit}
-        `)
-      : prisma.$queryRaw<VoucherRow[]>(Prisma.sql`
-          SELECT
-            v."id",
-            v."voucherNo",
-            v."accountId",
-            v."type",
-            v."amount",
-            v."description",
-            v."payee",
-            v."paymentDate",
-            v."referenceNo",
-            v."isVoided",
-            v."createdById",
-            v."createdAt",
-            v."updatedAt",
-            a."name" AS "accountName",
-            a."code" AS "accountCode",
-            a."type" AS "accountType"
-          FROM "account_vouchers" v
-          INNER JOIN "accounts" a ON a."id" = v."accountId"
-          ORDER BY v."createdAt" DESC
-          OFFSET ${skip}
-          LIMIT ${dto.limit}
-        `),
+    prisma.accountVoucher.findMany({
+      where,
+      include: {
+        account: { select: { id: true, name: true, code: true } },
+        toAccount: { select: { id: true, name: true, code: true } },
+      },
+      orderBy: { createdAt: "desc" },
+      skip,
+      take: dto.limit,
+    }),
   ]);
 
   return {
@@ -616,6 +577,12 @@ export async function listVouchers(dto: VoucherQueryDto) {
 export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
   const account = await prisma.account.findUnique({ where: { id: dto.accountId } });
   if (!account || !account.isActive) throw AppError.notFound("Account not found or inactive");
+
+  let toAccount = null;
+  if (dto.type === "ACCOUNT_TRANSFER") {
+    toAccount = await prisma.account.findUnique({ where: { id: dto.toAccountId } });
+    if (!toAccount || !toAccount.isActive) throw AppError.notFound("Destination account not found or inactive");
+  }
 
   const allTx = await prisma.accountTransaction.findMany({
     where: { accountId: dto.accountId },
@@ -639,6 +606,7 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
       data: {
         voucherNo: "TEMP",
         accountId: dto.accountId,
+        toAccountId: dto.type === "ACCOUNT_TRANSFER" ? dto.toAccountId : undefined,
         type: dto.type,
         amount: dto.amount,
         description: dto.description,
@@ -672,11 +640,55 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
 
     const voucherNo = `VCH-${String(created.id).padStart(5, "0")}`;
 
+    if (dto.type === "ACCOUNT_TRANSFER" && toAccount) {
+      const [voucher] = await Promise.all([
+        tx.accountVoucher.update({
+          where: { id: created.id },
+          data: { voucherNo },
+          include: {
+            account: { select: { id: true, name: true, code: true } },
+            toAccount: { select: { id: true, name: true, code: true } },
+          },
+        }),
+        // CR on source account (money leaves)
+        tx.accountTransaction.create({
+          data: {
+            accountId: dto.accountId,
+            type: TransactionType.TRANSFER,
+            direction: TransactionDirection.CR,
+            amount: dto.amount,
+            voucherId: created.id,
+            refNo: voucherNo,
+            description: dto.description ?? `Transfer to ${toAccount.name}`,
+            createdById: adminId,
+          },
+        }),
+        // DR on destination account (money enters)
+        tx.accountTransaction.create({
+          data: {
+            accountId: dto.toAccountId!,
+            type: TransactionType.TRANSFER,
+            direction: TransactionDirection.DR,
+            amount: dto.amount,
+            voucherId: created.id,
+            refNo: voucherNo,
+            description: dto.description ?? `Transfer from ${account.name}`,
+            createdById: adminId,
+          },
+        }),
+      ]);
+
+      return { ...voucher, typeLabel: voucherTypeLabel(voucher.type) };
+    }
+
     const [voucher] = await Promise.all([
       tx.accountVoucher.update({
         where: { id: created.id },
         data: { voucherNo },
-        include: { account: { select: { id: true, name: true, code: true } } },
+        include: {
+          account: { select: { id: true, name: true, code: true } },
+          toAccount: { select: { id: true, name: true, code: true } },
+        },
       }),
       tx.accountTransaction.create({
         data: {
@@ -704,7 +716,15 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
   if (!voucher) throw AppError.notFound("Voucher not found");
   if (voucher.isVoided) throw new AppError("Cannot edit a voided voucher", 400);
 
-  const originalTx = voucher.transactions.find((t) => t.type === TransactionType.VOUCHER);
+  const isTransfer = voucher.type === "ACCOUNT_TRANSFER";
+
+  if (isTransfer && (dto.type !== undefined || dto.amount !== undefined)) {
+    throw new AppError("Type and amount cannot be changed on an account transfer", 400);
+  }
+
+  const originalTx = isTransfer
+    ? null
+    : voucher.transactions.find((t) => t.type === TransactionType.VOUCHER);
 
   return prisma.$transaction(async (tx) => {
     if (originalTx && dto.amount !== undefined) {
@@ -723,8 +743,14 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
         ...(dto.type !== undefined && { type: dto.type }),
         ...(dto.amount !== undefined && { amount: dto.amount }),
         ...(dto.description !== undefined && { description: dto.description }),
+        ...(!isTransfer && dto.payee !== undefined && { payee: dto.payee }),
+        ...(dto.paymentDate !== undefined && { paymentDate: dto.paymentDate }),
+        ...(dto.referenceNo !== undefined && { referenceNo: dto.referenceNo }),
       },
-      include: { account: { select: { id: true, name: true, code: true } } },
+      include: {
+        account: { select: { id: true, name: true, code: true } },
+        toAccount: { select: { id: true, name: true, code: true } },
+      },
     });
 
     if (dto.referenceNo !== undefined) {
@@ -763,27 +789,81 @@ export async function voidVoucher(id: number, adminId: number) {
   if (!voucher) throw AppError.notFound("Voucher not found");
   if (voucher.isVoided) throw new AppError("Voucher is already voided", 400);
 
-  const originalTx = voucher.transactions.find(
-    (t) => t.type === TransactionType.VOUCHER && !t.isReversal
-  );
+  const isTransfer = voucher.type === "ACCOUNT_TRANSFER";
 
   return prisma.$transaction(async (tx) => {
     await tx.accountVoucher.update({ where: { id }, data: { isVoided: true } });
 
-    if (originalTx) {
-      await tx.accountTransaction.create({
-        data: {
-          accountId: voucher.accountId,
-          type: TransactionType.REVERSAL,
-          direction: TransactionDirection.DR,
-          amount: originalTx.amount,
-          voucherId: id,
-          refNo: voucher.voucherNo,
-          description: `Void of ${voucher.voucherNo}`,
-          isReversal: true,
-          createdById: adminId,
-        },
-      });
+    if (isTransfer) {
+      // Find the two TRANSFER transactions (one CR on source, one DR on dest)
+      const sourceTx = voucher.transactions.find(
+        (t) => t.type === TransactionType.TRANSFER && t.direction === TransactionDirection.CR && !t.isReversal
+      );
+      const destTx = voucher.transactions.find(
+        (t) => t.type === TransactionType.TRANSFER && t.direction === TransactionDirection.DR && !t.isReversal
+      );
+
+      const reversals: Promise<unknown>[] = [];
+
+      if (sourceTx) {
+        // Restore source account: DR reversal
+        reversals.push(
+          tx.accountTransaction.create({
+            data: {
+              accountId: sourceTx.accountId,
+              type: TransactionType.REVERSAL,
+              direction: TransactionDirection.DR,
+              amount: sourceTx.amount,
+              voucherId: id,
+              refNo: voucher.voucherNo,
+              description: `Void of transfer ${voucher.voucherNo}`,
+              isReversal: true,
+              createdById: adminId,
+            },
+          })
+        );
+      }
+
+      if (destTx) {
+        // Remove from destination account: CR reversal
+        reversals.push(
+          tx.accountTransaction.create({
+            data: {
+              accountId: destTx.accountId,
+              type: TransactionType.REVERSAL,
+              direction: TransactionDirection.CR,
+              amount: destTx.amount,
+              voucherId: id,
+              refNo: voucher.voucherNo,
+              description: `Void of transfer ${voucher.voucherNo}`,
+              isReversal: true,
+              createdById: adminId,
+            },
+          })
+        );
+      }
+
+      await Promise.all(reversals);
+    } else {
+      const originalTx = voucher.transactions.find(
+        (t) => t.type === TransactionType.VOUCHER && !t.isReversal
+      );
+
+      if (originalTx) {
+        await tx.accountTransaction.create({
+          data: {
+            accountId: voucher.accountId,
+            type: TransactionType.REVERSAL,
+            direction: TransactionDirection.DR,
+            amount: originalTx.amount,
+            voucherId: id,
+            refNo: voucher.voucherNo,
+            description: `Void of ${voucher.voucherNo}`,
+            isReversal: true,
+            createdById: adminId,
+          },
+        });
+      }
     }
 
     return { message: "Voucher voided successfully" };
@@ -791,32 +871,15 @@ export async function voidVoucher(id: number, adminId: number) {
 }
 
 export async function getVoucherById(id: number) {
-  const voucher = await prisma.$queryRaw<VoucherRow[]>(Prisma.sql`
-    SELECT
-      v."id",
-      v."voucherNo",
-      v."accountId",
-      v."type",
-      v."amount",
-      v."description",
-      v."payee",
-      v."paymentDate",
-      v."referenceNo",
-      v."isVoided",
-      v."createdById",
-      v."createdAt",
-      v."updatedAt",
-      a."name" AS "accountName",
-      a."code" AS "accountCode",
-      a."type" AS "accountType"
-    FROM "account_vouchers" v
-    INNER JOIN "accounts" a ON a."id" = v."accountId"
-    WHERE v."id" = ${id}
-    LIMIT 1
-  `);
-  const row = voucher[0];
-  if (!row) throw AppError.notFound("Voucher not found");
-  return { ...mapVoucherRow(row), typeLabel: voucherTypeLabel(row.type) };
+  const voucher = await prisma.accountVoucher.findUnique({
+    where: { id },
+    include: {
+      account: { select: { id: true, name: true, code: true, type: true } },
+      toAccount: { select: { id: true, name: true, code: true, type: true } },
+    },
+  });
+  if (!voucher) throw AppError.notFound("Voucher not found");
+  return { ...voucher, typeLabel: voucherTypeLabel(voucher.type) };
 }
 
 // ─── Invoice Payment Queue ────────────────────────────────────────────────────
@@ -1157,6 +1220,8 @@ export async function getLedger(dto: LedgerQueryDto) {
         ? "Receipt"
         : t.type === TransactionType.DEPOSIT
         ? "Deposit"
+        : t.type === TransactionType.TRANSFER
+        ? "Transfer"
         : "Voucher",
       refNo: t.refNo,
       createdById: t.createdById,

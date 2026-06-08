@@ -20,6 +20,7 @@ type VoucherRow = {
   referenceNo?: string | null;
   isVoided: boolean;
   account: { id: number; name: string; code: string };
+  toAccount?: { id: number; name: string; code: string } | null;
 };
 
 const VOUCHER_TYPES = [
@@ -33,10 +34,12 @@ const VOUCHER_TYPES = [
   { value: "CUSTOMER_REFUND", label: "Customer Refund" },
   { value: "VEHICLE_PURCHASE", label: "Vehicle Purchase" },
   { value: "ADVANCE_REFUND", label: "Advance Invoice Refund" },
+  { value: "ACCOUNT_TRANSFER", label: "Account Transfer" },
 ];
 
 const EMPTY_FORM = {
   accountId: 0,
+  toAccountId: 0,
   type: "",
   amount: 0,
   description: "",
@@ -121,24 +124,31 @@ export default function VouchersPage() {
   }, [token]);
 
   async function submitVoucher() {
-    if (!form.accountId) { setFormError("Select an account"); return; }
+    if (!form.accountId) { setFormError("Select a from account"); return; }
     if (!form.type) { setFormError("Select a voucher type"); return; }
+    if (form.type === "ACCOUNT_TRANSFER" && !form.toAccountId) { setFormError("Select a destination account"); return; }
+    if (form.type === "ACCOUNT_TRANSFER" && form.toAccountId === form.accountId) { setFormError("Source and destination accounts must be different"); return; }
     if (!form.amount || form.amount <= 0) { setFormError("Enter a valid amount"); return; }
     setSaving(true);
     setFormError("");
     try {
+      const body: Record<string, unknown> = {
+        accountId: form.accountId,
+        type: form.type,
+        amount: form.amount,
+        description: form.description || undefined,
+        paymentDate: form.paymentDate || undefined,
+        referenceNo: form.referenceNo || undefined,
+      };
+      if (form.type === "ACCOUNT_TRANSFER") {
+        body.toAccountId = form.toAccountId;
+      } else {
+        body.payee = form.payee || undefined;
+      }
       const res = await fetch(`${API_URL}/api/pos/accounts/vouchers`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          accountId: form.accountId,
-          type: form.type,
-          amount: form.amount,
-          description: form.description || undefined,
-          payee: form.payee || undefined,
-          paymentDate: form.paymentDate || undefined,
-          referenceNo: form.referenceNo || undefined,
-        }),
+        body: JSON.stringify(body),
       });
       const d = await res.json();
       if (!res.ok) { setFormError(d.message ?? "Failed to create"); return; }
@@ -153,9 +163,12 @@ export default function VouchersPage() {
     }
   }
 
-  async function handleVoid(id: number) {
-    if (!confirm("Void this voucher? The ledger entry will be reversed.")) return;
-    await fetch(`${API_URL}/api/pos/accounts/vouchers/${id}/void`, {
+  async function handleVoid(v: VoucherRow) {
+    const msg = v.type === "ACCOUNT_TRANSFER"
+      ? "Void this transfer? Both accounts will have their balances restored."
+      : "Void this voucher? The ledger entry will be reversed.";
+    if (!confirm(msg)) return;
+    await fetch(`${API_URL}/api/pos/accounts/vouchers/${v.id}/void`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -180,17 +193,21 @@ export default function VouchersPage() {
     setEditSaving(true);
     setEditError("");
     try {
+      const isTransfer = editingVoucher.type === "ACCOUNT_TRANSFER";
+      const body: Record<string, unknown> = {
+        description: editForm.description || undefined,
+        paymentDate: editForm.paymentDate || undefined,
+        referenceNo: editForm.referenceNo || undefined,
+      };
+      if (!isTransfer) {
+        body.type = editForm.type || undefined;
+        body.amount = editForm.amount;
+        body.payee = editForm.payee || undefined;
+      }
       const res = await fetch(`${API_URL}/api/pos/accounts/vouchers/${editingVoucher.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({
-          type: editForm.type || undefined,
-          amount: editForm.amount,
-          description: editForm.description || undefined,
-          payee: editForm.payee || undefined,
-          paymentDate: editForm.paymentDate || undefined,
-          referenceNo: editForm.referenceNo || undefined,
-        }),
+        body: JSON.stringify(body),
       });
       if (!res.ok) { const d = await res.json(); setEditError(d.message ?? "Failed"); return; }
       setEditingVoucher(null);
@@ -259,15 +276,32 @@ export default function VouchersPage() {
               </div>
             )}
           </div>
-          <div className="bm-field-group">
-            <label className="users-label">Payee / Recipient</label>
-            <input
-              className="bm-input"
-              value={form.payee}
-              onChange={(e) => setForm({ ...form, payee: e.target.value })}
-              placeholder="e.g. employee name, supplier..."
-            />
-          </div>
+          {form.type === "ACCOUNT_TRANSFER" && (
+            <div className="bm-field-group">
+              <label className="users-label">To Account *</label>
+              <select
+                className="bm-select"
+                value={form.toAccountId}
+                onChange={(e) => setForm({ ...form, toAccountId: Number(e.target.value) })}
+              >
+                <option value={0}>— Select destination account —</option>
+                {accounts
+                  .filter((a) => a.id !== form.accountId)
+                  .map((a) => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
+              </select>
+            </div>
+          )}
+          {form.type !== "ACCOUNT_TRANSFER" && (
+            <div className="bm-field-group">
+              <label className="users-label">Payee / Recipient</label>
+              <input
+                className="bm-input"
+                value={form.payee}
+                onChange={(e) => setForm({ ...form, payee: e.target.value })}
+                placeholder="e.g. employee name, supplier..."
+              />
+            </div>
+          )}
           <div className="bm-field-group">
             <label className="users-label">Payment Date</label>
             <input
@@ -338,7 +372,11 @@ export default function VouchersPage() {
                     </td>
                     <td className="td-muted">{formatDate(v.createdAt)}</td>
                     <td>{v.typeLabel}</td>
-                    <td className="td-muted">{v.payee ?? "—"}</td>
+                    <td className="td-muted">
+                      {v.type === "ACCOUNT_TRANSFER"
+                        ? v.toAccount ? <span style={{ color: "var(--accent)", fontWeight: 600 }}>→ {v.toAccount.name}</span> : "—"
+                        : (v.payee ?? "—")}
+                    </td>
                     <td className="td-muted">
                       {v.paymentDate ? formatDate(v.paymentDate) : formatDate(v.createdAt)}
                     </td>
@@ -359,7 +397,7 @@ export default function VouchersPage() {
                           <button className="bm-action-btn bm-edit-btn" onClick={() => openEdit(v)}><IconEdit /></button>
                         )}
                         {!v.isVoided && (
-                          <button className="bm-action-btn" style={{ borderColor: "var(--danger)", color: "var(--danger)" }} onClick={() => handleVoid(v.id)}>Void</button>
+                          <button className="bm-action-btn" style={{ borderColor: "var(--danger)", color: "var(--danger)" }} onClick={() => handleVoid(v)}>Void</button>
                         )}
                       </div>
                     </td>
@@ -380,20 +418,43 @@ export default function VouchersPage() {
             <div className="bm-modal-body">
               {editError && <div className="bm-alert bm-alert-error" style={{ marginBottom: 10 }}>{editError}</div>}
               <div style={{ display: "flex", flexDirection: "column", gap: "0.85rem" }}>
-                <div className="bm-field-group">
-                  <label className="users-label">Type</label>
-                  <select className="bm-select" value={editForm.type} onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}>
-                    {VOUCHER_TYPES.map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
-                  </select>
-                </div>
-                <div className="bm-field-group">
-                  <label className="users-label">Amount (Rs.)</label>
-                  <input className="bm-input" type="number" min={0} value={editForm.amount} onChange={(e) => setEditForm({ ...editForm, amount: Number(e.target.value) })} />
-                </div>
-                <div className="bm-field-group">
-                  <label className="users-label">Payee / Recipient</label>
-                  <input className="bm-input" value={editForm.payee} onChange={(e) => setEditForm({ ...editForm, payee: e.target.value })} />
-                </div>
+                {editingVoucher?.type === "ACCOUNT_TRANSFER" ? (
+                  <>
+                    <div className="bm-field-group">
+                      <label className="users-label">Type</label>
+                      <input className="bm-input" value="Account Transfer" disabled style={{ opacity: 0.6 }} />
+                    </div>
+                    <div className="bm-field-group">
+                      <label className="users-label">From Account</label>
+                      <input className="bm-input" value={editingVoucher.account.name} disabled style={{ opacity: 0.6 }} />
+                    </div>
+                    <div className="bm-field-group">
+                      <label className="users-label">To Account</label>
+                      <input className="bm-input" value={editingVoucher.toAccount?.name ?? "—"} disabled style={{ opacity: 0.6 }} />
+                    </div>
+                    <div className="bm-field-group">
+                      <label className="users-label">Amount (Rs.)</label>
+                      <input className="bm-input" value={formatRs(editingVoucher.amount)} disabled style={{ opacity: 0.6 }} />
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="bm-field-group">
+                      <label className="users-label">Type</label>
+                      <select className="bm-select" value={editForm.type} onChange={(e) => setEditForm({ ...editForm, type: e.target.value })}>
+                        {VOUCHER_TYPES.filter((t) => t.value !== "ACCOUNT_TRANSFER").map((t) => <option key={t.value} value={t.value}>{t.label}</option>)}
+                      </select>
+                    </div>
+                    <div className="bm-field-group">
+                      <label className="users-label">Amount (Rs.)</label>
+                      <input className="bm-input" type="number" min={0} value={editForm.amount} onChange={(e) => setEditForm({ ...editForm, amount: Number(e.target.value) })} />
+                    </div>
+                    <div className="bm-field-group">
+                      <label className="users-label">Payee / Recipient</label>
+                      <input className="bm-input" value={editForm.payee} onChange={(e) => setEditForm({ ...editForm, payee: e.target.value })} />
+                    </div>
+                  </>
+                )}
                 <div className="bm-field-group">
                   <label className="users-label">Payment Date</label>
                   <input className="bm-input" type="date" value={editForm.paymentDate} onChange={(e) => setEditForm({ ...editForm, paymentDate: e.target.value })} />
@@ -431,7 +492,9 @@ export default function VouchersPage() {
                     <div style={{ fontSize: "0.8rem", color: "var(--text-soft)" }}>No:154, Puttalam Road, Kurunegala, Sri Lanka</div>
                   </div>
                   <div style={{ textAlign: "right" }}>
-                    <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--accent)" }}>PAYMENT VOUCHER</div>
+                    <div style={{ fontWeight: 700, fontSize: "0.95rem", color: "var(--accent)" }}>
+                      {printVoucher.type === "ACCOUNT_TRANSFER" ? "TRANSFER VOUCHER" : "PAYMENT VOUCHER"}
+                    </div>
                     <div style={{ fontSize: "0.82rem", color: "var(--text-soft)" }}>Voucher No: <strong style={{ color: "var(--text)" }}>{printVoucher.voucherNo}</strong></div>
                     <div style={{ fontSize: "0.82rem", color: "var(--text-soft)" }}>
                       Date: {printVoucher.paymentDate ? formatDate(printVoucher.paymentDate) : formatDate(printVoucher.createdAt)}
@@ -444,7 +507,10 @@ export default function VouchersPage() {
                     <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Payment Type</td><td style={{ textAlign: "right", fontWeight: 600 }}>{printVoucher.typeLabel}</td></tr>
                     <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Amount</td><td style={{ textAlign: "right", fontWeight: 700, color: "var(--accent)" }}>{formatRs(printVoucher.amount)}</td></tr>
                     <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>From Account</td><td style={{ textAlign: "right" }}>{printVoucher.account.name} ({printVoucher.account.code})</td></tr>
-                    {printVoucher.payee && (
+                    {printVoucher.type === "ACCOUNT_TRANSFER" && printVoucher.toAccount && (
+                      <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>To Account</td><td style={{ textAlign: "right", fontWeight: 600 }}>{printVoucher.toAccount.name} ({printVoucher.toAccount.code})</td></tr>
+                    )}
+                    {printVoucher.type !== "ACCOUNT_TRANSFER" && printVoucher.payee && (
                       <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Payee / Recipient</td><td style={{ textAlign: "right", fontWeight: 600 }}>{printVoucher.payee}</td></tr>
                     )}
                     {printVoucher.referenceNo && (

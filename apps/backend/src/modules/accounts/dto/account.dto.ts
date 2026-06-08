@@ -13,6 +13,7 @@ const voucherTypeValues = [
   "CUSTOMER_REFUND",
   "VEHICLE_PURCHASE",
   "ADVANCE_REFUND",
+  "ACCOUNT_TRANSFER",
 ] as const;
 
 export const createAccountSchema = z.object({
@@ -41,19 +42,38 @@ export const updateReceiptSchema = createReceiptSchema
   .omit({ purchaseId: true })
   .partial();
 
-export const createVoucherSchema = z.object({
-  accountId: z.number().int().positive("Account is required"),
-  type: z.enum(voucherTypeValues),
-  amount: z.number().positive("Amount must be greater than 0"),
-  description: z.string().trim().max(500).optional(),
-  payee: z.string().trim().max(200).optional(),
-  paymentDate: z.string().optional().transform((v) => (v ? new Date(v) : undefined)),
-  referenceNo: z.string().trim().max(100).optional(),
-});
+export const createVoucherSchema = z
+  .object({
+    accountId: z.number().int().positive("Account is required"),
+    toAccountId: z.number().int().positive().optional(),
+    type: z.enum(voucherTypeValues),
+    amount: z.number().positive("Amount must be greater than 0"),
+    description: z.string().trim().max(500).optional(),
+    payee: z.string().trim().max(200).optional(),
+    paymentDate: z.string().optional().transform((v) => (v ? new Date(v) : undefined)),
+    referenceNo: z.string().trim().max(100).optional(),
+  })
+  .superRefine((d, ctx) => {
+    if (d.type === "ACCOUNT_TRANSFER" && !d.toAccountId) {
+      ctx.addIssue({ code: "custom", path: ["toAccountId"], message: "Destination account is required for transfers" });
+    }
+    if (d.toAccountId && d.type !== "ACCOUNT_TRANSFER") {
+      ctx.addIssue({ code: "custom", path: ["toAccountId"], message: "toAccountId is only valid for ACCOUNT_TRANSFER type" });
+    }
+    if (d.toAccountId && d.toAccountId === d.accountId) {
+      ctx.addIssue({ code: "custom", path: ["toAccountId"], message: "Source and destination accounts must be different" });
+    }
+  });
 
-export const updateVoucherSchema = createVoucherSchema
-  .omit({ accountId: true })
-  .partial();
+export const updateVoucherSchema = z
+  .object({
+    type: z.enum(voucherTypeValues).optional(),
+    amount: z.number().positive("Amount must be greater than 0").optional(),
+    description: z.string().trim().max(500).optional(),
+    payee: z.string().trim().max(200).optional(),
+    paymentDate: z.string().optional().transform((v) => (v ? new Date(v) : undefined)),
+    referenceNo: z.string().trim().max(100).optional(),
+  });
 
 export const receiptQuerySchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

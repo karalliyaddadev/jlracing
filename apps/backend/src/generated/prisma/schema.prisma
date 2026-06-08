@@ -73,6 +73,7 @@ enum VoucherType {
   CUSTOMER_REFUND
   VEHICLE_PURCHASE
   ADVANCE_REFUND
+  ACCOUNT_TRANSFER
 }
 
 enum TransactionType {
@@ -80,6 +81,7 @@ enum TransactionType {
   VOUCHER
   REVERSAL
   DEPOSIT
+  TRANSFER
 }
 
 enum TransactionDirection {
@@ -565,7 +567,8 @@ model Account {
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
   receipts       AccountReceipt[]
-  vouchers       AccountVoucher[]
+  vouchers       AccountVoucher[]     @relation("VoucherFromAccount")
+  toVouchers     AccountVoucher[]     @relation("VoucherToAccount")
   transactions   AccountTransaction[]
   deposits       AccountDeposit[]
 
@@ -576,7 +579,7 @@ model AccountReceipt {
   id             Int                  @id @default(autoincrement())
   receiptNo      String               @unique
   purchaseId     Int
-  accountId      Int
+  accountId      Int?
   amount         Float
   paymentMethod  PaymentMethod        @default(CASH)
   chequeNo       String?
@@ -589,7 +592,7 @@ model AccountReceipt {
   createdById    Int
   createdAt      DateTime             @default(now())
   updatedAt      DateTime             @updatedAt
-  account        Account              @relation(fields: [accountId], references: [id])
+  account        Account?             @relation(fields: [accountId], references: [id])
   purchase       PosCustomerPurchase  @relation(fields: [purchaseId], references: [id])
   transactions   AccountTransaction[]
   depositItem    AccountDepositItem?
@@ -604,6 +607,7 @@ model AccountVoucher {
   id           Int                  @id @default(autoincrement())
   voucherNo    String               @unique
   accountId    Int
+  toAccountId  Int?
   type         VoucherType
   amount       Float
   description  String?
@@ -614,10 +618,12 @@ model AccountVoucher {
   createdById  Int
   createdAt    DateTime             @default(now())
   updatedAt    DateTime             @updatedAt
-  account      Account              @relation(fields: [accountId], references: [id])
+  account      Account              @relation("VoucherFromAccount", fields: [accountId], references: [id])
+  toAccount    Account?             @relation("VoucherToAccount", fields: [toAccountId], references: [id])
   transactions AccountTransaction[]
 
   @@index([accountId])
+  @@index([toAccountId])
   @@map("account_vouchers")
 }
 
