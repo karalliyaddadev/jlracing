@@ -63,24 +63,12 @@ function calculateTotalReceivable(p: {
   return (p.totalWithInterest ?? p.finalSellingPrice) + regFee;
 }
 
-type VoucherRow = {
-  id: number;
-  voucherNo: string;
-  accountId: number;
-  type: string;
-  amount: number;
-  description: string | null;
-  payee: string | null;
-  paymentDate: Date | null;
-  referenceNo: string | null;
-  isVoided: boolean;
-  createdById: number;
-  createdAt: Date;
-  updatedAt: Date;
-  accountName: string;
-  accountCode: string;
-  accountType: string;
-};
+type VoucherRow = Prisma.AccountVoucherGetPayload<{
+  include: {
+    account: { select: { id: true; name: true; code: true } };
+    toAccount: { select: { id: true; name: true; code: true } };
+  };
+}>;
 
 function mapVoucherRow(row: VoucherRow) {
   return {
@@ -97,12 +85,8 @@ function mapVoucherRow(row: VoucherRow) {
     createdById: row.createdById,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
-    account: {
-      id: row.accountId,
-      name: row.accountName,
-      code: row.accountCode,
-      type: row.accountType,
-    },
+    account: row.account,
+    toAccount: row.toAccount,
   };
 }
 
