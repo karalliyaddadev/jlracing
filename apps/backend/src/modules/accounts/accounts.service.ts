@@ -612,13 +612,20 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
       data: {
         voucherNo: "TEMP",
         accountId: dto.accountId,
-        toAccountId: dto.type === "ACCOUNT_TRANSFER" ? dto.toAccountId : undefined,
         type: dto.type,
         amount: dto.amount,
         description: dto.description,
         createdById: adminId,
       },
     });
+
+    if (dto.type === "ACCOUNT_TRANSFER") {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "toAccountId" = ${dto.toAccountId!}
+        WHERE "id" = ${created.id}
+      `;
+    }
 
     if (dto.payee !== undefined) {
       await tx.$executeRaw`
@@ -695,7 +702,6 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
         data: {
           voucherNo,
           ...(dto.description !== undefined && { description: dto.description }),
-          ...(dto.payee !== undefined && { payee: dto.payee }),
         },
         include: {
           account: { select: { id: true, name: true, code: true } },
