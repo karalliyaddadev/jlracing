@@ -616,12 +616,19 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
         type: dto.type,
         amount: dto.amount,
         description: dto.description,
-        payee: dto.payee,
         paymentDate: dto.paymentDate,
         referenceNo: dto.referenceNo,
         createdById: adminId,
       },
     });
+
+    if (dto.payee !== undefined) {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "payee" = ${dto.payee}
+        WHERE "id" = ${created.id}
+      `;
+    }
 
     const voucherNo = `VCH-${String(created.id).padStart(5, "0")}`;
 
@@ -738,7 +745,6 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
         ...(dto.type !== undefined && { type: dto.type }),
         ...(dto.amount !== undefined && { amount: dto.amount }),
         ...(dto.description !== undefined && { description: dto.description }),
-        ...(dto.payee !== undefined && { payee: dto.payee }),
         ...(dto.paymentDate !== undefined && { paymentDate: dto.paymentDate }),
         ...(dto.referenceNo !== undefined && { referenceNo: dto.referenceNo }),
       },
@@ -746,6 +752,14 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
         account: { select: { id: true, name: true, code: true } },
       },
     });
+
+    if (dto.payee !== undefined) {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "payee" = ${dto.payee}
+        WHERE "id" = ${id}
+      `;
+    }
 
     return { ...mapVoucherRow(updated, await resolveVoucherToAccount(tx, updated.toAccountId)), typeLabel: voucherTypeLabel(updated.type) };
   });
