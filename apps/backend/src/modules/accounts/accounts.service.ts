@@ -66,11 +66,27 @@ function calculateTotalReceivable(p: {
 type VoucherRow = Prisma.AccountVoucherGetPayload<{
   include: {
     account: { select: { id: true; name: true; code: true } };
-    toAccount: { select: { id: true; name: true; code: true } };
   };
 }>;
 
-function mapVoucherRow(row: VoucherRow) {
+type AccountSummary = {
+  id: number;
+  name: string;
+  code: string;
+};
+
+async function resolveVoucherToAccount(
+  client: Pick<typeof prisma, "account">,
+  toAccountId: number | null
+): Promise<AccountSummary | null> {
+  if (!toAccountId) return null;
+  return client.account.findUnique({
+    where: { id: toAccountId },
+    select: { id: true, name: true, code: true },
+  });
+}
+
+function mapVoucherRow(row: VoucherRow, toAccount: AccountSummary | null) {
   return {
     id: row.id,
     voucherNo: row.voucherNo,
@@ -86,7 +102,7 @@ function mapVoucherRow(row: VoucherRow) {
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     account: row.account,
-    toAccount: row.toAccount,
+    toAccount,
   };
 }
 
@@ -552,8 +568,15 @@ export async function listVouchers(dto: VoucherQueryDto) {
     }),
   ]);
 
+  const data = await Promise.all(
+    vouchers.map(async (v: VoucherRow) => ({
+      ...mapVoucherRow(v, await resolveVoucherToAccount(prisma, v.toAccountId)),
+      typeLabel: voucherTypeLabel(v.type),
+    }))
+  );
+
   return {
-    data: vouchers.map((v: VoucherRow) => ({ ...mapVoucherRow(v), typeLabel: voucherTypeLabel(v.type) })),
+    data,
     pagination: { total, page: dto.page, limit: dto.limit, pages: Math.ceil(total / dto.limit) },
   };
 }
@@ -631,7 +654,6 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
           data: { voucherNo },
           include: {
             account: { select: { id: true, name: true, code: true } },
-            toAccount: { select: { id: true, name: true, code: true } },
           },
         }),
         // CR on source account (money leaves)
@@ -662,7 +684,7 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
         }),
       ]);
 
-      return { ...voucher, typeLabel: voucherTypeLabel(voucher.type) };
+      return { ...mapVoucherRow(voucher, toAccount), typeLabel: voucherTypeLabel(voucher.type) };
     }
 
     const [voucher] = await Promise.all([
@@ -671,7 +693,6 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
         data: { voucherNo },
         include: {
           account: { select: { id: true, name: true, code: true } },
-          toAccount: { select: { id: true, name: true, code: true } },
         },
       }),
       tx.accountTransaction.create({
@@ -688,7 +709,7 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
       }),
     ]);
 
-    return { ...voucher, typeLabel: voucherTypeLabel(voucher.type) };
+    return { ...mapVoucherRow(voucher, null), typeLabel: voucherTypeLabel(voucher.type) };
   });
 }
 
@@ -733,7 +754,6 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
       },
       include: {
         account: { select: { id: true, name: true, code: true } },
-        toAccount: { select: { id: true, name: true, code: true } },
       },
     });
 
@@ -761,7 +781,7 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
       `;
     }
 
-    return { ...updated, typeLabel: voucherTypeLabel(updated.type) };
+    return { ...mapVoucherRow(updated, await resolveVoucherToAccount(tx, updated.toAccountId)), typeLabel: voucherTypeLabel(updated.type) };
   });
 }
 
@@ -859,11 +879,10 @@ export async function getVoucherById(id: number) {
     where: { id },
     include: {
       account: { select: { id: true, name: true, code: true, type: true } },
-      toAccount: { select: { id: true, name: true, code: true, type: true } },
     },
   });
   if (!voucher) throw AppError.notFound("Voucher not found");
-  return { ...voucher, typeLabel: voucherTypeLabel(voucher.type) };
+  return { ...voucher, toAccount: await resolveVoucherToAccount(prisma, voucher.toAccountId), typeLabel: voucherTypeLabel(voucher.type) };
 }
 
 // ─── Invoice Payment Queue ────────────────────────────────────────────────────
