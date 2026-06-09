@@ -1598,73 +1598,81 @@ export async function listPurchases(query: PurchaseQueryDto) {
       }
     : {};
 
+  const purchaseInclude: any = {
+    customer: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        nic: true,
+        mobileNumber: true,
+        address: true,
+        province: true,
+        district: true,
+      },
+    },
+    bikeVehicle: {
+      select: {
+        id: true,
+        displayId: true,
+        colour: true,
+        year: true,
+        engineCapacityCc: true,
+        mileage: true,
+        condition: true,
+        registrationType: true,
+        fileNo: true,
+        registerNo: true,
+        chassisNo: true,
+        engineNo: true,
+        description: true,
+        brand: { select: { name: true } },
+        model: { select: { name: true } },
+      },
+    },
+    inventoryProduct: {
+      select: {
+        id: true,
+        displayId: true,
+        name: true,
+        quantity: true,
+        soldQuantity: true,
+        description: true,
+        brand: { select: { name: true } },
+        category: { select: { name: true } },
+        supplier: { select: { name: true, code: true } },
+      },
+    },
+    leasingCompany: {
+      select: {
+        id: true,
+        name: true,
+      },
+    },
+  };
+
+  // Some deployments may run with an out-of-date generated client that does
+  // not include the `preOrder` relation. Add it only when available to avoid
+  // Prisma validation errors at runtime.
+  if ((prisma as any).preOrder) {
+    purchaseInclude.preOrder = {
+      select: {
+        id: true,
+        displayId: true,
+        brand: true,
+        model: true,
+        colour: true,
+      },
+    };
+  }
+
   const [rows, total] = await Promise.all([
     getPurchaseModelClient(prisma as any).findMany({
       where,
       skip,
       take: limit,
       orderBy: { purchasedAt: "desc" },
-      include: {
-        customer: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            nic: true,
-            mobileNumber: true,
-            address: true,
-            province: true,
-            district: true,
-          },
-        },
-        bikeVehicle: {
-          select: {
-            id: true,
-            displayId: true,
-            colour: true,
-            year: true,
-            engineCapacityCc: true,
-            mileage: true,
-            condition: true,
-            registrationType: true,
-            fileNo: true,
-            registerNo: true,
-            chassisNo: true,
-            engineNo: true,
-            description: true,
-            brand: { select: { name: true } },
-            model: { select: { name: true } },
-          },
-        },
-        inventoryProduct: {
-          select: {
-            id: true,
-            displayId: true,
-            name: true,
-            quantity: true,
-            soldQuantity: true,
-            description: true,
-            brand: { select: { name: true } },
-            category: { select: { name: true } },
-            supplier: { select: { name: true, code: true } },
-          },
-        },
-        leasingCompany: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        preOrder: {
-          select: {
-            id: true,
-            displayId: true,
-            brand: true,
-            model: true,
-            colour: true,
-          },
-        },
-      },
+      include: purchaseInclude,
     }),
     getPurchaseModelClient(prisma as any).count({ where }),
   ]);
@@ -1814,12 +1822,10 @@ export async function listPurchasesByUser(
   };
 
   const [rows, total] = await Promise.all([
-    getPurchaseModelClient(prisma as any).findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { purchasedAt: "desc" },
-      include: {
+    // Build include dynamically to avoid runtime validation errors when the
+    // generated Prisma client doesn't expose certain relations.
+    (() => {
+      const purchaseInclude: any = {
         customer: {
           select: {
             id: true,
@@ -1870,7 +1876,10 @@ export async function listPurchasesByUser(
             name: true,
           },
         },
-        preOrder: {
+      };
+
+      if ((prisma as any).preOrder) {
+        purchaseInclude.preOrder = {
           select: {
             id: true,
             displayId: true,
@@ -1878,9 +1887,17 @@ export async function listPurchasesByUser(
             model: true,
             colour: true,
           },
-        },
-      },
-    }),
+        };
+      }
+
+      return getPurchaseModelClient(prisma as any).findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { purchasedAt: "desc" },
+        include: purchaseInclude,
+      });
+    })(),
     getPurchaseModelClient(prisma as any).count({ where }),
   ]);
 
