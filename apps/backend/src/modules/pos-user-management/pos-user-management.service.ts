@@ -275,6 +275,28 @@ function getLeasingCompanyModelClient(db: any) {
   return model;
 }
 
+function getInstallmentModelClient(db: any) {
+  const model = db?.posInstallment;
+  if (!model) {
+    throw new AppError(
+      "Installment model is unavailable. Run 'npm run db:generate' in apps/backend and restart the backend server.",
+      500,
+    );
+  }
+  return model;
+}
+
+function getInvoicePaymentModelClient(db: any) {
+  const model = db?.invoicePayment;
+  if (!model) {
+    throw new AppError(
+      "Invoice payment model is unavailable. Run 'npm run db:generate' in apps/backend and restart the backend server.",
+      500,
+    );
+  }
+  return model;
+}
+
 function mapUniqueConstraint(error: Prisma.PrismaClientKnownRequestError) {
   const target = `${error.meta?.target ?? ""}`;
   if (target.includes("nic")) return AppError.conflict("NIC already exists");
@@ -1988,7 +2010,7 @@ export async function updatePurchase(
   if (!purchase) throw AppError.notFound("Purchase not found");
 
   const [installments, invoicePayments] = await Promise.all([
-    (prisma as any).posInstallment.findMany({
+    getInstallmentModelClient(prisma as any).findMany({
       where: { purchaseId },
       select: {
         id: true,
@@ -2000,7 +2022,7 @@ export async function updatePurchase(
       },
       orderBy: { installmentNo: "asc" },
     }),
-    (prisma as any).invoicePayment.findMany({
+    getInvoicePaymentModelClient(prisma as any).findMany({
       where: { purchaseId },
       select: { id: true, amount: true, receiptId: true },
       orderBy: { id: "asc" },
@@ -2196,7 +2218,7 @@ export async function updatePurchase(
 }
 
 export async function getPurchaseInstallments(purchaseId: number) {
-  const installments = await (prisma as any).posInstallment.findMany({
+  const installments = await getInstallmentModelClient(prisma as any).findMany({
     where: { purchaseId },
     orderBy: { installmentNo: "asc" },
     include: { payments: { orderBy: { paidAt: "asc" } } },
