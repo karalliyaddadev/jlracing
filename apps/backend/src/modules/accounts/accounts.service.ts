@@ -27,6 +27,7 @@ import type {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const ACCOUNT_TRANSFER_TYPE = "ACCOUNT_TRANSFER";
+const TRANSFER_TRANSACTION_TYPE = "TRANSFER";
 
 async function generateAccountCode(): Promise<string> {
   const count = await prisma.account.count();
@@ -86,6 +87,90 @@ async function resolveVoucherToAccount(
     where: { id: toAccountId },
     select: { id: true, name: true, code: true },
   });
+}
+
+async function createVoucherDraft(
+  tx: Prisma.TransactionClient,
+  dto: CreateVoucherDto,
+  adminId: number
+): Promise<{ id: number }> {
+  if (dto.type !== ACCOUNT_TRANSFER_TYPE) {
+    return tx.accountVoucher.create({
+      data: {
+        voucherNo: "TEMP",
+        accountId: dto.accountId,
+        type: dto.type,
+        amount: dto.amount,
+        description: dto.description,
+        createdById: adminId,
+      },
+      select: { id: true },
+    });
+  }
+
+  const [created] = await tx.$queryRaw<Array<{ id: number }>>`
+    INSERT INTO "account_vouchers" (
+      "voucherNo",
+      "accountId",
+      "type",
+      "amount",
+      "description",
+      "createdById",
+      "updatedAt"
+    )
+    VALUES (
+      ${"TEMP"},
+      ${dto.accountId},
+      ${ACCOUNT_TRANSFER_TYPE}::"VoucherType",
+      ${dto.amount},
+      ${dto.description ?? null},
+      ${adminId},
+      CURRENT_TIMESTAMP
+    )
+    RETURNING "id"
+  `;
+
+  if (!created) {
+    throw new AppError("Failed to create account transfer voucher", 500);
+  }
+
+  return created;
+}
+
+async function createTransferTransaction(
+  tx: Prisma.TransactionClient,
+  data: {
+    accountId: number;
+    direction: "DR" | "CR";
+    amount: number;
+    voucherId: number;
+    refNo: string;
+    description: string;
+    createdById: number;
+  }
+): Promise<void> {
+  await tx.$executeRaw`
+    INSERT INTO "account_transactions" (
+      "accountId",
+      "type",
+      "direction",
+      "amount",
+      "voucherId",
+      "refNo",
+      "description",
+      "createdById"
+    )
+    VALUES (
+      ${data.accountId},
+      ${TRANSFER_TRANSACTION_TYPE}::"TransactionType",
+      ${data.direction}::"TransactionDirection",
+      ${data.amount},
+      ${data.voucherId},
+      ${data.refNo},
+      ${data.description},
+      ${data.createdById}
+    )
+  `;
 }
 
 function mapVoucherRow(row: VoucherRow, toAccount: AccountSummary | null) {
@@ -610,16 +695,7 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
   }
 
   return prisma.$transaction(async (tx) => {
-    const created = await tx.accountVoucher.create({
-      data: {
-        voucherNo: "TEMP",
-        accountId: dto.accountId,
-        type: dto.type,
-        amount: dto.amount,
-        description: dto.description,
-        createdById: adminId,
-      },
-    });
+    const created = await createVoucherDraft(tx, dto, adminId);
 
     if (dto.type === ACCOUNT_TRANSFER_TYPE) {
       await tx.$executeRaw`
@@ -668,30 +744,24 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
           },
         }),
         // CR on source account (money leaves)
-        tx.accountTransaction.create({
-          data: {
-            accountId: dto.accountId,
-            type: TransactionType.TRANSFER,
-            direction: TransactionDirection.CR,
-            amount: dto.amount,
-            voucherId: created.id,
-            refNo: voucherNo,
-            description: dto.description ?? `Transfer to ${toAccount.name}`,
-            createdById: adminId,
-          },
+        createTransferTransaction(tx, {
+          accountId: dto.accountId,
+          direction: "CR",
+          amount: dto.amount,
+          voucherId: created.id,
+          refNo: voucherNo,
+          description: dto.description ?? `Transfer to ${toAccount.name}`,
+          createdById: adminId,
         }),
         // DR on destination account (money enters)
-        tx.accountTransaction.create({
-          data: {
-            accountId: dto.toAccountId!,
-            type: TransactionType.TRANSFER,
-            direction: TransactionDirection.DR,
-            amount: dto.amount,
-            voucherId: created.id,
-            refNo: voucherNo,
-            description: dto.description ?? `Transfer from ${account.name}`,
-            createdById: adminId,
-          },
+        createTransferTransaction(tx, {
+          accountId: dto.toAccountId!,
+          direction: "DR",
+          amount: dto.amount,
+          voucherId: created.id,
+          refNo: voucherNo,
+          description: dto.description ?? `Transfer from ${account.name}`,
+          createdById: adminId,
         }),
       ]);
 
@@ -739,6 +809,10 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
 
   if (isTransfer && (dto.type !== undefined || dto.amount !== undefined)) {
     throw new AppError("Type and amount cannot be changed on an account transfer", 400);
+  }
+
+  if (!isTransfer && dto.type === ACCOUNT_TRANSFER_TYPE) {
+    throw new AppError("Existing vouchers cannot be converted to account transfers", 400);
   }
 
   const originalTx = isTransfer
@@ -812,10 +886,10 @@ export async function voidVoucher(id: number, adminId: number) {
     if (isTransfer) {
       // Find the two TRANSFER transactions (one CR on source, one DR on dest)
       const sourceTx = voucher.transactions.find(
-        (t) => t.type === TransactionType.TRANSFER && t.direction === TransactionDirection.CR && !t.isReversal
+        (t) => t.type === TRANSFER_TRANSACTION_TYPE && t.direction === TransactionDirection.CR && !t.isReversal
       );
       const destTx = voucher.transactions.find(
-        (t) => t.type === TransactionType.TRANSFER && t.direction === TransactionDirection.DR && !t.isReversal
+        (t) => t.type === TRANSFER_TRANSACTION_TYPE && t.direction === TransactionDirection.DR && !t.isReversal
       );
 
       const reversals: Promise<unknown>[] = [];
@@ -1234,7 +1308,7 @@ export async function getLedger(dto: LedgerQueryDto) {
         ? "Receipt"
         : t.type === TransactionType.DEPOSIT
         ? "Deposit"
-        : t.type === TransactionType.TRANSFER
+        : t.type === TRANSFER_TRANSACTION_TYPE
         ? "Transfer"
         : "Voucher",
       refNo: t.refNo,
