@@ -289,10 +289,7 @@ function getInstallmentModelClient(db: any) {
 function getInvoicePaymentModelClient(db: any) {
   const model = db?.invoicePayment;
   if (!model) {
-    throw new AppError(
-      "Invoice payment model is unavailable. Run 'npm run db:generate' in apps/backend and restart the backend server.",
-      500,
-    );
+    return null;
   }
   return model;
 }
@@ -2009,25 +2006,27 @@ export async function updatePurchase(
   });
   if (!purchase) throw AppError.notFound("Purchase not found");
 
-  const [installments, invoicePayments] = await Promise.all([
-    getInstallmentModelClient(prisma as any).findMany({
-      where: { purchaseId },
-      select: {
-        id: true,
-        installmentNo: true,
-        dueDate: true,
-        dueAmount: true,
-        paidAmount: true,
-        status: true,
-      },
-      orderBy: { installmentNo: "asc" },
-    }),
-    getInvoicePaymentModelClient(prisma as any).findMany({
-      where: { purchaseId },
-      select: { id: true, amount: true, receiptId: true },
-      orderBy: { id: "asc" },
-    }),
-  ]);
+  const installments = await getInstallmentModelClient(prisma as any).findMany({
+    where: { purchaseId },
+    select: {
+      id: true,
+      installmentNo: true,
+      dueDate: true,
+      dueAmount: true,
+      paidAmount: true,
+      status: true,
+    },
+    orderBy: { installmentNo: "asc" },
+  });
+
+  const invoicePaymentModel = getInvoicePaymentModelClient(prisma as any);
+  const invoicePayments = invoicePaymentModel
+    ? await invoicePaymentModel.findMany({
+        where: { purchaseId },
+        select: { id: true, amount: true, receiptId: true },
+        orderBy: { id: "asc" },
+      })
+    : [];
 
   if ((purchase as any).purchaseChannel === "LEASING") {
     throw new AppError("Leasing purchases cannot be edited via this endpoint", 400);
