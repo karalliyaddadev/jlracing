@@ -2089,7 +2089,10 @@ export async function updatePurchase(
 
   const allInstallmentsPending =
     installments.length > 0 &&
-    installments.every((i) => i.status === "PENDING" && i.paidAmount === 0);
+    installments.every(
+      (installment: { status: string; paidAmount: number }) =>
+        installment.status === "PENDING" && installment.paidAmount === 0,
+    );
 
   const initialPayment = invoicePayments[0] ?? null;
 
