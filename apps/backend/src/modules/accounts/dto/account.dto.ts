@@ -1,19 +1,20 @@
 import { z } from "zod";
+import { VoucherType } from "../../../generated/prisma";
 
 const accountTypeValues = ["BANK", "CASH"] as const;
 const paymentMethodValues = ["CASH", "CHEQUE", "BANK_TRANSFER"] as const;
 const voucherTypeValues = [
-  "VEHICLE_CLEARANCE",
-  "BILL",
-  "OTHER_PAYMENT",
-  "PERMIT",
-  "LEASING_PAYMENT",
-  "LOAN_PAYMENT",
-  "SALARY",
-  "CUSTOMER_REFUND",
-  "VEHICLE_PURCHASE",
-  "ADVANCE_REFUND",
-  "ACCOUNT_TRANSFER",
+  VoucherType.VEHICLE_CLEARANCE,
+  VoucherType.BILL,
+  VoucherType.OTHER_PAYMENT,
+  VoucherType.PERMIT,
+  VoucherType.LEASING_PAYMENT,
+  VoucherType.LOAN_PAYMENT,
+  VoucherType.SALARY,
+  VoucherType.CUSTOMER_REFUND,
+  VoucherType.VEHICLE_PURCHASE,
+  VoucherType.ADVANCE_REFUND,
+  VoucherType.ACCOUNT_TRANSFER,
 ] as const;
 
 export const createAccountSchema = z.object({
@@ -54,10 +55,10 @@ export const createVoucherSchema = z
     referenceNo: z.string().trim().max(100).optional(),
   })
   .superRefine((d, ctx) => {
-    if (d.type === "ACCOUNT_TRANSFER" && !d.toAccountId) {
+    if (d.type === VoucherType.ACCOUNT_TRANSFER && !d.toAccountId) {
       ctx.addIssue({ code: "custom", path: ["toAccountId"], message: "Destination account is required for transfers" });
     }
-    if (d.toAccountId && d.type !== "ACCOUNT_TRANSFER") {
+    if (d.toAccountId && d.type !== VoucherType.ACCOUNT_TRANSFER) {
       ctx.addIssue({ code: "custom", path: ["toAccountId"], message: "toAccountId is only valid for ACCOUNT_TRANSFER type" });
     }
     if (d.toAccountId && d.toAccountId === d.accountId) {
