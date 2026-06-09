@@ -1,6 +1,7 @@
 import { Prisma } from "../../generated/prisma";
 import { prisma } from "../../database/prisma.client";
 import { AppError } from "../../common/utils/errors";
+import { prismaModelHasObjectField } from "../../common/utils/prisma-model";
 import {
   ChequeStatus,
   PaymentMethod,
@@ -375,41 +376,52 @@ export async function listPurchasesForReceipt(dto: InvoiceQueueQueryDto) {
       }
     : {};
 
+  const purchaseInclude: any = {
+    customer: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        nic: true,
+        mobileNumber: true,
+        address: true,
+      },
+    },
+    bikeVehicle: {
+      select: {
+        displayId: true,
+        brand: { select: { name: true } },
+        model: { select: { name: true } },
+      },
+    },
+    inventoryProduct: {
+      select: { displayId: true, name: true },
+    },
+    receipts: {
+      where: { isVoided: false },
+      select: { amount: true },
+    },
+  };
+
+  if (
+    prismaModelHasObjectField(
+      prisma as any,
+      "PosCustomerPurchase",
+      "preOrder",
+    )
+  ) {
+    purchaseInclude.preOrder = {
+      select: { id: true, displayId: true, brand: true, model: true, colour: true },
+    };
+  }
+
   const purchases: any[] = await (prisma.posCustomerPurchase as any).findMany({
     where: {
       ...searchClause,
       ...(fromDate && { purchasedAt: { gte: fromDate } }),
       ...(toDate && { purchasedAt: { lte: toDate } }),
     },
-    include: {
-      customer: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          nic: true,
-          mobileNumber: true,
-          address: true,
-        },
-      },
-      bikeVehicle: {
-        select: {
-          displayId: true,
-          brand: { select: { name: true } },
-          model: { select: { name: true } },
-        },
-      },
-      inventoryProduct: {
-        select: { displayId: true, name: true },
-      },
-      preOrder: {
-        select: { id: true, displayId: true, brand: true, model: true, colour: true },
-      },
-      receipts: {
-        where: { isVoided: false },
-        select: { amount: true },
-      },
-    },
+    include: purchaseInclude,
     orderBy: { purchasedAt: "desc" },
     take: dto.limit,
   });
@@ -1201,25 +1213,38 @@ export async function listInvoicePayments(dto: InvoicePaymentQueryDto) {
       : {}),
   };
 
+  const purchaseSelect: any = {
+    id: true,
+    invoiceGroupCode: true,
+    itemType: true,
+    customCategory: true,
+    customDescription: true,
+    customer: { select: { firstName: true, lastName: true, nic: true, mobileNumber: true } },
+    bikeVehicle: {
+      select: { displayId: true, brand: { select: { name: true } }, model: { select: { name: true } } },
+    },
+    inventoryProduct: { select: { displayId: true, name: true } },
+  };
+
+  if (
+    prismaModelHasObjectField(
+      prisma as any,
+      "PosCustomerPurchase",
+      "preOrder",
+    )
+  ) {
+    purchaseSelect.preOrder = {
+      select: { displayId: true, brand: true, model: true, colour: true },
+    };
+  }
+
   const [total, payments] = await Promise.all([
     prisma.invoicePayment.count({ where }),
     (prisma as any).invoicePayment.findMany({
       where,
       include: {
         purchase: {
-          select: {
-            id: true,
-            invoiceGroupCode: true,
-            itemType: true,
-            customCategory: true,
-            customDescription: true,
-            customer: { select: { firstName: true, lastName: true, nic: true, mobileNumber: true } },
-            bikeVehicle: {
-              select: { displayId: true, brand: { select: { name: true } }, model: { select: { name: true } } },
-            },
-            inventoryProduct: { select: { displayId: true, name: true } },
-            preOrder: { select: { displayId: true, brand: true, model: true, colour: true } },
-          },
+          select: purchaseSelect,
         },
       },
       orderBy: { paidAt: "desc" },

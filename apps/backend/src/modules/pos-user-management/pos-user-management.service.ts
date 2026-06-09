@@ -1,6 +1,7 @@
 import { Prisma } from "../../generated/prisma";
 import { prisma } from "../../database/prisma.client";
 import { AppError } from "../../common/utils/errors";
+import { prismaModelHasObjectField } from "../../common/utils/prisma-model";
 import type {
   CreateInvoiceAccountDto,
   CreateLeasingCompanyDto,
@@ -1654,7 +1655,13 @@ export async function listPurchases(query: PurchaseQueryDto) {
   // Some deployments may run with an out-of-date generated client that does
   // not include the `preOrder` relation. Add it only when available to avoid
   // Prisma validation errors at runtime.
-  if ((prisma as any).preOrder) {
+  if (
+    prismaModelHasObjectField(
+      prisma as any,
+      "PosCustomerPurchase",
+      "preOrder",
+    )
+  ) {
     purchaseInclude.preOrder = {
       select: {
         id: true,
@@ -1878,7 +1885,13 @@ export async function listPurchasesByUser(
         },
       };
 
-      if ((prisma as any).preOrder) {
+      if (
+        prismaModelHasObjectField(
+          prisma as any,
+          "PosCustomerPurchase",
+          "preOrder",
+        )
+      ) {
         purchaseInclude.preOrder = {
           select: {
             id: true,
