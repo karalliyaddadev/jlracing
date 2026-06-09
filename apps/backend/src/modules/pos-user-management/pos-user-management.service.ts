@@ -1984,24 +1984,28 @@ export async function updatePurchase(
 ) {
   const purchase = await getPurchaseModelClient(prisma as any).findUnique({
     where: { id: purchaseId },
-    include: {
-      invoicePayments: {
-        select: { id: true, amount: true, receiptId: true },
-        orderBy: { id: "asc" },
-      },
-      installments: {
-        select: {
-          id: true,
-          installmentNo: true,
-          dueDate: true,
-          dueAmount: true,
-          paidAmount: true,
-          status: true,
-        },
-      },
-    },
   });
   if (!purchase) throw AppError.notFound("Purchase not found");
+
+  const [installments, invoicePayments] = await Promise.all([
+    (prisma as any).posInstallment.findMany({
+      where: { purchaseId },
+      select: {
+        id: true,
+        installmentNo: true,
+        dueDate: true,
+        dueAmount: true,
+        paidAmount: true,
+        status: true,
+      },
+      orderBy: { installmentNo: "asc" },
+    }),
+    (prisma as any).invoicePayment.findMany({
+      where: { purchaseId },
+      select: { id: true, amount: true, receiptId: true },
+      orderBy: { id: "asc" },
+    }),
+  ]);
 
   if ((purchase as any).purchaseChannel === "LEASING") {
     throw new AppError("Leasing purchases cannot be edited via this endpoint", 400);
@@ -2083,21 +2087,10 @@ export async function updatePurchase(
     );
   }
 
-  const installments: Array<{
-    id: number;
-    installmentNo: number;
-    dueDate: Date;
-    dueAmount: number;
-    paidAmount: number;
-    status: string;
-  }> = (purchase as any).installments ?? [];
-
   const allInstallmentsPending =
     installments.length > 0 &&
     installments.every((i) => i.status === "PENDING" && i.paidAmount === 0);
 
-  const invoicePayments: Array<{ id: number; amount: number; receiptId: number | null }> =
-    (purchase as any).invoicePayments ?? [];
   const initialPayment = invoicePayments[0] ?? null;
 
   const newPaymentAmount =
