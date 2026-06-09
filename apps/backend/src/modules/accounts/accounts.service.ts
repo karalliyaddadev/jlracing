@@ -6,7 +6,6 @@ import {
   PaymentMethod,
   TransactionDirection,
   TransactionType,
-  VoucherType,
 } from "../../generated/prisma";
 import type {
   CreateAccountDto,
@@ -27,26 +26,28 @@ import type {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+const ACCOUNT_TRANSFER_TYPE = "ACCOUNT_TRANSFER";
+
 async function generateAccountCode(): Promise<string> {
   const count = await prisma.account.count();
   return `ACC-${String(count + 1).padStart(3, "0")}`;
 }
 
 function voucherTypeLabel(type: string): string {
-  const map: Record<VoucherType, string> = {
-    [VoucherType.VEHICLE_CLEARANCE]: "Vehicle Clearance Payment",
-    [VoucherType.BILL]: "Bill",
-    [VoucherType.OTHER_PAYMENT]: "Other Payment",
-    [VoucherType.PERMIT]: "Permit Payment",
-    [VoucherType.LEASING_PAYMENT]: "Leasing Payment",
-    [VoucherType.LOAN_PAYMENT]: "Loan Payment",
-    [VoucherType.SALARY]: "Salary",
-    [VoucherType.CUSTOMER_REFUND]: "Customer Refund",
-    [VoucherType.VEHICLE_PURCHASE]: "Vehicle Purchase",
-    [VoucherType.ADVANCE_REFUND]: "Advance Invoice Refund",
-    [VoucherType.ACCOUNT_TRANSFER]: "Account Transfer",
+  const map: Record<string, string> = {
+    VEHICLE_CLEARANCE: "Vehicle Clearance Payment",
+    BILL: "Bill",
+    OTHER_PAYMENT: "Other Payment",
+    PERMIT: "Permit Payment",
+    LEASING_PAYMENT: "Leasing Payment",
+    LOAN_PAYMENT: "Loan Payment",
+    SALARY: "Salary",
+    CUSTOMER_REFUND: "Customer Refund",
+    VEHICLE_PURCHASE: "Vehicle Purchase",
+    ADVANCE_REFUND: "Advance Invoice Refund",
+    [ACCOUNT_TRANSFER_TYPE]: "Account Transfer",
   };
-  return map[type as VoucherType] ?? type;
+  return map[type] ?? type;
 }
 
 function calculateTotalReceivable(p: {
@@ -586,7 +587,7 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
   if (!account || !account.isActive) throw AppError.notFound("Account not found or inactive");
 
   let toAccount = null;
-  if (dto.type === VoucherType.ACCOUNT_TRANSFER) {
+  if (dto.type === ACCOUNT_TRANSFER_TYPE) {
     toAccount = await prisma.account.findUnique({ where: { id: dto.toAccountId } });
     if (!toAccount || !toAccount.isActive) throw AppError.notFound("Destination account not found or inactive");
   }
@@ -620,7 +621,7 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
       },
     });
 
-    if (dto.type === VoucherType.ACCOUNT_TRANSFER) {
+    if (dto.type === ACCOUNT_TRANSFER_TYPE) {
       await tx.$executeRaw`
         UPDATE "account_vouchers"
         SET "toAccountId" = ${dto.toAccountId!}
@@ -654,7 +655,7 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
 
     const voucherNo = `VCH-${String(created.id).padStart(5, "0")}`;
 
-    if (dto.type === VoucherType.ACCOUNT_TRANSFER && toAccount) {
+    if (dto.type === ACCOUNT_TRANSFER_TYPE && toAccount) {
       const [voucher] = await Promise.all([
         tx.accountVoucher.update({
           where: { id: created.id },
@@ -734,7 +735,7 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
   if (!voucher) throw AppError.notFound("Voucher not found");
   if (voucher.isVoided) throw new AppError("Cannot edit a voided voucher", 400);
 
-  const isTransfer = voucher.type === VoucherType.ACCOUNT_TRANSFER;
+  const isTransfer = voucher.type === ACCOUNT_TRANSFER_TYPE;
 
   if (isTransfer && (dto.type !== undefined || dto.amount !== undefined)) {
     throw new AppError("Type and amount cannot be changed on an account transfer", 400);
@@ -803,7 +804,7 @@ export async function voidVoucher(id: number, adminId: number) {
   if (!voucher) throw AppError.notFound("Voucher not found");
   if (voucher.isVoided) throw new AppError("Voucher is already voided", 400);
 
-  const isTransfer = voucher.type === VoucherType.ACCOUNT_TRANSFER;
+  const isTransfer = voucher.type === ACCOUNT_TRANSFER_TYPE;
 
   return prisma.$transaction(async (tx) => {
     await tx.accountVoucher.update({ where: { id }, data: { isVoided: true } });
