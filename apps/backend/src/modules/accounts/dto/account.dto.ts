@@ -1,6 +1,27 @@
 import { z } from "zod";
 import { VoucherType } from "../../../generated/prisma";
 
+const requiredPositiveInt = (message: string) => z.coerce.number().int().positive(message);
+const optionalPositiveInt = z.preprocess(
+  (v) => (v === "" || v === null || v === undefined ? undefined : v),
+  z.coerce.number().int().positive().optional()
+);
+const requiredPositiveNumber = (message: string) => z.coerce.number().positive(message);
+const optionalDate = z.preprocess(
+  (v) => (v === "" || v === null || v === undefined ? undefined : v),
+  z
+    .string()
+    .transform((v, ctx) => {
+      const date = new Date(v);
+      if (Number.isNaN(date.getTime())) {
+        ctx.addIssue({ code: "custom", message: "Invalid date" });
+        return z.NEVER;
+      }
+      return date;
+    })
+    .optional()
+);
+
 const accountTypeValues = ["BANK", "CASH"] as const;
 const paymentMethodValues = ["CASH", "CHEQUE", "BANK_TRANSFER"] as const;
 const voucherTypeValues = [
@@ -45,13 +66,13 @@ export const updateReceiptSchema = createReceiptSchema
 
 export const createVoucherSchema = z
   .object({
-    accountId: z.number().int().positive("Account is required"),
-    toAccountId: z.number().int().positive().optional(),
+    accountId: requiredPositiveInt("Account is required"),
+    toAccountId: optionalPositiveInt,
     type: z.enum(voucherTypeValues),
-    amount: z.number().positive("Amount must be greater than 0"),
+    amount: requiredPositiveNumber("Amount must be greater than 0"),
     description: z.string().trim().max(500).optional(),
     payee: z.string().trim().max(200).optional(),
-    paymentDate: z.string().optional().transform((v) => (v ? new Date(v) : undefined)),
+    paymentDate: optionalDate,
     referenceNo: z.string().trim().max(100).optional(),
   })
   .superRefine((d, ctx) => {
@@ -69,10 +90,10 @@ export const createVoucherSchema = z
 export const updateVoucherSchema = z
   .object({
     type: z.enum(voucherTypeValues).optional(),
-    amount: z.number().positive("Amount must be greater than 0").optional(),
+    amount: requiredPositiveNumber("Amount must be greater than 0").optional(),
     description: z.string().trim().max(500).optional(),
     payee: z.string().trim().max(200).optional(),
-    paymentDate: z.string().optional().transform((v) => (v ? new Date(v) : undefined)),
+    paymentDate: optionalDate,
     referenceNo: z.string().trim().max(100).optional(),
   });
 
