@@ -375,7 +375,7 @@ export async function listPurchasesForReceipt(dto: InvoiceQueueQueryDto) {
       }
     : {};
 
-  const purchases = await prisma.posCustomerPurchase.findMany({
+  const purchases: any[] = await (prisma.posCustomerPurchase as any).findMany({
     where: {
       ...searchClause,
       ...(fromDate && { purchasedAt: { gte: fromDate } }),
@@ -402,6 +402,9 @@ export async function listPurchasesForReceipt(dto: InvoiceQueueQueryDto) {
       inventoryProduct: {
         select: { displayId: true, name: true },
       },
+      preOrder: {
+        select: { id: true, displayId: true, brand: true, model: true, colour: true },
+      },
       receipts: {
         where: { isVoided: false },
         select: { amount: true },
@@ -413,7 +416,7 @@ export async function listPurchasesForReceipt(dto: InvoiceQueueQueryDto) {
 
   const rows = purchases.map((p) => {
     const totalReceivable = calculateTotalReceivable(p);
-    const totalReceipted = p.receipts.reduce((sum, r) => sum + r.amount, 0);
+    const totalReceipted = (p.receipts as Array<{ amount: number }>).reduce((sum, r) => sum + r.amount, 0);
     const outstanding = Math.max(0, totalReceivable - totalReceipted);
 
     const itemLabel =
@@ -421,6 +424,10 @@ export async function listPurchasesForReceipt(dto: InvoiceQueueQueryDto) {
         ? `${p.bikeVehicle.brand.name} ${p.bikeVehicle.model.name} (${p.bikeVehicle.displayId})`
         : p.inventoryProduct
         ? `${p.inventoryProduct.name} (${p.inventoryProduct.displayId})`
+        : p.preOrder
+        ? `${p.preOrder.brand} ${p.preOrder.model} (${p.preOrder.displayId})`
+        : p.customCategory
+        ? `${p.customCategory}${p.customDescription ? ` — ${p.customDescription}` : ""}`
         : "—";
 
     return {
@@ -429,6 +436,8 @@ export async function listPurchasesForReceipt(dto: InvoiceQueueQueryDto) {
       customer: p.customer,
       itemLabel,
       itemType: p.itemType,
+      customCategory: p.customCategory ?? null,
+      customDescription: p.customDescription ?? null,
       purchaseChannel: p.purchaseChannel,
       paymentType: p.paymentType,
       finalSellingPrice: p.finalSellingPrice,
@@ -438,7 +447,7 @@ export async function listPurchasesForReceipt(dto: InvoiceQueueQueryDto) {
       totalReceivable,
       totalReceipted,
       outstanding,
-      receiptCount: p.receipts.length,
+      receiptCount: (p.receipts as any[]).length,
       purchasedAt: p.purchasedAt,
     };
   });
@@ -1194,18 +1203,22 @@ export async function listInvoicePayments(dto: InvoicePaymentQueryDto) {
 
   const [total, payments] = await Promise.all([
     prisma.invoicePayment.count({ where }),
-    prisma.invoicePayment.findMany({
+    (prisma as any).invoicePayment.findMany({
       where,
       include: {
         purchase: {
           select: {
             id: true,
             invoiceGroupCode: true,
+            itemType: true,
+            customCategory: true,
+            customDescription: true,
             customer: { select: { firstName: true, lastName: true, nic: true, mobileNumber: true } },
             bikeVehicle: {
               select: { displayId: true, brand: { select: { name: true } }, model: { select: { name: true } } },
             },
             inventoryProduct: { select: { displayId: true, name: true } },
+            preOrder: { select: { displayId: true, brand: true, model: true, colour: true } },
           },
         },
       },
@@ -1213,17 +1226,25 @@ export async function listInvoicePayments(dto: InvoicePaymentQueryDto) {
       skip,
       take: dto.limit,
     }),
-  ]);
+  ]) as [number, any[]];
 
-  const data = payments.map((p) => ({
-    ...p,
-    invoiceRef: p.purchase.invoiceGroupCode ?? `INV-${String(p.purchaseId).padStart(5, "0")}`,
-    itemLabel: p.purchase.bikeVehicle
-      ? `${p.purchase.bikeVehicle.brand.name} ${p.purchase.bikeVehicle.model.name} (${p.purchase.bikeVehicle.displayId})`
-      : p.purchase.inventoryProduct
-      ? `${p.purchase.inventoryProduct.name} (${p.purchase.inventoryProduct.displayId})`
-      : "—",
-  }));
+  const data = (payments as any[]).map((p) => {
+    const pur = p.purchase;
+    const itemLabel = pur.bikeVehicle
+      ? `${pur.bikeVehicle.brand.name} ${pur.bikeVehicle.model.name} (${pur.bikeVehicle.displayId})`
+      : pur.inventoryProduct
+      ? `${pur.inventoryProduct.name} (${pur.inventoryProduct.displayId})`
+      : pur.preOrder
+      ? `${pur.preOrder.brand} ${pur.preOrder.model} (${pur.preOrder.displayId})`
+      : pur.customCategory
+      ? `${pur.customCategory}${pur.customDescription ? ` — ${pur.customDescription}` : ""}`
+      : "—";
+    return {
+      ...p,
+      invoiceRef: pur.invoiceGroupCode ?? `INV-${String(p.purchaseId).padStart(5, "0")}`,
+      itemLabel,
+    };
+  });
 
   return {
     data,

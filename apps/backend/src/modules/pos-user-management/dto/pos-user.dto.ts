@@ -54,7 +54,7 @@ export const posUserQuerySchema = z.object({
 
 export const createPurchaseSchema = z
   .object({
-    purchaseType: z.enum(["BIKE", "INVENTORY"]).default("BIKE"),
+    purchaseType: z.enum(["BIKE", "INVENTORY", "PRE_ORDER", "CUSTOM"]).default("BIKE"),
     purchaseMode: z.enum(["SINGLE", "BULK"]).default("SINGLE"),
     invoiceGroupCode: z.string().trim().max(80).optional(),
     bikeVehicleId: z.number().int().positive("Bike is required").optional(),
@@ -63,6 +63,9 @@ export const createPurchaseSchema = z
       .int()
       .positive("Inventory product is required")
       .optional(),
+    preOrderId: z.number().int().positive("Pre-order is required").optional(),
+    customCategory: z.string().trim().max(120).optional(),
+    customDescription: z.string().trim().max(500).optional(),
     quantity: z.number().int().min(1).default(1),
     finalSellingPrice: z.number().min(0, "Final selling price must be >= 0"),
     paymentType: z.enum(["DIRECT", "DOWNPAYMENT"]).default("DIRECT"),
@@ -115,6 +118,27 @@ export const createPurchaseSchema = z
         path: ["inventoryProductId"],
       });
     }
+    if (data.purchaseType === "PRE_ORDER" && !data.preOrderId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Pre-order is required",
+        path: ["preOrderId"],
+      });
+    }
+    if (data.purchaseType === "CUSTOM" && !data.customDescription?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Description is required for custom invoices",
+        path: ["customDescription"],
+      });
+    }
+    if (data.purchaseType === "CUSTOM" && data.purchaseChannel === "LEASING") {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Leasing is not available for custom invoices",
+        path: ["purchaseChannel"],
+      });
+    }
     if (
       data.hasRegistrationFee &&
       (!Number.isFinite(data.registrationFeeAmount) ||
@@ -139,10 +163,10 @@ export const createPurchaseSchema = z
       });
     }
     if (data.purchaseChannel === "LEASING") {
-      if (data.purchaseType !== "BIKE") {
+      if (data.purchaseType !== "BIKE" && data.purchaseType !== "PRE_ORDER") {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "Leasing is supported only for bike purchases",
+          message: "Leasing is supported only for bike and pre-order purchases",
           path: ["purchaseType"],
         });
       }
