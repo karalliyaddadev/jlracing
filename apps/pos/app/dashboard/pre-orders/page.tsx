@@ -5,8 +5,9 @@ import Image from "next/image";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { IconPreOrders, IconActivity, IconInventory } from "../../lib/icons";
+import CustomerPurchaseModal from "../../components/CustomerPurchaseModal";
 
-// â”€â”€ Types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â"€â"€ Types â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 type PreOrderImage = {
   id: number;
   preOrderId: number;
@@ -55,7 +56,7 @@ function getPrimaryImageSrc(images: PreOrderImage[]): string | null {
   return resolveAssetUrl(primary.url);
 }
 
-// â”€â”€ Main Component â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// â"€â"€ Main Component â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
 export default function PreOrdersManagementPage() {
   const { token } = useAdmin();
   const [preOrders, setPreOrders] = useState<PreOrder[]>([]);
@@ -77,6 +78,7 @@ export default function PreOrdersManagementPage() {
   const [modalError, setModalError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<PreOrder | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [sellTarget, setSellTarget] = useState<PreOrder | null>(null);
 
   // Form state
   const emptyForm = {
@@ -112,7 +114,7 @@ export default function PreOrdersManagementPage() {
   const [newBrandName, setNewBrandName] = useState("");
   const [newModelName, setNewModelName] = useState("");
 
-  // â”€â”€ Fetch â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â"€â"€ Fetch â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
   const bikeManagementBase = `${API_URL}/api/pos/bike-management`;
 
   const fetchBrands = useCallback(async () => {
@@ -269,7 +271,7 @@ export default function PreOrdersManagementPage() {
     }
   };
 
-  // â”€â”€ Open modals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â"€â"€ Open modals â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
   function openAdd() {
     setEditingPreOrder(null);
     setForm(emptyForm);
@@ -315,7 +317,7 @@ export default function PreOrdersManagementPage() {
     setShowModal(true);
   }
 
-  // â”€â”€ Image selection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â"€â"€ Image selection â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
   function handleImageSelect(e: React.ChangeEvent<HTMLInputElement>) {
     setImageError(null);
     const files = Array.from(e.target.files ?? []);
@@ -385,7 +387,7 @@ export default function PreOrdersManagementPage() {
     }
   }
 
-  // â”€â”€ Submit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â"€â"€ Submit â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
@@ -475,7 +477,7 @@ export default function PreOrdersManagementPage() {
     }
   }
 
-  // â”€â”€ Delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â"€â"€ Delete â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
   async function handleDelete() {
     if (!deleteConfirm) return;
     setDeleting(true);
@@ -497,7 +499,7 @@ export default function PreOrdersManagementPage() {
     }
   }
 
-  // â”€â”€ Stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  // â"€â"€ Stats â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€â"€
   const totalPreOrder = preOrders.filter(
     (p) => p.status === "pre-order",
   ).length;
@@ -704,7 +706,7 @@ export default function PreOrdersManagementPage() {
                       <td>
                         {po.price != null
                           ? `Rs. ${po.price.toLocaleString("en-LK")}`
-                          : "â€”"}
+                          : "-"}
                       </td>
                       <td>
                         <span
@@ -737,6 +739,14 @@ export default function PreOrdersManagementPage() {
                             onClick={() => openEdit(po)}
                           >
                             Edit
+                          </button>
+                          <button
+                            type="button"
+                            className="bm-action-btn btn-accent"
+                            title="Sell to Customer"
+                            onClick={() => setSellTarget(po)}
+                          >
+                            Sell
                           </button>
                           <button
                             type="button"
@@ -785,13 +795,13 @@ export default function PreOrdersManagementPage() {
               disabled={page >= totalPages}
               onClick={() => setPage((p) => p + 1)}
             >
-              Next â†’
+              Next â†'
             </button>
           </div>
         )}
       </div>
 
-      {/* â”€â”€ Add/Edit Modal â”€â”€ */}
+      {/* â"€â"€ Add/Edit Modal â"€â"€ */}
       {showModal && (
         <div className="bm-modal-backdrop" onClick={() => setShowModal(false)}>
           <div
@@ -806,7 +816,7 @@ export default function PreOrdersManagementPage() {
             </button>
             <h3 className="bm-modal-title">
               {editingPreOrder
-                ? `Edit Pre Order â€” ${editingPreOrder.displayId}`
+                ? `Edit Pre Order â€" ${editingPreOrder.displayId}`
                 : "Add Pre Order"}
             </h3>
             {modalError && (
@@ -1325,7 +1335,7 @@ export default function PreOrdersManagementPage() {
         </div>
       )}
 
-      {/* â”€â”€ View Modal â”€â”€ */}
+      {/* â"€â"€ View Modal â"€â"€ */}
       {viewPreOrder && (
         <div
           className="bm-modal-backdrop"
@@ -1342,7 +1352,7 @@ export default function PreOrdersManagementPage() {
               ×
             </button>
             <h3 className="bm-modal-title">
-              {viewPreOrder.brand} {viewPreOrder.model} â€”{" "}
+              {viewPreOrder.brand} {viewPreOrder.model} â€"{" "}
               <code style={{ fontSize: 13 }}>{viewPreOrder.displayId}</code>
             </h3>
 
@@ -1508,7 +1518,20 @@ export default function PreOrdersManagementPage() {
         </div>
       )}
 
-      {/* â”€â”€ Delete Confirm â”€â”€ */}
+      {/* Sell to Customer */}
+      {sellTarget && (
+        <CustomerPurchaseModal
+          token={token}
+          itemType="PRE_ORDER"
+          itemId={sellTarget.id}
+          itemLabel={`${sellTarget.brand} ${sellTarget.model}${sellTarget.colour ? ` - ${sellTarget.colour}` : ""}`}
+          currentSellingPrice={sellTarget.price ?? null}
+          onClose={() => setSellTarget(null)}
+          onSaved={() => setSellTarget(null)}
+        />
+      )}
+
+      {/* Delete Confirm */}
       {deleteConfirm && (
         <div
           className="bm-modal-backdrop"

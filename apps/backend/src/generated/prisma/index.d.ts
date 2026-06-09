@@ -199,7 +199,9 @@ export type Role = (typeof Role)[keyof typeof Role]
 
 export const PosPurchaseItemType: {
   BIKE: 'BIKE',
-  INVENTORY: 'INVENTORY'
+  INVENTORY: 'INVENTORY',
+  PRE_ORDER: 'PRE_ORDER',
+  CUSTOM: 'CUSTOM'
 };
 
 export type PosPurchaseItemType = (typeof PosPurchaseItemType)[keyof typeof PosPurchaseItemType]
@@ -4302,10 +4304,12 @@ export namespace Prisma {
 
   export type PreOrderCountOutputType = {
     images: number
+    purchases: number
   }
 
   export type PreOrderCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     images?: boolean | PreOrderCountOutputTypeCountImagesArgs
+    purchases?: boolean | PreOrderCountOutputTypeCountPurchasesArgs
   }
 
   // Custom InputTypes
@@ -4324,6 +4328,13 @@ export namespace Prisma {
    */
   export type PreOrderCountOutputTypeCountImagesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: PreOrderImageWhereInput
+  }
+
+  /**
+   * PreOrderCountOutputType without action
+   */
+  export type PreOrderCountOutputTypeCountPurchasesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: PosCustomerPurchaseWhereInput
   }
 
 
@@ -22910,6 +22921,7 @@ export namespace Prisma {
     customerId: number | null
     bikeVehicleId: number | null
     inventoryProductId: number | null
+    preOrderId: number | null
     currentSellingPrice: number | null
     finalSellingPrice: number | null
     downPaymentAmount: number | null
@@ -22930,6 +22942,7 @@ export namespace Prisma {
     customerId: number | null
     bikeVehicleId: number | null
     inventoryProductId: number | null
+    preOrderId: number | null
     currentSellingPrice: number | null
     finalSellingPrice: number | null
     downPaymentAmount: number | null
@@ -22953,6 +22966,9 @@ export namespace Prisma {
     invoiceGroupCode: string | null
     bikeVehicleId: number | null
     inventoryProductId: number | null
+    preOrderId: number | null
+    customCategory: string | null
+    customDescription: string | null
     currentSellingPrice: number | null
     finalSellingPrice: number | null
     paymentType: $Enums.PosPaymentType | null
@@ -22981,6 +22997,9 @@ export namespace Prisma {
     invoiceGroupCode: string | null
     bikeVehicleId: number | null
     inventoryProductId: number | null
+    preOrderId: number | null
+    customCategory: string | null
+    customDescription: string | null
     currentSellingPrice: number | null
     finalSellingPrice: number | null
     paymentType: $Enums.PosPaymentType | null
@@ -23009,6 +23028,9 @@ export namespace Prisma {
     invoiceGroupCode: number
     bikeVehicleId: number
     inventoryProductId: number
+    preOrderId: number
+    customCategory: number
+    customDescription: number
     currentSellingPrice: number
     finalSellingPrice: number
     paymentType: number
@@ -23036,6 +23058,7 @@ export namespace Prisma {
     customerId?: true
     bikeVehicleId?: true
     inventoryProductId?: true
+    preOrderId?: true
     currentSellingPrice?: true
     finalSellingPrice?: true
     downPaymentAmount?: true
@@ -23056,6 +23079,7 @@ export namespace Prisma {
     customerId?: true
     bikeVehicleId?: true
     inventoryProductId?: true
+    preOrderId?: true
     currentSellingPrice?: true
     finalSellingPrice?: true
     downPaymentAmount?: true
@@ -23079,6 +23103,9 @@ export namespace Prisma {
     invoiceGroupCode?: true
     bikeVehicleId?: true
     inventoryProductId?: true
+    preOrderId?: true
+    customCategory?: true
+    customDescription?: true
     currentSellingPrice?: true
     finalSellingPrice?: true
     paymentType?: true
@@ -23107,6 +23134,9 @@ export namespace Prisma {
     invoiceGroupCode?: true
     bikeVehicleId?: true
     inventoryProductId?: true
+    preOrderId?: true
+    customCategory?: true
+    customDescription?: true
     currentSellingPrice?: true
     finalSellingPrice?: true
     paymentType?: true
@@ -23135,6 +23165,9 @@ export namespace Prisma {
     invoiceGroupCode?: true
     bikeVehicleId?: true
     inventoryProductId?: true
+    preOrderId?: true
+    customCategory?: true
+    customDescription?: true
     currentSellingPrice?: true
     finalSellingPrice?: true
     paymentType?: true
@@ -23250,6 +23283,9 @@ export namespace Prisma {
     invoiceGroupCode: string | null
     bikeVehicleId: number | null
     inventoryProductId: number | null
+    preOrderId: number | null
+    customCategory: string | null
+    customDescription: string | null
     currentSellingPrice: number | null
     finalSellingPrice: number
     paymentType: $Enums.PosPaymentType
@@ -23297,6 +23333,9 @@ export namespace Prisma {
     invoiceGroupCode?: boolean
     bikeVehicleId?: boolean
     inventoryProductId?: boolean
+    preOrderId?: boolean
+    customCategory?: boolean
+    customDescription?: boolean
     currentSellingPrice?: boolean
     finalSellingPrice?: boolean
     paymentType?: boolean
@@ -23318,6 +23357,7 @@ export namespace Prisma {
     customer?: boolean | PosCustomerDefaultArgs<ExtArgs>
     bikeVehicle?: boolean | PosCustomerPurchase$bikeVehicleArgs<ExtArgs>
     inventoryProduct?: boolean | PosCustomerPurchase$inventoryProductArgs<ExtArgs>
+    preOrder?: boolean | PosCustomerPurchase$preOrderArgs<ExtArgs>
     leasingCompany?: boolean | PosCustomerPurchase$leasingCompanyArgs<ExtArgs>
     receipts?: boolean | PosCustomerPurchase$receiptsArgs<ExtArgs>
     installments?: boolean | PosCustomerPurchase$installmentsArgs<ExtArgs>
@@ -23333,6 +23373,9 @@ export namespace Prisma {
     invoiceGroupCode?: boolean
     bikeVehicleId?: boolean
     inventoryProductId?: boolean
+    preOrderId?: boolean
+    customCategory?: boolean
+    customDescription?: boolean
     currentSellingPrice?: boolean
     finalSellingPrice?: boolean
     paymentType?: boolean
@@ -23354,6 +23397,7 @@ export namespace Prisma {
     customer?: boolean | PosCustomerDefaultArgs<ExtArgs>
     bikeVehicle?: boolean | PosCustomerPurchase$bikeVehicleArgs<ExtArgs>
     inventoryProduct?: boolean | PosCustomerPurchase$inventoryProductArgs<ExtArgs>
+    preOrder?: boolean | PosCustomerPurchase$preOrderArgs<ExtArgs>
     leasingCompany?: boolean | PosCustomerPurchase$leasingCompanyArgs<ExtArgs>
   }, ExtArgs["result"]["posCustomerPurchase"]>
 
@@ -23365,6 +23409,9 @@ export namespace Prisma {
     invoiceGroupCode?: boolean
     bikeVehicleId?: boolean
     inventoryProductId?: boolean
+    preOrderId?: boolean
+    customCategory?: boolean
+    customDescription?: boolean
     currentSellingPrice?: boolean
     finalSellingPrice?: boolean
     paymentType?: boolean
@@ -23389,6 +23436,7 @@ export namespace Prisma {
     customer?: boolean | PosCustomerDefaultArgs<ExtArgs>
     bikeVehicle?: boolean | PosCustomerPurchase$bikeVehicleArgs<ExtArgs>
     inventoryProduct?: boolean | PosCustomerPurchase$inventoryProductArgs<ExtArgs>
+    preOrder?: boolean | PosCustomerPurchase$preOrderArgs<ExtArgs>
     leasingCompany?: boolean | PosCustomerPurchase$leasingCompanyArgs<ExtArgs>
     receipts?: boolean | PosCustomerPurchase$receiptsArgs<ExtArgs>
     installments?: boolean | PosCustomerPurchase$installmentsArgs<ExtArgs>
@@ -23399,6 +23447,7 @@ export namespace Prisma {
     customer?: boolean | PosCustomerDefaultArgs<ExtArgs>
     bikeVehicle?: boolean | PosCustomerPurchase$bikeVehicleArgs<ExtArgs>
     inventoryProduct?: boolean | PosCustomerPurchase$inventoryProductArgs<ExtArgs>
+    preOrder?: boolean | PosCustomerPurchase$preOrderArgs<ExtArgs>
     leasingCompany?: boolean | PosCustomerPurchase$leasingCompanyArgs<ExtArgs>
   }
 
@@ -23408,6 +23457,7 @@ export namespace Prisma {
       customer: Prisma.$PosCustomerPayload<ExtArgs>
       bikeVehicle: Prisma.$BikeVehiclePayload<ExtArgs> | null
       inventoryProduct: Prisma.$InventoryProductPayload<ExtArgs> | null
+      preOrder: Prisma.$PreOrderPayload<ExtArgs> | null
       leasingCompany: Prisma.$PosLeasingCompanyPayload<ExtArgs> | null
       receipts: Prisma.$AccountReceiptPayload<ExtArgs>[]
       installments: Prisma.$PosInstallmentPayload<ExtArgs>[]
@@ -23421,6 +23471,9 @@ export namespace Prisma {
       invoiceGroupCode: string | null
       bikeVehicleId: number | null
       inventoryProductId: number | null
+      preOrderId: number | null
+      customCategory: string | null
+      customDescription: string | null
       currentSellingPrice: number | null
       finalSellingPrice: number
       paymentType: $Enums.PosPaymentType
@@ -23806,6 +23859,7 @@ export namespace Prisma {
     customer<T extends PosCustomerDefaultArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerDefaultArgs<ExtArgs>>): Prisma__PosCustomerClient<$Result.GetResult<Prisma.$PosCustomerPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     bikeVehicle<T extends PosCustomerPurchase$bikeVehicleArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchase$bikeVehicleArgs<ExtArgs>>): Prisma__BikeVehicleClient<$Result.GetResult<Prisma.$BikeVehiclePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     inventoryProduct<T extends PosCustomerPurchase$inventoryProductArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchase$inventoryProductArgs<ExtArgs>>): Prisma__InventoryProductClient<$Result.GetResult<Prisma.$InventoryProductPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
+    preOrder<T extends PosCustomerPurchase$preOrderArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchase$preOrderArgs<ExtArgs>>): Prisma__PreOrderClient<$Result.GetResult<Prisma.$PreOrderPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     leasingCompany<T extends PosCustomerPurchase$leasingCompanyArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchase$leasingCompanyArgs<ExtArgs>>): Prisma__PosLeasingCompanyClient<$Result.GetResult<Prisma.$PosLeasingCompanyPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     receipts<T extends PosCustomerPurchase$receiptsArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchase$receiptsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountReceiptPayload<ExtArgs>, T, "findMany"> | Null>
     installments<T extends PosCustomerPurchase$installmentsArgs<ExtArgs> = {}>(args?: Subset<T, PosCustomerPurchase$installmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PosInstallmentPayload<ExtArgs>, T, "findMany"> | Null>
@@ -23846,6 +23900,9 @@ export namespace Prisma {
     readonly invoiceGroupCode: FieldRef<"PosCustomerPurchase", 'String'>
     readonly bikeVehicleId: FieldRef<"PosCustomerPurchase", 'Int'>
     readonly inventoryProductId: FieldRef<"PosCustomerPurchase", 'Int'>
+    readonly preOrderId: FieldRef<"PosCustomerPurchase", 'Int'>
+    readonly customCategory: FieldRef<"PosCustomerPurchase", 'String'>
+    readonly customDescription: FieldRef<"PosCustomerPurchase", 'String'>
     readonly currentSellingPrice: FieldRef<"PosCustomerPurchase", 'Float'>
     readonly finalSellingPrice: FieldRef<"PosCustomerPurchase", 'Float'>
     readonly paymentType: FieldRef<"PosCustomerPurchase", 'PosPaymentType'>
@@ -24209,6 +24266,21 @@ export namespace Prisma {
      */
     include?: InventoryProductInclude<ExtArgs> | null
     where?: InventoryProductWhereInput
+  }
+
+  /**
+   * PosCustomerPurchase.preOrder
+   */
+  export type PosCustomerPurchase$preOrderArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PreOrder
+     */
+    select?: PreOrderSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PreOrderInclude<ExtArgs> | null
+    where?: PreOrderWhereInput
   }
 
   /**
@@ -27652,6 +27724,7 @@ export namespace Prisma {
     createdAt?: boolean
     updatedAt?: boolean
     images?: boolean | PreOrder$imagesArgs<ExtArgs>
+    purchases?: boolean | PreOrder$purchasesArgs<ExtArgs>
     _count?: boolean | PreOrderCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["preOrder"]>
 
@@ -27697,6 +27770,7 @@ export namespace Prisma {
 
   export type PreOrderInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     images?: boolean | PreOrder$imagesArgs<ExtArgs>
+    purchases?: boolean | PreOrder$purchasesArgs<ExtArgs>
     _count?: boolean | PreOrderCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type PreOrderIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -27705,6 +27779,7 @@ export namespace Prisma {
     name: "PreOrder"
     objects: {
       images: Prisma.$PreOrderImagePayload<ExtArgs>[]
+      purchases: Prisma.$PosCustomerPurchasePayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
@@ -28089,6 +28164,7 @@ export namespace Prisma {
   export interface Prisma__PreOrderClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     images<T extends PreOrder$imagesArgs<ExtArgs> = {}>(args?: Subset<T, PreOrder$imagesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PreOrderImagePayload<ExtArgs>, T, "findMany"> | Null>
+    purchases<T extends PreOrder$purchasesArgs<ExtArgs> = {}>(args?: Subset<T, PreOrder$purchasesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$PosCustomerPurchasePayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -28466,6 +28542,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: PreOrderImageScalarFieldEnum | PreOrderImageScalarFieldEnum[]
+  }
+
+  /**
+   * PreOrder.purchases
+   */
+  export type PreOrder$purchasesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the PosCustomerPurchase
+     */
+    select?: PosCustomerPurchaseSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: PosCustomerPurchaseInclude<ExtArgs> | null
+    where?: PosCustomerPurchaseWhereInput
+    orderBy?: PosCustomerPurchaseOrderByWithRelationInput | PosCustomerPurchaseOrderByWithRelationInput[]
+    cursor?: PosCustomerPurchaseWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: PosCustomerPurchaseScalarFieldEnum | PosCustomerPurchaseScalarFieldEnum[]
   }
 
   /**
@@ -40571,6 +40667,9 @@ export namespace Prisma {
     invoiceGroupCode: 'invoiceGroupCode',
     bikeVehicleId: 'bikeVehicleId',
     inventoryProductId: 'inventoryProductId',
+    preOrderId: 'preOrderId',
+    customCategory: 'customCategory',
+    customDescription: 'customDescription',
     currentSellingPrice: 'currentSellingPrice',
     finalSellingPrice: 'finalSellingPrice',
     paymentType: 'paymentType',
@@ -42467,6 +42566,9 @@ export namespace Prisma {
     invoiceGroupCode?: StringNullableFilter<"PosCustomerPurchase"> | string | null
     bikeVehicleId?: IntNullableFilter<"PosCustomerPurchase"> | number | null
     inventoryProductId?: IntNullableFilter<"PosCustomerPurchase"> | number | null
+    preOrderId?: IntNullableFilter<"PosCustomerPurchase"> | number | null
+    customCategory?: StringNullableFilter<"PosCustomerPurchase"> | string | null
+    customDescription?: StringNullableFilter<"PosCustomerPurchase"> | string | null
     currentSellingPrice?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
     finalSellingPrice?: FloatFilter<"PosCustomerPurchase"> | number
     paymentType?: EnumPosPaymentTypeFilter<"PosCustomerPurchase"> | $Enums.PosPaymentType
@@ -42488,6 +42590,7 @@ export namespace Prisma {
     customer?: XOR<PosCustomerRelationFilter, PosCustomerWhereInput>
     bikeVehicle?: XOR<BikeVehicleNullableRelationFilter, BikeVehicleWhereInput> | null
     inventoryProduct?: XOR<InventoryProductNullableRelationFilter, InventoryProductWhereInput> | null
+    preOrder?: XOR<PreOrderNullableRelationFilter, PreOrderWhereInput> | null
     leasingCompany?: XOR<PosLeasingCompanyNullableRelationFilter, PosLeasingCompanyWhereInput> | null
     receipts?: AccountReceiptListRelationFilter
     installments?: PosInstallmentListRelationFilter
@@ -42502,6 +42605,9 @@ export namespace Prisma {
     invoiceGroupCode?: SortOrderInput | SortOrder
     bikeVehicleId?: SortOrderInput | SortOrder
     inventoryProductId?: SortOrderInput | SortOrder
+    preOrderId?: SortOrderInput | SortOrder
+    customCategory?: SortOrderInput | SortOrder
+    customDescription?: SortOrderInput | SortOrder
     currentSellingPrice?: SortOrderInput | SortOrder
     finalSellingPrice?: SortOrder
     paymentType?: SortOrder
@@ -42523,6 +42629,7 @@ export namespace Prisma {
     customer?: PosCustomerOrderByWithRelationInput
     bikeVehicle?: BikeVehicleOrderByWithRelationInput
     inventoryProduct?: InventoryProductOrderByWithRelationInput
+    preOrder?: PreOrderOrderByWithRelationInput
     leasingCompany?: PosLeasingCompanyOrderByWithRelationInput
     receipts?: AccountReceiptOrderByRelationAggregateInput
     installments?: PosInstallmentOrderByRelationAggregateInput
@@ -42540,6 +42647,9 @@ export namespace Prisma {
     invoiceGroupCode?: StringNullableFilter<"PosCustomerPurchase"> | string | null
     bikeVehicleId?: IntNullableFilter<"PosCustomerPurchase"> | number | null
     inventoryProductId?: IntNullableFilter<"PosCustomerPurchase"> | number | null
+    preOrderId?: IntNullableFilter<"PosCustomerPurchase"> | number | null
+    customCategory?: StringNullableFilter<"PosCustomerPurchase"> | string | null
+    customDescription?: StringNullableFilter<"PosCustomerPurchase"> | string | null
     currentSellingPrice?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
     finalSellingPrice?: FloatFilter<"PosCustomerPurchase"> | number
     paymentType?: EnumPosPaymentTypeFilter<"PosCustomerPurchase"> | $Enums.PosPaymentType
@@ -42561,6 +42671,7 @@ export namespace Prisma {
     customer?: XOR<PosCustomerRelationFilter, PosCustomerWhereInput>
     bikeVehicle?: XOR<BikeVehicleNullableRelationFilter, BikeVehicleWhereInput> | null
     inventoryProduct?: XOR<InventoryProductNullableRelationFilter, InventoryProductWhereInput> | null
+    preOrder?: XOR<PreOrderNullableRelationFilter, PreOrderWhereInput> | null
     leasingCompany?: XOR<PosLeasingCompanyNullableRelationFilter, PosLeasingCompanyWhereInput> | null
     receipts?: AccountReceiptListRelationFilter
     installments?: PosInstallmentListRelationFilter
@@ -42575,6 +42686,9 @@ export namespace Prisma {
     invoiceGroupCode?: SortOrderInput | SortOrder
     bikeVehicleId?: SortOrderInput | SortOrder
     inventoryProductId?: SortOrderInput | SortOrder
+    preOrderId?: SortOrderInput | SortOrder
+    customCategory?: SortOrderInput | SortOrder
+    customDescription?: SortOrderInput | SortOrder
     currentSellingPrice?: SortOrderInput | SortOrder
     finalSellingPrice?: SortOrder
     paymentType?: SortOrder
@@ -42611,6 +42725,9 @@ export namespace Prisma {
     invoiceGroupCode?: StringNullableWithAggregatesFilter<"PosCustomerPurchase"> | string | null
     bikeVehicleId?: IntNullableWithAggregatesFilter<"PosCustomerPurchase"> | number | null
     inventoryProductId?: IntNullableWithAggregatesFilter<"PosCustomerPurchase"> | number | null
+    preOrderId?: IntNullableWithAggregatesFilter<"PosCustomerPurchase"> | number | null
+    customCategory?: StringNullableWithAggregatesFilter<"PosCustomerPurchase"> | string | null
+    customDescription?: StringNullableWithAggregatesFilter<"PosCustomerPurchase"> | string | null
     currentSellingPrice?: FloatNullableWithAggregatesFilter<"PosCustomerPurchase"> | number | null
     finalSellingPrice?: FloatWithAggregatesFilter<"PosCustomerPurchase"> | number
     paymentType?: EnumPosPaymentTypeWithAggregatesFilter<"PosCustomerPurchase"> | $Enums.PosPaymentType
@@ -42879,6 +42996,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"PreOrder"> | Date | string
     updatedAt?: DateTimeFilter<"PreOrder"> | Date | string
     images?: PreOrderImageListRelationFilter
+    purchases?: PosCustomerPurchaseListRelationFilter
   }
 
   export type PreOrderOrderByWithRelationInput = {
@@ -42900,6 +43018,7 @@ export namespace Prisma {
     createdAt?: SortOrder
     updatedAt?: SortOrder
     images?: PreOrderImageOrderByRelationAggregateInput
+    purchases?: PosCustomerPurchaseOrderByRelationAggregateInput
   }
 
   export type PreOrderWhereUniqueInput = Prisma.AtLeast<{
@@ -42924,6 +43043,7 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"PreOrder"> | Date | string
     updatedAt?: DateTimeFilter<"PreOrder"> | Date | string
     images?: PreOrderImageListRelationFilter
+    purchases?: PosCustomerPurchaseListRelationFilter
   }, "id" | "displayId">
 
   export type PreOrderOrderByWithAggregationInput = {
@@ -45321,6 +45441,8 @@ export namespace Prisma {
     itemType?: $Enums.PosPurchaseItemType
     purchaseMode?: $Enums.PosPurchaseMode
     invoiceGroupCode?: string | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -45341,6 +45463,7 @@ export namespace Prisma {
     customer: PosCustomerCreateNestedOneWithoutPurchasesInput
     bikeVehicle?: BikeVehicleCreateNestedOneWithoutCustomerPurchasesInput
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
+    preOrder?: PreOrderCreateNestedOneWithoutPurchasesInput
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
@@ -45355,6 +45478,9 @@ export namespace Prisma {
     invoiceGroupCode?: string | null
     bikeVehicleId?: number | null
     inventoryProductId?: number | null
+    preOrderId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -45382,6 +45508,8 @@ export namespace Prisma {
     itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
     purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -45402,6 +45530,7 @@ export namespace Prisma {
     customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
     bikeVehicle?: BikeVehicleUpdateOneWithoutCustomerPurchasesNestedInput
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
+    preOrder?: PreOrderUpdateOneWithoutPurchasesNestedInput
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
@@ -45416,6 +45545,9 @@ export namespace Prisma {
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
     bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
     inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    preOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -45447,6 +45579,9 @@ export namespace Prisma {
     invoiceGroupCode?: string | null
     bikeVehicleId?: number | null
     inventoryProductId?: number | null
+    preOrderId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -45471,6 +45606,8 @@ export namespace Prisma {
     itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
     purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -45498,6 +45635,9 @@ export namespace Prisma {
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
     bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
     inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    preOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -45774,6 +45914,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     images?: PreOrderImageCreateNestedManyWithoutPreOrderInput
+    purchases?: PosCustomerPurchaseCreateNestedManyWithoutPreOrderInput
   }
 
   export type PreOrderUncheckedCreateInput = {
@@ -45795,6 +45936,7 @@ export namespace Prisma {
     createdAt?: Date | string
     updatedAt?: Date | string
     images?: PreOrderImageUncheckedCreateNestedManyWithoutPreOrderInput
+    purchases?: PosCustomerPurchaseUncheckedCreateNestedManyWithoutPreOrderInput
   }
 
   export type PreOrderUpdateInput = {
@@ -45815,6 +45957,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     images?: PreOrderImageUpdateManyWithoutPreOrderNestedInput
+    purchases?: PosCustomerPurchaseUpdateManyWithoutPreOrderNestedInput
   }
 
   export type PreOrderUncheckedUpdateInput = {
@@ -45836,6 +45979,7 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     images?: PreOrderImageUncheckedUpdateManyWithoutPreOrderNestedInput
+    purchases?: PosCustomerPurchaseUncheckedUpdateManyWithoutPreOrderNestedInput
   }
 
   export type PreOrderCreateManyInput = {
@@ -48168,6 +48312,11 @@ export namespace Prisma {
     isNot?: InventoryProductWhereInput | null
   }
 
+  export type PreOrderNullableRelationFilter = {
+    is?: PreOrderWhereInput | null
+    isNot?: PreOrderWhereInput | null
+  }
+
   export type PosLeasingCompanyNullableRelationFilter = {
     is?: PosLeasingCompanyWhereInput | null
     isNot?: PosLeasingCompanyWhereInput | null
@@ -48211,6 +48360,9 @@ export namespace Prisma {
     invoiceGroupCode?: SortOrder
     bikeVehicleId?: SortOrder
     inventoryProductId?: SortOrder
+    preOrderId?: SortOrder
+    customCategory?: SortOrder
+    customDescription?: SortOrder
     currentSellingPrice?: SortOrder
     finalSellingPrice?: SortOrder
     paymentType?: SortOrder
@@ -48236,6 +48388,7 @@ export namespace Prisma {
     customerId?: SortOrder
     bikeVehicleId?: SortOrder
     inventoryProductId?: SortOrder
+    preOrderId?: SortOrder
     currentSellingPrice?: SortOrder
     finalSellingPrice?: SortOrder
     downPaymentAmount?: SortOrder
@@ -48259,6 +48412,9 @@ export namespace Prisma {
     invoiceGroupCode?: SortOrder
     bikeVehicleId?: SortOrder
     inventoryProductId?: SortOrder
+    preOrderId?: SortOrder
+    customCategory?: SortOrder
+    customDescription?: SortOrder
     currentSellingPrice?: SortOrder
     finalSellingPrice?: SortOrder
     paymentType?: SortOrder
@@ -48287,6 +48443,9 @@ export namespace Prisma {
     invoiceGroupCode?: SortOrder
     bikeVehicleId?: SortOrder
     inventoryProductId?: SortOrder
+    preOrderId?: SortOrder
+    customCategory?: SortOrder
+    customDescription?: SortOrder
     currentSellingPrice?: SortOrder
     finalSellingPrice?: SortOrder
     paymentType?: SortOrder
@@ -48312,6 +48471,7 @@ export namespace Prisma {
     customerId?: SortOrder
     bikeVehicleId?: SortOrder
     inventoryProductId?: SortOrder
+    preOrderId?: SortOrder
     currentSellingPrice?: SortOrder
     finalSellingPrice?: SortOrder
     downPaymentAmount?: SortOrder
@@ -50438,6 +50598,12 @@ export namespace Prisma {
     connect?: InventoryProductWhereUniqueInput
   }
 
+  export type PreOrderCreateNestedOneWithoutPurchasesInput = {
+    create?: XOR<PreOrderCreateWithoutPurchasesInput, PreOrderUncheckedCreateWithoutPurchasesInput>
+    connectOrCreate?: PreOrderCreateOrConnectWithoutPurchasesInput
+    connect?: PreOrderWhereUniqueInput
+  }
+
   export type PosLeasingCompanyCreateNestedOneWithoutPurchasesInput = {
     create?: XOR<PosLeasingCompanyCreateWithoutPurchasesInput, PosLeasingCompanyUncheckedCreateWithoutPurchasesInput>
     connectOrCreate?: PosLeasingCompanyCreateOrConnectWithoutPurchasesInput
@@ -50532,6 +50698,16 @@ export namespace Prisma {
     delete?: InventoryProductWhereInput | boolean
     connect?: InventoryProductWhereUniqueInput
     update?: XOR<XOR<InventoryProductUpdateToOneWithWhereWithoutCustomerPurchasesInput, InventoryProductUpdateWithoutCustomerPurchasesInput>, InventoryProductUncheckedUpdateWithoutCustomerPurchasesInput>
+  }
+
+  export type PreOrderUpdateOneWithoutPurchasesNestedInput = {
+    create?: XOR<PreOrderCreateWithoutPurchasesInput, PreOrderUncheckedCreateWithoutPurchasesInput>
+    connectOrCreate?: PreOrderCreateOrConnectWithoutPurchasesInput
+    upsert?: PreOrderUpsertWithoutPurchasesInput
+    disconnect?: PreOrderWhereInput | boolean
+    delete?: PreOrderWhereInput | boolean
+    connect?: PreOrderWhereUniqueInput
+    update?: XOR<XOR<PreOrderUpdateToOneWithWhereWithoutPurchasesInput, PreOrderUpdateWithoutPurchasesInput>, PreOrderUncheckedUpdateWithoutPurchasesInput>
   }
 
   export type PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput = {
@@ -50709,11 +50885,25 @@ export namespace Prisma {
     connect?: PreOrderImageWhereUniqueInput | PreOrderImageWhereUniqueInput[]
   }
 
+  export type PosCustomerPurchaseCreateNestedManyWithoutPreOrderInput = {
+    create?: XOR<PosCustomerPurchaseCreateWithoutPreOrderInput, PosCustomerPurchaseUncheckedCreateWithoutPreOrderInput> | PosCustomerPurchaseCreateWithoutPreOrderInput[] | PosCustomerPurchaseUncheckedCreateWithoutPreOrderInput[]
+    connectOrCreate?: PosCustomerPurchaseCreateOrConnectWithoutPreOrderInput | PosCustomerPurchaseCreateOrConnectWithoutPreOrderInput[]
+    createMany?: PosCustomerPurchaseCreateManyPreOrderInputEnvelope
+    connect?: PosCustomerPurchaseWhereUniqueInput | PosCustomerPurchaseWhereUniqueInput[]
+  }
+
   export type PreOrderImageUncheckedCreateNestedManyWithoutPreOrderInput = {
     create?: XOR<PreOrderImageCreateWithoutPreOrderInput, PreOrderImageUncheckedCreateWithoutPreOrderInput> | PreOrderImageCreateWithoutPreOrderInput[] | PreOrderImageUncheckedCreateWithoutPreOrderInput[]
     connectOrCreate?: PreOrderImageCreateOrConnectWithoutPreOrderInput | PreOrderImageCreateOrConnectWithoutPreOrderInput[]
     createMany?: PreOrderImageCreateManyPreOrderInputEnvelope
     connect?: PreOrderImageWhereUniqueInput | PreOrderImageWhereUniqueInput[]
+  }
+
+  export type PosCustomerPurchaseUncheckedCreateNestedManyWithoutPreOrderInput = {
+    create?: XOR<PosCustomerPurchaseCreateWithoutPreOrderInput, PosCustomerPurchaseUncheckedCreateWithoutPreOrderInput> | PosCustomerPurchaseCreateWithoutPreOrderInput[] | PosCustomerPurchaseUncheckedCreateWithoutPreOrderInput[]
+    connectOrCreate?: PosCustomerPurchaseCreateOrConnectWithoutPreOrderInput | PosCustomerPurchaseCreateOrConnectWithoutPreOrderInput[]
+    createMany?: PosCustomerPurchaseCreateManyPreOrderInputEnvelope
+    connect?: PosCustomerPurchaseWhereUniqueInput | PosCustomerPurchaseWhereUniqueInput[]
   }
 
   export type PreOrderImageUpdateManyWithoutPreOrderNestedInput = {
@@ -50730,6 +50920,20 @@ export namespace Prisma {
     deleteMany?: PreOrderImageScalarWhereInput | PreOrderImageScalarWhereInput[]
   }
 
+  export type PosCustomerPurchaseUpdateManyWithoutPreOrderNestedInput = {
+    create?: XOR<PosCustomerPurchaseCreateWithoutPreOrderInput, PosCustomerPurchaseUncheckedCreateWithoutPreOrderInput> | PosCustomerPurchaseCreateWithoutPreOrderInput[] | PosCustomerPurchaseUncheckedCreateWithoutPreOrderInput[]
+    connectOrCreate?: PosCustomerPurchaseCreateOrConnectWithoutPreOrderInput | PosCustomerPurchaseCreateOrConnectWithoutPreOrderInput[]
+    upsert?: PosCustomerPurchaseUpsertWithWhereUniqueWithoutPreOrderInput | PosCustomerPurchaseUpsertWithWhereUniqueWithoutPreOrderInput[]
+    createMany?: PosCustomerPurchaseCreateManyPreOrderInputEnvelope
+    set?: PosCustomerPurchaseWhereUniqueInput | PosCustomerPurchaseWhereUniqueInput[]
+    disconnect?: PosCustomerPurchaseWhereUniqueInput | PosCustomerPurchaseWhereUniqueInput[]
+    delete?: PosCustomerPurchaseWhereUniqueInput | PosCustomerPurchaseWhereUniqueInput[]
+    connect?: PosCustomerPurchaseWhereUniqueInput | PosCustomerPurchaseWhereUniqueInput[]
+    update?: PosCustomerPurchaseUpdateWithWhereUniqueWithoutPreOrderInput | PosCustomerPurchaseUpdateWithWhereUniqueWithoutPreOrderInput[]
+    updateMany?: PosCustomerPurchaseUpdateManyWithWhereWithoutPreOrderInput | PosCustomerPurchaseUpdateManyWithWhereWithoutPreOrderInput[]
+    deleteMany?: PosCustomerPurchaseScalarWhereInput | PosCustomerPurchaseScalarWhereInput[]
+  }
+
   export type PreOrderImageUncheckedUpdateManyWithoutPreOrderNestedInput = {
     create?: XOR<PreOrderImageCreateWithoutPreOrderInput, PreOrderImageUncheckedCreateWithoutPreOrderInput> | PreOrderImageCreateWithoutPreOrderInput[] | PreOrderImageUncheckedCreateWithoutPreOrderInput[]
     connectOrCreate?: PreOrderImageCreateOrConnectWithoutPreOrderInput | PreOrderImageCreateOrConnectWithoutPreOrderInput[]
@@ -50742,6 +50946,20 @@ export namespace Prisma {
     update?: PreOrderImageUpdateWithWhereUniqueWithoutPreOrderInput | PreOrderImageUpdateWithWhereUniqueWithoutPreOrderInput[]
     updateMany?: PreOrderImageUpdateManyWithWhereWithoutPreOrderInput | PreOrderImageUpdateManyWithWhereWithoutPreOrderInput[]
     deleteMany?: PreOrderImageScalarWhereInput | PreOrderImageScalarWhereInput[]
+  }
+
+  export type PosCustomerPurchaseUncheckedUpdateManyWithoutPreOrderNestedInput = {
+    create?: XOR<PosCustomerPurchaseCreateWithoutPreOrderInput, PosCustomerPurchaseUncheckedCreateWithoutPreOrderInput> | PosCustomerPurchaseCreateWithoutPreOrderInput[] | PosCustomerPurchaseUncheckedCreateWithoutPreOrderInput[]
+    connectOrCreate?: PosCustomerPurchaseCreateOrConnectWithoutPreOrderInput | PosCustomerPurchaseCreateOrConnectWithoutPreOrderInput[]
+    upsert?: PosCustomerPurchaseUpsertWithWhereUniqueWithoutPreOrderInput | PosCustomerPurchaseUpsertWithWhereUniqueWithoutPreOrderInput[]
+    createMany?: PosCustomerPurchaseCreateManyPreOrderInputEnvelope
+    set?: PosCustomerPurchaseWhereUniqueInput | PosCustomerPurchaseWhereUniqueInput[]
+    disconnect?: PosCustomerPurchaseWhereUniqueInput | PosCustomerPurchaseWhereUniqueInput[]
+    delete?: PosCustomerPurchaseWhereUniqueInput | PosCustomerPurchaseWhereUniqueInput[]
+    connect?: PosCustomerPurchaseWhereUniqueInput | PosCustomerPurchaseWhereUniqueInput[]
+    update?: PosCustomerPurchaseUpdateWithWhereUniqueWithoutPreOrderInput | PosCustomerPurchaseUpdateWithWhereUniqueWithoutPreOrderInput[]
+    updateMany?: PosCustomerPurchaseUpdateManyWithWhereWithoutPreOrderInput | PosCustomerPurchaseUpdateManyWithWhereWithoutPreOrderInput[]
+    deleteMany?: PosCustomerPurchaseScalarWhereInput | PosCustomerPurchaseScalarWhereInput[]
   }
 
   export type PreOrderCreateNestedOneWithoutImagesInput = {
@@ -52582,6 +52800,8 @@ export namespace Prisma {
     itemType?: $Enums.PosPurchaseItemType
     purchaseMode?: $Enums.PosPurchaseMode
     invoiceGroupCode?: string | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -52601,6 +52821,7 @@ export namespace Prisma {
     purchasedAt?: Date | string
     customer: PosCustomerCreateNestedOneWithoutPurchasesInput
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
+    preOrder?: PreOrderCreateNestedOneWithoutPurchasesInput
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
@@ -52614,6 +52835,9 @@ export namespace Prisma {
     purchaseMode?: $Enums.PosPurchaseMode
     invoiceGroupCode?: string | null
     inventoryProductId?: number | null
+    preOrderId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -52849,6 +53073,9 @@ export namespace Prisma {
     invoiceGroupCode?: StringNullableFilter<"PosCustomerPurchase"> | string | null
     bikeVehicleId?: IntNullableFilter<"PosCustomerPurchase"> | number | null
     inventoryProductId?: IntNullableFilter<"PosCustomerPurchase"> | number | null
+    preOrderId?: IntNullableFilter<"PosCustomerPurchase"> | number | null
+    customCategory?: StringNullableFilter<"PosCustomerPurchase"> | string | null
+    customDescription?: StringNullableFilter<"PosCustomerPurchase"> | string | null
     currentSellingPrice?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
     finalSellingPrice?: FloatFilter<"PosCustomerPurchase"> | number
     paymentType?: EnumPosPaymentTypeFilter<"PosCustomerPurchase"> | $Enums.PosPaymentType
@@ -53405,6 +53632,8 @@ export namespace Prisma {
     itemType?: $Enums.PosPurchaseItemType
     purchaseMode?: $Enums.PosPurchaseMode
     invoiceGroupCode?: string | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -53424,6 +53653,7 @@ export namespace Prisma {
     purchasedAt?: Date | string
     customer: PosCustomerCreateNestedOneWithoutPurchasesInput
     bikeVehicle?: BikeVehicleCreateNestedOneWithoutCustomerPurchasesInput
+    preOrder?: PreOrderCreateNestedOneWithoutPurchasesInput
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
@@ -53437,6 +53667,9 @@ export namespace Prisma {
     purchaseMode?: $Enums.PosPurchaseMode
     invoiceGroupCode?: string | null
     bikeVehicleId?: number | null
+    preOrderId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -53874,6 +54107,8 @@ export namespace Prisma {
     itemType?: $Enums.PosPurchaseItemType
     purchaseMode?: $Enums.PosPurchaseMode
     invoiceGroupCode?: string | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -53893,6 +54128,7 @@ export namespace Prisma {
     purchasedAt?: Date | string
     bikeVehicle?: BikeVehicleCreateNestedOneWithoutCustomerPurchasesInput
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
+    preOrder?: PreOrderCreateNestedOneWithoutPurchasesInput
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
@@ -53906,6 +54142,9 @@ export namespace Prisma {
     invoiceGroupCode?: string | null
     bikeVehicleId?: number | null
     inventoryProductId?: number | null
+    preOrderId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -53975,6 +54214,8 @@ export namespace Prisma {
     itemType?: $Enums.PosPurchaseItemType
     purchaseMode?: $Enums.PosPurchaseMode
     invoiceGroupCode?: string | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -53995,6 +54236,7 @@ export namespace Prisma {
     customer: PosCustomerCreateNestedOneWithoutPurchasesInput
     bikeVehicle?: BikeVehicleCreateNestedOneWithoutCustomerPurchasesInput
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
+    preOrder?: PreOrderCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
     invoicePayments?: InvoicePaymentCreateNestedManyWithoutPurchaseInput
@@ -54008,6 +54250,9 @@ export namespace Prisma {
     invoiceGroupCode?: string | null
     bikeVehicleId?: number | null
     inventoryProductId?: number | null
+    preOrderId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -54414,6 +54659,52 @@ export namespace Prisma {
     create: XOR<InventoryProductCreateWithoutCustomerPurchasesInput, InventoryProductUncheckedCreateWithoutCustomerPurchasesInput>
   }
 
+  export type PreOrderCreateWithoutPurchasesInput = {
+    displayId: string
+    brand: string
+    model: string
+    year?: number | null
+    cc?: string | null
+    colour?: string | null
+    price?: number | null
+    depositRequired?: string | null
+    expectedArrival?: string | null
+    status?: string
+    description?: string | null
+    pdfUrl?: string | null
+    isPublished?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    images?: PreOrderImageCreateNestedManyWithoutPreOrderInput
+  }
+
+  export type PreOrderUncheckedCreateWithoutPurchasesInput = {
+    id?: number
+    displayId: string
+    brand: string
+    model: string
+    year?: number | null
+    cc?: string | null
+    colour?: string | null
+    price?: number | null
+    depositRequired?: string | null
+    expectedArrival?: string | null
+    status?: string
+    description?: string | null
+    pdfUrl?: string | null
+    isPublished?: boolean
+    sortOrder?: number
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    images?: PreOrderImageUncheckedCreateNestedManyWithoutPreOrderInput
+  }
+
+  export type PreOrderCreateOrConnectWithoutPurchasesInput = {
+    where: PreOrderWhereUniqueInput
+    create: XOR<PreOrderCreateWithoutPurchasesInput, PreOrderUncheckedCreateWithoutPurchasesInput>
+  }
+
   export type PosLeasingCompanyCreateWithoutPurchasesInput = {
     name: string
     createdAt?: Date | string
@@ -54727,6 +55018,58 @@ export namespace Prisma {
     images?: InventoryProductImageUncheckedUpdateManyWithoutProductNestedInput
   }
 
+  export type PreOrderUpsertWithoutPurchasesInput = {
+    update: XOR<PreOrderUpdateWithoutPurchasesInput, PreOrderUncheckedUpdateWithoutPurchasesInput>
+    create: XOR<PreOrderCreateWithoutPurchasesInput, PreOrderUncheckedCreateWithoutPurchasesInput>
+    where?: PreOrderWhereInput
+  }
+
+  export type PreOrderUpdateToOneWithWhereWithoutPurchasesInput = {
+    where?: PreOrderWhereInput
+    data: XOR<PreOrderUpdateWithoutPurchasesInput, PreOrderUncheckedUpdateWithoutPurchasesInput>
+  }
+
+  export type PreOrderUpdateWithoutPurchasesInput = {
+    displayId?: StringFieldUpdateOperationsInput | string
+    brand?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    cc?: NullableStringFieldUpdateOperationsInput | string | null
+    colour?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
+    depositRequired?: NullableStringFieldUpdateOperationsInput | string | null
+    expectedArrival?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    pdfUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isPublished?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    images?: PreOrderImageUpdateManyWithoutPreOrderNestedInput
+  }
+
+  export type PreOrderUncheckedUpdateWithoutPurchasesInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    displayId?: StringFieldUpdateOperationsInput | string
+    brand?: StringFieldUpdateOperationsInput | string
+    model?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
+    cc?: NullableStringFieldUpdateOperationsInput | string | null
+    colour?: NullableStringFieldUpdateOperationsInput | string | null
+    price?: NullableFloatFieldUpdateOperationsInput | number | null
+    depositRequired?: NullableStringFieldUpdateOperationsInput | string | null
+    expectedArrival?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    pdfUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    isPublished?: BoolFieldUpdateOperationsInput | boolean
+    sortOrder?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    images?: PreOrderImageUncheckedUpdateManyWithoutPreOrderNestedInput
+  }
+
   export type PosLeasingCompanyUpsertWithoutPurchasesInput = {
     update: XOR<PosLeasingCompanyUpdateWithoutPurchasesInput, PosLeasingCompanyUncheckedUpdateWithoutPurchasesInput>
     create: XOR<PosLeasingCompanyCreateWithoutPurchasesInput, PosLeasingCompanyUncheckedCreateWithoutPurchasesInput>
@@ -54861,6 +55204,8 @@ export namespace Prisma {
     itemType?: $Enums.PosPurchaseItemType
     purchaseMode?: $Enums.PosPurchaseMode
     invoiceGroupCode?: string | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -54881,6 +55226,7 @@ export namespace Prisma {
     customer: PosCustomerCreateNestedOneWithoutPurchasesInput
     bikeVehicle?: BikeVehicleCreateNestedOneWithoutCustomerPurchasesInput
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
+    preOrder?: PreOrderCreateNestedOneWithoutPurchasesInput
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
     invoicePayments?: InvoicePaymentCreateNestedManyWithoutPurchaseInput
@@ -54894,6 +55240,9 @@ export namespace Prisma {
     invoiceGroupCode?: string | null
     bikeVehicleId?: number | null
     inventoryProductId?: number | null
+    preOrderId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -54961,6 +55310,8 @@ export namespace Prisma {
     itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
     purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -54981,6 +55332,7 @@ export namespace Prisma {
     customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
     bikeVehicle?: BikeVehicleUpdateOneWithoutCustomerPurchasesNestedInput
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
+    preOrder?: PreOrderUpdateOneWithoutPurchasesNestedInput
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
     invoicePayments?: InvoicePaymentUpdateManyWithoutPurchaseNestedInput
@@ -54994,6 +55346,9 @@ export namespace Prisma {
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
     bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
     inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    preOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -55151,6 +55506,81 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type PosCustomerPurchaseCreateWithoutPreOrderInput = {
+    itemType?: $Enums.PosPurchaseItemType
+    purchaseMode?: $Enums.PosPurchaseMode
+    invoiceGroupCode?: string | null
+    customCategory?: string | null
+    customDescription?: string | null
+    currentSellingPrice?: number | null
+    finalSellingPrice: number
+    paymentType?: $Enums.PosPaymentType
+    downPaymentAmount?: number
+    remainingAmount?: number
+    settlementStatus?: $Enums.PosSettlementStatus
+    purchaseChannel?: $Enums.PosPurchaseChannel
+    leasingDownPaymentAmount?: number
+    leasingFinancedAmount?: number
+    hasRegistrationFee?: boolean
+    registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
+    quantity?: number
+    purchasedAt?: Date | string
+    customer: PosCustomerCreateNestedOneWithoutPurchasesInput
+    bikeVehicle?: BikeVehicleCreateNestedOneWithoutCustomerPurchasesInput
+    inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
+    leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
+    receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
+    installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentCreateNestedManyWithoutPurchaseInput
+  }
+
+  export type PosCustomerPurchaseUncheckedCreateWithoutPreOrderInput = {
+    id?: number
+    customerId: number
+    itemType?: $Enums.PosPurchaseItemType
+    purchaseMode?: $Enums.PosPurchaseMode
+    invoiceGroupCode?: string | null
+    bikeVehicleId?: number | null
+    inventoryProductId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
+    currentSellingPrice?: number | null
+    finalSellingPrice: number
+    paymentType?: $Enums.PosPaymentType
+    downPaymentAmount?: number
+    remainingAmount?: number
+    settlementStatus?: $Enums.PosSettlementStatus
+    purchaseChannel?: $Enums.PosPurchaseChannel
+    leasingCompanyId?: number | null
+    leasingDownPaymentAmount?: number
+    leasingFinancedAmount?: number
+    hasRegistrationFee?: boolean
+    registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
+    quantity?: number
+    purchasedAt?: Date | string
+    receipts?: AccountReceiptUncheckedCreateNestedManyWithoutPurchaseInput
+    installments?: PosInstallmentUncheckedCreateNestedManyWithoutPurchaseInput
+    invoicePayments?: InvoicePaymentUncheckedCreateNestedManyWithoutPurchaseInput
+  }
+
+  export type PosCustomerPurchaseCreateOrConnectWithoutPreOrderInput = {
+    where: PosCustomerPurchaseWhereUniqueInput
+    create: XOR<PosCustomerPurchaseCreateWithoutPreOrderInput, PosCustomerPurchaseUncheckedCreateWithoutPreOrderInput>
+  }
+
+  export type PosCustomerPurchaseCreateManyPreOrderInputEnvelope = {
+    data: PosCustomerPurchaseCreateManyPreOrderInput | PosCustomerPurchaseCreateManyPreOrderInput[]
+    skipDuplicates?: boolean
+  }
+
   export type PreOrderImageUpsertWithWhereUniqueWithoutPreOrderInput = {
     where: PreOrderImageWhereUniqueInput
     update: XOR<PreOrderImageUpdateWithoutPreOrderInput, PreOrderImageUncheckedUpdateWithoutPreOrderInput>
@@ -55179,6 +55609,22 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"PreOrderImage"> | Date | string
   }
 
+  export type PosCustomerPurchaseUpsertWithWhereUniqueWithoutPreOrderInput = {
+    where: PosCustomerPurchaseWhereUniqueInput
+    update: XOR<PosCustomerPurchaseUpdateWithoutPreOrderInput, PosCustomerPurchaseUncheckedUpdateWithoutPreOrderInput>
+    create: XOR<PosCustomerPurchaseCreateWithoutPreOrderInput, PosCustomerPurchaseUncheckedCreateWithoutPreOrderInput>
+  }
+
+  export type PosCustomerPurchaseUpdateWithWhereUniqueWithoutPreOrderInput = {
+    where: PosCustomerPurchaseWhereUniqueInput
+    data: XOR<PosCustomerPurchaseUpdateWithoutPreOrderInput, PosCustomerPurchaseUncheckedUpdateWithoutPreOrderInput>
+  }
+
+  export type PosCustomerPurchaseUpdateManyWithWhereWithoutPreOrderInput = {
+    where: PosCustomerPurchaseScalarWhereInput
+    data: XOR<PosCustomerPurchaseUpdateManyMutationInput, PosCustomerPurchaseUncheckedUpdateManyWithoutPreOrderInput>
+  }
+
   export type PreOrderCreateWithoutImagesInput = {
     displayId: string
     brand: string
@@ -55196,6 +55642,7 @@ export namespace Prisma {
     sortOrder?: number
     createdAt?: Date | string
     updatedAt?: Date | string
+    purchases?: PosCustomerPurchaseCreateNestedManyWithoutPreOrderInput
   }
 
   export type PreOrderUncheckedCreateWithoutImagesInput = {
@@ -55216,6 +55663,7 @@ export namespace Prisma {
     sortOrder?: number
     createdAt?: Date | string
     updatedAt?: Date | string
+    purchases?: PosCustomerPurchaseUncheckedCreateNestedManyWithoutPreOrderInput
   }
 
   export type PreOrderCreateOrConnectWithoutImagesInput = {
@@ -55251,6 +55699,7 @@ export namespace Prisma {
     sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    purchases?: PosCustomerPurchaseUpdateManyWithoutPreOrderNestedInput
   }
 
   export type PreOrderUncheckedUpdateWithoutImagesInput = {
@@ -55271,6 +55720,7 @@ export namespace Prisma {
     sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    purchases?: PosCustomerPurchaseUncheckedUpdateManyWithoutPreOrderNestedInput
   }
 
   export type ExportVehicleImageCreateWithoutVehicleInput = {
@@ -55798,6 +56248,8 @@ export namespace Prisma {
     itemType?: $Enums.PosPurchaseItemType
     purchaseMode?: $Enums.PosPurchaseMode
     invoiceGroupCode?: string | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -55818,6 +56270,7 @@ export namespace Prisma {
     customer: PosCustomerCreateNestedOneWithoutPurchasesInput
     bikeVehicle?: BikeVehicleCreateNestedOneWithoutCustomerPurchasesInput
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
+    preOrder?: PreOrderCreateNestedOneWithoutPurchasesInput
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
     invoicePayments?: InvoicePaymentCreateNestedManyWithoutPurchaseInput
@@ -55831,6 +56284,9 @@ export namespace Prisma {
     invoiceGroupCode?: string | null
     bikeVehicleId?: number | null
     inventoryProductId?: number | null
+    preOrderId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -55998,6 +56454,8 @@ export namespace Prisma {
     itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
     purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -56018,6 +56476,7 @@ export namespace Prisma {
     customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
     bikeVehicle?: BikeVehicleUpdateOneWithoutCustomerPurchasesNestedInput
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
+    preOrder?: PreOrderUpdateOneWithoutPurchasesNestedInput
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
     invoicePayments?: InvoicePaymentUpdateManyWithoutPurchaseNestedInput
@@ -56031,6 +56490,9 @@ export namespace Prisma {
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
     bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
     inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    preOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -56654,6 +57116,8 @@ export namespace Prisma {
     itemType?: $Enums.PosPurchaseItemType
     purchaseMode?: $Enums.PosPurchaseMode
     invoiceGroupCode?: string | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -56674,6 +57138,7 @@ export namespace Prisma {
     customer: PosCustomerCreateNestedOneWithoutPurchasesInput
     bikeVehicle?: BikeVehicleCreateNestedOneWithoutCustomerPurchasesInput
     inventoryProduct?: InventoryProductCreateNestedOneWithoutCustomerPurchasesInput
+    preOrder?: PreOrderCreateNestedOneWithoutPurchasesInput
     leasingCompany?: PosLeasingCompanyCreateNestedOneWithoutPurchasesInput
     receipts?: AccountReceiptCreateNestedManyWithoutPurchaseInput
     installments?: PosInstallmentCreateNestedManyWithoutPurchaseInput
@@ -56687,6 +57152,9 @@ export namespace Prisma {
     invoiceGroupCode?: string | null
     bikeVehicleId?: number | null
     inventoryProductId?: number | null
+    preOrderId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -56775,6 +57243,8 @@ export namespace Prisma {
     itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
     purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -56795,6 +57265,7 @@ export namespace Prisma {
     customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
     bikeVehicle?: BikeVehicleUpdateOneWithoutCustomerPurchasesNestedInput
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
+    preOrder?: PreOrderUpdateOneWithoutPurchasesNestedInput
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
@@ -56808,6 +57279,9 @@ export namespace Prisma {
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
     bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
     inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    preOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -57707,6 +58181,9 @@ export namespace Prisma {
     purchaseMode?: $Enums.PosPurchaseMode
     invoiceGroupCode?: string | null
     inventoryProductId?: number | null
+    preOrderId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -57791,6 +58268,8 @@ export namespace Prisma {
     itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
     purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -57810,6 +58289,7 @@ export namespace Prisma {
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
+    preOrder?: PreOrderUpdateOneWithoutPurchasesNestedInput
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
@@ -57823,6 +58303,9 @@ export namespace Prisma {
     purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
     inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    preOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -57853,6 +58336,9 @@ export namespace Prisma {
     purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
     inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    preOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -58073,6 +58559,9 @@ export namespace Prisma {
     purchaseMode?: $Enums.PosPurchaseMode
     invoiceGroupCode?: string | null
     bikeVehicleId?: number | null
+    preOrderId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -58140,6 +58629,8 @@ export namespace Prisma {
     itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
     purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -58159,6 +58650,7 @@ export namespace Prisma {
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
     bikeVehicle?: BikeVehicleUpdateOneWithoutCustomerPurchasesNestedInput
+    preOrder?: PreOrderUpdateOneWithoutPurchasesNestedInput
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
@@ -58172,6 +58664,9 @@ export namespace Prisma {
     purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
     bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
+    preOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -58202,6 +58697,9 @@ export namespace Prisma {
     purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
     bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
+    preOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -58235,6 +58733,9 @@ export namespace Prisma {
     invoiceGroupCode?: string | null
     bikeVehicleId?: number | null
     inventoryProductId?: number | null
+    preOrderId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -58276,6 +58777,8 @@ export namespace Prisma {
     itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
     purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -58295,6 +58798,7 @@ export namespace Prisma {
     purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     bikeVehicle?: BikeVehicleUpdateOneWithoutCustomerPurchasesNestedInput
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
+    preOrder?: PreOrderUpdateOneWithoutPurchasesNestedInput
     leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
@@ -58308,6 +58812,9 @@ export namespace Prisma {
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
     bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
     inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    preOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -58338,6 +58845,9 @@ export namespace Prisma {
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
     bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
     inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    preOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -58366,6 +58876,9 @@ export namespace Prisma {
     invoiceGroupCode?: string | null
     bikeVehicleId?: number | null
     inventoryProductId?: number | null
+    preOrderId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
     currentSellingPrice?: number | null
     finalSellingPrice: number
     paymentType?: $Enums.PosPaymentType
@@ -58389,6 +58902,8 @@ export namespace Prisma {
     itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
     purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -58409,6 +58924,7 @@ export namespace Prisma {
     customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
     bikeVehicle?: BikeVehicleUpdateOneWithoutCustomerPurchasesNestedInput
     inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
+    preOrder?: PreOrderUpdateOneWithoutPurchasesNestedInput
     receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
     installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
     invoicePayments?: InvoicePaymentUpdateManyWithoutPurchaseNestedInput
@@ -58422,6 +58938,9 @@ export namespace Prisma {
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
     bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
     inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    preOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -58452,6 +58971,9 @@ export namespace Prisma {
     invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
     bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
     inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    preOrderId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
     currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
     finalSellingPrice?: FloatFieldUpdateOperationsInput | number
     paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
@@ -58699,6 +59221,36 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type PosCustomerPurchaseCreateManyPreOrderInput = {
+    id?: number
+    customerId: number
+    itemType?: $Enums.PosPurchaseItemType
+    purchaseMode?: $Enums.PosPurchaseMode
+    invoiceGroupCode?: string | null
+    bikeVehicleId?: number | null
+    inventoryProductId?: number | null
+    customCategory?: string | null
+    customDescription?: string | null
+    currentSellingPrice?: number | null
+    finalSellingPrice: number
+    paymentType?: $Enums.PosPaymentType
+    downPaymentAmount?: number
+    remainingAmount?: number
+    settlementStatus?: $Enums.PosSettlementStatus
+    purchaseChannel?: $Enums.PosPurchaseChannel
+    leasingCompanyId?: number | null
+    leasingDownPaymentAmount?: number
+    leasingFinancedAmount?: number
+    hasRegistrationFee?: boolean
+    registrationFeeAmount?: number
+    interestRate?: number | null
+    installmentMonths?: number | null
+    monthlyInstallmentAmount?: number | null
+    totalWithInterest?: number | null
+    quantity?: number
+    purchasedAt?: Date | string
+  }
+
   export type PreOrderImageUpdateWithoutPreOrderInput = {
     url?: StringFieldUpdateOperationsInput | string
     isPrimary?: BoolFieldUpdateOperationsInput | boolean
@@ -58720,6 +59272,101 @@ export namespace Prisma {
     isPrimary?: BoolFieldUpdateOperationsInput | boolean
     sortOrder?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type PosCustomerPurchaseUpdateWithoutPreOrderInput = {
+    itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
+    purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
+    invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    finalSellingPrice?: FloatFieldUpdateOperationsInput | number
+    paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
+    downPaymentAmount?: FloatFieldUpdateOperationsInput | number
+    remainingAmount?: FloatFieldUpdateOperationsInput | number
+    settlementStatus?: EnumPosSettlementStatusFieldUpdateOperationsInput | $Enums.PosSettlementStatus
+    purchaseChannel?: EnumPosPurchaseChannelFieldUpdateOperationsInput | $Enums.PosPurchaseChannel
+    leasingDownPaymentAmount?: FloatFieldUpdateOperationsInput | number
+    leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
+    hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
+    registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
+    quantity?: IntFieldUpdateOperationsInput | number
+    purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    customer?: PosCustomerUpdateOneRequiredWithoutPurchasesNestedInput
+    bikeVehicle?: BikeVehicleUpdateOneWithoutCustomerPurchasesNestedInput
+    inventoryProduct?: InventoryProductUpdateOneWithoutCustomerPurchasesNestedInput
+    leasingCompany?: PosLeasingCompanyUpdateOneWithoutPurchasesNestedInput
+    receipts?: AccountReceiptUpdateManyWithoutPurchaseNestedInput
+    installments?: PosInstallmentUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUpdateManyWithoutPurchaseNestedInput
+  }
+
+  export type PosCustomerPurchaseUncheckedUpdateWithoutPreOrderInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    customerId?: IntFieldUpdateOperationsInput | number
+    itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
+    purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
+    invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
+    inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    finalSellingPrice?: FloatFieldUpdateOperationsInput | number
+    paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
+    downPaymentAmount?: FloatFieldUpdateOperationsInput | number
+    remainingAmount?: FloatFieldUpdateOperationsInput | number
+    settlementStatus?: EnumPosSettlementStatusFieldUpdateOperationsInput | $Enums.PosSettlementStatus
+    purchaseChannel?: EnumPosPurchaseChannelFieldUpdateOperationsInput | $Enums.PosPurchaseChannel
+    leasingCompanyId?: NullableIntFieldUpdateOperationsInput | number | null
+    leasingDownPaymentAmount?: FloatFieldUpdateOperationsInput | number
+    leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
+    hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
+    registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
+    quantity?: IntFieldUpdateOperationsInput | number
+    purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receipts?: AccountReceiptUncheckedUpdateManyWithoutPurchaseNestedInput
+    installments?: PosInstallmentUncheckedUpdateManyWithoutPurchaseNestedInput
+    invoicePayments?: InvoicePaymentUncheckedUpdateManyWithoutPurchaseNestedInput
+  }
+
+  export type PosCustomerPurchaseUncheckedUpdateManyWithoutPreOrderInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    customerId?: IntFieldUpdateOperationsInput | number
+    itemType?: EnumPosPurchaseItemTypeFieldUpdateOperationsInput | $Enums.PosPurchaseItemType
+    purchaseMode?: EnumPosPurchaseModeFieldUpdateOperationsInput | $Enums.PosPurchaseMode
+    invoiceGroupCode?: NullableStringFieldUpdateOperationsInput | string | null
+    bikeVehicleId?: NullableIntFieldUpdateOperationsInput | number | null
+    inventoryProductId?: NullableIntFieldUpdateOperationsInput | number | null
+    customCategory?: NullableStringFieldUpdateOperationsInput | string | null
+    customDescription?: NullableStringFieldUpdateOperationsInput | string | null
+    currentSellingPrice?: NullableFloatFieldUpdateOperationsInput | number | null
+    finalSellingPrice?: FloatFieldUpdateOperationsInput | number
+    paymentType?: EnumPosPaymentTypeFieldUpdateOperationsInput | $Enums.PosPaymentType
+    downPaymentAmount?: FloatFieldUpdateOperationsInput | number
+    remainingAmount?: FloatFieldUpdateOperationsInput | number
+    settlementStatus?: EnumPosSettlementStatusFieldUpdateOperationsInput | $Enums.PosSettlementStatus
+    purchaseChannel?: EnumPosPurchaseChannelFieldUpdateOperationsInput | $Enums.PosPurchaseChannel
+    leasingCompanyId?: NullableIntFieldUpdateOperationsInput | number | null
+    leasingDownPaymentAmount?: FloatFieldUpdateOperationsInput | number
+    leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
+    hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
+    registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
+    installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
+    monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
+    totalWithInterest?: NullableFloatFieldUpdateOperationsInput | number | null
+    quantity?: IntFieldUpdateOperationsInput | number
+    purchasedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type ExportVehicleImageCreateManyVehicleInput = {

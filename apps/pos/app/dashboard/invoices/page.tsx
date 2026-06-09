@@ -6,6 +6,7 @@ import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { IconInvoice, IconUsers } from "../../lib/icons";
 import { readApiData } from "../../lib/api";
+import CustomerPurchaseModal from "../../components/CustomerPurchaseModal";
 
 type InstallmentPayment = {
   id: number;
@@ -32,7 +33,7 @@ type Installment = {
 type Purchase = {
   id: number;
   purchasedAt: string;
-  itemType: "BIKE" | "INVENTORY";
+  itemType: "BIKE" | "INVENTORY" | "PRE_ORDER" | "CUSTOM";
   purchaseMode?: "SINGLE" | "BULK";
   invoiceGroupCode?: string | null;
   quantity: number;
@@ -88,6 +89,15 @@ type Purchase = {
     supplier?: string | null;
     description?: string | null;
   } | null;
+  preOrder?: {
+    id: number;
+    displayId: string;
+    brand: string;
+    model: string;
+    colour?: string | null;
+  } | null;
+  customCategory?: string | null;
+  customDescription?: string | null;
 };
 
 type InvoiceRow = {
@@ -155,6 +165,7 @@ export default function InvoicesPage() {
   const { token } = useAdmin();
   const [search, setSearch] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
+  const [showCustomModal, setShowCustomModal] = useState(false);
   const [invoiceInstallments, setInvoiceInstallments] = useState<Installment[]>([]);
 
   const base = `${API_URL}/api/pos/user-management`;
@@ -306,10 +317,22 @@ export default function InvoicesPage() {
         subtitle: `${entry.bike.displayId} • ${entry.bike.colour}`,
       };
     }
-    if (entry.inventory) {
+    if (entry.itemType === "INVENTORY" && entry.inventory) {
       return {
         title: entry.inventory.name,
         subtitle: `${entry.inventory.displayId} • ${entry.inventory.brand}`,
+      };
+    }
+    if (entry.itemType === "PRE_ORDER" && entry.preOrder) {
+      return {
+        title: `${entry.preOrder.brand} ${entry.preOrder.model}`,
+        subtitle: `Pre-Order • ${entry.preOrder.displayId}`,
+      };
+    }
+    if (entry.itemType === "CUSTOM") {
+      return {
+        title: entry.customCategory ?? "Custom Invoice",
+        subtitle: entry.customDescription ?? "—",
       };
     }
     return { title: "Unknown item", subtitle: "-" };
@@ -482,7 +505,28 @@ export default function InvoicesPage() {
             <p className="page-subtitle">Purchase invoices with complete customer and item details.</p>
           </div>
         </div>
+        <button
+          type="button"
+          className="btn-accent"
+          onClick={() => setShowCustomModal(true)}
+        >
+          + Generate Custom Invoice
+        </button>
       </div>
+
+      {showCustomModal && (
+        <CustomerPurchaseModal
+          token={token}
+          itemType="CUSTOM"
+          itemId={0}
+          itemLabel="Custom Invoice"
+          onClose={() => setShowCustomModal(false)}
+          onSaved={() => {
+            setShowCustomModal(false);
+            void invoicesQuery.refetch();
+          }}
+        />
+      )}
 
       {visibleError && <div className="bm-alert bm-alert-error">{visibleError}</div>}
 

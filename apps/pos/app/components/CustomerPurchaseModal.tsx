@@ -27,9 +27,18 @@ type UserFormState = {
   address: string;
 };
 
+const CUSTOM_CATEGORIES = [
+  "Utility Bill Collection",
+  "Service Charge",
+  "Advance Payment",
+  "Registration Fee",
+  "Booking Fee",
+  "Miscellaneous",
+] as const;
+
 type CustomerPurchaseModalProps = {
   token: string;
-  itemType: "BIKE" | "INVENTORY";
+  itemType: "BIKE" | "INVENTORY" | "PRE_ORDER" | "CUSTOM";
   itemId: number;
   itemLabel: string;
   currentSellingPrice?: number | null;
@@ -138,6 +147,10 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
   const [registrationFeeAmount, setRegistrationFeeAmount] = useState("");
   const [interestRate, setInterestRate] = useState("");
   const [installmentMonths, setInstallmentMonths] = useState("");
+
+  const [customCategory, setCustomCategory] = useState<string>("Miscellaneous");
+  const [customCategoryOther, setCustomCategoryOther] = useState("");
+  const [customDescription, setCustomDescription] = useState("");
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
@@ -443,7 +456,7 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
         }
       }
 
-      if (itemType === "BIKE" && purchaseChannel === "LEASING") {
+      if ((itemType === "BIKE" || itemType === "PRE_ORDER") && purchaseChannel === "LEASING") {
         const parsedLeasingDownPayment = Number(leasingDownPaymentAmount || "0");
         if (leasingCompanyId === "") {
           throw new Error("Please select a leasing company");
@@ -454,6 +467,10 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
         if (parsedLeasingDownPayment > computedInvoiceTotal) {
           throw new Error("Leasing downpayment amount cannot exceed total invoice amount");
         }
+      }
+
+      if (itemType === "CUSTOM" && !customDescription.trim()) {
+        throw new Error("Please enter a description for the custom invoice");
       }
 
       if (purchaseChannel !== "LEASING" && paymentType === "DOWNPAYMENT") {
@@ -536,15 +553,20 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
           purchaseMode: "SINGLE",
           bikeVehicleId: itemType === "BIKE" ? selectedBikeId : undefined,
           inventoryProductId: itemType === "INVENTORY" ? itemId : undefined,
+          preOrderId: itemType === "PRE_ORDER" ? itemId : undefined,
+          customCategory: itemType === "CUSTOM"
+            ? (customCategory === "Other" ? customCategoryOther.trim() || "Miscellaneous" : customCategory)
+            : undefined,
+          customDescription: itemType === "CUSTOM" ? customDescription.trim() : undefined,
           quantity: itemType === "INVENTORY" ? parsedQty : undefined,
           finalSellingPrice: parsedFinalPrice,
-          purchaseChannel: itemType === "BIKE" ? purchaseChannel : "PERSONAL",
-          leasingCompanyId: itemType === "BIKE" && purchaseChannel === "LEASING" ? leasingCompanyId : undefined,
-          leasingDownPaymentAmount: itemType === "BIKE" && purchaseChannel === "LEASING"
+          purchaseChannel: (itemType === "BIKE" || itemType === "PRE_ORDER") ? purchaseChannel : "PERSONAL",
+          leasingCompanyId: (itemType === "BIKE" || itemType === "PRE_ORDER") && purchaseChannel === "LEASING" ? leasingCompanyId : undefined,
+          leasingDownPaymentAmount: (itemType === "BIKE" || itemType === "PRE_ORDER") && purchaseChannel === "LEASING"
             ? Number(leasingDownPaymentAmount || "0")
             : undefined,
-          paymentType: itemType === "BIKE" && purchaseChannel === "LEASING" ? "DIRECT" : paymentType,
-          downPaymentAmount: itemType === "BIKE" && purchaseChannel === "LEASING"
+          paymentType: (itemType === "BIKE" || itemType === "PRE_ORDER") && purchaseChannel === "LEASING" ? "DIRECT" : paymentType,
+          downPaymentAmount: (itemType === "BIKE" || itemType === "PRE_ORDER") && purchaseChannel === "LEASING"
             ? undefined
             : (paymentType === "DOWNPAYMENT" ? parsedDownPayment : undefined),
           hasRegistrationFee: itemType === "BIKE" ? hasRegistrationFee : false,
@@ -576,7 +598,7 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
     <div className="bm-modal-backdrop" onClick={onClose}>
       <form className="bm-modal bm-modal-lg" onClick={(event) => event.stopPropagation()} onSubmit={submit}>
         <button type="button" className="bm-modal-close" onClick={onClose}>x</button>
-        <h3 className="bm-modal-title">Sell To Customer</h3>
+        <h3 className="bm-modal-title">{itemType === "CUSTOM" ? "Generate Custom Invoice" : "Sell To Customer"}</h3>
 
         {error && <div className="bm-alert bm-alert-error">{error}</div>}
         {loading && <p className="users-muted">Loading users...</p>}
@@ -640,6 +662,45 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                   </button>
                 </div>
               </div>
+
+              {itemType === "CUSTOM" && (
+                <>
+                  <div className="bm-field-group users-span-2">
+                    <label>Category</label>
+                    <select
+                      className="bm-input"
+                      value={customCategory}
+                      onChange={(event) => setCustomCategory(event.target.value)}
+                    >
+                      {CUSTOM_CATEGORIES.map((c) => (
+                        <option key={c} value={c}>{c}</option>
+                      ))}
+                      <option value="Other">Other (specify below)</option>
+                    </select>
+                  </div>
+                  {customCategory === "Other" && (
+                    <div className="bm-field-group users-span-2">
+                      <label>Specify Category</label>
+                      <input
+                        className="bm-input"
+                        value={customCategoryOther}
+                        onChange={(event) => setCustomCategoryOther(event.target.value)}
+                        placeholder="e.g. Equipment rental"
+                      />
+                    </div>
+                  )}
+                  <div className="bm-field-group users-span-2">
+                    <label>Description *</label>
+                    <input
+                      className="bm-input"
+                      value={customDescription}
+                      onChange={(event) => setCustomDescription(event.target.value)}
+                      placeholder="Enter invoice description"
+                      required
+                    />
+                  </div>
+                </>
+              )}
 
               {showAddUser && (
                 <>
@@ -875,7 +936,7 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                 </>
               )}
 
-              {itemType === "BIKE" && (
+              {(itemType === "BIKE" || itemType === "PRE_ORDER") && (
                 <>
                   <div className="bm-field-group">
                     <label>Payment Option</label>
@@ -996,7 +1057,7 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                 </>
               )}
 
-              {itemType === "INVENTORY" && (
+              {(itemType === "INVENTORY" || itemType === "CUSTOM") && (
                 <>
                   <div className="bm-field-group">
                     <label>Payment Type</label>
@@ -1007,7 +1068,7 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                         setInstallmentMonths("");
                       }
                     }}>
-                      <option value="DIRECT">Direct Buy</option>
+                      <option value="DIRECT">Direct</option>
                       <option value="DOWNPAYMENT">Downpayment (Installments)</option>
                     </select>
                   </div>
