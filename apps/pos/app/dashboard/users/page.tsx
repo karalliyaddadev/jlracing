@@ -89,7 +89,7 @@ type Installment = {
 type PurchaseHistoryEntry = {
   id: number;
   purchasedAt: string;
-  itemType: "BIKE" | "INVENTORY";
+  itemType: "BIKE" | "INVENTORY" | "PRE_ORDER" | "CUSTOM";
   purchaseMode?: "SINGLE" | "BULK";
   invoiceGroupCode?: string | null;
   quantity: number;
@@ -145,6 +145,15 @@ type PurchaseHistoryEntry = {
     supplier?: string | null;
     description?: string | null;
   } | null;
+  preOrder?: {
+    id: number;
+    displayId: string;
+    brand: string;
+    model: string;
+    colour?: string | null;
+  } | null;
+  customCategory?: string | null;
+  customDescription?: string | null;
 };
 
 type PurchaseInvoiceRow = {
@@ -569,10 +578,22 @@ export default function UsersPage() {
         subtitle: `${entry.bike.displayId} • ${entry.bike.colour}`,
       };
     }
-    if (entry.inventory) {
+    if (entry.itemType === "INVENTORY" && entry.inventory) {
       return {
         title: entry.inventory.name,
         subtitle: `${entry.inventory.displayId} • ${entry.inventory.brand}`,
+      };
+    }
+    if (entry.itemType === "PRE_ORDER" && entry.preOrder) {
+      return {
+        title: `${entry.preOrder.brand} ${entry.preOrder.model}`,
+        subtitle: `Pre-Order • ${entry.preOrder.displayId}`,
+      };
+    }
+    if (entry.itemType === "CUSTOM") {
+      return {
+        title: entry.customCategory ?? "Custom Invoice",
+        subtitle: entry.customDescription ?? "—",
       };
     }
     return { title: "Unknown item", subtitle: "-" };

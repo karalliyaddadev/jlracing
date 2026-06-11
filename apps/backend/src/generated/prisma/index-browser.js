@@ -326,6 +326,9 @@ exports.Prisma.PosCustomerPurchaseScalarFieldEnum = {
   invoiceGroupCode: 'invoiceGroupCode',
   bikeVehicleId: 'bikeVehicleId',
   inventoryProductId: 'inventoryProductId',
+  preOrderId: 'preOrderId',
+  customCategory: 'customCategory',
+  customDescription: 'customDescription',
   currentSellingPrice: 'currentSellingPrice',
   finalSellingPrice: 'finalSellingPrice',
   paymentType: 'paymentType',
@@ -570,7 +573,9 @@ exports.Role = exports.$Enums.Role = {
 
 exports.PosPurchaseItemType = exports.$Enums.PosPurchaseItemType = {
   BIKE: 'BIKE',
-  INVENTORY: 'INVENTORY'
+  INVENTORY: 'INVENTORY',
+  PRE_ORDER: 'PRE_ORDER',
+  CUSTOM: 'CUSTOM'
 };
 
 exports.PosPurchaseMode = exports.$Enums.PosPurchaseMode = {

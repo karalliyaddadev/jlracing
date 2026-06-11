@@ -116,6 +116,11 @@ const ACCOUNTS_SUB_ITEMS = [
   { key: "manage", label: "Manage Accounts", href: "/dashboard/accounts" },
 ] as const;
 
+const PRE_ORDERS_SUB_ITEMS = [
+  { key: "pre-orders", label: "Pre-Orders", href: "/dashboard/pre-orders" },
+  { key: "requests", label: "Requests", href: "/dashboard/pre-orders-requests" },
+] as const;
+
 const SIDEBAR_COLLAPSED_KEY = "pos-sidebar-collapsed";
 
 export function Sidebar() {
@@ -135,6 +140,9 @@ export function Sidebar() {
   );
   const [accountsOpen, setAccountsOpen] = useState(
     pathname.startsWith("/dashboard/accounts"),
+  );
+  const [preOrdersOpen, setPreOrdersOpen] = useState(
+    pathname.startsWith("/dashboard/pre-orders"),
   );
 
   useEffect(() => {
@@ -164,6 +172,9 @@ export function Sidebar() {
     if (pathname.startsWith("/dashboard/accounts")) {
       setAccountsOpen(true);
     }
+    if (pathname.startsWith("/dashboard/pre-orders")) {
+      setPreOrdersOpen(true);
+    }
   }, [pathname]);
 
   const isBikeActive = pathname.startsWith("/dashboard/bikes");
@@ -173,6 +184,7 @@ export function Sidebar() {
   const isUserActive = pathname.startsWith("/dashboard/users");
   const isInvoiceActive = pathname.startsWith("/dashboard/invoices");
   const isAccountsActive = pathname.startsWith("/dashboard/accounts");
+  const isPreOrdersActive = pathname.startsWith("/dashboard/pre-orders");
 
   const isSubItemActive = (href: string) => pathname === href;
 
@@ -393,6 +405,53 @@ export function Sidebar() {
                   {inventoryOpen && (
                     <div className="nav-sub-group">
                       {INVENTORY_SUB_ITEMS.map(
+                        ({
+                          key: itemKey,
+                          label: itemLabel,
+                          href: itemHref,
+                        }) => {
+                          const itemActive = isSubItemActive(itemHref);
+                          return (
+                            <Link
+                              key={itemKey}
+                              href={itemHref}
+                              className={`nav-sub-item${itemActive ? " active" : ""}`}
+                            >
+                              <span className="nav-sub-dot" />
+                              <span>{itemLabel}</span>
+                            </Link>
+                          );
+                        },
+                      )}
+                    </div>
+                  )}
+                </>
+              ) : key === "pre-orders-requests" && !collapsed ? (
+                <>
+                  <button
+                    type="button"
+                    className={`nav-item nav-group-toggle${isPreOrdersActive ? " active" : ""}`}
+                    onClick={() => setPreOrdersOpen((value) => !value)}
+                  >
+                    <span className="nav-icon">
+                      <Icon />
+                    </span>
+                    <span className="nav-label">{label}</span>
+                    <span
+                      className="nav-chevron"
+                      style={{
+                        transform: preOrdersOpen
+                          ? "rotate(90deg)"
+                          : "rotate(0deg)",
+                        transition: "transform 0.2s",
+                      }}
+                    >
+                      <IconChevronNav />
+                    </span>
+                  </button>
+                  {preOrdersOpen && (
+                    <div className="nav-sub-group">
+                      {PRE_ORDERS_SUB_ITEMS.map(
                         ({
                           key: itemKey,
                           label: itemLabel,

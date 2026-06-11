@@ -23,6 +23,14 @@ type VoucherRow = {
   toAccount?: { id: number; name: string; code: string } | null;
 };
 
+type ApiErrorPayload = {
+  message?: string;
+  errors?: {
+    fieldErrors?: Record<string, string[]>;
+    formErrors?: string[];
+  };
+};
+
 const VOUCHER_TYPES = [
   { value: "VEHICLE_CLEARANCE", label: "Vehicle Clearance Payment" },
   { value: "BILL", label: "Bill" },
@@ -67,6 +75,20 @@ function preferText(value: unknown, fallback: string | null) {
 function displayText(value: string | null | undefined, fallback = "—") {
   const trimmed = value?.trim();
   return trimmed ? trimmed : fallback;
+}
+
+function getApiErrorMessage(payload: ApiErrorPayload, fallback: string) {
+  const fieldErrors = payload.errors?.fieldErrors;
+  const firstFieldError = fieldErrors
+    ? Object.entries(fieldErrors).find(([, messages]) => messages.length > 0)
+    : null;
+  if (firstFieldError) {
+    const [field, messages] = firstFieldError;
+    return `${field}: ${messages[0]}`;
+  }
+
+  const formError = payload.errors?.formErrors?.[0];
+  return formError || payload.message || fallback;
 }
 
 function normalizeVoucherRow(voucher: VoucherRow): VoucherRow {
@@ -199,7 +221,7 @@ export default function VouchersPage() {
         body: JSON.stringify(body),
       });
       const d = await res.json();
-      if (!res.ok) { setFormError(d.message ?? "Failed to create"); return; }
+      if (!res.ok) { setFormError(getApiErrorMessage(d, "Failed to create")); return; }
       const freshVoucher = (await fetchVoucherById(d.data.id)) ?? d.data;
       const createdVoucher = normalizeVoucherRow({
         ...freshVoucher,
@@ -271,7 +293,7 @@ export default function VouchersPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(body),
       });
-      if (!res.ok) { const d = await res.json(); setEditError(d.message ?? "Failed"); return; }
+      if (!res.ok) { const d = await res.json(); setEditError(getApiErrorMessage(d, "Failed")); return; }
       setEditingVoucher(null);
       fetchVouchers();
     } catch {
