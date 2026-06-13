@@ -5,6 +5,7 @@ import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
 import { IconAccounts } from "../../../lib/icons";
 import { exportTableToPdf } from "../../../lib/pdf-export";
+import { exportLedgerToExcel } from "../../../lib/excel-export";
 
 type Account = { id: number; name: string; code: string; type: string };
 
@@ -150,9 +151,14 @@ export default function LedgerPage() {
           </div>
         </div>
         {result && (
-          <button className="btn-outline" onClick={handleExport}>
-            Export PDF
-          </button>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <button className="btn-outline" onClick={handleExport}>
+              Export PDF
+            </button>
+            <button className="btn-outline" onClick={() => exportLedgerToExcel(result, fromDate, toDate)}>
+              Export CSV
+            </button>
+          </div>
         )}
       </div>
 
