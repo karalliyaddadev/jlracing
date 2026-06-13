@@ -1,6 +1,7 @@
 import { Prisma } from "../../generated/prisma";
 import { prisma } from "../../database/prisma.client";
 import { AppError } from "../../common/utils/errors";
+import { prismaModelHasObjectField } from "../../common/utils/prisma-model";
 import type {
   CreateInvoiceAccountDto,
   CreateLeasingCompanyDto,
@@ -271,6 +272,25 @@ function getLeasingCompanyModelClient(db: any) {
       "Leasing company model is unavailable. Run 'npm run db:generate' in apps/backend and restart the backend server.",
       500,
     );
+  }
+  return model;
+}
+
+function getInstallmentModelClient(db: any) {
+  const model = db?.posInstallment;
+  if (!model) {
+    throw new AppError(
+      "Installment model is unavailable. Run 'npm run db:generate' in apps/backend and restart the backend server.",
+      500,
+    );
+  }
+  return model;
+}
+
+function getInvoicePaymentModelClient(db: any) {
+  const model = db?.invoicePayment;
+  if (!model) {
+    return null;
   }
   return model;
 }
@@ -1579,73 +1599,87 @@ export async function listPurchases(query: PurchaseQueryDto) {
       }
     : {};
 
+  const purchaseInclude: any = {
+    customer: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        nic: true,
+        mobileNumber: true,
+        address: true,
+        province: true,
+        district: true,
+      },
+    },
+    bikeVehicle: {
+      select: {
+        id: true,
+        displayId: true,
+        colour: true,
+        year: true,
+        engineCapacityCc: true,
+        mileage: true,
+        condition: true,
+        registrationType: true,
+        fileNo: true,
+        registerNo: true,
+        chassisNo: true,
+        engineNo: true,
+        description: true,
+        brand: { select: { name: true } },
+        model: { select: { name: true } },
+      },
+    },
+    inventoryProduct: {
+      select: {
+        id: true,
+        displayId: true,
+        name: true,
+        quantity: true,
+        soldQuantity: true,
+        description: true,
+        brand: { select: { name: true } },
+        category: { select: { name: true } },
+        supplier: { select: { name: true, code: true } },
+      },
+    },
+    leasingCompany: {
+      select: {
+        id: true,
+        name: true,
+      },
+    },
+  };
+
+  // Some deployments may run with an out-of-date generated client that does
+  // not include the `preOrder` relation. Add it only when available to avoid
+  // Prisma validation errors at runtime.
+  if (
+    prismaModelHasObjectField(
+      prisma as any,
+      "PosCustomerPurchase",
+      "preOrder",
+    )
+  ) {
+    purchaseInclude.preOrder = {
+      select: {
+        id: true,
+        displayId: true,
+        brand: true,
+        model: true,
+        colour: true,
+      },
+    };
+  }
+
   const [rows, total] = await Promise.all([
     getPurchaseModelClient(prisma as any).findMany({
       where,
       skip,
       take: limit,
       orderBy: { purchasedAt: "desc" },
-      include: {
-        customer: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            nic: true,
-            mobileNumber: true,
-            address: true,
-            province: true,
-            district: true,
-          },
-        },
-        bikeVehicle: {
-          select: {
-            id: true,
-            displayId: true,
-            colour: true,
-            year: true,
-            engineCapacityCc: true,
-            mileage: true,
-            condition: true,
-            registrationType: true,
-            fileNo: true,
-            registerNo: true,
-            chassisNo: true,
-            engineNo: true,
-            description: true,
-            brand: { select: { name: true } },
-            model: { select: { name: true } },
-          },
-        },
-        inventoryProduct: {
-          select: {
-            id: true,
-            displayId: true,
-            name: true,
-            quantity: true,
-            soldQuantity: true,
-            description: true,
-            brand: { select: { name: true } },
-            category: { select: { name: true } },
-            supplier: { select: { name: true, code: true } },
-          },
-        },
-        leasingCompany: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        preOrder: {
-          select: {
-            id: true,
-            displayId: true,
-            brand: true,
-            model: true,
-            colour: true,
-          },
-        },
-      },
+      include: purchaseInclude,
     }),
     getPurchaseModelClient(prisma as any).count({ where }),
   ]);
@@ -1795,12 +1829,10 @@ export async function listPurchasesByUser(
   };
 
   const [rows, total] = await Promise.all([
-    getPurchaseModelClient(prisma as any).findMany({
-      where,
-      skip,
-      take: limit,
-      orderBy: { purchasedAt: "desc" },
-      include: {
+    // Build include dynamically to avoid runtime validation errors when the
+    // generated Prisma client doesn't expose certain relations.
+    (() => {
+      const purchaseInclude: any = {
         customer: {
           select: {
             id: true,
@@ -1851,7 +1883,16 @@ export async function listPurchasesByUser(
             name: true,
           },
         },
-        preOrder: {
+      };
+
+      if (
+        prismaModelHasObjectField(
+          prisma as any,
+          "PosCustomerPurchase",
+          "preOrder",
+        )
+      ) {
+        purchaseInclude.preOrder = {
           select: {
             id: true,
             displayId: true,
@@ -1859,9 +1900,17 @@ export async function listPurchasesByUser(
             model: true,
             colour: true,
           },
-        },
-      },
-    }),
+        };
+      }
+
+      return getPurchaseModelClient(prisma as any).findMany({
+        where,
+        skip,
+        take: limit,
+        orderBy: { purchasedAt: "desc" },
+        include: purchaseInclude,
+      });
+    })(),
     getPurchaseModelClient(prisma as any).count({ where }),
   ]);
 
@@ -2281,24 +2330,30 @@ export async function updatePurchase(
 ) {
   const purchase = await getPurchaseModelClient(prisma as any).findUnique({
     where: { id: purchaseId },
-    include: {
-      invoicePayments: {
-        select: { id: true, amount: true, receiptId: true },
-        orderBy: { id: "asc" },
-      },
-      installments: {
-        select: {
-          id: true,
-          installmentNo: true,
-          dueDate: true,
-          dueAmount: true,
-          paidAmount: true,
-          status: true,
-        },
-      },
-    },
   });
   if (!purchase) throw AppError.notFound("Purchase not found");
+
+  const installments = await getInstallmentModelClient(prisma as any).findMany({
+    where: { purchaseId },
+    select: {
+      id: true,
+      installmentNo: true,
+      dueDate: true,
+      dueAmount: true,
+      paidAmount: true,
+      status: true,
+    },
+    orderBy: { installmentNo: "asc" },
+  });
+
+  const invoicePaymentModel = getInvoicePaymentModelClient(prisma as any);
+  const invoicePayments = invoicePaymentModel
+    ? await invoicePaymentModel.findMany({
+        where: { purchaseId },
+        select: { id: true, amount: true, receiptId: true },
+        orderBy: { id: "asc" },
+      })
+    : [];
 
   if ((purchase as any).purchaseChannel === "LEASING") {
     throw new AppError("Leasing purchases cannot be edited via this endpoint", 400);
@@ -2380,21 +2435,13 @@ export async function updatePurchase(
     );
   }
 
-  const installments: Array<{
-    id: number;
-    installmentNo: number;
-    dueDate: Date;
-    dueAmount: number;
-    paidAmount: number;
-    status: string;
-  }> = (purchase as any).installments ?? [];
-
   const allInstallmentsPending =
     installments.length > 0 &&
-    installments.every((i) => i.status === "PENDING" && i.paidAmount === 0);
+    installments.every(
+      (installment: { status: string; paidAmount: number }) =>
+        installment.status === "PENDING" && installment.paidAmount === 0,
+    );
 
-  const invoicePayments: Array<{ id: number; amount: number; receiptId: number | null }> =
-    (purchase as any).invoicePayments ?? [];
   const initialPayment = invoicePayments[0] ?? null;
 
   const newPaymentAmount =
@@ -2497,7 +2544,7 @@ export async function updatePurchase(
 }
 
 export async function getPurchaseInstallments(purchaseId: number) {
-  const installments = await (prisma as any).posInstallment.findMany({
+  const installments = await getInstallmentModelClient(prisma as any).findMany({
     where: { purchaseId },
     orderBy: { installmentNo: "asc" },
     include: { payments: { orderBy: { paidAt: "asc" } } },

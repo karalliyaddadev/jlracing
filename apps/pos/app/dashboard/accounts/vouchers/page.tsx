@@ -23,6 +23,14 @@ type VoucherRow = {
   toAccount?: { id: number; name: string; code: string } | null;
 };
 
+type ApiErrorPayload = {
+  message?: string;
+  errors?: {
+    fieldErrors?: Record<string, string[]>;
+    formErrors?: string[];
+  };
+};
+
 const VOUCHER_TYPES = [
   { value: "VEHICLE_CLEARANCE", label: "Vehicle Clearance Payment" },
   { value: "BILL", label: "Bill" },
@@ -54,6 +62,57 @@ function formatRs(v: number) {
 
 function formatDate(d: string) {
   return new Date(d).toLocaleDateString("en-GB");
+}
+
+function buildVoucherTypeLabel(type: string) {
+  return VOUCHER_TYPES.find((voucherType) => voucherType.value === type)?.label ?? type;
+}
+
+function preferText(value: unknown, fallback: string | null) {
+  return typeof value === "string" && value.trim() ? value : fallback;
+}
+
+function displayText(value: string | null | undefined, fallback = "—") {
+  const trimmed = value?.trim();
+  return trimmed ? trimmed : fallback;
+}
+
+function getApiErrorMessage(payload: ApiErrorPayload, fallback: string) {
+  const fieldErrors = payload.errors?.fieldErrors;
+  const firstFieldError = fieldErrors
+    ? Object.entries(fieldErrors).find(([, messages]) => messages.length > 0)
+    : null;
+  if (firstFieldError) {
+    const [field, messages] = firstFieldError;
+    return `${field}: ${messages[0]}`;
+  }
+
+  const formError = payload.errors?.formErrors?.[0];
+  return formError || payload.message || fallback;
+}
+
+function normalizeVoucherRow(voucher: VoucherRow): VoucherRow {
+  return {
+    ...voucher,
+    description: voucher.description?.trim() || null,
+    payee: voucher.payee?.trim() || null,
+    referenceNo: voucher.referenceNo?.trim() || null,
+    toAccount: voucher.toAccount ?? null,
+    typeLabel: voucher.typeLabel || buildVoucherTypeLabel(voucher.type),
+  };
+}
+
+function mergeVoucherRows(existingRows: VoucherRow[], incomingRows: VoucherRow[]) {
+  const byId = new Map<number, VoucherRow>();
+  for (const row of existingRows) {
+    byId.set(row.id, normalizeVoucherRow(row));
+  }
+  for (const row of incomingRows) {
+    const normalized = normalizeVoucherRow(row);
+    const previous = byId.get(normalized.id);
+    byId.set(normalized.id, previous ? { ...previous, ...normalized, payee: normalized.payee ?? previous.payee, description: normalized.description ?? previous.description, referenceNo: normalized.referenceNo ?? previous.referenceNo } : normalized);
+  }
+  return Array.from(byId.values()).sort((left, right) => right.id - left.id);
 }
 
 export default function VouchersPage() {
@@ -94,10 +153,21 @@ export default function VouchersPage() {
     setLoading(true);
     const res = await fetch(`${API_URL}/api/pos/accounts/vouchers?limit=100`, {
       headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
     });
     const d = await res.json();
-    setVouchers(d.data?.data ?? []);
+    const rows = Array.isArray(d.data?.data) ? d.data.data : Array.isArray(d.data) ? d.data : [];
+    setVouchers((current) => mergeVoucherRows(current, rows));
     setLoading(false);
+  }
+
+  async function fetchVoucherById(id: number) {
+    const res = await fetch(`${API_URL}/api/pos/accounts/vouchers/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+    const d = await res.json();
+    return (d.data ?? null) as VoucherRow | null;
   }
 
   async function fetchBalance(accountId: number) {
@@ -151,10 +221,24 @@ export default function VouchersPage() {
         body: JSON.stringify(body),
       });
       const d = await res.json();
-      if (!res.ok) { setFormError(d.message ?? "Failed to create"); return; }
+      if (!res.ok) { setFormError(getApiErrorMessage(d, "Failed to create")); return; }
+      const freshVoucher = (await fetchVoucherById(d.data.id)) ?? d.data;
+      const createdVoucher = normalizeVoucherRow({
+        ...freshVoucher,
+        account: freshVoucher.account ?? accounts.find((account) => account.id === form.accountId) ?? { id: form.accountId, name: "", code: "" },
+        toAccount: freshVoucher.toAccount ?? (form.type === "ACCOUNT_TRANSFER"
+          ? accounts.find((account) => account.id === form.toAccountId) ?? null
+          : null),
+        typeLabel: freshVoucher.typeLabel ?? buildVoucherTypeLabel(form.type),
+        description: preferText(freshVoucher.description, form.description || null),
+        payee: preferText(freshVoucher.payee, form.type === "ACCOUNT_TRANSFER" ? null : (form.payee || null)),
+        referenceNo: preferText(freshVoucher.referenceNo, form.referenceNo || null),
+        paymentDate: preferText(freshVoucher.paymentDate, form.paymentDate || null),
+      });
       setForm(EMPTY_FORM);
       setAvailableBalance(null);
-      setPrintVoucher(d.data);
+      setPrintVoucher(createdVoucher);
+      setVouchers((current) => mergeVoucherRows([createdVoucher], current.filter((voucher) => voucher.id !== createdVoucher.id)));
       fetchVouchers();
     } catch {
       setFormError("Network error");
@@ -209,7 +293,7 @@ export default function VouchersPage() {
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(body),
       });
-      if (!res.ok) { const d = await res.json(); setEditError(d.message ?? "Failed"); return; }
+      if (!res.ok) { const d = await res.json(); setEditError(getApiErrorMessage(d, "Failed")); return; }
       setEditingVoucher(null);
       fetchVouchers();
     } catch {
@@ -375,15 +459,15 @@ export default function VouchersPage() {
                     <td className="td-muted">
                       {v.type === "ACCOUNT_TRANSFER"
                         ? v.toAccount ? <span style={{ color: "var(--accent)", fontWeight: 600 }}>→ {v.toAccount.name}</span> : "—"
-                        : (v.payee ?? "—")}
+                        : displayText(v.payee)}
                     </td>
                     <td className="td-muted">
                       {v.paymentDate ? formatDate(v.paymentDate) : formatDate(v.createdAt)}
                     </td>
                     <td style={{ textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{formatRs(v.amount)}</td>
                     <td className="td-muted">{v.account.name}</td>
-                    <td className="td-muted" style={{ fontFamily: "monospace", fontSize: "0.8rem" }}>{v.referenceNo ?? "—"}</td>
-                    <td className="td-muted">{v.description ?? "—"}</td>
+                    <td className="td-muted" style={{ fontFamily: "monospace", fontSize: "0.8rem" }}>{displayText(v.referenceNo)}</td>
+                    <td className="td-muted">{displayText(v.description)}</td>
                     <td>
                       {v.isVoided
                         ? <span className="badge" style={{ background: "var(--danger-bg)", color: "var(--danger)" }}>Voided</span>
@@ -510,15 +594,11 @@ export default function VouchersPage() {
                     {printVoucher.type === "ACCOUNT_TRANSFER" && printVoucher.toAccount && (
                       <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>To Account</td><td style={{ textAlign: "right", fontWeight: 600 }}>{printVoucher.toAccount.name} ({printVoucher.toAccount.code})</td></tr>
                     )}
-                    {printVoucher.type !== "ACCOUNT_TRANSFER" && printVoucher.payee && (
-                      <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Payee / Recipient</td><td style={{ textAlign: "right", fontWeight: 600 }}>{printVoucher.payee}</td></tr>
+                    {printVoucher.type !== "ACCOUNT_TRANSFER" && (
+                      <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Payee / Recipient</td><td style={{ textAlign: "right", fontWeight: 600 }}>{displayText(printVoucher.payee)}</td></tr>
                     )}
-                    {printVoucher.referenceNo && (
-                      <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Reference No.</td><td style={{ textAlign: "right" }}>{printVoucher.referenceNo}</td></tr>
-                    )}
-                    {printVoucher.description && (
-                      <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Description</td><td style={{ textAlign: "right" }}>{printVoucher.description}</td></tr>
-                    )}
+                    <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Reference No.</td><td style={{ textAlign: "right" }}>{displayText(printVoucher.referenceNo)}</td></tr>
+                    <tr><td style={{ color: "var(--text-soft)", fontSize: "0.85rem" }}>Description</td><td style={{ textAlign: "right" }}>{displayText(printVoucher.description)}</td></tr>
                   </tbody>
                 </table>
                 <hr style={{ margin: "16px 0", borderColor: "var(--panel-border)" }} />

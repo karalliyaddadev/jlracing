@@ -1,6 +1,7 @@
 import { Prisma } from "../../generated/prisma";
 import { prisma } from "../../database/prisma.client";
 import { AppError } from "../../common/utils/errors";
+import { prismaModelHasObjectField } from "../../common/utils/prisma-model";
 import {
   ChequeStatus,
   PaymentMethod,
@@ -26,6 +27,9 @@ import type {
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
+const ACCOUNT_TRANSFER_TYPE = "ACCOUNT_TRANSFER";
+const TRANSFER_TRANSACTION_TYPE = "TRANSFER";
+
 async function generateAccountCode(): Promise<string> {
   const count = await prisma.account.count();
   return `ACC-${String(count + 1).padStart(3, "0")}`;
@@ -43,7 +47,7 @@ function voucherTypeLabel(type: string): string {
     CUSTOMER_REFUND: "Customer Refund",
     VEHICLE_PURCHASE: "Vehicle Purchase",
     ADVANCE_REFUND: "Advance Invoice Refund",
-    ACCOUNT_TRANSFER: "Account Transfer",
+    [ACCOUNT_TRANSFER_TYPE]: "Account Transfer",
   };
   return map[type] ?? type;
 }
@@ -63,10 +67,23 @@ function calculateTotalReceivable(p: {
   return (p.totalWithInterest ?? p.finalSellingPrice) + regFee;
 }
 
-type VoucherRow = {
+type VoucherRow = Prisma.AccountVoucherGetPayload<{
+  include: {
+    account: { select: { id: true; name: true; code: true } };
+  };
+}>;
+
+type AccountSummary = {
+  id: number;
+  name: string;
+  code: string;
+};
+
+type RawVoucherRow = {
   id: number;
   voucherNo: string;
   accountId: number;
+  toAccountId: number | null;
   type: string;
   amount: number;
   description: string | null;
@@ -77,12 +94,204 @@ type VoucherRow = {
   createdById: number;
   createdAt: Date;
   updatedAt: Date;
-  accountName: string;
-  accountCode: string;
-  accountType: string;
+  account_id: number;
+  account_name: string;
+  account_code: string;
+  toAccount_id: number | null;
+  toAccount_name: string | null;
+  toAccount_code: string | null;
 };
 
-function mapVoucherRow(row: VoucherRow) {
+type RawTransferTransaction = {
+  id: number;
+  accountId: number;
+  direction: string;
+  amount: number;
+};
+
+type RawLedgerTransaction = {
+  id: number;
+  type: string;
+  direction: string;
+  amount: number;
+  refNo: string | null;
+  description: string | null;
+  chequeNo: string | null;
+  isReversal: boolean;
+  createdById: number;
+  createdAt: Date;
+};
+
+type RawQueryClient = {
+  $queryRaw<T = unknown>(
+    query: TemplateStringsArray | Prisma.Sql,
+    ...values: unknown[]
+  ): Prisma.PrismaPromise<T>;
+};
+
+async function resolveVoucherToAccount(
+  client: Pick<typeof prisma, "account">,
+  toAccountId: number | null
+): Promise<AccountSummary | null> {
+  if (!toAccountId) return null;
+  return client.account.findUnique({
+    where: { id: toAccountId },
+    select: { id: true, name: true, code: true },
+  });
+}
+
+async function createVoucherDraft(
+  tx: Prisma.TransactionClient,
+  dto: CreateVoucherDto,
+  adminId: number
+): Promise<{ id: number }> {
+  if (dto.type !== ACCOUNT_TRANSFER_TYPE) {
+    return tx.accountVoucher.create({
+      data: {
+        voucherNo: "TEMP",
+        accountId: dto.accountId,
+        type: dto.type,
+        amount: dto.amount,
+        description: dto.description,
+        createdById: adminId,
+      },
+      select: { id: true },
+    });
+  }
+
+  const [created] = await tx.$queryRaw<Array<{ id: number }>>`
+    INSERT INTO "account_vouchers" (
+      "voucherNo",
+      "accountId",
+      "type",
+      "amount",
+      "description",
+      "createdById",
+      "updatedAt"
+    )
+    VALUES (
+      ${"TEMP"},
+      ${dto.accountId},
+      ${ACCOUNT_TRANSFER_TYPE}::"VoucherType",
+      ${dto.amount},
+      ${dto.description ?? null},
+      ${adminId},
+      CURRENT_TIMESTAMP
+    )
+    RETURNING "id"
+  `;
+
+  if (!created) {
+    throw new AppError("Failed to create account transfer voucher", 500);
+  }
+
+  return created;
+}
+
+async function createTransferTransaction(
+  tx: Prisma.TransactionClient,
+  data: {
+    accountId: number;
+    direction: "DR" | "CR";
+    amount: number;
+    voucherId: number;
+    refNo: string;
+    description: string;
+    createdById: number;
+  }
+): Promise<void> {
+  await tx.$executeRaw`
+    INSERT INTO "account_transactions" (
+      "accountId",
+      "type",
+      "direction",
+      "amount",
+      "voucherId",
+      "refNo",
+      "description",
+      "createdById"
+    )
+    VALUES (
+      ${data.accountId},
+      ${TRANSFER_TRANSACTION_TYPE}::"TransactionType",
+      ${data.direction}::"TransactionDirection",
+      ${data.amount},
+      ${data.voucherId},
+      ${data.refNo},
+      ${data.description},
+      ${data.createdById}
+    )
+  `;
+}
+
+async function findRawVoucherById(
+  client: RawQueryClient,
+  id: number
+): Promise<RawVoucherRow | null> {
+  const [voucher] = await client.$queryRaw<RawVoucherRow[]>`
+    SELECT
+      v."id",
+      v."voucherNo",
+      v."accountId",
+      v."toAccountId",
+      v."type"::text AS "type",
+      v."amount",
+      v."description",
+      v."payee",
+      v."paymentDate",
+      v."referenceNo",
+      v."isVoided",
+      v."createdById",
+      v."createdAt",
+      v."updatedAt",
+      a."id" AS "account_id",
+      a."name" AS "account_name",
+      a."code" AS "account_code",
+      ta."id" AS "toAccount_id",
+      ta."name" AS "toAccount_name",
+      ta."code" AS "toAccount_code"
+    FROM "account_vouchers" v
+    JOIN "accounts" a ON a."id" = v."accountId"
+    LEFT JOIN "accounts" ta ON ta."id" = v."toAccountId"
+    WHERE v."id" = ${id}
+    LIMIT 1
+  `;
+
+  return voucher ?? null;
+}
+
+function mapRawVoucherRow(row: RawVoucherRow) {
+  return {
+    id: row.id,
+    voucherNo: row.voucherNo,
+    accountId: row.accountId,
+    toAccountId: row.toAccountId,
+    type: row.type,
+    amount: row.amount,
+    description: row.description,
+    payee: row.payee,
+    paymentDate: row.paymentDate,
+    referenceNo: row.referenceNo,
+    isVoided: row.isVoided,
+    createdById: row.createdById,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    account: {
+      id: row.account_id,
+      name: row.account_name,
+      code: row.account_code,
+    },
+    toAccount: row.toAccount_id
+      ? {
+          id: row.toAccount_id,
+          name: row.toAccount_name ?? "",
+          code: row.toAccount_code ?? "",
+        }
+      : null,
+  };
+}
+
+function mapVoucherRow(row: VoucherRow, toAccount: AccountSummary | null) {
   return {
     id: row.id,
     voucherNo: row.voucherNo,
@@ -97,12 +306,8 @@ function mapVoucherRow(row: VoucherRow) {
     createdById: row.createdById,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
-    account: {
-      id: row.accountId,
-      name: row.accountName,
-      code: row.accountCode,
-      type: row.accountType,
-    },
+    account: row.account,
+    toAccount,
   };
 }
 
@@ -171,41 +376,52 @@ export async function listPurchasesForReceipt(dto: InvoiceQueueQueryDto) {
       }
     : {};
 
+  const purchaseInclude: any = {
+    customer: {
+      select: {
+        id: true,
+        firstName: true,
+        lastName: true,
+        nic: true,
+        mobileNumber: true,
+        address: true,
+      },
+    },
+    bikeVehicle: {
+      select: {
+        displayId: true,
+        brand: { select: { name: true } },
+        model: { select: { name: true } },
+      },
+    },
+    inventoryProduct: {
+      select: { displayId: true, name: true },
+    },
+    receipts: {
+      where: { isVoided: false },
+      select: { amount: true },
+    },
+  };
+
+  if (
+    prismaModelHasObjectField(
+      prisma as any,
+      "PosCustomerPurchase",
+      "preOrder",
+    )
+  ) {
+    purchaseInclude.preOrder = {
+      select: { id: true, displayId: true, brand: true, model: true, colour: true },
+    };
+  }
+
   const purchases: any[] = await (prisma.posCustomerPurchase as any).findMany({
     where: {
       ...searchClause,
       ...(fromDate && { purchasedAt: { gte: fromDate } }),
       ...(toDate && { purchasedAt: { lte: toDate } }),
     },
-    include: {
-      customer: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-          nic: true,
-          mobileNumber: true,
-          address: true,
-        },
-      },
-      bikeVehicle: {
-        select: {
-          displayId: true,
-          brand: { select: { name: true } },
-          model: { select: { name: true } },
-        },
-      },
-      inventoryProduct: {
-        select: { displayId: true, name: true },
-      },
-      preOrder: {
-        select: { id: true, displayId: true, brand: true, model: true, colour: true },
-      },
-      receipts: {
-        where: { isVoided: false },
-        select: { amount: true },
-      },
-    },
+    include: purchaseInclude,
     orderBy: { purchasedAt: "desc" },
     take: dto.limit,
   });
@@ -561,24 +777,56 @@ export async function getReceiptById(id: number) {
 
 export async function listVouchers(dto: VoucherQueryDto) {
   const skip = (dto.page - 1) * dto.limit;
-  const where = dto.accountId ? { accountId: dto.accountId } : {};
+  const whereSql = dto.accountId
+    ? Prisma.sql`WHERE v."accountId" = ${dto.accountId}`
+    : Prisma.empty;
 
-  const [total, vouchers] = await Promise.all([
-    prisma.accountVoucher.count({ where }),
-    prisma.accountVoucher.findMany({
-      where,
-      include: {
-        account: { select: { id: true, name: true, code: true } },
-        toAccount: { select: { id: true, name: true, code: true } },
-      },
-      orderBy: { createdAt: "desc" },
-      skip,
-      take: dto.limit,
-    }),
+  const [totalRows, vouchers] = await Promise.all([
+    prisma.$queryRaw<Array<{ count: number }>>`
+      SELECT COUNT(*)::int AS "count"
+      FROM "account_vouchers" v
+      ${whereSql}
+    `,
+    prisma.$queryRaw<RawVoucherRow[]>`
+      SELECT
+        v."id",
+        v."voucherNo",
+        v."accountId",
+        v."toAccountId",
+        v."type"::text AS "type",
+        v."amount",
+        v."description",
+        v."payee",
+        v."paymentDate",
+        v."referenceNo",
+        v."isVoided",
+        v."createdById",
+        v."createdAt",
+        v."updatedAt",
+        a."id" AS "account_id",
+        a."name" AS "account_name",
+        a."code" AS "account_code",
+        ta."id" AS "toAccount_id",
+        ta."name" AS "toAccount_name",
+        ta."code" AS "toAccount_code"
+      FROM "account_vouchers" v
+      JOIN "accounts" a ON a."id" = v."accountId"
+      LEFT JOIN "accounts" ta ON ta."id" = v."toAccountId"
+      ${whereSql}
+      ORDER BY v."createdAt" DESC
+      OFFSET ${skip}
+      LIMIT ${dto.limit}
+    `,
   ]);
 
+  const total = totalRows[0]?.count ?? 0;
+  const data = vouchers.map((v) => ({
+    ...mapRawVoucherRow(v),
+    typeLabel: voucherTypeLabel(v.type),
+  }));
+
   return {
-    data: vouchers.map((v: VoucherRow) => ({ ...mapVoucherRow(v), typeLabel: voucherTypeLabel(v.type) })),
+    data,
     pagination: { total, page: dto.page, limit: dto.limit, pages: Math.ceil(total / dto.limit) },
   };
 }
@@ -588,7 +836,7 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
   if (!account || !account.isActive) throw AppError.notFound("Account not found or inactive");
 
   let toAccount = null;
-  if (dto.type === "ACCOUNT_TRANSFER") {
+  if (dto.type === ACCOUNT_TRANSFER_TYPE) {
     toAccount = await prisma.account.findUnique({ where: { id: dto.toAccountId } });
     if (!toAccount || !toAccount.isActive) throw AppError.notFound("Destination account not found or inactive");
   }
@@ -611,30 +859,12 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
   }
 
   return prisma.$transaction(async (tx) => {
-    const created = await tx.accountVoucher.create({
-      data: {
-        voucherNo: "TEMP",
-        accountId: dto.accountId,
-        toAccountId: dto.type === "ACCOUNT_TRANSFER" ? dto.toAccountId : undefined,
-        type: dto.type,
-        amount: dto.amount,
-        description: dto.description,
-        createdById: adminId,
-      },
-    });
+    const created = await createVoucherDraft(tx, dto, adminId);
 
-    if (dto.referenceNo !== undefined) {
+    if (dto.type === ACCOUNT_TRANSFER_TYPE) {
       await tx.$executeRaw`
         UPDATE "account_vouchers"
-        SET "referenceNo" = ${dto.referenceNo}
-        WHERE "id" = ${created.id}
-      `;
-    }
-
-    if (dto.paymentDate !== undefined) {
-      await tx.$executeRaw`
-        UPDATE "account_vouchers"
-        SET "paymentDate" = ${dto.paymentDate}
+        SET "toAccountId" = ${dto.toAccountId!}
         WHERE "id" = ${created.id}
       `;
     }
@@ -647,56 +877,67 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
       `;
     }
 
+    if (dto.paymentDate !== undefined) {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "paymentDate" = ${dto.paymentDate}
+        WHERE "id" = ${created.id}
+      `;
+    }
+
+    if (dto.referenceNo !== undefined) {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "referenceNo" = ${dto.referenceNo}
+        WHERE "id" = ${created.id}
+      `;
+    }
+
     const voucherNo = `VCH-${String(created.id).padStart(5, "0")}`;
 
-    if (dto.type === "ACCOUNT_TRANSFER" && toAccount) {
-      const [voucher] = await Promise.all([
-        tx.accountVoucher.update({
-          where: { id: created.id },
-          data: { voucherNo },
-          include: {
-            account: { select: { id: true, name: true, code: true } },
-            toAccount: { select: { id: true, name: true, code: true } },
-          },
-        }),
+    if (dto.type === ACCOUNT_TRANSFER_TYPE && toAccount) {
+      await Promise.all([
+        tx.$executeRaw`
+          UPDATE "account_vouchers"
+          SET "voucherNo" = ${voucherNo}, "updatedAt" = CURRENT_TIMESTAMP
+          WHERE "id" = ${created.id}
+        `,
         // CR on source account (money leaves)
-        tx.accountTransaction.create({
-          data: {
-            accountId: dto.accountId,
-            type: TransactionType.TRANSFER,
-            direction: TransactionDirection.CR,
-            amount: dto.amount,
-            voucherId: created.id,
-            refNo: voucherNo,
-            description: dto.description ?? `Transfer to ${toAccount.name}`,
-            createdById: adminId,
-          },
+        createTransferTransaction(tx, {
+          accountId: dto.accountId,
+          direction: "CR",
+          amount: dto.amount,
+          voucherId: created.id,
+          refNo: voucherNo,
+          description: dto.description ?? `Transfer to ${toAccount.name}`,
+          createdById: adminId,
         }),
         // DR on destination account (money enters)
-        tx.accountTransaction.create({
-          data: {
-            accountId: dto.toAccountId!,
-            type: TransactionType.TRANSFER,
-            direction: TransactionDirection.DR,
-            amount: dto.amount,
-            voucherId: created.id,
-            refNo: voucherNo,
-            description: dto.description ?? `Transfer from ${account.name}`,
-            createdById: adminId,
-          },
+        createTransferTransaction(tx, {
+          accountId: dto.toAccountId!,
+          direction: "DR",
+          amount: dto.amount,
+          voucherId: created.id,
+          refNo: voucherNo,
+          description: dto.description ?? `Transfer from ${account.name}`,
+          createdById: adminId,
         }),
       ]);
 
-      return { ...voucher, typeLabel: voucherTypeLabel(voucher.type) };
+      const voucher = await findRawVoucherById(tx, created.id);
+      if (!voucher) throw new AppError("Failed to load created account transfer voucher", 500);
+      return { ...mapRawVoucherRow(voucher), typeLabel: voucherTypeLabel(voucher.type) };
     }
 
     const [voucher] = await Promise.all([
       tx.accountVoucher.update({
         where: { id: created.id },
-        data: { voucherNo },
+        data: {
+          voucherNo,
+          ...(dto.description !== undefined && { description: dto.description }),
+        },
         include: {
           account: { select: { id: true, name: true, code: true } },
-          toAccount: { select: { id: true, name: true, code: true } },
         },
       }),
       tx.accountTransaction.create({
@@ -713,11 +954,61 @@ export async function createVoucher(dto: CreateVoucherDto, adminId: number) {
       }),
     ]);
 
-    return { ...voucher, typeLabel: voucherTypeLabel(voucher.type) };
+    return { ...mapVoucherRow(voucher, null), typeLabel: voucherTypeLabel(voucher.type) };
   });
 }
 
 export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: number) {
+  const voucherMeta = await findRawVoucherById(prisma, id);
+  if (!voucherMeta) throw AppError.notFound("Voucher not found");
+  if (voucherMeta.isVoided) throw new AppError("Cannot edit a voided voucher", 400);
+
+  const isTransfer = voucherMeta.type === ACCOUNT_TRANSFER_TYPE;
+
+  if (isTransfer) {
+    if (dto.type !== undefined || dto.amount !== undefined) {
+      throw new AppError("Type and amount cannot be changed on an account transfer", 400);
+    }
+
+    return prisma.$transaction(async (tx) => {
+      if (dto.description !== undefined) {
+        await tx.$executeRaw`
+          UPDATE "account_vouchers"
+          SET "description" = ${dto.description}, "updatedAt" = CURRENT_TIMESTAMP
+          WHERE "id" = ${id}
+        `;
+      }
+
+      if (dto.payee !== undefined) {
+        await tx.$executeRaw`
+          UPDATE "account_vouchers"
+          SET "payee" = ${dto.payee}, "updatedAt" = CURRENT_TIMESTAMP
+          WHERE "id" = ${id}
+        `;
+      }
+
+      if (dto.paymentDate !== undefined) {
+        await tx.$executeRaw`
+          UPDATE "account_vouchers"
+          SET "paymentDate" = ${dto.paymentDate}, "updatedAt" = CURRENT_TIMESTAMP
+          WHERE "id" = ${id}
+        `;
+      }
+
+      if (dto.referenceNo !== undefined) {
+        await tx.$executeRaw`
+          UPDATE "account_vouchers"
+          SET "referenceNo" = ${dto.referenceNo}, "updatedAt" = CURRENT_TIMESTAMP
+          WHERE "id" = ${id}
+        `;
+      }
+
+      const updated = await findRawVoucherById(tx, id);
+      if (!updated) throw AppError.notFound("Voucher not found");
+      return { ...mapRawVoucherRow(updated), typeLabel: voucherTypeLabel(updated.type) };
+    });
+  }
+
   const voucher = await prisma.accountVoucher.findUnique({
     where: { id },
     include: { transactions: { where: { isReversal: false } } },
@@ -725,15 +1016,11 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
   if (!voucher) throw AppError.notFound("Voucher not found");
   if (voucher.isVoided) throw new AppError("Cannot edit a voided voucher", 400);
 
-  const isTransfer = voucher.type === "ACCOUNT_TRANSFER";
-
-  if (isTransfer && (dto.type !== undefined || dto.amount !== undefined)) {
-    throw new AppError("Type and amount cannot be changed on an account transfer", 400);
+  if (dto.type === ACCOUNT_TRANSFER_TYPE) {
+    throw new AppError("Existing vouchers cannot be converted to account transfers", 400);
   }
 
-  const originalTx = isTransfer
-    ? null
-    : voucher.transactions.find((t) => t.type === TransactionType.VOUCHER);
+  const originalTx = voucher.transactions.find((t) => t.type === TransactionType.VOUCHER);
 
   return prisma.$transaction(async (tx) => {
     if (originalTx && dto.amount !== undefined) {
@@ -752,20 +1039,16 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
         ...(dto.type !== undefined && { type: dto.type }),
         ...(dto.amount !== undefined && { amount: dto.amount }),
         ...(dto.description !== undefined && { description: dto.description }),
-        ...(!isTransfer && dto.payee !== undefined && { payee: dto.payee }),
-        ...(dto.paymentDate !== undefined && { paymentDate: dto.paymentDate }),
-        ...(dto.referenceNo !== undefined && { referenceNo: dto.referenceNo }),
       },
       include: {
         account: { select: { id: true, name: true, code: true } },
-        toAccount: { select: { id: true, name: true, code: true } },
       },
     });
 
-    if (dto.referenceNo !== undefined) {
+    if (dto.payee !== undefined) {
       await tx.$executeRaw`
         UPDATE "account_vouchers"
-        SET "referenceNo" = ${dto.referenceNo}
+        SET "payee" = ${dto.payee}
         WHERE "id" = ${id}
       `;
     }
@@ -778,44 +1061,48 @@ export async function updateVoucher(id: number, dto: UpdateVoucherDto, adminId: 
       `;
     }
 
-    if (dto.payee !== undefined) {
+    if (dto.referenceNo !== undefined) {
       await tx.$executeRaw`
         UPDATE "account_vouchers"
-        SET "payee" = ${dto.payee}
+        SET "referenceNo" = ${dto.referenceNo}
         WHERE "id" = ${id}
       `;
     }
 
-    return { ...updated, typeLabel: voucherTypeLabel(updated.type) };
+    return { ...mapVoucherRow(updated, await resolveVoucherToAccount(tx, updated.toAccountId)), typeLabel: voucherTypeLabel(updated.type) };
   });
 }
 
 export async function voidVoucher(id: number, adminId: number) {
-  const voucher = await prisma.accountVoucher.findUnique({
-    where: { id },
-    include: { transactions: true },
-  });
-  if (!voucher) throw AppError.notFound("Voucher not found");
-  if (voucher.isVoided) throw new AppError("Voucher is already voided", 400);
+  const voucherMeta = await findRawVoucherById(prisma, id);
+  if (!voucherMeta) throw AppError.notFound("Voucher not found");
+  if (voucherMeta.isVoided) throw new AppError("Voucher is already voided", 400);
 
-  const isTransfer = voucher.type === "ACCOUNT_TRANSFER";
+  if (voucherMeta.type === ACCOUNT_TRANSFER_TYPE) {
+    return prisma.$transaction(async (tx) => {
+      await tx.$executeRaw`
+        UPDATE "account_vouchers"
+        SET "isVoided" = true, "updatedAt" = CURRENT_TIMESTAMP
+        WHERE "id" = ${id}
+      `;
 
-  return prisma.$transaction(async (tx) => {
-    await tx.accountVoucher.update({ where: { id }, data: { isVoided: true } });
+      const transferTransactions = await tx.$queryRaw<RawTransferTransaction[]>`
+        SELECT
+          "id",
+          "accountId",
+          "direction"::text AS "direction",
+          "amount"
+        FROM "account_transactions"
+        WHERE "voucherId" = ${id}
+          AND "type"::text = ${TRANSFER_TRANSACTION_TYPE}
+          AND "isReversal" = false
+      `;
 
-    if (isTransfer) {
-      // Find the two TRANSFER transactions (one CR on source, one DR on dest)
-      const sourceTx = voucher.transactions.find(
-        (t) => t.type === TransactionType.TRANSFER && t.direction === TransactionDirection.CR && !t.isReversal
-      );
-      const destTx = voucher.transactions.find(
-        (t) => t.type === TransactionType.TRANSFER && t.direction === TransactionDirection.DR && !t.isReversal
-      );
-
+      const sourceTx = transferTransactions.find((t) => t.direction === "CR");
+      const destTx = transferTransactions.find((t) => t.direction === "DR");
       const reversals: Promise<unknown>[] = [];
 
       if (sourceTx) {
-        // Restore source account: DR reversal
         reversals.push(
           tx.accountTransaction.create({
             data: {
@@ -824,8 +1111,8 @@ export async function voidVoucher(id: number, adminId: number) {
               direction: TransactionDirection.DR,
               amount: sourceTx.amount,
               voucherId: id,
-              refNo: voucher.voucherNo,
-              description: `Void of transfer ${voucher.voucherNo}`,
+              refNo: voucherMeta.voucherNo,
+              description: `Void of transfer ${voucherMeta.voucherNo}`,
               isReversal: true,
               createdById: adminId,
             },
@@ -834,7 +1121,6 @@ export async function voidVoucher(id: number, adminId: number) {
       }
 
       if (destTx) {
-        // Remove from destination account: CR reversal
         reversals.push(
           tx.accountTransaction.create({
             data: {
@@ -843,8 +1129,8 @@ export async function voidVoucher(id: number, adminId: number) {
               direction: TransactionDirection.CR,
               amount: destTx.amount,
               voucherId: id,
-              refNo: voucher.voucherNo,
-              description: `Void of transfer ${voucher.voucherNo}`,
+              refNo: voucherMeta.voucherNo,
+              description: `Void of transfer ${voucherMeta.voucherNo}`,
               isReversal: true,
               createdById: adminId,
             },
@@ -853,26 +1139,39 @@ export async function voidVoucher(id: number, adminId: number) {
       }
 
       await Promise.all(reversals);
-    } else {
-      const originalTx = voucher.transactions.find(
-        (t) => t.type === TransactionType.VOUCHER && !t.isReversal
-      );
 
-      if (originalTx) {
-        await tx.accountTransaction.create({
-          data: {
-            accountId: voucher.accountId,
-            type: TransactionType.REVERSAL,
-            direction: TransactionDirection.DR,
-            amount: originalTx.amount,
-            voucherId: id,
-            refNo: voucher.voucherNo,
-            description: `Void of ${voucher.voucherNo}`,
-            isReversal: true,
-            createdById: adminId,
-          },
-        });
-      }
+      return { message: "Voucher voided successfully" };
+    });
+  }
+
+  const voucher = await prisma.accountVoucher.findUnique({
+    where: { id },
+    include: { transactions: true },
+  });
+  if (!voucher) throw AppError.notFound("Voucher not found");
+  if (voucher.isVoided) throw new AppError("Voucher is already voided", 400);
+
+  return prisma.$transaction(async (tx) => {
+    await tx.accountVoucher.update({ where: { id }, data: { isVoided: true } });
+
+    const originalTx = voucher.transactions.find(
+      (t) => t.type === TransactionType.VOUCHER && !t.isReversal
+    );
+
+    if (originalTx) {
+      await tx.accountTransaction.create({
+        data: {
+          accountId: voucher.accountId,
+          type: TransactionType.REVERSAL,
+          direction: TransactionDirection.DR,
+          amount: originalTx.amount,
+          voucherId: id,
+          refNo: voucher.voucherNo,
+          description: `Void of ${voucher.voucherNo}`,
+          isReversal: true,
+          createdById: adminId,
+        },
+      });
     }
 
     return { message: "Voucher voided successfully" };
@@ -880,15 +1179,9 @@ export async function voidVoucher(id: number, adminId: number) {
 }
 
 export async function getVoucherById(id: number) {
-  const voucher = await prisma.accountVoucher.findUnique({
-    where: { id },
-    include: {
-      account: { select: { id: true, name: true, code: true, type: true } },
-      toAccount: { select: { id: true, name: true, code: true, type: true } },
-    },
-  });
+  const voucher = await findRawVoucherById(prisma, id);
   if (!voucher) throw AppError.notFound("Voucher not found");
-  return { ...voucher, typeLabel: voucherTypeLabel(voucher.type) };
+  return { ...mapRawVoucherRow(voucher), typeLabel: voucherTypeLabel(voucher.type) };
 }
 
 // ─── Invoice Payment Queue ────────────────────────────────────────────────────
@@ -920,25 +1213,38 @@ export async function listInvoicePayments(dto: InvoicePaymentQueryDto) {
       : {}),
   };
 
+  const purchaseSelect: any = {
+    id: true,
+    invoiceGroupCode: true,
+    itemType: true,
+    customCategory: true,
+    customDescription: true,
+    customer: { select: { firstName: true, lastName: true, nic: true, mobileNumber: true } },
+    bikeVehicle: {
+      select: { displayId: true, brand: { select: { name: true } }, model: { select: { name: true } } },
+    },
+    inventoryProduct: { select: { displayId: true, name: true } },
+  };
+
+  if (
+    prismaModelHasObjectField(
+      prisma as any,
+      "PosCustomerPurchase",
+      "preOrder",
+    )
+  ) {
+    purchaseSelect.preOrder = {
+      select: { displayId: true, brand: true, model: true, colour: true },
+    };
+  }
+
   const [total, payments] = await Promise.all([
     prisma.invoicePayment.count({ where }),
     (prisma as any).invoicePayment.findMany({
       where,
       include: {
         purchase: {
-          select: {
-            id: true,
-            invoiceGroupCode: true,
-            itemType: true,
-            customCategory: true,
-            customDescription: true,
-            customer: { select: { firstName: true, lastName: true, nic: true, mobileNumber: true } },
-            bikeVehicle: {
-              select: { displayId: true, brand: { select: { name: true } }, model: { select: { name: true } } },
-            },
-            inventoryProduct: { select: { displayId: true, name: true } },
-            preOrder: { select: { displayId: true, brand: true, model: true, colour: true } },
-          },
+          select: purchaseSelect,
         },
       },
       orderBy: { paidAt: "desc" },
@@ -1203,33 +1509,43 @@ export async function getLedger(dto: LedgerQueryDto) {
   const toDate = new Date(dto.to + "T23:59:59.999Z");
 
   // Opening balance = account.openingBalance + all DR before fromDate - all CR before fromDate
-  const preTransactions = await prisma.accountTransaction.findMany({
-    where: {
-      accountId: dto.accountId,
-      createdAt: { lt: fromDate },
-    },
-    select: { direction: true, amount: true },
-  });
+  const preTransactions = await prisma.$queryRaw<Array<{ direction: string; amount: number }>>`
+    SELECT "direction"::text AS "direction", "amount"
+    FROM "account_transactions"
+    WHERE "accountId" = ${dto.accountId}
+      AND "createdAt" < ${fromDate}
+  `;
 
   const openingBalance =
     account.openingBalance +
     preTransactions.reduce((sum, t) => {
-      return sum + (t.direction === TransactionDirection.DR ? t.amount : -t.amount);
+      return sum + (t.direction === "DR" ? t.amount : -t.amount);
     }, 0);
 
   // Transactions within date range
-  const transactions = await prisma.accountTransaction.findMany({
-    where: {
-      accountId: dto.accountId,
-      createdAt: { gte: fromDate, lte: toDate },
-    },
-    orderBy: { createdAt: "asc" },
-  });
+  const transactions = await prisma.$queryRaw<RawLedgerTransaction[]>`
+    SELECT
+      "id",
+      "type"::text AS "type",
+      "direction"::text AS "direction",
+      "amount",
+      "refNo",
+      "description",
+      "chequeNo",
+      "isReversal",
+      "createdById",
+      "createdAt"
+    FROM "account_transactions"
+    WHERE "accountId" = ${dto.accountId}
+      AND "createdAt" >= ${fromDate}
+      AND "createdAt" <= ${toDate}
+    ORDER BY "createdAt" ASC
+  `;
 
   let runningBalance = openingBalance;
   const rows = transactions.map((t) => {
-    const drAmount = t.direction === TransactionDirection.DR ? t.amount : 0;
-    const crAmount = t.direction === TransactionDirection.CR ? t.amount : 0;
+    const drAmount = t.direction === "DR" ? t.amount : 0;
+    const crAmount = t.direction === "CR" ? t.amount : 0;
     runningBalance = runningBalance + drAmount - crAmount;
 
     return {
@@ -1241,7 +1557,7 @@ export async function getLedger(dto: LedgerQueryDto) {
         ? "Receipt"
         : t.type === TransactionType.DEPOSIT
         ? "Deposit"
-        : t.type === TransactionType.TRANSFER
+        : t.type === TRANSFER_TRANSACTION_TYPE
         ? "Transfer"
         : "Voucher",
       refNo: t.refNo,
