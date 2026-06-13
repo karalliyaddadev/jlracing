@@ -205,7 +205,6 @@ export default function ManageAccountsPage() {
                   <input
                     className="bm-input"
                     type="number"
-                    min={0}
                     value={form.openingBalance}
                     onChange={(e) => setForm({ ...form, openingBalance: Number(e.target.value) })}
                   />
