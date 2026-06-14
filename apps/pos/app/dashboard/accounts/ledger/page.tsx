@@ -46,8 +46,8 @@ function firstDayOfMonth() {
 }
 
 function formatBalance(v: number): { amount: string; side: "Dr" | "Cr"; color: string } {
-  if (v >= 0) return { amount: formatRs(v), side: "Cr", color: "var(--success)" };
-  return { amount: formatRs(Math.abs(v)), side: "Dr", color: "var(--danger)" };
+  if (v >= 0) return { amount: formatRs(v), side: "Dr", color: "var(--success)" };
+  return { amount: formatRs(Math.abs(v)), side: "Cr", color: "var(--danger)" };
 }
 
 export default function LedgerPage() {
@@ -261,10 +261,10 @@ export default function LedgerPage() {
                     <td>{formatDate(fromDate + "T00:00:00")}</td>
                     <td>—</td>
                     <td>—</td>
-                    <td style={{ textAlign: "right", color: ob.side === "Dr" ? "var(--danger)" : "inherit", fontVariantNumeric: "tabular-nums" }}>
+                    <td style={{ textAlign: "right", color: ob.side === "Dr" ? "var(--success)" : "inherit", fontVariantNumeric: "tabular-nums" }}>
                       {ob.side === "Dr" ? ob.amount : "—"}
                     </td>
-                    <td style={{ textAlign: "right", color: ob.side === "Cr" ? "var(--success)" : "inherit", fontVariantNumeric: "tabular-nums" }}>
+                    <td style={{ textAlign: "right", color: ob.side === "Cr" ? "var(--danger)" : "inherit", fontVariantNumeric: "tabular-nums" }}>
                       {ob.side === "Cr" ? ob.amount : "—"}
                     </td>
                     <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums", color: ob.color }}>

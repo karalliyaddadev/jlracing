@@ -27,7 +27,7 @@ function fmtDate(d: string) {
 }
 
 function balanceSide(v: number): string {
-  return v >= 0 ? `${fmt(v)} Cr` : `${fmt(Math.abs(v))} Dr`;
+  return v >= 0 ? `${fmt(v)} Dr` : `${fmt(Math.abs(v))} Cr`;
 }
 
 function csvCell(v: string | number | null | undefined): string {
@@ -59,8 +59,8 @@ export function exportLedgerToExcel(data: LedgerResult, from: string, to: string
       fmtDate(`${from}T00:00:00`),
       "—",
       "—",
-      openingBalance < 0 ? fmt(Math.abs(openingBalance)) : "",
       openingBalance >= 0 ? fmt(openingBalance) : "",
+      openingBalance < 0 ? fmt(Math.abs(openingBalance)) : "",
       balanceSide(openingBalance),
     ]),
     ...rows.map((r) =>
