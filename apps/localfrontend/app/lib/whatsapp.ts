@@ -1,0 +1,3 @@
+export const WHATSAPP_NUMBER_INTL = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER!;
+export const WHATSAPP_NUMBER_DISPLAY = "+94 70 391 0091";
+export const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER_INTL}`;
