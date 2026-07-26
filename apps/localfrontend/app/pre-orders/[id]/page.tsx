@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import ImageLightbox from "../../components/ImageLightbox";
+import { WHATSAPP_LINK } from "../../lib/whatsapp";
 
 const BACKEND_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
 
@@ -209,7 +210,7 @@ export default function PreOrderDetailPage() {
                 Inquire / Pre-Order
               </Link>
               <a
-                href="https://wa.me/94717910091"
+                href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bikedetail__btn bikedetail__btn--whatsapp"
