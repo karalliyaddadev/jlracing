@@ -28,7 +28,7 @@ const cards: PortalCard[] = [
     key: "pos",
     title: "POS",
     features: ["Bike Inventory", "Spare Parts"],
-    signInUrl: "https://admin.jlracingshop.karalliyaddaone.tech/",
+    signInUrl: "https://admin.jlracingshop.com/",
     available: true,
   },
   {
