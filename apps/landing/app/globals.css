@@ -8,6 +8,7 @@
   padding: 0;
 }
 
+
 html,
 body {
   height: 100%;
@@ -66,11 +67,11 @@ body {
 }
 
 .split-panel--local .split-panel__bg {
-  background-image: url("/colombo.avif");
+  background-image: url("/Bike.png");
 }
 
 .split-panel--foreign .split-panel__bg {
-  background-image: url("/japan.jpg");
+  background-image: url("/Car.png");
 }
 
 /* ── Gradient tint ── */

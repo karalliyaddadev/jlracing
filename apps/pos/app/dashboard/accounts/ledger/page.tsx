@@ -5,6 +5,7 @@ import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
 import { IconAccounts } from "../../../lib/icons";
 import { exportTableToPdf } from "../../../lib/pdf-export";
+import { exportLedgerToExcel } from "../../../lib/excel-export";
 
 type Account = { id: number; name: string; code: string; type: string };
 
@@ -42,6 +43,11 @@ function formatDate(d: string) {
 function firstDayOfMonth() {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+}
+
+function formatBalance(v: number): { amount: string; side: "Dr" | "Cr"; color: string } {
+  if (v >= 0) return { amount: formatRs(v), side: "Dr", color: "var(--success)" };
+  return { amount: formatRs(Math.abs(v)), side: "Cr", color: "var(--danger)" };
 }
 
 export default function LedgerPage() {
@@ -87,19 +93,33 @@ export default function LedgerPage() {
 
   function handleExport() {
     if (!result) return;
+    const ob = formatBalance(result.openingBalance);
+    const cb = formatBalance(result.closingBalance);
     const exportRows: ExportRow[] = [
-      { type: "Opening Balance", refNo: "—", date: fromDate, description: "—", chequeNo: "—", dr: "—", cr: "—", balance: formatRs(result.openingBalance) },
-      ...result.rows.map((r) => ({
-        type: r.typeLabel,
-        refNo: r.refNo ?? "—",
-        date: formatDate(r.date),
-        description: r.description ?? "—",
-        chequeNo: r.chequeNo ?? "—",
-        dr: r.drAmount > 0 ? formatRs(r.drAmount) : "—",
-        cr: r.crAmount > 0 ? formatRs(r.crAmount) : "—",
-        balance: formatRs(r.balance),
-      })),
-      { type: "TOTALS", refNo: "", date: "", description: "", chequeNo: "", dr: formatRs(result.totalDr), cr: formatRs(result.totalCr), balance: formatRs(result.closingBalance) },
+      {
+        type: "Opening Balance",
+        refNo: "—",
+        date: fromDate,
+        description: "—",
+        chequeNo: "—",
+        dr: ob.side === "Dr" ? ob.amount : "—",
+        cr: ob.side === "Cr" ? ob.amount : "—",
+        balance: `${ob.amount} ${ob.side}`,
+      },
+      ...result.rows.map((r) => {
+        const rb = formatBalance(r.balance);
+        return {
+          type: r.typeLabel,
+          refNo: r.refNo ?? "—",
+          date: formatDate(r.date),
+          description: r.description ?? "—",
+          chequeNo: r.chequeNo ?? "—",
+          dr: r.drAmount > 0 ? formatRs(r.drAmount) : "—",
+          cr: r.crAmount > 0 ? formatRs(r.crAmount) : "—",
+          balance: `${rb.amount} ${rb.side}`,
+        };
+      }),
+      { type: "TOTALS", refNo: "", date: "", description: "", chequeNo: "", dr: formatRs(result.totalDr), cr: formatRs(result.totalCr), balance: `${cb.amount} ${cb.side}` },
     ];
 
     exportTableToPdf<ExportRow>({
@@ -131,9 +151,14 @@ export default function LedgerPage() {
           </div>
         </div>
         {result && (
-          <button className="btn-outline" onClick={handleExport}>
-            Export PDF
-          </button>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            <button className="btn-outline" onClick={handleExport}>
+              Export PDF
+            </button>
+            <button className="btn-outline" onClick={() => exportLedgerToExcel(result, fromDate, toDate)}>
+              Export CSV
+            </button>
+          </div>
         )}
       </div>
 
@@ -189,7 +214,11 @@ export default function LedgerPage() {
           <div style={{ display: "grid", gridTemplateColumns: "repeat(4,minmax(0,1fr))", gap: "0.9rem", padding: "1rem", borderBottom: "1px solid var(--panel-border)" }}>
             <div className="bm-stat-card bm-stat-card-soft">
               <div className="bm-stat-label">Opening Balance</div>
-              <div className="bm-stat-value" style={{ fontSize: "1.1rem" }}>Rs. {formatRs(result.openingBalance)}</div>
+              {(() => { const ob = formatBalance(result.openingBalance); return (
+                <div className="bm-stat-value" style={{ fontSize: "1.1rem", color: ob.color }}>
+                  Rs. {ob.amount} <span style={{ fontSize: "0.75rem", fontWeight: 700 }}>{ob.side}</span>
+                </div>
+              ); })()}
             </div>
             <div className="bm-stat-card">
               <div className="bm-stat-label">Total Received (Dr)</div>
@@ -201,7 +230,11 @@ export default function LedgerPage() {
             </div>
             <div className="bm-stat-card">
               <div className="bm-stat-label">Closing Balance</div>
-              <div className="bm-stat-value" style={{ fontSize: "1.1rem", fontWeight: 800 }}>Rs. {formatRs(result.closingBalance)}</div>
+              {(() => { const cb = formatBalance(result.closingBalance); return (
+                <div className="bm-stat-value" style={{ fontSize: "1.1rem", fontWeight: 800, color: cb.color }}>
+                  Rs. {cb.amount} <span style={{ fontSize: "0.75rem", fontWeight: 700 }}>{cb.side}</span>
+                </div>
+              ); })()}
             </div>
           </div>
 
@@ -221,16 +254,24 @@ export default function LedgerPage() {
               </thead>
               <tbody>
                 {/* Opening balance row */}
-                <tr style={{ background: "var(--bg)", fontWeight: 600 }}>
-                  <td>Opening Balance</td>
-                  <td>—</td>
-                  <td>{formatDate(fromDate + "T00:00:00")}</td>
-                  <td>—</td>
-                  <td>—</td>
-                  <td style={{ textAlign: "right" }}>—</td>
-                  <td style={{ textAlign: "right" }}>—</td>
-                  <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{formatRs(result.openingBalance)}</td>
-                </tr>
+                {(() => { const ob = formatBalance(result.openingBalance); return (
+                  <tr style={{ background: "var(--bg)", fontWeight: 600 }}>
+                    <td>Opening Balance</td>
+                    <td>—</td>
+                    <td>{formatDate(fromDate + "T00:00:00")}</td>
+                    <td>—</td>
+                    <td>—</td>
+                    <td style={{ textAlign: "right", color: ob.side === "Dr" ? "var(--success)" : "inherit", fontVariantNumeric: "tabular-nums" }}>
+                      {ob.side === "Dr" ? ob.amount : "—"}
+                    </td>
+                    <td style={{ textAlign: "right", color: ob.side === "Cr" ? "var(--danger)" : "inherit", fontVariantNumeric: "tabular-nums" }}>
+                      {ob.side === "Cr" ? ob.amount : "—"}
+                    </td>
+                    <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums", color: ob.color }}>
+                      {ob.amount} <span style={{ fontSize: "0.7rem", fontWeight: 700 }}>{ob.side}</span>
+                    </td>
+                  </tr>
+                ); })()}
                 {result.rows.length === 0 ? (
                   <tr><td colSpan={8} className="bm-table-empty">No transactions in this period</td></tr>
                 ) : result.rows.map((row) => (
@@ -267,7 +308,11 @@ export default function LedgerPage() {
                     <td style={{ textAlign: "right", color: row.crAmount > 0 ? "var(--danger)" : "inherit", fontVariantNumeric: "tabular-nums" }}>
                       {row.crAmount > 0 ? formatRs(row.crAmount) : "—"}
                     </td>
-                    <td style={{ textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums" }}>{formatRs(row.balance)}</td>
+                    {(() => { const rb = formatBalance(row.balance); return (
+                      <td style={{ textAlign: "right", fontWeight: 600, fontVariantNumeric: "tabular-nums", color: rb.color }}>
+                        {rb.amount} <span style={{ fontSize: "0.7rem", fontWeight: 700 }}>{rb.side}</span>
+                      </td>
+                    ); })()}
                   </tr>
                 ))}
                 {/* Totals row */}
@@ -275,7 +320,11 @@ export default function LedgerPage() {
                   <td colSpan={5} style={{ fontWeight: 700, fontSize: "0.8rem", letterSpacing: "0.05em", color: "var(--text-xsoft)", textTransform: "uppercase" }}>TOTALS</td>
                   <td style={{ textAlign: "right", color: "var(--success)", fontVariantNumeric: "tabular-nums" }}>{formatRs(result.totalDr)}</td>
                   <td style={{ textAlign: "right", color: "var(--danger)", fontVariantNumeric: "tabular-nums" }}>{formatRs(result.totalCr)}</td>
-                  <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{formatRs(result.closingBalance)}</td>
+                  {(() => { const cb = formatBalance(result.closingBalance); return (
+                    <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums", color: cb.color }}>
+                      {cb.amount} <span style={{ fontSize: "0.7rem", fontWeight: 700 }}>{cb.side}</span>
+                    </td>
+                  ); })()}
                 </tr>
               </tbody>
             </table>

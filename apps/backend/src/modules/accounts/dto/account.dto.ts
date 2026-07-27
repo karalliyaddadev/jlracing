@@ -41,7 +41,7 @@ const voucherTypeValues = [
 export const createAccountSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(120, "Name is too long"),
   type: z.enum(accountTypeValues).default("BANK"),
-  openingBalance: z.number().min(0).default(0),
+  openingBalance: z.number().default(0),
 });
 
 export const updateAccountSchema = createAccountSchema.partial();

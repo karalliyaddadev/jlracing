@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { FaMapMarkerAlt, FaPhone, FaEnvelope, FaClock } from "react-icons/fa";
 import FadeIn from "../components/FadeIn";
+import { WHATSAPP_NUMBER_DISPLAY } from "../lib/whatsapp";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
@@ -32,7 +33,7 @@ const CONTACT_INFO = [
   {
     Icon: FaPhone,
     label: "Hotline",
-    value: "0372 228 220 | WhatsApp: 071 791 0091",
+    value: `0372 228 220 | WhatsApp: ${WHATSAPP_NUMBER_DISPLAY}`,
   },
   {
     Icon: FaEnvelope,

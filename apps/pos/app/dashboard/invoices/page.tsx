@@ -167,6 +167,8 @@ export default function InvoicesPage() {
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
   const [showCustomModal, setShowCustomModal] = useState(false);
   const [invoiceInstallments, setInvoiceInstallments] = useState<Installment[]>([]);
+  const [rowsPerPage, setRowsPerPage] = useState<number | "all">(20);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
@@ -309,6 +311,10 @@ export default function InvoicesPage() {
       } catch { setInvoiceInstallments([]); }
     })();
   }, [auth, base, selectedInvoice]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, rowsPerPage]);
 
   const getPurchaseItemMeta = useCallback((entry: Purchase) => {
     if (entry.itemType === "BIKE" && entry.bike) {
@@ -477,6 +483,14 @@ export default function InvoicesPage() {
     });
   }, [invoiceRows, search]);
 
+  const pagedRows = useMemo(() => {
+    if (rowsPerPage === "all") return filteredInvoiceRows;
+    const rpp = rowsPerPage as number;
+    return filteredInvoiceRows.slice((currentPage - 1) * rpp, currentPage * rpp);
+  }, [filteredInvoiceRows, rowsPerPage, currentPage]);
+
+  const totalPages = rowsPerPage === "all" ? 1 : Math.max(1, Math.ceil(filteredInvoiceRows.length / (rowsPerPage as number)));
+
   const totalInvoiceAmount = useMemo(
     () => invoiceRows.reduce((sum, invoice) => sum + invoice.finalSellingPrice, 0),
     [invoiceRows]
@@ -572,8 +586,8 @@ export default function InvoicesPage() {
             </thead>
             <tbody>
               {loading && <tr><td colSpan={7} className="bm-table-empty">Loading invoices...</td></tr>}
-              {!loading && invoiceRows.length === 0 && <tr><td colSpan={7} className="bm-table-empty">No invoices found.</td></tr>}
-              {!loading && invoiceRows.map((invoice) => (
+              {!loading && filteredInvoiceRows.length === 0 && <tr><td colSpan={7} className="bm-table-empty">No invoices found.</td></tr>}
+              {!loading && pagedRows.map((invoice) => (
                 <tr key={invoice.key}>
                   <td>{invoice.invoiceLabel}</td>
                   <td>{new Date(invoice.purchasedAt).toLocaleString()}</td>
@@ -610,6 +624,53 @@ export default function InvoicesPage() {
             </tbody>
           </table>
         </div>
+        {filteredInvoiceRows.length > 0 && (
+          <div style={{ padding: "0.75rem 1rem", borderTop: "1px solid var(--panel-border)", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem" }}>
+              <span style={{ color: "var(--text-soft)" }}>Rows per page:</span>
+              <select
+                className="bm-select"
+                style={{ width: "auto", padding: "0.25rem 0.5rem", fontSize: "0.85rem" }}
+                value={rowsPerPage}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setRowsPerPage(v === "all" ? "all" : Number(v));
+                }}
+              >
+                {([10, 20, 50, 100] as const).map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+                <option value="all">All</option>
+              </select>
+            </div>
+            {rowsPerPage !== "all" && (
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", fontSize: "0.85rem" }}>
+                <span style={{ color: "var(--text-soft)" }}>
+                  {`${(currentPage - 1) * (rowsPerPage as number) + 1}–${Math.min(currentPage * (rowsPerPage as number), filteredInvoiceRows.length)}`} of {filteredInvoiceRows.length}
+                </span>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  style={{ padding: "0.25rem 0.6rem", fontSize: "0.8rem" }}
+                  disabled={currentPage <= 1}
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                >
+                  ‹ Prev
+                </button>
+                <span style={{ color: "var(--text-soft)" }}>Page {currentPage} of {totalPages}</span>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  style={{ padding: "0.25rem 0.6rem", fontSize: "0.8rem" }}
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                >
+                  Next ›
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {selectedInvoice && (
