@@ -2161,6 +2161,7 @@ button {
   color: #fff;
   max-width: 600px;
   line-height: 1.4;
+  margin-top: 20px;
 }
 
 .exp-light-heading {
@@ -2169,6 +2170,7 @@ button {
   color: var(--text-dark);
   max-width: 680px;
   line-height: 1.4;
+  margin-top: 20px;
 }
 
 .exp-light-heading em {
