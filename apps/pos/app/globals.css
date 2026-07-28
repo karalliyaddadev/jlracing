@@ -1794,6 +1794,8 @@ html[data-theme="dark"] .bm-btn-ghost {
 }
 .bm-alert-error   { background: var(--danger-bg);  color: var(--danger); border: 1px solid rgba(220,38,38,0.2); }
 .bm-alert-success { background: rgba(16,185,129,0.10); color: var(--success); border: 1px solid rgba(16,185,129,0.25); }
+.bm-alert-info    { background: var(--accent-bg); color: var(--text); border: 1px solid var(--accent-bg); line-height: 1.55; }
+.bm-alert-info strong { color: var(--accent); }
 
 /* Inputs */
 .bm-input {
