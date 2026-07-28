@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import FadeIn from "../components/FadeIn";
 
 const MILESTONES = [
@@ -66,7 +67,15 @@ export default function AboutPage() {
     <>
       {/* ── Hero — no animation (above the fold) ── */}
       <section className="abt-hero">
-        <div className="abt-hero__bg" />
+        <Image
+          src="/hero/about-hero-desktop.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="abt-hero__bg"
+          style={{ objectFit: "cover" }}
+        />
         <div className="abt-hero__overlay" />
         <div className="abt-hero__content">
           <span className="abt-hero__label">About</span>
@@ -118,11 +127,13 @@ export default function AboutPage() {
               direction="right"
               delay={0.2}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/about/group-img.jpg"
                 alt="JLR International team"
+                fill
+                sizes="(max-width: 900px) 100vw, 50vw"
                 className="abt-company__img"
+                style={{ objectFit: "cover" }}
               />
               <div className="abt-company__img-caption">
                 The same team behind JLR International also operates{" "}
@@ -210,25 +221,28 @@ export default function AboutPage() {
               delay={0.2}
             >
               <div className="abt-chairman__photo abt-chairman__photo--main">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src="/about/chairman%201.jpeg"
                   alt="Chairman Jin Liyanage"
+                  fill
+                  sizes="(max-width: 540px) 100vw, 55vw"
                 />
               </div>
               <div className="abt-chairman__photo-stack">
                 <div className="abt-chairman__photo">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src="/about/chairman%202.png"
                     alt="Chairman Jin Liyanage"
+                    fill
+                    sizes="(max-width: 540px) 50vw, 25vw"
                   />
                 </div>
                 <div className="abt-chairman__photo">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
+                  <Image
                     src="/about/chairman%203.jpg"
                     alt="Chairman Jin Liyanage"
+                    fill
+                    sizes="(max-width: 540px) 50vw, 25vw"
                   />
                 </div>
               </div>
@@ -248,9 +262,13 @@ export default function AboutPage() {
         <div className="abt-milestones__grid">
           {MILESTONES.map((m, i) => (
             <FadeIn key={m.title} className="abt-ms-card" delay={i * 0.1}>
-              <div
+              <Image
+                src={m.bgImage}
+                alt=""
+                fill
+                sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 25vw"
                 className="abt-ms-card__bg"
-                style={{ backgroundImage: `url('${m.bgImage}')` }}
+                style={{ objectFit: "cover" }}
               />
               <div className="abt-ms-card__overlay" />
               <div className="abt-ms-card__body">
@@ -300,7 +318,14 @@ export default function AboutPage() {
 
       {/* ── CTA Banner ── */}
       <section className="int-cta">
-        <div className="int-cta__bg" />
+        <Image
+          src="/images/cta-bg.webp"
+          alt=""
+          fill
+          sizes="100vw"
+          className="int-cta__bg"
+          style={{ objectFit: "cover" }}
+        />
         <div className="int-cta__overlay" />
         <FadeIn className="int-cta__content">
           <span className="int-pill">

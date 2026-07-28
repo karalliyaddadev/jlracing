@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
 import IntlVideoBanner from "./components/IntlVideoBanner";
 import IntlFeaturesSection from "./components/IntlFeaturesSection";
@@ -42,7 +43,14 @@ export default function HomePage() {
 
       {/* ── CTA Banner ── */}
       <section className="int-cta">
-        <div className="int-cta__bg" />
+        <Image
+          src="/images/cta-bg.webp"
+          alt=""
+          fill
+          sizes="100vw"
+          className="int-cta__bg"
+          style={{ objectFit: "cover" }}
+        />
         <div className="int-cta__overlay" />
         <FadeIn className="int-cta__content">
           <span className="int-pill">

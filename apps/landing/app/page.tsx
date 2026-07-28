@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const LOCAL_URL = process.env.NEXT_PUBLIC_LOCAL_URL || "http://localhost:3001";
 const FOREIGN_URL =
   process.env.NEXT_PUBLIC_FOREIGN_URL || "http://localhost:3000";
@@ -11,21 +13,31 @@ export default function LandingPage() {
         className="split-panel split-panel--local"
         aria-label="Go to Local Website"
       >
-        <div className="split-panel__bg" />
+        <Image
+          src="/Bike.png"
+          alt=""
+          fill
+          priority
+          sizes="50vw"
+          className="split-panel__bg"
+          style={{ objectFit: "cover", objectPosition: "center" }}
+        />
         <div className="split-panel__tint" />
 
         <div className="split-panel__content">
-          <span className="split-panel__label">Sri Lanka</span>
+          <span className="split-panel__label">
+            Sri Lanka Performance Division
+          </span>
           <h2 className="split-panel__title">
-            Local
-            <br />
-            Website
+            Sri Lanka Motorcycle Listings, Pre-Orders &amp; Spare Parts
           </h2>
           <p className="split-panel__sub">
-            Browse our local listings, pre-orders, and bike gallery.
+            Explore in-house motorcycle listings, exclusive bike pre-orders,
+            performance spare parts, and enthusiast gallery videos tailored
+            for Sri Lankan riders.
           </p>
           <span className="split-panel__cta">
-            Enter Local Site
+            Enter Sri Lanka Bike Hub
             <span className="split-panel__arrow">→</span>
           </span>
         </div>
@@ -53,21 +65,28 @@ export default function LandingPage() {
         className="split-panel split-panel--foreign"
         aria-label="Go to International Website"
       >
-        <div className="split-panel__bg" />
+        <Image
+          src="/Car.png"
+          alt=""
+          fill
+          priority
+          sizes="50vw"
+          className="split-panel__bg"
+          style={{ objectFit: "cover", objectPosition: "center" }}
+        />
         <div className="split-panel__tint" />
 
         <div className="split-panel__content">
-          <span className="split-panel__label">International</span>
+          <span className="split-panel__label">Global Export Division</span>
           <h2 className="split-panel__title">
-            Global
-            <br />
-            Website
+            Worldwide Vehicle Imports &amp; Global Sourcing
           </h2>
           <p className="split-panel__sub">
-            Explore international listings, exports, and spare parts.
+            Browse international vehicle listings, verified global export
+            processes, and ready-to-ship inventory.
           </p>
           <span className="split-panel__cta">
-            Enter Global Site
+            Enter Global Import Hub
             <span className="split-panel__arrow">→</span>
           </span>
         </div>

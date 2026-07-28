@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import FadeIn from "../components/FadeIn";
 
 const CMS_API_URL =
@@ -46,7 +47,15 @@ export default function GalleryPage() {
     <>
       {/* ── Hero ── */}
       <section className="gal-hero">
-        <div className="gal-hero__bg" />
+        <Image
+          src="/hero/gallery-hero-desktop.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="gal-hero__bg"
+          style={{ objectFit: "cover" }}
+        />
         <div className="gal-hero__overlay" />
         <div className="gal-hero__content">
           <span className="gal-hero__label">Gallery</span>
@@ -86,11 +95,13 @@ export default function GalleryPage() {
                         preload="metadata"
                       />
                     ) : (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
+                      <Image
                         src={`${CMS_API_URL}${item.mediaUrl}`}
                         alt={item.title}
+                        fill
+                        sizes="(max-width: 560px) 100vw, (max-width: 900px) 50vw, 33vw"
                         className="gal-card__img"
+                        style={{ objectFit: "cover" }}
                       />
                     )}
                   </div>
