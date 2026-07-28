@@ -2,6 +2,7 @@
 
 import { useState, useEffect, Fragment } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
@@ -55,17 +56,27 @@ export default function HeroCarousel() {
       {/* Sliding image layers */}
       {slides.map((s, i) => (
         <Fragment key={s.id}>
-          <div
+          <Image
+            src={`${CMS_API_URL}${s.desktopImage}`}
+            alt=""
+            fill
+            priority={i === current}
+            sizes="100vw"
             className="hero__slide hero__slide--desktop"
             style={{
-              backgroundImage: `url(${CMS_API_URL}${s.desktopImage})`,
+              objectFit: "cover",
               transform: `translateX(${(i - current) * 100}%)`,
             }}
           />
-          <div
+          <Image
+            src={`${CMS_API_URL}${s.mobileImage}`}
+            alt=""
+            fill
+            priority={i === current}
+            sizes="100vw"
             className="hero__slide hero__slide--mobile"
             style={{
-              backgroundImage: `url(${CMS_API_URL}${s.mobileImage})`,
+              objectFit: "cover",
               transform: `translateX(${(i - current) * 100}%)`,
             }}
           />

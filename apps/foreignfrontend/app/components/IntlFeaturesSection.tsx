@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
+import Image from "next/image";
 
 const FEATURE_CARDS = [
   {
@@ -54,10 +55,13 @@ export default function IntlFeaturesSection() {
               transition={{ duration: 0.42, delay: i * 0.1, ease: "easeOut" }}
             >
               <div className="int-feat-card__img-wrap">
-                <img
+                <Image
                   src={card.image}
                   alt={card.title}
+                  fill
+                  sizes="(max-width: 900px) 100vw, 33vw"
                   className="int-feat-card__img"
+                  style={{ objectFit: "cover" }}
                 />
                 <div className="int-feat-card__overlay" />
                 <div className="int-feat-card__text">

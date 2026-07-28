@@ -7,6 +7,7 @@ import {
   LuMapPin,
   LuClock,
 } from "react-icons/lu";
+import Image from "next/image";
 import FadeIn from "../components/FadeIn";
 
 const STEP2_CARDS = [
@@ -87,7 +88,15 @@ export default function ExportProcessPage() {
     <>
       {/* ── Hero — no animation (above the fold) ── */}
       <section className="exp-hero">
-        <div className="exp-hero__bg" />
+        <Image
+          src="/hero/export-hero-desktop.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="exp-hero__bg"
+          style={{ objectFit: "cover" }}
+        />
         <div className="exp-hero__overlay" />
         <div className="exp-hero__content">
           <span className="exp-hero__label">Export Process</span>
@@ -124,17 +133,12 @@ export default function ExportProcessPage() {
               delay={0.2}
               style={{ overflow: "hidden", padding: 0 }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/export/step-1-entry-point.png"
                 alt="Step 1 Entry Point"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  minHeight: "260px",
-                  objectFit: "cover",
-                  display: "block",
-                }}
+                fill
+                sizes="(max-width: 900px) 100vw, 50vw"
+                style={{ objectFit: "cover" }}
               />
             </FadeIn>
           </div>
@@ -159,14 +163,13 @@ export default function ExportProcessPage() {
           <div className="exp-cards-grid">
             {STEP2_CARDS.map((card, i) => (
               <FadeIn key={card.title} className="exp-yard-card" delay={i * 0.1}>
-                <div
+                <Image
+                  src={card.bgImage}
+                  alt=""
+                  fill
+                  sizes="(max-width: 640px) 100vw, (max-width: 900px) 50vw, 25vw"
                   className="exp-yard-card__bg"
-                  style={{
-                    backgroundImage: `url('${card.bgImage}')`,
-                    backgroundSize: "cover",
-                    backgroundPosition: "center",
-                    backgroundRepeat: "no-repeat",
-                  }}
+                  style={{ objectFit: "cover" }}
                 />
                 <div className="exp-yard-card__overlay" />
                 <div className="exp-yard-card__body">
@@ -199,17 +202,12 @@ export default function ExportProcessPage() {
               delay={0.1}
               style={{ overflow: "hidden", padding: 0 }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/export/step-3-confirm pricing.png"
                 alt="Step 3 Confirm Pricing"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  minHeight: "340px",
-                  objectFit: "cover",
-                  display: "block",
-                }}
+                fill
+                sizes="(max-width: 900px) 100vw, 50vw"
+                style={{ objectFit: "cover" }}
               />
             </FadeIn>
             <div className="exp-features-2x2">
@@ -255,34 +253,24 @@ export default function ExportProcessPage() {
                 className="exp-two-col__img-box"
                 style={{ overflow: "hidden", padding: 0 }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src="/export/complete-payment-2.png"
                   alt="Complete Payment"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    minHeight: "260px",
-                    objectFit: "cover",
-                    display: "block",
-                  }}
+                  fill
+                  sizes="(max-width: 900px) 50vw, 25vw"
+                  style={{ objectFit: "cover" }}
                 />
               </div>
               <div
                 className="exp-two-col__img-box"
                 style={{ overflow: "hidden", padding: 0 }}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
+                <Image
                   src="/export/yard.jpg"
                   alt="Export Yard"
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    minHeight: "260px",
-                    objectFit: "cover",
-                    display: "block",
-                  }}
+                  fill
+                  sizes="(max-width: 900px) 50vw, 25vw"
+                  style={{ objectFit: "cover" }}
                 />
               </div>
             </FadeIn>
@@ -313,17 +301,12 @@ export default function ExportProcessPage() {
               delay={0.1}
               style={{ overflow: "hidden", padding: 0 }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
+              <Image
                 src="/export/step-5-shipping-and-delivery.png"
                 alt="Step 5 Shipping and Delivery"
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  minHeight: "340px",
-                  objectFit: "cover",
-                  display: "block",
-                }}
+                fill
+                sizes="(max-width: 900px) 100vw, 50vw"
+                style={{ objectFit: "cover" }}
               />
             </FadeIn>
             <div className="exp-features-2x2">

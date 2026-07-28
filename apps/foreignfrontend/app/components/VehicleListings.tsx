@@ -167,11 +167,13 @@ export default function VehicleListings() {
               >
                 <div className="int-veh-card__img-wrap">
                   {vehicle.image ? (
-                    /* eslint-disable-next-line @next/next/no-img-element */
-                    <img
+                    <Image
                       src={vehicle.image}
                       alt={`${vehicle.name} ${vehicle.year ?? ""}`}
+                      fill
+                      sizes="(max-width: 900px) 100vw, 33vw"
                       className="int-veh-card__img"
+                      style={{ objectFit: "cover" }}
                     />
                   ) : (
                     <div className="bike-card__no-image">No image</div>
