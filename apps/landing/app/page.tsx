@@ -30,7 +30,7 @@ export default function LandingPage() {
           </span>
         </div>
 
-        <span className="split-panel__badge">jlracing.lk</span>
+        <span className="split-panel__badge"></span>
       </a>
 
       {/* ── Center Divider ── */}
@@ -72,7 +72,7 @@ export default function LandingPage() {
           </span>
         </div>
 
-        <span className="split-panel__badge">jlracing.com</span>
+        <span className="split-panel__badge"></span>
       </a>
     </main>
   );
