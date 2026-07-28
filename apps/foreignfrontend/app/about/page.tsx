@@ -113,7 +113,11 @@ export default function AboutPage() {
               </p>
             </FadeIn>
 
-            <FadeIn className="abt-company__img-wrap" direction="right" delay={0.2}>
+            <FadeIn
+              className="abt-company__img-wrap"
+              direction="right"
+              delay={0.2}
+            >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/about/group-img.jpg"
@@ -124,7 +128,10 @@ export default function AboutPage() {
                 The same team behind JLR International also operates{" "}
                 <strong>JL Racing Sri Lanka</strong>, a hub for motorsport
                 enthusiasts and performance vehicles.{" "}
-                <Link href="/" className="abt-company__caption-link">
+                <Link
+                  href="https://local.jlracingshop.com/"
+                  className="abt-company__caption-link"
+                >
                   <strong>Visit their website</strong>
                 </Link>
                 .
@@ -149,7 +156,11 @@ export default function AboutPage() {
           </FadeIn>
           <div className="abt-auctions__grid">
             {AUCTION_LOGOS.map((logo, i) => (
-              <FadeIn key={logo.alt} className="abt-auctions__logo-card" delay={i * 0.07}>
+              <FadeIn
+                key={logo.alt}
+                className="abt-auctions__logo-card"
+                delay={i * 0.07}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={logo.src}
@@ -193,7 +204,11 @@ export default function AboutPage() {
                 continue to drive the company&apos;s global expansion.
               </p>
             </FadeIn>
-            <FadeIn className="abt-chairman__photos" direction="right" delay={0.2}>
+            <FadeIn
+              className="abt-chairman__photos"
+              direction="right"
+              delay={0.2}
+            >
               <div className="abt-chairman__photo abt-chairman__photo--main">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
