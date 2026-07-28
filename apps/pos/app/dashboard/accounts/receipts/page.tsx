@@ -513,6 +513,12 @@ export default function ReceiptsPage() {
             </button>
           )}
         </div>
+        <div className="bm-alert bm-alert-info" style={{ margin: "0 1.25rem 1rem" }}>
+          <strong>Cheque status guide:</strong> a cheque starts as <strong>Cheque Pending</strong> until it's deposited.
+          Once deposited it shows <strong>Clearance Pending</strong> — click <strong>Cleared</strong> once the bank
+          confirms it (status becomes <strong>Deposited</strong>), or <strong>Bounced</strong> if the bank returns it
+          (this posts a reversal in the ledger and frees the receipt to be deposited again).
+        </div>
         {loadingReceipts ? (
           <div className="bm-table-empty">Loading receipts...</div>
         ) : (
