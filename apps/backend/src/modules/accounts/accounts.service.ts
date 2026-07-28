@@ -677,10 +677,7 @@ export async function voidReceipt(id: number, adminId: number) {
 }
 
 export async function bounceReceipt(id: number, adminId: number) {
-  const receipt = await prisma.accountReceipt.findUnique({
-    where: { id },
-    include: { transactions: true },
-  });
+  const receipt = await prisma.accountReceipt.findUnique({ where: { id } });
   if (!receipt) throw AppError.notFound("Receipt not found");
   if (receipt.paymentMethod !== PaymentMethod.CHEQUE) {
     throw new AppError("Only cheque receipts can be marked as bounced", 400);
@@ -688,26 +685,25 @@ export async function bounceReceipt(id: number, adminId: number) {
   if (receipt.chequeStatus !== ChequeStatus.PENDING) {
     throw new AppError("Cheque is not in PENDING status", 400);
   }
-
-  const originalTx = receipt.transactions.find(
-    (t) =>
-      (t.type === TransactionType.RECEIPT || t.type === TransactionType.DEPOSIT) &&
-      !t.isReversal
-  );
+  if (!receipt.isDeposited) {
+    throw new AppError("Cheque must be deposited before it can be marked as bounced", 400);
+  }
 
   return prisma.$transaction(async (tx) => {
     await tx.accountReceipt.update({
       where: { id },
-      data: { chequeStatus: ChequeStatus.BOUNCED },
+      data: { chequeStatus: ChequeStatus.BOUNCED, isDeposited: false },
     });
 
-    if (originalTx && receipt.accountId) {
+    await tx.accountDepositItem.deleteMany({ where: { receiptId: id } });
+
+    if (receipt.accountId) {
       await tx.accountTransaction.create({
         data: {
           accountId: receipt.accountId,
           type: TransactionType.REVERSAL,
           direction: TransactionDirection.CR,
-          amount: originalTx.amount,
+          amount: receipt.amount,
           receiptId: id,
           refNo: receipt.receiptNo,
           description: `Cheque bounced: ${receipt.receiptNo}`,
@@ -730,6 +726,9 @@ export async function clearCheque(id: number) {
   }
   if (receipt.chequeStatus !== ChequeStatus.PENDING) {
     throw new AppError("Cheque is not in PENDING status", 400);
+  }
+  if (!receipt.isDeposited) {
+    throw new AppError("Cheque must be deposited before it can be cleared", 400);
   }
   return prisma.accountReceipt.update({
     where: { id },
@@ -1411,6 +1410,10 @@ export async function createDeposit(dto: CreateDepositDto, adminId: number) {
   }
 
   const totalAmount = receipts.reduce((sum, r) => sum + r.amount, 0);
+  const chequeNos = receipts
+    .filter((r) => r.paymentMethod === PaymentMethod.CHEQUE && r.chequeNo)
+    .map((r) => r.chequeNo as string);
+  const depositChequeNo = chequeNos.length > 0 ? chequeNos.join(", ") : undefined;
 
   return prisma.$transaction(async (tx) => {
     // Receipts are confirmed isDeposited=false above, so any existing deposit items
@@ -1440,6 +1443,10 @@ export async function createDeposit(dto: CreateDepositDto, adminId: number) {
         where: { id: { in: dto.receiptIds } },
         data: { isDeposited: true, accountId: dto.accountId },
       }),
+      tx.accountReceipt.updateMany({
+        where: { id: { in: dto.receiptIds }, paymentMethod: PaymentMethod.CHEQUE },
+        data: { chequeStatus: ChequeStatus.PENDING },
+      }),
       tx.accountTransaction.create({
         data: {
           accountId: dto.accountId,
@@ -1449,6 +1456,7 @@ export async function createDeposit(dto: CreateDepositDto, adminId: number) {
           depositId: deposit.id,
           refNo: depositNo,
           description: dto.notes ?? `Deposit batch ${depositNo}`,
+          chequeNo: depositChequeNo,
           createdById: adminId,
         },
       }),

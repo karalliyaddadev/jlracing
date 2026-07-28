@@ -89,8 +89,8 @@ export default function ReceiptsPage() {
   const [total, setTotal] = useState(0);
   const [loadingReceipts, setLoadingReceipts] = useState(true);
   const [search, setSearch] = useState("");
-  const [fromDate, setFromDate] = useState(new Date().toISOString().split("T")[0]);
-  const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
+  const [fromDate, setFromDate] = useState(new Date().toLocaleDateString("en-CA"));
+  const [toDate, setToDate] = useState(new Date().toLocaleDateString("en-CA"));
   const [selectedReceiptIds, setSelectedReceiptIds] = useState<Set<number>>(new Set());
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -101,6 +101,8 @@ export default function ReceiptsPage() {
   const [editSaving, setEditSaving] = useState(false);
 
   // Deposits
+  const [confirmModal, setConfirmModal] = useState<{ title: string; message: string; onConfirm: () => void } | null>(null);
+
   const [deposits, setDeposits] = useState<DepositRow[]>([]);
   const [depositAccountId, setDepositAccountId] = useState(0);
   const [depositNotes, setDepositNotes] = useState("");
@@ -208,8 +210,7 @@ export default function ReceiptsPage() {
   }
 
   // Receipts actions
-  async function handleVoid(id: number) {
-    if (!confirm("Void this receipt? This cannot be undone.")) return;
+  async function doVoid(id: number) {
     await fetch(`${API_URL}/api/pos/accounts/receipts/${id}/void`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
@@ -217,16 +218,28 @@ export default function ReceiptsPage() {
     fetchReceipts();
   }
 
-  async function handleBounce(r: ReceiptRow) {
-    const msg = r.isDeposited
-      ? "Mark this cheque as bounced? A reversal entry will be created in the ledger."
-      : "Mark this cheque as bounced? This receipt is not yet deposited, so no ledger entry will be changed.";
-    if (!confirm(msg)) return;
-    await fetch(`${API_URL}/api/pos/accounts/receipts/${r.id}/bounce`, {
+  function handleVoid(id: number) {
+    setConfirmModal({
+      title: "Void Receipt",
+      message: "Void this receipt? This cannot be undone.",
+      onConfirm: () => doVoid(id),
+    });
+  }
+
+  async function doBounce(id: number) {
+    await fetch(`${API_URL}/api/pos/accounts/receipts/${id}/bounce`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
     fetchReceipts();
+  }
+
+  function handleBounce(r: ReceiptRow) {
+    setConfirmModal({
+      title: "Mark Cheque as Bounced",
+      message: "A reversal entry will be created in the ledger and this receipt will become available to deposit again.",
+      onConfirm: () => doBounce(r.id),
+    });
   }
 
   async function handleClearCheque(id: number) {
@@ -320,13 +333,20 @@ export default function ReceiptsPage() {
     }
   }
 
-  async function handleReverseDeposit(id: number) {
-    if (!confirm("Reverse this deposit? The receipts will become undeposited and a reversal ledger entry will be created.")) return;
+  async function doReverseDeposit(id: number) {
     await fetch(`${API_URL}/api/pos/accounts/deposits/${id}/reverse`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}` },
     });
     await Promise.all([fetchReceipts(), fetchDeposits()]);
+  }
+
+  function handleReverseDeposit(id: number) {
+    setConfirmModal({
+      title: "Reverse Deposit",
+      message: "The receipts will become undeposited and a reversal ledger entry will be created.",
+      onConfirm: () => doReverseDeposit(id),
+    });
   }
 
   function chequeStatusBadge(r: ReceiptRow) {
@@ -339,7 +359,7 @@ export default function ReceiptsPage() {
   const activeReceipts = receipts.filter((r) => !r.isVoided);
   const totalReceiptsAmount = activeReceipts.reduce((s, r) => s + r.amount, 0);
   const depositableReceipts = receipts.filter(
-    (r) => !r.isVoided && !r.isDeposited && r.chequeStatus !== "BOUNCED"
+    (r) => !r.isVoided && !r.isDeposited
   );
 
   return (
@@ -526,7 +546,7 @@ export default function ReceiptsPage() {
                 {receipts.length === 0 ? (
                   <tr><td colSpan={10} className="bm-table-empty">No receipts found</td></tr>
                 ) : receipts.map((r) => {
-                  const canSelect = !r.isVoided && !r.isDeposited && r.chequeStatus !== "BOUNCED";
+                  const canSelect = !r.isVoided && !r.isDeposited;
                   return (
                     <tr key={r.id} style={{ opacity: r.isVoided ? 0.5 : 1, background: selectedReceiptIds.has(r.id) ? "var(--accent-bg, #f0f7ff)" : undefined }}>
                       <td>
@@ -560,7 +580,9 @@ export default function ReceiptsPage() {
                         {r.isVoided
                           ? <span className="badge" style={{ background: "var(--danger-bg)", color: "var(--danger)" }}>Voided</span>
                           : r.isDeposited
-                          ? <span className="badge" style={{ background: "var(--success-bg, #e6f9f0)", color: "var(--success)" }}>Deposited</span>
+                          ? (r.paymentMethod === "CHEQUE" && r.chequeStatus === "PENDING"
+                              ? <span className="badge badge-pending">Clearance Pending</span>
+                              : <span className="badge" style={{ background: "var(--success-bg, #e6f9f0)", color: "var(--success)" }}>Deposited</span>)
                           : chequeStatusBadge(r) ?? <span className="badge badge-active">Active</span>
                         }
                       </td>
@@ -570,7 +592,7 @@ export default function ReceiptsPage() {
                           {!r.isVoided && !r.isDeposited && (
                             <button className="bm-action-btn bm-edit-btn" onClick={() => openEdit(r)} title="Edit"><IconEdit /></button>
                           )}
-                          {!r.isVoided && r.paymentMethod === "CHEQUE" && r.chequeStatus === "PENDING" && (
+                          {!r.isVoided && r.isDeposited && r.paymentMethod === "CHEQUE" && r.chequeStatus === "PENDING" && (
                             <>
                               <button className="bm-action-btn" style={{ borderColor: "var(--success)", color: "var(--success)" }} onClick={() => handleClearCheque(r.id)}>Cleared</button>
                               <button className="bm-action-btn" style={{ borderColor: "var(--danger)", color: "var(--danger)" }} onClick={() => handleBounce(r)}>Bounced</button>
@@ -688,6 +710,32 @@ export default function ReceiptsPage() {
           )
         )}
       </div>
+
+      {/* Confirm action modal */}
+      {confirmModal && (
+        <div className="bm-modal-backdrop" onClick={() => setConfirmModal(null)}>
+          <div className="bm-modal" onClick={(e) => e.stopPropagation()}>
+            <button className="bm-modal-close" onClick={() => setConfirmModal(null)}>✕</button>
+            <h2 className="bm-modal-title">{confirmModal.title}</h2>
+            <div className="bm-modal-body">
+              <p>{confirmModal.message}</p>
+            </div>
+            <div className="bm-modal-actions">
+              <button className="btn-outline" onClick={() => setConfirmModal(null)}>Cancel</button>
+              <button
+                className="btn-danger"
+                onClick={() => {
+                  const { onConfirm } = confirmModal;
+                  setConfirmModal(null);
+                  onConfirm();
+                }}
+              >
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Generate Receipt Modal */}
       {generatePayment && (
