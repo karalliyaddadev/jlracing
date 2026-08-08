@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import ImageLightbox from "../../components/ImageLightbox";
+import { BackLink } from "../../components/BackLink";
 import { WHATSAPP_LINK } from "../../lib/whatsapp";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -110,9 +111,7 @@ export default function SparePartDetailPage() {
     <section className="bikedetail-page">
       <div className="bikedetail-container">
         {/* Back link */}
-        <Link href="/spare-parts" className="bikedetail__back">
-          ← Back to Spare Parts
-        </Link>
+        <BackLink href="/spare-parts" label="Spare Parts" />
 
         <div className="bikedetail__layout">
           {/* ── Gallery ── */}

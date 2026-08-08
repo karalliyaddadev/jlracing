@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import HeroCarousel from "./components/HeroCarousel";
 import VideoBanner from "./components/VideoBanner";
 import BrandLogos from "./components/BrandLogos";
@@ -7,6 +8,12 @@ import ServiceOverview from "./components/ServiceOverview";
 import Testimonials from "./components/Testimonials";
 import Link from "next/link";
 import FadeIn from "./components/FadeIn";
+
+export const metadata: Metadata = {
+  title: "JL Racing | No.1 High-Performance Motorcycle Importer Sri Lanka",
+  description:
+    "JL Racing is Sri Lanka's leading high-performance motorcycle importer, offering premium imported bikes, pre-orders, spare parts, and expert motorcycle solutions.",
+};
 
 export default function HomePage() {
   return (

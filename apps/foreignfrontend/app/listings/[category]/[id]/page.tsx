@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import ImageLightbox from "../../../components/ImageLightbox";
+import { BackLink } from "../../../components/BackLink";
 import { WHATSAPP_LINK } from "../../../lib/whatsapp";
 
 const CMS_API_URL =
@@ -112,9 +113,7 @@ export default function ListingDetailPage() {
   return (
     <section className="bikedetail-page">
       <div className="bikedetail-container">
-        <Link href="/listings" className="bikedetail__back">
-          ← Back to {categoryLabel}
-        </Link>
+        <BackLink href="/listings" label={categoryLabel} />
 
         <div className="bikedetail__layout">
           {/* ── Left – Gallery ── */}

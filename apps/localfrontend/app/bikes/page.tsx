@@ -4,6 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Pagination from "../components/Pagination";
 import FadeIn from "../components/FadeIn";
+import { useListingPageState } from "../hooks/useListingState";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
@@ -15,7 +16,7 @@ const CC_OPTIONS = [
   "600cc +",
 ];
 const STATUS_OPTIONS = ["Brand New"];
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 8;
 
 interface VehicleImage {
   id: number;
@@ -166,7 +167,7 @@ export default function BikesPage() {
   const [statuses, setStatuses] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [filtersOpen, setFiltersOpen] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+  const { currentPage, setCurrentPage } = useListingPageState(!loading);
 
   useEffect(() => {
     setLoading(true);
