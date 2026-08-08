@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import FadeIn from "../components/FadeIn";
+
+export const metadata: Metadata = {
+  title: "About JLR International | Global Japanese Vehicle Exporter",
+  description:
+    "Learn about JLR International, a trusted Japanese vehicle exporter connecting customers worldwide with quality automobiles, two-wheelers, and heavy machinery.",
+};
 
 const MILESTONES = [
   {

@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
@@ -6,6 +7,12 @@ import IntlFeaturesSection from "./components/IntlFeaturesSection";
 import TrustedBrands from "./components/TrustedBrands";
 import VehicleListings from "./components/VehicleListings";
 import FadeIn from "./components/FadeIn";
+
+export const metadata: Metadata = {
+  title: "JLR International | Japanese Vehicle Exporter Worldwide",
+  description:
+    "JLR International exports quality Japanese vehicles worldwide, including automobiles, motorcycles, and heavy machinery with reliable sourcing and global shipping solutions.",
+};
 
 export default function HomePage() {
   return (

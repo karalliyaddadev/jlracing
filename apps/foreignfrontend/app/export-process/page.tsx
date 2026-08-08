@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import {
   LuGavel,
   LuFileText,
@@ -9,6 +10,12 @@ import {
 } from "react-icons/lu";
 import Image from "next/image";
 import FadeIn from "../components/FadeIn";
+
+export const metadata: Metadata = {
+  title: "Japanese Vehicle Export Process | JLR International",
+  description:
+    "Explore JLR International's seamless vehicle export process, from sourcing and inspection to documentation and worldwide delivery of Japanese vehicles.",
+};
 
 const STEP2_CARDS = [
   {
