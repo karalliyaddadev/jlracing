@@ -2832,9 +2832,18 @@ button {
 .bike-card__summary-visual,
 .po-card__summary-visual {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 0.8rem;
+  flex-direction: column;
+  gap: 0;
+}
+
+.bike-card--group .bike-card__image,
+.po-card--group .po-card__image {
+  height: 145px;
+}
+
+.bike-card--group .bike-card__body,
+.po-card--group .po-card__body {
+  padding: 0.8rem 0.9rem 0.85rem;
 }
 
 .bike-card__eyebrow,
@@ -2879,6 +2888,11 @@ button {
   gap: 0.55rem;
   margin-top: 0.65rem;
   flex-wrap: nowrap;
+}
+
+.bike-card__action-row > *,
+.po-card__action-row > * {
+  min-width: 0;
 }
 
 .bike-card__summary-pill,
