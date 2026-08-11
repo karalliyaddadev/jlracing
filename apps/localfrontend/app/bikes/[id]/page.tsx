@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import ImageLightbox from "../../components/ImageLightbox";
+import { BackLink } from "../../components/BackLink";
+import { WHATSAPP_LINK } from "../../lib/whatsapp";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
 
@@ -113,9 +115,7 @@ export default function BikeDetailPage() {
     <section className="bikedetail-page">
       <div className="bikedetail-container">
         {/* Back */}
-        <Link href="/bikes" className="bikedetail__back">
-          ← Back to Bikes
-        </Link>
+        <BackLink href="/bikes" label="Bikes" />
 
         <div className="bikedetail__layout">
           {/* Left — Image */}
@@ -194,7 +194,7 @@ export default function BikeDetailPage() {
                 Inquire Now
               </Link>
               <a
-                href="https://wa.me/94717910091"
+                href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bikedetail__btn bikedetail__btn--whatsapp"

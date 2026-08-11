@@ -8,6 +8,7 @@
   padding: 0;
 }
 
+
 html,
 body {
   height: 100%;
@@ -54,8 +55,6 @@ body {
 .split-panel__bg {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
   opacity: 0.35;
   transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.77, 0, 0.175, 1);
 }
@@ -63,14 +62,6 @@ body {
 .split-panel:hover .split-panel__bg {
   opacity: 0.55;
   transform: scale(1.04);
-}
-
-.split-panel--local .split-panel__bg {
-  background-image: url("/colombo.avif");
-}
-
-.split-panel--foreign .split-panel__bg {
-  background-image: url("/japan.jpg");
 }
 
 /* ── Gradient tint ── */
@@ -148,11 +139,12 @@ body {
 }
 
 .split-panel__title {
-  font-size: clamp(2rem, 4vw, 3.5rem);
+  font-size: clamp(1.3rem, 2.1vw, 2rem);
   font-weight: 900;
   color: #ffffff;
   letter-spacing: -0.02em;
   line-height: 1.05;
+  max-width: 480px;
 }
 
 .split-panel--local .split-panel__title {
@@ -167,7 +159,7 @@ body {
   font-size: 14px;
   color: rgba(255, 255, 255, 0.45);
   font-weight: 400;
-  max-width: 220px;
+  max-width: 380px;
   line-height: 1.6;
 }
 

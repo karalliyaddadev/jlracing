@@ -344,9 +344,6 @@ button {
 .hero__slide {
   position: absolute;
   inset: 0;
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
   transition: transform 0.75s cubic-bezier(0.77, 0, 0.18, 1);
   pointer-events: none;
 }
@@ -831,6 +828,7 @@ button {
 }
 
 .int-veh-card__img-wrap {
+  position: relative;
   width: 100%;
   aspect-ratio: 16 / 10;
   overflow: hidden;
@@ -912,7 +910,6 @@ button {
 .int-cta__bg {
   position: absolute;
   inset: 0;
-  background: url('/images/cta-bg.webp') center/cover no-repeat;
 }
 
 .int-cta__overlay {
@@ -1303,7 +1300,6 @@ button {
 .lst-hero__bg {
   position: absolute;
   inset: 0;
-  background: url('/hero/listing-hero-desktop.jpg') center/cover no-repeat;
 }
 
 .lst-hero__overlay {
@@ -1454,10 +1450,6 @@ button {
   .lst-pagination {
     align-self: center;
   }
-
-  .lst-hero__bg {
-    background-image: url('/hero/listing-hero-mobile.jpg');
-  }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -1477,7 +1469,6 @@ button {
 .abt-hero__bg {
   position: absolute;
   inset: 0;
-  background: url('/hero/about-hero-desktop.jpg') center/cover no-repeat;
 }
 
 .abt-hero__overlay {
@@ -1657,10 +1648,6 @@ button {
   .abt-hero {
     height: 320px;
   }
-
-  .abt-hero__bg {
-    background-image: url('/hero/about-hero-mobile.jpg');
-  }
 }
 
 /* ── Auctions section ── */
@@ -1676,6 +1663,13 @@ button {
   flex-direction: column;
   align-items: center;
   gap: 2rem;
+}
+
+.abt-auctions__top {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
 }
 
 .abt-auctions__pill {
@@ -1894,7 +1888,6 @@ button {
 .abt-ms-card__bg {
   position: absolute;
   inset: 0;
-  background: url('/images/about-hero.jpg') center/cover no-repeat;
   transition: transform 0.5s ease;
 }
 
@@ -2054,7 +2047,6 @@ button {
 .exp-hero__bg {
   position: absolute;
   inset: 0;
-  background: url('/hero/export-hero-desktop.jpg') center/cover no-repeat;
 }
 
 .exp-hero__overlay {
@@ -2154,6 +2146,7 @@ button {
   color: #fff;
   max-width: 600px;
   line-height: 1.4;
+  margin-top: 20px;
 }
 
 .exp-light-heading {
@@ -2162,6 +2155,7 @@ button {
   color: var(--text-dark);
   max-width: 680px;
   line-height: 1.4;
+  margin-top: 20px;
 }
 
 .exp-light-heading em {
@@ -2184,6 +2178,7 @@ button {
 
 /* Image placeholder box */
 .exp-two-col__img-box {
+  position: relative;
   border-radius: var(--radius-lg);
   border: 1.5px solid rgba(0, 0, 0, 0.12);
   background: #e8e8e8;
@@ -2232,7 +2227,6 @@ button {
 .exp-yard-card__bg {
   position: absolute;
   inset: 0;
-  background: url('/export/yard.jpg') center/cover no-repeat;
   transition: transform 0.5s ease;
 }
 
@@ -2386,10 +2380,6 @@ span.exp-feat__icon {
   .exp-hero {
     height: 320px;
   }
-
-  .exp-hero__bg {
-    background-image: url('/hero/export-hero-mobile.png');
-  }
 }
 
 /* ══════════════════════════════════════════════════════
@@ -2408,7 +2398,6 @@ span.exp-feat__icon {
 .gal-hero__bg {
   position: absolute;
   inset: 0;
-  background: url('/hero/gallery-hero-desktop.jpg') center/cover no-repeat;
 }
 
 .gal-hero__overlay {
@@ -2475,6 +2464,7 @@ span.exp-feat__icon {
 }
 
 .gal-card__img-wrap {
+  position: relative;
   width: 100%;
   aspect-ratio: 4 / 3;
   border-radius: var(--radius-lg);
@@ -2517,10 +2507,6 @@ span.exp-feat__icon {
 @media (max-width: 560px) {
   .gal-hero {
     height: 280px;
-  }
-
-  .gal-hero__bg {
-    background-image: url('/hero/gallery-hero-mobile.jpg');
   }
 
   .gal-grid {

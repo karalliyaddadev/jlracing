@@ -1,10 +1,18 @@
+import type { Metadata } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import HeroCarousel from "./components/HeroCarousel";
 import IntlVideoBanner from "./components/IntlVideoBanner";
 import IntlFeaturesSection from "./components/IntlFeaturesSection";
 import TrustedBrands from "./components/TrustedBrands";
 import VehicleListings from "./components/VehicleListings";
 import FadeIn from "./components/FadeIn";
+
+export const metadata: Metadata = {
+  title: "JLR International | Japanese Vehicle Exporter Worldwide",
+  description:
+    "JLR International exports quality Japanese vehicles worldwide, including automobiles, motorcycles, and heavy machinery with reliable sourcing and global shipping solutions.",
+};
 
 export default function HomePage() {
   return (
@@ -42,7 +50,14 @@ export default function HomePage() {
 
       {/* ── CTA Banner ── */}
       <section className="int-cta">
-        <div className="int-cta__bg" />
+        <Image
+          src="/images/cta-bg.webp"
+          alt=""
+          fill
+          sizes="100vw"
+          className="int-cta__bg"
+          style={{ objectFit: "cover" }}
+        />
         <div className="int-cta__overlay" />
         <FadeIn className="int-cta__content">
           <span className="int-pill">

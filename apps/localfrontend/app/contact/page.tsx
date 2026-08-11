@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import FadeIn from "../components/FadeIn";
+import { WHATSAPP_NUMBER_DISPLAY } from "../lib/whatsapp";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
@@ -161,7 +162,7 @@ export default function ContactPage() {
                 </svg>
                 <div>
                   <strong>WhatsApp</strong>
-                  <span>+94 71 791 0091</span>
+                  <span>{WHATSAPP_NUMBER_DISPLAY}</span>
                 </div>
               </div>
 

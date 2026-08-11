@@ -17,6 +17,8 @@ enum Role {
 enum PosPurchaseItemType {
   BIKE
   INVENTORY
+  PRE_ORDER
+  CUSTOM
 }
 
 enum PosPurchaseMode {
@@ -37,6 +39,56 @@ enum PosSettlementStatus {
 enum PosPurchaseChannel {
   PERSONAL
   LEASING
+}
+
+enum InstallmentStatus {
+  PENDING
+  PARTIAL
+  PAID
+}
+
+enum AccountType {
+  BANK
+  CASH
+}
+
+enum PaymentMethod {
+  CASH
+  CHEQUE
+  BANK_TRANSFER
+}
+
+enum ChequeStatus {
+  PENDING
+  CLEARED
+  BOUNCED
+}
+
+enum VoucherType {
+  VEHICLE_CLEARANCE
+  BILL
+  OTHER_PAYMENT
+  PERMIT
+  LEASING_PAYMENT
+  LOAN_PAYMENT
+  SALARY
+  CUSTOMER_REFUND
+  VEHICLE_PURCHASE
+  ADVANCE_REFUND
+  ACCOUNT_TRANSFER
+}
+
+enum TransactionType {
+  RECEIPT
+  VOUCHER
+  REVERSAL
+  DEPOSIT
+  TRANSFER
+}
+
+enum TransactionDirection {
+  DR
+  CR
 }
 
 model User {
@@ -322,6 +374,9 @@ model PosCustomerPurchase {
   invoiceGroupCode    String?
   bikeVehicleId       Int?
   inventoryProductId  Int?
+  preOrderId          Int?
+  customCategory      String?
+  customDescription   String?
   currentSellingPrice Float?
   finalSellingPrice   Float
   paymentType         PosPaymentType @default(DIRECT)
@@ -334,17 +389,26 @@ model PosCustomerPurchase {
   leasingFinancedAmount Float      @default(0)
   hasRegistrationFee  Boolean     @default(false)
   registrationFeeAmount Float     @default(0)
+  interestRate              Float?
+  installmentMonths         Int?
+  monthlyInstallmentAmount  Float?
+  totalWithInterest         Float?
   quantity            Int         @default(1)
   purchasedAt         DateTime    @default(now())
   customer            PosCustomer @relation(fields: [customerId], references: [id], onDelete: Cascade)
   bikeVehicle         BikeVehicle? @relation(fields: [bikeVehicleId], references: [id], onDelete: SetNull)
   inventoryProduct    InventoryProduct? @relation(fields: [inventoryProductId], references: [id], onDelete: SetNull)
+  preOrder            PreOrder? @relation(fields: [preOrderId], references: [id], onDelete: SetNull)
   leasingCompany      PosLeasingCompany? @relation(fields: [leasingCompanyId], references: [id], onDelete: SetNull)
+  receipts            AccountReceipt[]
+  installments        PosInstallment[]
+  invoicePayments     InvoicePayment[]
 
   @@index([customerId])
   @@index([invoiceGroupCode])
   @@index([bikeVehicleId])
   @@index([inventoryProductId])
+  @@index([preOrderId])
   @@index([leasingCompanyId])
   @@index([purchaseChannel])
   @@map("pos_customer_purchases")
@@ -362,20 +426,39 @@ model PosInvoiceTerm {
   @@map("pos_invoice_terms")
 }
 
-model PosInvoiceAccount {
-  id            Int      @id @default(autoincrement())
-  accountHolder String
-  accountNumber String
-  bankName      String
-  branchName    String?
-  sortOrder     Int      @default(1)
-  isActive      Boolean  @default(true)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+model PosInstallment {
+  id            Int                      @id @default(autoincrement())
+  purchaseId    Int
+  installmentNo Int
+  dueDate       DateTime
+  dueAmount     Float
+  paidAmount    Float                    @default(0)
+  isPartial     Boolean                  @default(false)
+  penaltyRate   Float                    @default(0)
+  penaltyAmount Float                    @default(0)
+  status        InstallmentStatus        @default(PENDING)
+  settledAt     DateTime?
+  notes         String?
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+  purchase      PosCustomerPurchase      @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  payments      PosInstallmentPayment[]
 
-  @@unique([bankName, accountNumber])
-  @@index([sortOrder])
-  @@map("pos_invoice_accounts")
+  @@index([purchaseId])
+  @@map("pos_installments")
+}
+
+model PosInstallmentPayment {
+  id            Int            @id @default(autoincrement())
+  installmentId Int
+  amount        Float
+  penaltyAmount Float          @default(0)
+  note          String?
+  paidAt        DateTime       @default(now())
+  installment   PosInstallment @relation(fields: [installmentId], references: [id], onDelete: Cascade)
+
+  @@index([installmentId])
+  @@map("pos_installment_payments")
 }
 
 // ── Pre Orders ────────────────────────────────────────────────────────────────
@@ -399,6 +482,7 @@ model PreOrder {
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
   images          PreOrderImage[]
+  purchases       PosCustomerPurchase[]
 
   @@index([status])
   @@index([isPublished])
@@ -477,4 +561,151 @@ model ExportVehicleImage {
   createdAt DateTime      @default(now())
 
   @@map("export_vehicle_images")
+}
+
+// ── Accounts Module ───────────────────────────────────────────────────────────
+
+model Account {
+  id             Int                  @id @default(autoincrement())
+  name           String
+  code           String               @unique
+  type           AccountType          @default(BANK)
+  openingBalance Float                @default(0)
+  isActive       Boolean              @default(true)
+  createdAt      DateTime             @default(now())
+  updatedAt      DateTime             @updatedAt
+  receipts       AccountReceipt[]
+  vouchers       AccountVoucher[]     @relation("VoucherFromAccount")
+  toVouchers     AccountVoucher[]     @relation("VoucherToAccount")
+  transactions   AccountTransaction[]
+  deposits       AccountDeposit[]
+
+  @@map("accounts")
+}
+
+model AccountReceipt {
+  id               Int                  @id @default(autoincrement())
+  receiptNo        String               @unique
+  purchaseId       Int
+  accountId        Int?
+  amount           Float
+  paymentMethod    PaymentMethod        @default(CASH)
+  chequeNo         String?
+  chequeBank       String?
+  chequeDate       DateTime?
+  chequeStatus     ChequeStatus?
+  description      String?
+  isVoided         Boolean              @default(false)
+  isDeposited      Boolean              @default(false)
+  createdById      Int
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+  account          Account?             @relation(fields: [accountId], references: [id])
+  purchase         PosCustomerPurchase  @relation(fields: [purchaseId], references: [id])
+  transactions     AccountTransaction[]
+  depositItem      AccountDepositItem?
+  invoicePayment   InvoicePayment?     @relation("InvoicePaymentReceipt")
+
+  @@index([purchaseId])
+  @@index([accountId])
+  @@map("account_receipts")
+}
+
+model AccountVoucher {
+  id           Int                  @id @default(autoincrement())
+  voucherNo    String               @unique
+  accountId    Int
+  toAccountId  Int?
+  type         VoucherType
+  amount       Float
+  description  String?
+  payee        String?
+  paymentDate  DateTime?
+  referenceNo  String?
+  isVoided     Boolean              @default(false)
+  createdById  Int
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  account      Account              @relation("VoucherFromAccount", fields: [accountId], references: [id])
+  toAccount    Account?             @relation("VoucherToAccount", fields: [toAccountId], references: [id])
+  transactions AccountTransaction[]
+
+  @@index([accountId])
+  @@index([toAccountId])
+  @@map("account_vouchers")
+}
+
+model AccountTransaction {
+  id          Int                  @id @default(autoincrement())
+  accountId   Int
+  type        TransactionType
+  direction   TransactionDirection
+  amount      Float
+  receiptId   Int?
+  voucherId   Int?
+  depositId   Int?
+  refNo       String?
+  description String?
+  chequeNo    String?
+  isReversal  Boolean              @default(false)
+  createdById Int
+  createdAt   DateTime             @default(now())
+  account     Account              @relation(fields: [accountId], references: [id])
+  receipt     AccountReceipt?      @relation(fields: [receiptId], references: [id])
+  voucher     AccountVoucher?      @relation(fields: [voucherId], references: [id])
+  deposit     AccountDeposit?      @relation(fields: [depositId], references: [id])
+
+  @@index([accountId])
+  @@index([receiptId])
+  @@index([voucherId])
+  @@index([depositId])
+  @@map("account_transactions")
+}
+
+model InvoicePayment {
+  id            Int           @id @default(autoincrement())
+  purchaseId    Int
+  amount        Float
+  paymentMethod PaymentMethod @default(CASH)
+  chequeNo      String?
+  chequeBank    String?
+  chequeDate    DateTime?
+  description   String?
+  paidAt        DateTime      @default(now())
+  receiptId     Int?          @unique
+  purchase      PosCustomerPurchase @relation(fields: [purchaseId], references: [id])
+  receipt       AccountReceipt?     @relation("InvoicePaymentReceipt", fields: [receiptId], references: [id])
+
+  @@index([purchaseId])
+  @@map("invoice_payments")
+}
+
+model AccountDeposit {
+  id          Int                  @id @default(autoincrement())
+  depositNo   String               @unique
+  accountId   Int
+  totalAmount Float
+  notes       String?
+  isReversed  Boolean              @default(false)
+  reversedAt  DateTime?
+  createdById Int
+  createdAt   DateTime             @default(now())
+  account     Account              @relation(fields: [accountId], references: [id])
+  items       AccountDepositItem[]
+  transactions AccountTransaction[]
+
+  @@index([accountId])
+  @@map("account_deposits")
+}
+
+model AccountDepositItem {
+  id        Int            @id @default(autoincrement())
+  depositId Int
+  receiptId Int            @unique
+  amount    Float
+  deposit   AccountDeposit @relation(fields: [depositId], references: [id])
+  receipt   AccountReceipt @relation(fields: [receiptId], references: [id])
+
+  @@index([depositId])
+  @@map("account_deposit_items")
 }

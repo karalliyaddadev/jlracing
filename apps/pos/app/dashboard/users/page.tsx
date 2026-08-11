@@ -64,10 +64,32 @@ type BikeDetail = {
   images?: Array<{ id: number; url: string; isPrimary: boolean }>;
 };
 
+type InstallmentPayment = {
+  id: number;
+  amount: number;
+  penaltyAmount: number;
+  note?: string | null;
+  paidAt: string;
+};
+
+type Installment = {
+  id: number;
+  installmentNo: number;
+  dueDate: string;
+  dueAmount: number;
+  paidAmount: number;
+  isPartial: boolean;
+  penaltyRate: number;
+  penaltyAmount: number;
+  status: "PENDING" | "PARTIAL" | "PAID";
+  settledAt?: string | null;
+  payments?: InstallmentPayment[];
+};
+
 type PurchaseHistoryEntry = {
   id: number;
   purchasedAt: string;
-  itemType: "BIKE" | "INVENTORY";
+  itemType: "BIKE" | "INVENTORY" | "PRE_ORDER" | "CUSTOM";
   purchaseMode?: "SINGLE" | "BULK";
   invoiceGroupCode?: string | null;
   quantity: number;
@@ -83,6 +105,10 @@ type PurchaseHistoryEntry = {
   settlementStatus?: "SETTLED" | "TO_SETTLE";
   hasRegistrationFee?: boolean;
   registrationFeeAmount?: number;
+  interestRate?: number | null;
+  installmentMonths?: number | null;
+  monthlyInstallmentAmount?: number | null;
+  totalWithInterest?: number | null;
   customer: {
     id: number;
     firstName: string;
@@ -119,6 +145,15 @@ type PurchaseHistoryEntry = {
     supplier?: string | null;
     description?: string | null;
   } | null;
+  preOrder?: {
+    id: number;
+    displayId: string;
+    brand: string;
+    model: string;
+    colour?: string | null;
+  } | null;
+  customCategory?: string | null;
+  customDescription?: string | null;
 };
 
 type PurchaseInvoiceRow = {
@@ -286,6 +321,16 @@ export default function UsersPage() {
   const [settleAmount, setSettleAmount] = useState("");
   const [settleSaving, setSettleSaving] = useState(false);
   const [settleError, setSettleError] = useState<string | null>(null);
+  const [settleInstallments, setSettleInstallments] = useState<Installment[]>([]);
+  const [settleInstallmentId, setSettleInstallmentId] = useState<number | "">("");
+  const [settleIsPartial, setSettleIsPartial] = useState(false);
+  const [settlePenaltyRate, setSettlePenaltyRate] = useState("");
+  const [settleInstallmentsLoading, setSettleInstallmentsLoading] = useState(false);
+  const [settlePaymentMethod, setSettlePaymentMethod] = useState<"CASH" | "CHEQUE" | "BANK_TRANSFER">("CASH");
+  const [settleChequeNo, setSettleChequeNo] = useState("");
+  const [settleChequeBank, setSettleChequeBank] = useState("");
+  const [settleChequeDate, setSettleChequeDate] = useState("");
+  const [invoiceInstallments, setInvoiceInstallments] = useState<Installment[]>([]);
   const [showBulkBikeDetails, setShowBulkBikeDetails] = useState(false);
 
   const base = `${API_URL}/api/pos/user-management`;
@@ -498,14 +543,22 @@ export default function UsersPage() {
     setSelectedHistoryPurchase(entry);
     setInvoiceSourceEntries(null);
     setShowBulkBikeDetails(false);
+    setInvoiceInstallments([]);
     try {
-      const response = await fetch(`${base}/${entry.customer.id}/purchases?page=1&limit=1000`, {
-        headers: authHeader,
-        cache: "no-store",
-      });
-      const payload = await response.json() as { data?: { purchases?: PurchaseHistoryEntry[] }; message?: string };
-      if (!response.ok) throw new Error(payload.message ?? "Failed to load invoice details");
-      setInvoiceSourceEntries(payload.data?.purchases ?? []);
+      const [purchasesResp, installmentsResp] = await Promise.all([
+        fetch(`${base}/${entry.customer.id}/purchases?page=1&limit=1000`, { headers: authHeader, cache: "no-store" }),
+        (entry.installmentMonths ?? 0) > 0
+          ? fetch(`${base}/${entry.customer.id}/purchases/${entry.id}/installments`, { headers: authHeader, cache: "no-store" })
+          : Promise.resolve(null),
+      ]);
+      const purchasesPayload = await purchasesResp.json() as { data?: { purchases?: PurchaseHistoryEntry[] }; message?: string };
+      if (!purchasesResp.ok) throw new Error(purchasesPayload.message ?? "Failed to load invoice details");
+      setInvoiceSourceEntries(purchasesPayload.data?.purchases ?? []);
+
+      if (installmentsResp) {
+        const instPayload = await installmentsResp.json() as { data?: { installments?: Installment[] } };
+        setInvoiceInstallments(instPayload.data?.installments ?? []);
+      }
     } catch {
       setInvoiceSourceEntries(null);
     }
@@ -515,6 +568,7 @@ export default function UsersPage() {
     setSelectedHistoryPurchase(null);
     setInvoiceSourceEntries(null);
     setShowBulkBikeDetails(false);
+    setInvoiceInstallments([]);
   };
 
   const getPurchaseItemMeta = (entry: PurchaseHistoryEntry) => {
@@ -524,10 +578,22 @@ export default function UsersPage() {
         subtitle: `${entry.bike.displayId} • ${entry.bike.colour}`,
       };
     }
-    if (entry.inventory) {
+    if (entry.itemType === "INVENTORY" && entry.inventory) {
       return {
         title: entry.inventory.name,
         subtitle: `${entry.inventory.displayId} • ${entry.inventory.brand}`,
+      };
+    }
+    if (entry.itemType === "PRE_ORDER" && entry.preOrder) {
+      return {
+        title: `${entry.preOrder.brand} ${entry.preOrder.model}`,
+        subtitle: `Pre-Order • ${entry.preOrder.displayId}`,
+      };
+    }
+    if (entry.itemType === "CUSTOM") {
+      return {
+        title: entry.customCategory ?? "Custom Invoice",
+        subtitle: entry.customDescription ?? "—",
       };
     }
     return { title: "Unknown item", subtitle: "-" };
@@ -669,6 +735,32 @@ export default function UsersPage() {
     setSettleTarget(entry);
     setSettleAmount(remaining > 0 ? String(remaining) : "");
     setSettleError(null);
+    setSettleInstallmentId("");
+    setSettleIsPartial(false);
+    setSettlePenaltyRate("");
+    setSettleInstallments([]);
+    setSettlePaymentMethod("CASH");
+    setSettleChequeNo("");
+    setSettleChequeBank("");
+    setSettleChequeDate("");
+    if ((entry.installmentMonths ?? 0) > 0) {
+      setSettleInstallmentsLoading(true);
+      void (async () => {
+        try {
+          const resp = await fetch(`${base}/${entry.customer.id}/purchases/${entry.id}/installments`, { headers: authHeader, cache: "no-store" });
+          const json = await resp.json() as { data?: { installments?: Installment[] } };
+          const loaded = json.data?.installments ?? [];
+          setSettleInstallments(loaded);
+          const nextPending = loaded.find((i) => i.status === "PENDING" || i.status === "PARTIAL");
+          if (nextPending) {
+            setSettleInstallmentId(nextPending.id);
+            const balanceDue = Math.max(0, Math.round((nextPending.dueAmount + (nextPending.penaltyAmount ?? 0) - nextPending.paidAmount) * 100) / 100);
+            setSettleAmount(String(balanceDue));
+          }
+        } catch { setSettleInstallments([]); }
+        finally { setSettleInstallmentsLoading(false); }
+      })();
+    }
   };
 
   const closeSettleModal = () => {
@@ -676,6 +768,14 @@ export default function UsersPage() {
     setSettleAmount("");
     setSettleError(null);
     setSettleSaving(false);
+    setSettleInstallments([]);
+    setSettleInstallmentId("");
+    setSettleIsPartial(false);
+    setSettlePenaltyRate("");
+    setSettlePaymentMethod("CASH");
+    setSettleChequeNo("");
+    setSettleChequeBank("");
+    setSettleChequeDate("");
   };
 
   const submitSettlePayment = async (event: FormEvent) => {
@@ -696,10 +796,20 @@ export default function UsersPage() {
     setSettleSaving(true);
     setSettleError(null);
     try {
+      const parsedPenaltyRate = Number(settlePenaltyRate || "0");
       const response = await fetch(`${base}/${settleTarget.customer.id}/purchases/${settleTarget.id}/settle`, {
         method: "POST",
         headers: { ...authHeader, "Content-Type": "application/json" },
-        body: JSON.stringify({ amount }),
+        body: JSON.stringify({
+          amount,
+          installmentId: settleInstallmentId !== "" ? settleInstallmentId : undefined,
+          isPartial: settleIsPartial || undefined,
+          penaltyRate: settleIsPartial && parsedPenaltyRate > 0 ? parsedPenaltyRate : undefined,
+          paymentMethod: settlePaymentMethod,
+          chequeNo: settlePaymentMethod === "CHEQUE" ? settleChequeNo || undefined : undefined,
+          chequeBank: settlePaymentMethod === "CHEQUE" ? settleChequeBank || undefined : undefined,
+          chequeDate: settlePaymentMethod === "CHEQUE" ? settleChequeDate || undefined : undefined,
+        }),
       });
       const payload = await response.json() as { message?: string };
       if (!response.ok) throw new Error(payload.message ?? "Failed to settle amount");
@@ -1562,9 +1672,25 @@ export default function UsersPage() {
                     <td>{row.quantity}</td>
                     <td><span className="users-order-price">Rs. {row.finalSellingPrice.toLocaleString()}</span></td>
                     <td>
-                      <span className={`badge ${row.settlementStatus === "TO_SETTLE" ? "badge-pending" : "badge-active"}`}>
-                        {row.statusText}
-                      </span>
+                      <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                        <span className={`badge ${row.settlementStatus === "TO_SETTLE" ? "badge-pending" : "badge-active"}`}>
+                          {row.statusText}
+                        </span>
+                        {(row.representative.installmentMonths ?? 0) > 0 && (() => {
+                          const totalMonths = row.representative.installmentMonths!;
+                          const monthly = row.representative.monthlyInstallmentAmount ?? 0;
+                          const remaining = row.remainingAmount;
+                          const isOverdue = remaining > 0 && new Date() > new Date(new Date(row.purchasedAt).setMonth(new Date(row.purchasedAt).getMonth() + 1));
+                          const monthsRemaining = monthly > 0 ? Math.ceil(remaining / monthly) : 0;
+                          const monthsPaid = totalMonths - monthsRemaining;
+                          const color = remaining <= 0 ? "var(--green, #22c55e)" : isOverdue ? "var(--red, #ef4444)" : "var(--amber, #f59e0b)";
+                          return (
+                            <span style={{ fontSize: "0.75rem", fontWeight: 600, color }}>
+                              {monthsPaid > 0 ? `${monthsPaid}` : "0"}/{totalMonths} months paid
+                            </span>
+                          );
+                        })()}
+                      </div>
                     </td>
                     <td>
                       <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -2631,10 +2757,88 @@ export default function UsersPage() {
               <div><strong>Leasing Downpayment:</strong> Rs. {selectedInvoiceEntries.reduce((sum, entry) => sum + (entry.leasingDownPaymentAmount ?? 0), 0).toLocaleString()}</div>
               <div><strong>Leasing Amount:</strong> Rs. {selectedInvoiceEntries.reduce((sum, entry) => sum + (entry.leasingFinancedAmount ?? 0), 0).toLocaleString()}</div>
               <div><strong>Registration Fee:</strong> Rs. {selectedInvoiceTotals.registrationFeeAmount.toLocaleString()}</div>
-              <div><strong>Grand Total:</strong> Rs. {(selectedInvoiceTotals.finalSellingPrice + selectedInvoiceTotals.registrationFeeAmount).toLocaleString()}</div>
-              <div><strong>Remaining Amount:</strong> Rs. {selectedInvoiceTotals.remainingAmount.toLocaleString()}</div>
+              {(() => {
+                const interestEntry = selectedInvoiceEntries.find((e) => (e.interestRate ?? 0) > 0 && (e.installmentMonths ?? 0) > 0);
+                if (!interestEntry) return null;
+                const financeCharge = (interestEntry.totalWithInterest ?? 0) - interestEntry.finalSellingPrice;
+                return (
+                  <>
+                    <div><strong>Finance Charge ({interestEntry.interestRate}%):</strong> Rs. {financeCharge.toLocaleString()}</div>
+                    <div><strong>Monthly Installment:</strong> Rs. {(interestEntry.monthlyInstallmentAmount ?? 0).toLocaleString()} × {interestEntry.installmentMonths} months</div>
+                  </>
+                );
+              })()}
+              <div><strong>Grand Total:</strong> Rs. {(selectedInvoiceEntries.reduce((sum, e) => sum + (e.totalWithInterest ?? e.finalSellingPrice), 0) + selectedInvoiceTotals.registrationFeeAmount).toLocaleString()}</div>
+              <div><strong>Advance Paid:</strong> Rs. {selectedInvoiceTotals.downPaymentAmount.toLocaleString()}</div>
+              <div><strong>Balance Remaining:</strong> Rs. {selectedInvoiceTotals.remainingAmount.toLocaleString()}</div>
               <div><strong>Status:</strong> {selectedInvoiceTotals.settlementStatus === "TO_SETTLE" ? "To Settle" : "Settled"}</div>
             </div>
+
+            {invoiceInstallments.length > 0 && (() => {
+              const paidCount = invoiceInstallments.filter((i) => i.status === "PAID" || i.status === "PARTIAL").length;
+              const remainingCount = invoiceInstallments.filter((i) => i.status === "PENDING" || i.status === "PARTIAL").length;
+              return (
+                <div style={{ marginTop: "1rem" }}>
+                  <strong style={{ display: "block", marginBottom: "0.5rem" }}>
+                    Installment Schedule — {paidCount} of {invoiceInstallments.length} months paid · {remainingCount} remaining
+                  </strong>
+                  <div className="data-table-wrap">
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>#</th>
+                          <th>Due Date</th>
+                          <th>Monthly Due</th>
+                          <th>Paid</th>
+                          <th>Penalty</th>
+                          <th>Balance Due</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {invoiceInstallments.map((inst) => {
+                          const balanceDue = Math.max(0, Math.round((inst.dueAmount + (inst.penaltyAmount ?? 0) - inst.paidAmount) * 100) / 100);
+                          return (
+                            <>
+                              <tr key={inst.id} style={{ opacity: inst.status === "PAID" ? 0.65 : 1 }}>
+                                <td>{inst.installmentNo}</td>
+                                <td>
+                                  {new Date(inst.dueDate).toLocaleDateString("en-GB")}
+                                  {inst.settledAt && <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Last: {new Date(inst.settledAt).toLocaleDateString("en-GB")}</div>}
+                                </td>
+                                <td>Rs. {inst.dueAmount.toLocaleString()}</td>
+                                <td>{inst.paidAmount > 0 ? `Rs. ${inst.paidAmount.toLocaleString()}` : "—"}</td>
+                                <td>{(inst.penaltyAmount ?? 0) > 0 ? `Rs. ${inst.penaltyAmount.toLocaleString()}` : "—"}</td>
+                                <td style={{ fontWeight: balanceDue > 0 ? 600 : undefined, color: balanceDue > 0 ? "var(--amber, #f59e0b)" : undefined }}>
+                                  {balanceDue > 0 ? `Rs. ${balanceDue.toLocaleString()}` : "—"}
+                                </td>
+                                <td>
+                                  <span style={{ fontWeight: 600, color: inst.status === "PAID" ? "var(--green, #22c55e)" : inst.status === "PARTIAL" ? "var(--amber, #f59e0b)" : "var(--text-muted)" }}>
+                                    {inst.status}
+                                  </span>
+                                </td>
+                              </tr>
+                              {inst.payments && inst.payments.length > 0 && inst.payments.map((pay) => (
+                                <tr key={`pay-${pay.id}`} style={{ background: "var(--panel-bg, #f9f9f9)" }}>
+                                  <td style={{ paddingLeft: "1.2rem", fontSize: "0.78rem", color: "var(--text-muted)" }}>↳</td>
+                                  <td style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{new Date(pay.paidAt).toLocaleDateString("en-GB")}</td>
+                                  <td style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{pay.note ?? ""}</td>
+                                  <td style={{ fontSize: "0.78rem" }}>Rs. {pay.amount.toLocaleString()}</td>
+                                  <td style={{ fontSize: "0.78rem", color: pay.penaltyAmount > 0 ? "var(--amber, #f59e0b)" : "var(--text-muted)" }}>
+                                    {pay.penaltyAmount > 0 ? `Rs. ${pay.penaltyAmount.toLocaleString()}` : "—"}
+                                  </td>
+                                  <td colSpan={2} />
+                                </tr>
+                              ))}
+                            </>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })()}
 
             <div className="bm-modal-actions" style={{ marginTop: "1rem" }}>
               {selectedInvoiceTotals.remainingAmount > 0 && (
@@ -2659,6 +2863,35 @@ export default function UsersPage() {
               <div><strong>Payment Type:</strong> {getPaymentTypeText(settleTarget)}</div>
             </div>
 
+            {settleInstallments.length > 0 && (
+              <div className="bm-field-group">
+                <label>Select Installment</label>
+                {settleInstallmentsLoading
+                  ? <p className="users-muted">Loading installments...</p>
+                  : (
+                    <select
+                      className="bm-input"
+                      value={settleInstallmentId}
+                      onChange={(event) => {
+                        const val = event.target.value;
+                        setSettleInstallmentId(val ? Number(val) : "");
+                        if (val) {
+                          const inst = settleInstallments.find((i) => i.id === Number(val));
+                          if (inst) setSettleAmount(String(Math.max(0, Math.round((inst.dueAmount + (inst.penaltyAmount ?? 0) - inst.paidAmount) * 100) / 100)));
+                        }
+                      }}
+                    >
+                      <option value="">Select installment (optional)</option>
+                      {settleInstallments.map((inst) => (
+                        <option key={inst.id} value={inst.id} disabled={inst.status === "PAID"}>
+                          Month {inst.installmentNo} — Due: Rs. {inst.dueAmount.toLocaleString()}{inst.paidAmount > 0 ? ` — Paid: Rs. ${inst.paidAmount.toLocaleString()}` : ""} — {new Date(inst.dueDate).toLocaleDateString("en-GB")} [{inst.status}]
+                        </option>
+                      ))}
+                    </select>
+                  )}
+              </div>
+            )}
+
             <div className="bm-field-group">
               <label>Settle Amount</label>
               <input
@@ -2667,9 +2900,78 @@ export default function UsersPage() {
                 min={0.01}
                 step="0.01"
                 value={settleAmount}
-                onChange={(event) => setSettleAmount(event.target.value)}
+                onChange={(event) => {
+                  setSettleAmount(event.target.value);
+                  if (settleInstallmentId !== "") {
+                    const inst = settleInstallments.find((i) => i.id === settleInstallmentId);
+                    if (inst) {
+                      const typed = Number(event.target.value);
+                      const instBalanceDue = Math.max(0, Math.round((inst.dueAmount + (inst.penaltyAmount ?? 0) - inst.paidAmount) * 100) / 100);
+                      setSettleIsPartial(Number.isFinite(typed) && typed < instBalanceDue);
+                    }
+                  }
+                }}
                 required
               />
+            </div>
+
+            {settleInstallmentId !== "" && (
+              <div className="bm-field-group" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                <input
+                  type="checkbox"
+                  id="settle-partial-checkbox"
+                  checked={settleIsPartial}
+                  onChange={(event) => setSettleIsPartial(event.target.checked)}
+                />
+                <label htmlFor="settle-partial-checkbox" style={{ margin: 0, fontWeight: 500 }}>Mark as Partial Payment</label>
+              </div>
+            )}
+
+            {settleIsPartial && (
+              <div className="bm-field-group">
+                <label>Penalty for Underpayment (%)</label>
+                <input
+                  className="bm-input"
+                  type="number"
+                  min={0}
+                  max={100}
+                  step="0.01"
+                  placeholder="e.g. 2"
+                  value={settlePenaltyRate}
+                  onChange={(event) => setSettlePenaltyRate(event.target.value)}
+                />
+              </div>
+            )}
+
+            <div style={{ marginTop: "1rem", padding: "0.85rem 1rem", border: "1px solid var(--panel-border)", borderRadius: "var(--radius-sm)", background: "var(--panel-bg)" }}>
+              <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: "0.65rem", color: "var(--accent)" }}>How is this being paid?</div>
+              <div className="bm-field-group">
+                <label>Payment Method</label>
+                <div style={{ display: "flex", gap: 20 }}>
+                  {(["CASH", "CHEQUE", "BANK_TRANSFER"] as const).map((m) => (
+                    <label key={m} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", fontSize: "0.875rem", fontWeight: 500 }}>
+                      <input type="radio" checked={settlePaymentMethod === m} onChange={() => setSettlePaymentMethod(m)} style={{ accentColor: "var(--accent)" }} />
+                      {m === "BANK_TRANSFER" ? "Bank Transfer" : m}
+                    </label>
+                  ))}
+                </div>
+              </div>
+              {settlePaymentMethod === "CHEQUE" && (
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "0.75rem" }}>
+                  <div className="bm-field-group">
+                    <label>Cheque No *</label>
+                    <input className="bm-input" value={settleChequeNo} onChange={(e) => setSettleChequeNo(e.target.value)} placeholder="e.g. 001234" />
+                  </div>
+                  <div className="bm-field-group">
+                    <label>Bank</label>
+                    <input className="bm-input" value={settleChequeBank} onChange={(e) => setSettleChequeBank(e.target.value)} placeholder="e.g. HNB" />
+                  </div>
+                  <div className="bm-field-group">
+                    <label>Cheque Date</label>
+                    <input type="date" className="bm-input" value={settleChequeDate} onChange={(e) => setSettleChequeDate(e.target.value)} />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="bm-modal-actions" style={{ marginTop: "1rem" }}>

@@ -326,6 +326,9 @@ exports.Prisma.PosCustomerPurchaseScalarFieldEnum = {
   invoiceGroupCode: 'invoiceGroupCode',
   bikeVehicleId: 'bikeVehicleId',
   inventoryProductId: 'inventoryProductId',
+  preOrderId: 'preOrderId',
+  customCategory: 'customCategory',
+  customDescription: 'customDescription',
   currentSellingPrice: 'currentSellingPrice',
   finalSellingPrice: 'finalSellingPrice',
   paymentType: 'paymentType',
@@ -338,6 +341,10 @@ exports.Prisma.PosCustomerPurchaseScalarFieldEnum = {
   leasingFinancedAmount: 'leasingFinancedAmount',
   hasRegistrationFee: 'hasRegistrationFee',
   registrationFeeAmount: 'registrationFeeAmount',
+  interestRate: 'interestRate',
+  installmentMonths: 'installmentMonths',
+  monthlyInstallmentAmount: 'monthlyInstallmentAmount',
+  totalWithInterest: 'totalWithInterest',
   quantity: 'quantity',
   purchasedAt: 'purchasedAt'
 };
@@ -349,6 +356,32 @@ exports.Prisma.PosInvoiceTermScalarFieldEnum = {
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PosInstallmentScalarFieldEnum = {
+  id: 'id',
+  purchaseId: 'purchaseId',
+  installmentNo: 'installmentNo',
+  dueDate: 'dueDate',
+  dueAmount: 'dueAmount',
+  paidAmount: 'paidAmount',
+  isPartial: 'isPartial',
+  penaltyRate: 'penaltyRate',
+  penaltyAmount: 'penaltyAmount',
+  status: 'status',
+  settledAt: 'settledAt',
+  notes: 'notes',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.PosInstallmentPaymentScalarFieldEnum = {
+  id: 'id',
+  installmentId: 'installmentId',
+  amount: 'amount',
+  penaltyAmount: 'penaltyAmount',
+  note: 'note',
+  paidAt: 'paidAt'
 };
 
 exports.Prisma.PreOrderScalarFieldEnum = {
@@ -422,6 +455,102 @@ exports.Prisma.ExportVehicleImageScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.AccountScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  code: 'code',
+  type: 'type',
+  openingBalance: 'openingBalance',
+  isActive: 'isActive',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AccountReceiptScalarFieldEnum = {
+  id: 'id',
+  receiptNo: 'receiptNo',
+  purchaseId: 'purchaseId',
+  accountId: 'accountId',
+  amount: 'amount',
+  paymentMethod: 'paymentMethod',
+  chequeNo: 'chequeNo',
+  chequeBank: 'chequeBank',
+  chequeDate: 'chequeDate',
+  chequeStatus: 'chequeStatus',
+  description: 'description',
+  isVoided: 'isVoided',
+  isDeposited: 'isDeposited',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AccountVoucherScalarFieldEnum = {
+  id: 'id',
+  voucherNo: 'voucherNo',
+  accountId: 'accountId',
+  toAccountId: 'toAccountId',
+  type: 'type',
+  amount: 'amount',
+  description: 'description',
+  payee: 'payee',
+  paymentDate: 'paymentDate',
+  referenceNo: 'referenceNo',
+  isVoided: 'isVoided',
+  createdById: 'createdById',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AccountTransactionScalarFieldEnum = {
+  id: 'id',
+  accountId: 'accountId',
+  type: 'type',
+  direction: 'direction',
+  amount: 'amount',
+  receiptId: 'receiptId',
+  voucherId: 'voucherId',
+  depositId: 'depositId',
+  refNo: 'refNo',
+  description: 'description',
+  chequeNo: 'chequeNo',
+  isReversal: 'isReversal',
+  createdById: 'createdById',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.InvoicePaymentScalarFieldEnum = {
+  id: 'id',
+  purchaseId: 'purchaseId',
+  amount: 'amount',
+  paymentMethod: 'paymentMethod',
+  chequeNo: 'chequeNo',
+  chequeBank: 'chequeBank',
+  chequeDate: 'chequeDate',
+  description: 'description',
+  paidAt: 'paidAt',
+  receiptId: 'receiptId'
+};
+
+exports.Prisma.AccountDepositScalarFieldEnum = {
+  id: 'id',
+  depositNo: 'depositNo',
+  accountId: 'accountId',
+  totalAmount: 'totalAmount',
+  notes: 'notes',
+  isReversed: 'isReversed',
+  reversedAt: 'reversedAt',
+  createdById: 'createdById',
+  createdAt: 'createdAt'
+};
+
+exports.Prisma.AccountDepositItemScalarFieldEnum = {
+  id: 'id',
+  depositId: 'depositId',
+  receiptId: 'receiptId',
+  amount: 'amount'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -444,7 +573,9 @@ exports.Role = exports.$Enums.Role = {
 
 exports.PosPurchaseItemType = exports.$Enums.PosPurchaseItemType = {
   BIKE: 'BIKE',
-  INVENTORY: 'INVENTORY'
+  INVENTORY: 'INVENTORY',
+  PRE_ORDER: 'PRE_ORDER',
+  CUSTOM: 'CUSTOM'
 };
 
 exports.PosPurchaseMode = exports.$Enums.PosPurchaseMode = {
@@ -467,9 +598,59 @@ exports.PosPurchaseChannel = exports.$Enums.PosPurchaseChannel = {
   LEASING: 'LEASING'
 };
 
+exports.InstallmentStatus = exports.$Enums.InstallmentStatus = {
+  PENDING: 'PENDING',
+  PARTIAL: 'PARTIAL',
+  PAID: 'PAID'
+};
+
 exports.ExportVehicleCategory = exports.$Enums.ExportVehicleCategory = {
   AUTOMOBILE: 'AUTOMOBILE',
   HEAVY_MACHINERY: 'HEAVY_MACHINERY'
+};
+
+exports.AccountType = exports.$Enums.AccountType = {
+  BANK: 'BANK',
+  CASH: 'CASH'
+};
+
+exports.PaymentMethod = exports.$Enums.PaymentMethod = {
+  CASH: 'CASH',
+  CHEQUE: 'CHEQUE',
+  BANK_TRANSFER: 'BANK_TRANSFER'
+};
+
+exports.ChequeStatus = exports.$Enums.ChequeStatus = {
+  PENDING: 'PENDING',
+  CLEARED: 'CLEARED',
+  BOUNCED: 'BOUNCED'
+};
+
+exports.VoucherType = exports.$Enums.VoucherType = {
+  VEHICLE_CLEARANCE: 'VEHICLE_CLEARANCE',
+  BILL: 'BILL',
+  OTHER_PAYMENT: 'OTHER_PAYMENT',
+  PERMIT: 'PERMIT',
+  LEASING_PAYMENT: 'LEASING_PAYMENT',
+  LOAN_PAYMENT: 'LOAN_PAYMENT',
+  SALARY: 'SALARY',
+  CUSTOMER_REFUND: 'CUSTOMER_REFUND',
+  VEHICLE_PURCHASE: 'VEHICLE_PURCHASE',
+  ADVANCE_REFUND: 'ADVANCE_REFUND',
+  ACCOUNT_TRANSFER: 'ACCOUNT_TRANSFER'
+};
+
+exports.TransactionType = exports.$Enums.TransactionType = {
+  RECEIPT: 'RECEIPT',
+  VOUCHER: 'VOUCHER',
+  REVERSAL: 'REVERSAL',
+  DEPOSIT: 'DEPOSIT',
+  TRANSFER: 'TRANSFER'
+};
+
+exports.TransactionDirection = exports.$Enums.TransactionDirection = {
+  DR: 'DR',
+  CR: 'CR'
 };
 
 exports.Prisma.ModelName = {
@@ -493,11 +674,20 @@ exports.Prisma.ModelName = {
   PosCustomerDreamBike: 'PosCustomerDreamBike',
   PosCustomerPurchase: 'PosCustomerPurchase',
   PosInvoiceTerm: 'PosInvoiceTerm',
+  PosInstallment: 'PosInstallment',
+  PosInstallmentPayment: 'PosInstallmentPayment',
   PreOrder: 'PreOrder',
   PreOrderImage: 'PreOrderImage',
   ContactRequest: 'ContactRequest',
   ExportVehicle: 'ExportVehicle',
-  ExportVehicleImage: 'ExportVehicleImage'
+  ExportVehicleImage: 'ExportVehicleImage',
+  Account: 'Account',
+  AccountReceipt: 'AccountReceipt',
+  AccountVoucher: 'AccountVoucher',
+  AccountTransaction: 'AccountTransaction',
+  InvoicePayment: 'InvoicePayment',
+  AccountDeposit: 'AccountDeposit',
+  AccountDepositItem: 'AccountDepositItem'
 };
 
 /**

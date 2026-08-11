@@ -1,17 +1,39 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { IconInvoice, IconUsers } from "../../lib/icons";
 import { readApiData } from "../../lib/api";
-import { exportInvoiceToPdf } from "../../lib/pdf-export";
+import CustomerPurchaseModal from "../../components/CustomerPurchaseModal";
+
+type InstallmentPayment = {
+  id: number;
+  amount: number;
+  penaltyAmount: number;
+  note?: string | null;
+  paidAt: string;
+};
+
+type Installment = {
+  id: number;
+  installmentNo: number;
+  dueDate: string;
+  dueAmount: number;
+  paidAmount: number;
+  isPartial: boolean;
+  penaltyRate: number;
+  penaltyAmount: number;
+  status: "PENDING" | "PARTIAL" | "PAID";
+  settledAt?: string | null;
+  payments?: InstallmentPayment[];
+};
 
 type Purchase = {
   id: number;
   purchasedAt: string;
-  itemType: "BIKE" | "INVENTORY";
+  itemType: "BIKE" | "INVENTORY" | "PRE_ORDER" | "CUSTOM";
   purchaseMode?: "SINGLE" | "BULK";
   invoiceGroupCode?: string | null;
   quantity: number;
@@ -27,6 +49,10 @@ type Purchase = {
   settlementStatus?: "SETTLED" | "TO_SETTLE";
   hasRegistrationFee?: boolean;
   registrationFeeAmount?: number;
+  interestRate?: number | null;
+  installmentMonths?: number | null;
+  monthlyInstallmentAmount?: number | null;
+  totalWithInterest?: number | null;
   customer: {
     id: number;
     firstName: string;
@@ -63,6 +89,15 @@ type Purchase = {
     supplier?: string | null;
     description?: string | null;
   } | null;
+  preOrder?: {
+    id: number;
+    displayId: string;
+    brand: string;
+    model: string;
+    colour?: string | null;
+  } | null;
+  customCategory?: string | null;
+  customDescription?: string | null;
 };
 
 type InvoiceRow = {
@@ -130,7 +165,10 @@ export default function InvoicesPage() {
   const { token } = useAdmin();
   const [search, setSearch] = useState("");
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRow | null>(null);
-  const [isPreparingPrint, setIsPreparingPrint] = useState(false);
+  const [showCustomModal, setShowCustomModal] = useState(false);
+  const [invoiceInstallments, setInvoiceInstallments] = useState<Installment[]>([]);
+  const [rowsPerPage, setRowsPerPage] = useState<number | "all">(20);
+  const [currentPage, setCurrentPage] = useState(1);
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
@@ -138,6 +176,8 @@ export default function InvoicesPage() {
   const invoicesQuery = useQuery({
     queryKey: ["pos", "invoices", token],
     enabled: Boolean(token),
+    staleTime: 0,
+    refetchOnMount: "always",
     queryFn: async (): Promise<Purchase[]> => {
       const response = await fetch(`${base}/purchases?page=1&limit=500`, { headers: auth, cache: "no-store" });
       const payload = await readApiData<{ purchases?: Purchase[] }>(response, "Failed to load invoices");
@@ -151,9 +191,14 @@ export default function InvoicesPage() {
     staleTime: 0,
     refetchOnMount: "always",
     queryFn: async (): Promise<InvoiceTerm[]> => {
-      const response = await fetch(`${base}/invoice-terms`, { headers: auth, cache: "no-store" });
-      const payload = await readApiData<{ terms?: InvoiceTerm[] }>(response, "Failed to load invoice terms");
-      return payload.terms ?? [];
+      try {
+        const response = await fetch(`${base}/invoice-terms`, { headers: auth, cache: "no-store" });
+        const payload = await response.json() as { data?: { terms?: InvoiceTerm[] }; message?: string };
+        if (!response.ok) throw new Error(payload.message ?? "Failed to load invoice terms");
+        return payload.data?.terms ?? [];
+      } catch {
+        return [];
+      }
     },
   });
 
@@ -163,26 +208,113 @@ export default function InvoicesPage() {
     staleTime: 0,
     refetchOnMount: "always",
     queryFn: async (): Promise<InvoiceAccount[]> => {
-      const response = await fetch(`${base}/invoice-accounts`, { headers: auth, cache: "no-store" });
-      const payload = await readApiData<{ accounts?: InvoiceAccount[] }>(response, "Failed to load invoice account details");
-      return payload.accounts ?? [];
+      try {
+        const response = await fetch(`${base}/invoice-accounts`, { headers: auth, cache: "no-store" });
+        const payload = await readApiData<{ accounts?: InvoiceAccount[] }>(response, "Failed to load invoice accounts");
+        return payload.accounts ?? [];
+      } catch {
+        return [];
+      }
     },
   });
 
-  const invoices: Purchase[] = invoicesQuery.data ?? [];
-  const invoiceTerms: InvoiceTerm[] = invoiceTermsQuery.data ?? [];
-  const invoiceAccounts: InvoiceAccount[] = invoiceAccountsQuery.data ?? [];
-  const loading = invoicesQuery.isPending;
-  const error = invoicesQuery.error instanceof Error ? invoicesQuery.error.message : null;
-  const supportError =
-    invoiceAccountsQuery.error instanceof Error
-      ? invoiceAccountsQuery.error.message
-      : invoiceTermsQuery.error instanceof Error
-        ? invoiceTermsQuery.error.message
-        : null;
-  const visibleError = error ?? supportError;
-  const invoiceSupportLoading = invoiceTermsQuery.isPending || invoiceAccountsQuery.isPending;
+  const invoices = invoicesQuery.data ?? [];
+  const invoiceTerms = invoiceTermsQuery.data ?? [];
+  const invoiceAccounts = invoiceAccountsQuery.data ?? [];
+  const loading = invoicesQuery.isLoading;
   const refreshing = invoicesQuery.isFetching || invoiceTermsQuery.isFetching || invoiceAccountsQuery.isFetching;
+  const visibleError = invoicesQuery.error instanceof Error ? invoicesQuery.error.message : null;
+  const invoiceSupportLoading = invoiceTermsQuery.isLoading || invoiceAccountsQuery.isLoading;
+
+  const handleRefresh = useCallback(() => {
+    void invoicesQuery.refetch();
+    void invoiceTermsQuery.refetch();
+    void invoiceAccountsQuery.refetch();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const [isPreparingPrint, setIsPreparingPrint] = useState(false);
+
+  const [editingEntry, setEditingEntry] = useState<Purchase | null>(null);
+  const [editFsp, setEditFsp] = useState("");
+  const [editDown, setEditDown] = useState("");
+  const [editRegFee, setEditRegFee] = useState("");
+  const [editSaving, setEditSaving] = useState(false);
+  const [editError, setEditError] = useState<string | null>(null);
+  const [editHasReceipts, setEditHasReceipts] = useState(false);
+
+  const handlePrintInvoice = useCallback((_invoice: InvoiceRow) => {
+    setIsPreparingPrint(true);
+    requestAnimationFrame(() => {
+      window.print();
+      setIsPreparingPrint(false);
+    });
+  }, []);
+
+  function openEditModal(invoice: InvoiceRow) {
+    const entry = invoice.entries[0];
+    setEditFsp(String(entry.finalSellingPrice));
+    setEditDown(String(entry.downPaymentAmount ?? ""));
+    setEditRegFee(String(entry.registrationFeeAmount ?? ""));
+    setEditError(null);
+    const outstanding = entry.finalSellingPrice - (entry.downPaymentAmount ?? 0);
+    setEditHasReceipts((entry.remainingAmount ?? 0) < outstanding);
+    setEditingEntry(entry);
+  }
+
+  async function submitEditInvoice() {
+    if (!editingEntry) return;
+    const fsp = parseFloat(editFsp);
+    if (!isFinite(fsp) || fsp < 0) {
+      setEditError("Final selling price must be a valid positive number");
+      return;
+    }
+    const body: Record<string, number> = { finalSellingPrice: fsp };
+    if (editingEntry.paymentType === "DOWNPAYMENT") {
+      const down = parseFloat(editDown);
+      if (!isFinite(down) || down < 0) { setEditError("Down payment must be a valid number"); return; }
+      body.downPaymentAmount = down;
+    }
+    if (editingEntry.hasRegistrationFee) {
+      const reg = parseFloat(editRegFee);
+      if (!isFinite(reg) || reg <= 0) { setEditError("Registration fee must be greater than 0"); return; }
+      body.registrationFeeAmount = reg;
+    }
+    setEditSaving(true);
+    setEditError(null);
+    try {
+      const res = await fetch(`${base}/purchases/${editingEntry.id}`, {
+        method: "PATCH",
+        headers: { ...auth, "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const payload = await res.json() as { message?: string };
+      if (!res.ok) { setEditError(payload.message ?? "Failed to update invoice"); return; }
+      setEditingEntry(null);
+      void invoicesQuery.refetch();
+    } catch {
+      setEditError("Network error. Please try again.");
+    } finally {
+      setEditSaving(false);
+    }
+  }
+
+  useEffect(() => {
+    if (!selectedInvoice) { setInvoiceInstallments([]); return; }
+    const entry = selectedInvoice.entries.find((e) => (e.installmentMonths ?? 0) > 0);
+    if (!entry) { setInvoiceInstallments([]); return; }
+    void (async () => {
+      try {
+        const resp = await fetch(`${base}/${entry.customer.id}/purchases/${entry.id}/installments`, { headers: auth, cache: "no-store" });
+        const json = await resp.json() as { data?: { installments?: Installment[] } };
+        setInvoiceInstallments(json.data?.installments ?? []);
+      } catch { setInvoiceInstallments([]); }
+    })();
+  }, [auth, base, selectedInvoice]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [search, rowsPerPage]);
 
   const getPurchaseItemMeta = useCallback((entry: Purchase) => {
     if (entry.itemType === "BIKE" && entry.bike) {
@@ -191,10 +323,22 @@ export default function InvoicesPage() {
         subtitle: `${entry.bike.displayId} • ${entry.bike.colour}`,
       };
     }
-    if (entry.inventory) {
+    if (entry.itemType === "INVENTORY" && entry.inventory) {
       return {
         title: entry.inventory.name,
         subtitle: `${entry.inventory.displayId} • ${entry.inventory.brand}`,
+      };
+    }
+    if (entry.itemType === "PRE_ORDER" && entry.preOrder) {
+      return {
+        title: `${entry.preOrder.brand} ${entry.preOrder.model}`,
+        subtitle: `Pre-Order • ${entry.preOrder.displayId}`,
+      };
+    }
+    if (entry.itemType === "CUSTOM") {
+      return {
+        title: entry.customCategory ?? "Custom Invoice",
+        subtitle: entry.customDescription ?? "—",
       };
     }
     return { title: "Unknown item", subtitle: "-" };
@@ -339,6 +483,14 @@ export default function InvoicesPage() {
     });
   }, [invoiceRows, search]);
 
+  const pagedRows = useMemo(() => {
+    if (rowsPerPage === "all") return filteredInvoiceRows;
+    const rpp = rowsPerPage as number;
+    return filteredInvoiceRows.slice((currentPage - 1) * rpp, currentPage * rpp);
+  }, [filteredInvoiceRows, rowsPerPage, currentPage]);
+
+  const totalPages = rowsPerPage === "all" ? 1 : Math.max(1, Math.ceil(filteredInvoiceRows.length / (rowsPerPage as number)));
+
   const totalInvoiceAmount = useMemo(
     () => invoiceRows.reduce((sum, invoice) => sum + invoice.finalSellingPrice, 0),
     [invoiceRows]
@@ -352,179 +504,9 @@ export default function InvoicesPage() {
     return getActiveInvoiceAccounts(invoiceAccounts);
   }, [invoiceAccounts]);
 
-  const getInvoiceGrandTotal = (invoice: InvoiceRow) => invoice.finalSellingPrice + invoice.registrationFeeTotal;
-
-  const generateInvoiceHtml = (
-    invoice: InvoiceRow,
-    accountsForInvoice: InvoiceAccount[] = activeInvoiceAccounts,
-    termsForInvoice: string[] = activeInvoiceTerms,
-  ): string => {
-    const invoiceNumber = String(Math.min(...invoice.entries.map((entry) => entry.id))).padStart(4, "0");
-    
-    const entryRowsHtml = invoice.entries.map((entry) => {
-      const itemMeta = getPurchaseItemMeta(entry);
-      const hasBike = entry.itemType === "BIKE" && !!entry.bike;
-      const unitPrice = entry.quantity > 0 ? entry.finalSellingPrice / entry.quantity : entry.finalSellingPrice;
-      
-      return `
-        <tr>
-          <td class="invoice-desc-cell" style="padding: 8px; vertical-align: top;">
-            <strong style="display: block; font-size: 12px; line-height: 1.25; margin-bottom: 2px;">${itemMeta.title}</strong>
-            <span style="display: block; color: #666; font-size: 10px; line-height: 1.35;">${itemMeta.subtitle}</span>
-            ${hasBike ? `<span style="display: block; color: #4f4f4f; font-size: 10px; line-height: 1.35; margin-top: 2px;">Chassis No: ${entry.bike?.chassisNo ?? "-"} | Engine No: ${entry.bike?.engineNo ?? "-"} | Registration: ${entry.bike?.registrationType ?? "-"}</span>` : ""}
-          </td>
-          <td class="invoice-col-qty" style="padding: 8px; text-align: center; font-variant-numeric: tabular-nums;">${entry.quantity}</td>
-          <td class="invoice-col-amount" style="padding: 8px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap;">Rs. ${unitPrice.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-          <td class="invoice-col-amount" style="padding: 8px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap;">Rs. ${entry.finalSellingPrice.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-        </tr>
-      `;
-    }).join("");
-
-    const regFeesHtml = invoice.entries
-      .filter((entry) => entry.hasRegistrationFee && (entry.registrationFeeAmount ?? 0) > 0)
-      .map((entry) => `
-        <tr style="background: #f0f0f0;">
-          <td class="invoice-desc-cell" style="padding: 8px; vertical-align: top;">Registration Fee${entry.bike ? ` - ${entry.bike.brand} ${entry.bike.model}` : ""}</td>
-          <td class="invoice-col-qty" style="padding: 8px; text-align: center;">${entry.quantity}</td>
-          <td class="invoice-col-amount" style="padding: 8px; text-align: right;">Rs. ${(entry.registrationFeeAmount ?? 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-          <td class="invoice-col-amount" style="padding: 8px; text-align: right;">Rs. ${((entry.registrationFeeAmount ?? 0) * entry.quantity).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-        </tr>
-      `)
-      .join("");
-
-    const leasingHtml = invoice.entries.some((entry) => entry.purchaseChannel === "LEASING") ? `
-      <tr>
-        <td class="invoice-desc-cell" style="padding: 8px;">
-          Leasing Partner${invoice.entries.find((entry) => entry.purchaseChannel === "LEASING")?.leasingCompany?.name ? ` - ${invoice.entries.find((entry) => entry.purchaseChannel === "LEASING")?.leasingCompany?.name}` : ""}
-        </td>
-        <td class="invoice-col-qty" style="padding: 8px;"></td>
-        <td class="invoice-col-amount" style="padding: 8px;"></td>
-        <td class="invoice-col-amount" style="padding: 8px;"></td>
-      </tr>
-      <tr>
-        <td class="invoice-desc-cell" style="padding: 8px;">Leasing Amount</td>
-        <td class="invoice-col-qty" style="padding: 8px;"></td>
-        <td class="invoice-col-amount" style="padding: 8px; text-align: right;">Rs. ${invoice.entries.reduce((sum, entry) => sum + (entry.leasingFinancedAmount ?? 0), 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-        <td class="invoice-col-amount" style="padding: 8px;"></td>
-      </tr>
-    ` : "";
-
-    const bankDetailsHtml = accountsForInvoice.length > 0 ? `
-      <div class="invoice-bank-block" style="margin: 10px 0 0; display: flex; flex-direction: column; gap: 4px; font-size: 14px;">
-        <strong>Bank Details</strong>
-        ${accountsForInvoice.map((account) => `
-          <div class="invoice-bank-account" style="display: flex; flex-direction: column; gap: 2px; margin-top: 2px;">
-            <span>Account No: ${escapeInvoiceHtml(account.accountNumber)}</span>
-            <span>Account Name: ${escapeInvoiceHtml(account.accountHolder)}</span>
-            <span>Bank: ${escapeInvoiceHtml(account.bankName)}${account.branchName ? ` - ${escapeInvoiceHtml(account.branchName)}` : ""}</span>
-          </div>
-        `).join("")}
-      </div>
-    ` : "";
-
-    const termsHtml = termsForInvoice.length > 0 ? `
-      <div style="margin: 10px 0 0; padding: 8px 10px; border: 1px solid #cfcfcf; background: #f7f7f7;">
-        <h3 style="margin: 0 0 6px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em;">Terms & Conditions</h3>
-        <ul style="margin: 0; padding-left: 16px;">
-          ${termsForInvoice.map((term) => `<li style="margin: 0 0 3px; font-size: 10px; line-height: 1.4;">${escapeInvoiceHtml(term)}</li>`).join("")}
-        </ul>
-      </div>
-    ` : "";
-
-    return `
-      <div class="invoice-paper" style="width: 100%; max-width: 198mm; margin: 0 auto; background: #fff;">
-        <header class="invoice-paper-header" style="background: #000; color: #caa24a; text-align: center; padding: 12px 16px 10px;">
-          <img src="/landing/logoq.png" alt="JL Racing" class="invoice-brand-logo" style="width: 110px; height: auto; display: block; margin: 0 auto 6px;" />
-          <p class="invoice-brand-line" style="margin: 0; font-size: 14px; font-weight: 700; line-height: 1.3; letter-spacing: 0.01em;">JL Racing</p>
-          <p class="invoice-brand-line" style="margin: 0; font-size: 11px; font-weight: 700; line-height: 1.35;">Importers, Exporters & Dealers Of Motorcycles, Motor Vehicles, Machineries & Other</p>
-          <p class="invoice-brand-line" style="margin: 0; font-size: 11px; font-weight: 700; line-height: 1.35;">Motorized Equipments With Spare Parts.</p>
-          <p class="invoice-brand-address" style="margin: 0; font-size: 11px; font-weight: 700; line-height: 1.35;">No:154, Puttalam Road, Kurunegala, Sri Lanka, Kurunegala</p>
-        </header>
-
-        <section class="invoice-paper-body" style="padding: 12px;">
-          <div class="invoice-meta-row" style="display: flex; justify-content: space-between; align-items: center; font-size: 1.05rem; margin-bottom: 1rem;">
-            <strong>Invoice No: #${invoiceNumber}</strong>
-            <strong>Date: ${new Date(invoice.purchasedAt).toLocaleDateString("en-GB")}</strong>
-          </div>
-
-          <div class="invoice-customer-block" style="display: flex; flex-direction: column; gap: 4px; font-size: 14px; margin-bottom: 10px;">
-            <strong>${invoice.customer.firstName} ${invoice.customer.lastName}</strong>
-            <span>${invoice.customer.address}</span>
-            <span>${invoice.customer.district}</span>
-          </div>
-
-          <div class="invoice-divider" style="height: 10px; background: #000; margin: 10px 0 8px;"></div>
-
-          <table class="invoice-print-table" style="width: 100%; border-collapse: collapse; table-layout: fixed; margin-bottom: 12px;">
-            <thead>
-              <tr>
-                <th class="invoice-col-desc" style="text-align: left; border-bottom: 2px solid #999; padding: 7px 8px; font-size: 11px; font-weight: 700;">Description</th>
-                <th class="invoice-col-qty" style="text-align: center; border-bottom: 2px solid #999; padding: 7px 8px; font-size: 11px; font-weight: 700;">Qty</th>
-                <th class="invoice-col-amount" style="text-align: right; border-bottom: 2px solid #999; padding: 7px 8px; font-size: 11px; font-weight: 700;">Unit Price</th>
-                <th class="invoice-col-amount" style="text-align: right; border-bottom: 2px solid #999; padding: 7px 8px; font-size: 11px; font-weight: 700;">Total Price</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${entryRowsHtml}
-              ${regFeesHtml}
-              ${leasingHtml}
-              <tr>
-                <td class="invoice-desc-cell" style="padding: 8px; border-bottom: none;">Advance</td>
-                <td class="invoice-col-qty" style="padding: 8px; border-bottom: none;"></td>
-                <td class="invoice-col-amount" style="padding: 8px; border-bottom: none; text-align: right;">Rs. ${invoice.downPaymentAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-                <td class="invoice-col-amount" style="padding: 8px; border-bottom: none;"></td>
-              </tr>
-              <tr>
-                <td class="invoice-desc-cell" style="padding: 8px; border-bottom: none; padding-top: 8px; font-weight: 700;">Balance</td>
-                <td class="invoice-col-qty" style="padding: 8px; border-bottom: none;"></td>
-                <td class="invoice-col-amount" style="padding: 8px; border-bottom: none; text-align: right;">Rs. ${invoice.remainingAmount.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-                <td class="invoice-col-amount" style="padding: 8px; border-bottom: none;"></td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="3" style="text-align: right; font-weight: 700; color: #333; padding-right: 8px; padding: 8px;">Total</td>
-                <td class="invoice-total-value" style="background: #000; color: #fff; font-weight: 700; text-align: center; min-width: 170px; padding: 8px;">Rs. ${getInvoiceGrandTotal(invoice).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</td>
-              </tr>
-            </tfoot>
-          </table>
-
-          ${bankDetailsHtml}
-
-          ${termsHtml}
-
-          <p class="invoice-support-note" style="margin-top: 10px; text-align: right; font-style: italic; font-size: 12px;">If you have any questions concerning this invoice, please contact us at <strong>071 791 0091</strong></p>
-        </section>
-      </div>
-    `;
-  };
-
-  const handleRefresh = () => {
-    void Promise.all([
-      invoicesQuery.refetch(),
-      invoiceTermsQuery.refetch(),
-      invoiceAccountsQuery.refetch(),
-    ]);
-  };
-
-  const handlePrintInvoice = async (invoice: InvoiceRow) => {
-    setIsPreparingPrint(true);
-    try {
-      const [accountsResult, termsResult] = await Promise.all([
-        invoiceAccountsQuery.refetch(),
-        invoiceTermsQuery.refetch(),
-      ]);
-
-      if (accountsResult.error || termsResult.error) return;
-
-      const invoiceNumber = String(Math.min(...invoice.entries.map((entry) => entry.id))).padStart(4, "0");
-      const latestAccounts = getActiveInvoiceAccounts(accountsResult.data ?? invoiceAccounts);
-      const latestTerms = getActiveInvoiceTerms(termsResult.data ?? invoiceTerms);
-      const invoiceHtml = generateInvoiceHtml(invoice, latestAccounts, latestTerms);
-      exportInvoiceToPdf(invoiceHtml, invoiceNumber);
-    } finally {
-      setIsPreparingPrint(false);
-    }
+  const getInvoiceGrandTotal = (invoice: InvoiceRow) => {
+    const effectiveTotal = invoice.entries.reduce((sum, e) => sum + (e.totalWithInterest ?? e.finalSellingPrice), 0);
+    return effectiveTotal + invoice.registrationFeeTotal;
   };
 
   return (
@@ -537,7 +519,28 @@ export default function InvoicesPage() {
             <p className="page-subtitle">Purchase invoices with complete customer and item details.</p>
           </div>
         </div>
+        <button
+          type="button"
+          className="btn-accent"
+          onClick={() => setShowCustomModal(true)}
+        >
+          + Generate Custom Invoice
+        </button>
       </div>
+
+      {showCustomModal && (
+        <CustomerPurchaseModal
+          token={token}
+          itemType="CUSTOM"
+          itemId={0}
+          itemLabel="Custom Invoice"
+          onClose={() => setShowCustomModal(false)}
+          onSaved={() => {
+            setShowCustomModal(false);
+            void invoicesQuery.refetch();
+          }}
+        />
+      )}
 
       {visibleError && <div className="bm-alert bm-alert-error">{visibleError}</div>}
 
@@ -577,13 +580,14 @@ export default function InvoicesPage() {
                 <th>Customer</th>
                 <th>Item</th>
                 <th>Final Price</th>
+                <th>Status</th>
                 <th>Action</th>
               </tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan={6} className="bm-table-empty">Loading invoices...</td></tr>}
-              {!loading && filteredInvoiceRows.length === 0 && <tr><td colSpan={6} className="bm-table-empty">No invoices found.</td></tr>}
-              {!loading && filteredInvoiceRows.map((invoice) => (
+              {loading && <tr><td colSpan={7} className="bm-table-empty">Loading invoices...</td></tr>}
+              {!loading && filteredInvoiceRows.length === 0 && <tr><td colSpan={7} className="bm-table-empty">No invoices found.</td></tr>}
+              {!loading && pagedRows.map((invoice) => (
                 <tr key={invoice.key}>
                   <td>{invoice.invoiceLabel}</td>
                   <td>{new Date(invoice.purchasedAt).toLocaleString()}</td>
@@ -595,13 +599,78 @@ export default function InvoicesPage() {
                   </td>
                   <td>Rs. {invoice.finalSellingPrice.toLocaleString()}</td>
                   <td>
-                    <button type="button" className="btn-outline" onClick={() => setSelectedInvoice(invoice)}>View Invoice</button>
+                    {(invoice.remainingAmount > 0 || invoice.settlementStatus === "SETTLED") && (
+                      <span style={{
+                        fontWeight: 600,
+                        fontSize: "0.8rem",
+                        color: invoice.settlementStatus === "SETTLED" ? "var(--green)" : "var(--amber, #f59e0b)",
+                      }}>
+                        {invoice.settlementStatus === "SETTLED" ? "Settled" : "To Settle"}
+                      </span>
+                    )}
+                  </td>
+                  <td>
+                    <div style={{ display: "flex", gap: "0.5rem" }}>
+                      <button type="button" className="btn-outline" onClick={() => setSelectedInvoice(invoice)}>View Invoice</button>
+                      {invoice.purchaseModeText === "Single" && invoice.entries[0]?.purchaseChannel !== "LEASING" ? (
+                        <button type="button" className="btn-outline" onClick={() => openEditModal(invoice)}>Edit</button>
+                      ) : (
+                        <button type="button" className="btn-outline" disabled title="Bulk or leasing invoices cannot be edited here">Edit</button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+        {filteredInvoiceRows.length > 0 && (
+          <div style={{ padding: "0.75rem 1rem", borderTop: "1px solid var(--panel-border)", display: "flex", alignItems: "center", gap: "1rem", flexWrap: "wrap", justifyContent: "space-between" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", fontSize: "0.85rem" }}>
+              <span style={{ color: "var(--text-soft)" }}>Rows per page:</span>
+              <select
+                className="bm-select"
+                style={{ width: "auto", padding: "0.25rem 0.5rem", fontSize: "0.85rem" }}
+                value={rowsPerPage}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setRowsPerPage(v === "all" ? "all" : Number(v));
+                }}
+              >
+                {([10, 20, 50, 100] as const).map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+                <option value="all">All</option>
+              </select>
+            </div>
+            {rowsPerPage !== "all" && (
+              <div style={{ display: "flex", alignItems: "center", gap: "0.75rem", fontSize: "0.85rem" }}>
+                <span style={{ color: "var(--text-soft)" }}>
+                  {`${(currentPage - 1) * (rowsPerPage as number) + 1}–${Math.min(currentPage * (rowsPerPage as number), filteredInvoiceRows.length)}`} of {filteredInvoiceRows.length}
+                </span>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  style={{ padding: "0.25rem 0.6rem", fontSize: "0.8rem" }}
+                  disabled={currentPage <= 1}
+                  onClick={() => setCurrentPage((p) => p - 1)}
+                >
+                  ‹ Prev
+                </button>
+                <span style={{ color: "var(--text-soft)" }}>Page {currentPage} of {totalPages}</span>
+                <button
+                  type="button"
+                  className="btn-outline"
+                  style={{ padding: "0.25rem 0.6rem", fontSize: "0.8rem" }}
+                  disabled={currentPage >= totalPages}
+                  onClick={() => setCurrentPage((p) => p + 1)}
+                >
+                  Next ›
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {selectedInvoice && (
@@ -694,14 +763,34 @@ export default function InvoicesPage() {
                         </tr>
                       </>
                     )}
+                    {(() => {
+                      const interestEntry = selectedInvoice.entries.find((e) => (e.interestRate ?? 0) > 0 && (e.installmentMonths ?? 0) > 0);
+                      if (!interestEntry) return null;
+                      return (
+                        <>
+                          <tr className="invoice-summary-row">
+                            <td className="invoice-desc-cell">Finance Charge ({interestEntry.interestRate}%)</td>
+                            <td className="invoice-col-qty" />
+                            <td className="invoice-col-amount">Rs. {((interestEntry.totalWithInterest ?? 0) - interestEntry.finalSellingPrice).toLocaleString()}</td>
+                            <td className="invoice-col-amount" />
+                          </tr>
+                          <tr className="invoice-summary-row">
+                            <td className="invoice-desc-cell">Monthly Installment × {interestEntry.installmentMonths} months</td>
+                            <td className="invoice-col-qty" />
+                            <td className="invoice-col-amount">Rs. {(interestEntry.monthlyInstallmentAmount ?? 0).toLocaleString()}</td>
+                            <td className="invoice-col-amount" />
+                          </tr>
+                        </>
+                      );
+                    })()}
                     <tr className="invoice-summary-row">
-                      <td className="invoice-desc-cell">Advance</td>
+                      <td className="invoice-desc-cell">Advance Paid</td>
                       <td className="invoice-col-qty" />
                       <td className="invoice-col-amount">Rs. {selectedInvoice.downPaymentAmount.toLocaleString()}</td>
                       <td className="invoice-col-amount" />
                     </tr>
                     <tr className="invoice-summary-row invoice-balance-row">
-                      <td className="invoice-desc-cell">Balance</td>
+                      <td className="invoice-desc-cell">Balance Remaining</td>
                       <td className="invoice-col-qty" />
                       <td className="invoice-col-amount">Rs. {selectedInvoice.remainingAmount.toLocaleString()}</td>
                       <td className="invoice-col-amount" />
@@ -709,24 +798,83 @@ export default function InvoicesPage() {
                   </tbody>
                   <tfoot>
                     <tr>
-                      <td colSpan={3} className="invoice-total-label">Total</td>
+                      <td colSpan={3} className="invoice-total-label">Grand Total</td>
                       <td className="invoice-total-value">Rs. {getInvoiceGrandTotal(selectedInvoice).toLocaleString()}</td>
                     </tr>
                   </tfoot>
                 </table>
 
-                {activeInvoiceAccounts.length > 0 && (
-                  <div className="invoice-bank-block">
-                    <strong>Bank Details</strong>
-                    {activeInvoiceAccounts.map((account) => (
-                      <div className="invoice-bank-account" key={account.id}>
-                        <span>Account No: {account.accountNumber}</span>
-                        <span>Account Name: {account.accountHolder}</span>
-                        <span>Bank: {account.bankName}{account.branchName ? ` - ${account.branchName}` : ""}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
+                <div className="invoice-bank-block">
+                  <strong>Bank Details</strong>
+                  <span>019010033205</span>
+                  <span>JL Racing</span>
+                  <span>HNB</span>
+                </div>
+
+                {invoiceInstallments.length > 0 && (() => {
+                  const paidCount = invoiceInstallments.filter((i) => i.status === "PAID" || i.status === "PARTIAL").length;
+                  const remainingCount = invoiceInstallments.filter((i) => i.status === "PENDING" || i.status === "PARTIAL").length;
+                  return (
+                    <>
+                      <div className="invoice-divider" />
+                      <strong style={{ display: "block", marginBottom: "0.5rem" }}>
+                        Installment Schedule — {paidCount} of {invoiceInstallments.length} months paid · {remainingCount} remaining
+                      </strong>
+                      <table className="invoice-print-table">
+                        <thead>
+                          <tr>
+                            <th>#</th>
+                            <th>Due Date</th>
+                            <th className="invoice-col-amount">Monthly Due</th>
+                            <th className="invoice-col-amount">Paid</th>
+                            <th className="invoice-col-amount">Penalty</th>
+                            <th className="invoice-col-amount">Balance Due</th>
+                            <th>Status</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {invoiceInstallments.map((inst) => {
+                            const balanceDue = Math.max(0, Math.round((inst.dueAmount + (inst.penaltyAmount ?? 0) - inst.paidAmount) * 100) / 100);
+                            return (
+                              <>
+                                <tr key={inst.id} style={{ opacity: inst.status === "PAID" ? 0.65 : 1 }}>
+                                  <td>{inst.installmentNo}</td>
+                                  <td>
+                                    {new Date(inst.dueDate).toLocaleDateString("en-GB")}
+                                    {inst.settledAt && <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>Last: {new Date(inst.settledAt).toLocaleDateString("en-GB")}</div>}
+                                  </td>
+                                  <td className="invoice-col-amount">Rs. {inst.dueAmount.toLocaleString()}</td>
+                                  <td className="invoice-col-amount">{inst.paidAmount > 0 ? `Rs. ${inst.paidAmount.toLocaleString()}` : "—"}</td>
+                                  <td className="invoice-col-amount">{(inst.penaltyAmount ?? 0) > 0 ? `Rs. ${inst.penaltyAmount.toLocaleString()}` : "—"}</td>
+                                  <td className="invoice-col-amount" style={{ fontWeight: balanceDue > 0 ? 600 : undefined, color: balanceDue > 0 ? "var(--amber, #f59e0b)" : undefined }}>
+                                    {balanceDue > 0 ? `Rs. ${balanceDue.toLocaleString()}` : "—"}
+                                  </td>
+                                  <td>
+                                    <span style={{ fontWeight: 600, color: inst.status === "PAID" ? "var(--green)" : inst.status === "PARTIAL" ? "var(--amber, #f59e0b)" : "var(--text-muted)" }}>
+                                      {inst.status}
+                                    </span>
+                                  </td>
+                                </tr>
+                                {inst.payments && inst.payments.length > 0 && inst.payments.map((pay) => (
+                                  <tr key={`pay-${pay.id}`} style={{ background: "var(--panel-bg, #f9f9f9)" }}>
+                                    <td style={{ paddingLeft: "1.2rem", fontSize: "0.78rem", color: "var(--text-muted)" }}>↳</td>
+                                    <td style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{new Date(pay.paidAt).toLocaleDateString("en-GB")}</td>
+                                    <td className="invoice-col-amount" style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>{pay.note ?? ""}</td>
+                                    <td className="invoice-col-amount" style={{ fontSize: "0.78rem" }}>Rs. {pay.amount.toLocaleString()}</td>
+                                    <td className="invoice-col-amount" style={{ fontSize: "0.78rem", color: pay.penaltyAmount > 0 ? "var(--amber, #f59e0b)" : "var(--text-muted)" }}>
+                                      {pay.penaltyAmount > 0 ? `Rs. ${pay.penaltyAmount.toLocaleString()}` : "—"}
+                                    </td>
+                                    <td colSpan={2} />
+                                  </tr>
+                                ))}
+                              </>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </>
+                  );
+                })()}
 
                 {activeInvoiceTerms.length > 0 && (
                   <>
@@ -753,6 +901,75 @@ export default function InvoicesPage() {
                 {invoiceSupportLoading || isPreparingPrint ? "Preparing Invoice..." : "Print Invoice"}
               </button>
               <button type="button" className="btn-outline" onClick={() => setSelectedInvoice(null)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {editingEntry && (
+        <div className="bm-modal-backdrop" onClick={() => setEditingEntry(null)}>
+          <div className="bm-modal" onClick={(e) => e.stopPropagation()}>
+            <button type="button" className="bm-modal-close" onClick={() => setEditingEntry(null)}>×</button>
+            <h3 className="bm-modal-title">Edit Invoice</h3>
+            <div className="bm-modal-body">
+              {editHasReceipts && (
+                <div style={{ background: "var(--amber-bg, #fef3c7)", border: "1px solid var(--amber, #f59e0b)", borderRadius: 6, padding: "0.75rem", marginBottom: "1rem", fontSize: "0.85rem", color: "var(--amber-dark, #92400e)" }}>
+                  Warning: Payments for this invoice may already be receipted. Editing amounts may create a discrepancy with existing receipts.
+                </div>
+              )}
+              {editError && (
+                <div className="bm-alert bm-alert-error" style={{ marginBottom: "0.75rem" }}>{editError}</div>
+              )}
+              <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                <div className="bm-field-group">
+                  <label className="users-label">Final Selling Price (Rs.)</label>
+                  <input
+                    className="bm-input"
+                    type="number"
+                    min={0}
+                    step="0.01"
+                    value={editFsp}
+                    onChange={(e) => setEditFsp(e.target.value)}
+                  />
+                </div>
+                {editingEntry.paymentType === "DOWNPAYMENT" && (
+                  <div className="bm-field-group">
+                    <label className="users-label">Down Payment Amount (Rs.)</label>
+                    <input
+                      className="bm-input"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={editDown}
+                      onChange={(e) => setEditDown(e.target.value)}
+                    />
+                  </div>
+                )}
+                {editingEntry.hasRegistrationFee && (
+                  <div className="bm-field-group">
+                    <label className="users-label">Registration Fee (Rs.)</label>
+                    <input
+                      className="bm-input"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={editRegFee}
+                      onChange={(e) => setEditRegFee(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="bm-modal-actions">
+              <button type="button" className="btn-outline" onClick={() => setEditingEntry(null)}>Cancel</button>
+              <button
+                type="button"
+                className="btn-accent"
+                onClick={() => void submitEditInvoice()}
+                disabled={editSaving}
+              >
+                {editSaving ? "Saving..." : "Save Changes"}
+              </button>
             </div>
           </div>
         </div>

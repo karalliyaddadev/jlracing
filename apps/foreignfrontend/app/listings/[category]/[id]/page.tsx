@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import ImageLightbox from "../../../components/ImageLightbox";
+import { BackLink } from "../../../components/BackLink";
+import { WHATSAPP_LINK } from "../../../lib/whatsapp";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
@@ -111,9 +113,7 @@ export default function ListingDetailPage() {
   return (
     <section className="bikedetail-page">
       <div className="bikedetail-container">
-        <Link href="/listings" className="bikedetail__back">
-          ← Back to {categoryLabel}
-        </Link>
+        <BackLink href="/listings" label={categoryLabel} />
 
         <div className="bikedetail__layout">
           {/* ── Left – Gallery ── */}
@@ -178,7 +178,7 @@ export default function ListingDetailPage() {
                 Inquire Now
               </Link>
               <a
-                href="https://wa.me/94717910091"
+                href={WHATSAPP_LINK}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="bikedetail__btn bikedetail__btn--whatsapp"

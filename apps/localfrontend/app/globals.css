@@ -35,6 +35,23 @@
   --radius-lg: 12px;
   --header-h: 70px;
   --announce-h: 40px;
+
+  /* Typography scale — matches apps/foreignfrontend */
+  --fs-hero: clamp(1.5rem, 3.5vw, 2.4rem);
+  --fw-hero: 800;
+  --lh-hero: 1.25;
+
+  --fs-label: 0.7rem;
+  --fw-label: 700;
+  --ls-label: 0.12em;
+
+  --fw-heading: 800;
+  --lh-heading: 1.3;
+
+  --fs-body: 0.88rem;
+  --fs-body-lead: 0.95rem;
+  --fw-body: 400;
+  --lh-body: 1.7;
 }
 
 /* ── Reset ── */
@@ -381,9 +398,9 @@ button {
 .hero__subtitle {
   display: inline-block;
   padding: 0.35rem 1rem;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.25em;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: #fff;
   background: var(--accent);
@@ -393,10 +410,10 @@ button {
 }
 
 .hero__title {
-  font-size: clamp(2.8rem, 5.5vw, 4.5rem);
-  font-weight: 900;
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-hero);
   letter-spacing: -0.03em;
-  line-height: 1.05;
+  line-height: var(--lh-hero);
   text-shadow: 0 4px 40px rgba(0, 0, 0, 0.5);
   animation: fadeSlideUp 0.5s 0.1s ease both;
 }
@@ -546,9 +563,9 @@ button {
 
 .slider-section__label {
   display: block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.25em;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 0.5rem;
@@ -556,7 +573,7 @@ button {
 
 .slider-section__title {
   font-size: clamp(1.8rem, 3vw, 2.5rem);
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   letter-spacing: -0.02em;
   color: var(--text-dark);
 }
@@ -702,9 +719,9 @@ button {
 
 .why-section__label {
   display: block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.25em;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 0.6rem;
@@ -712,7 +729,7 @@ button {
 
 .why-section__title {
   font-size: clamp(1.8rem, 3vw, 2.5rem);
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   letter-spacing: -0.02em;
   margin-bottom: 3rem;
 }
@@ -756,9 +773,10 @@ button {
 }
 
 .why-card__text {
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-body);
   color: var(--text-dark-muted);
-  line-height: 1.7;
+  line-height: var(--lh-body);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -818,9 +836,9 @@ button {
 
 .brands__label {
   display: inline-block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.25em;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--text-dark-secondary);
   margin-bottom: 2rem;
@@ -882,16 +900,17 @@ button {
 
 .wwh__title {
   font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 900;
+  font-weight: var(--fw-heading);
   letter-spacing: -0.03em;
   color: var(--text-dark);
   margin-bottom: 0.75rem;
 }
 
 .wwh__subtitle {
-  font-size: 0.95rem;
+  font-size: var(--fs-body-lead);
+  font-weight: var(--fw-body);
   color: var(--text-dark-muted);
-  line-height: 1.7;
+  line-height: var(--lh-body);
 }
 
 .wwh__grid {
@@ -925,7 +944,7 @@ button {
 
 .wwh-card__title {
   font-size: 1.4rem;
-  font-weight: 900;
+  font-weight: var(--fw-heading);
   letter-spacing: 0.02em;
   text-transform: uppercase;
   color: var(--text-dark);
@@ -933,9 +952,10 @@ button {
 }
 
 .wwh-card__desc {
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-body);
   color: var(--text-dark-muted);
-  line-height: 1.65;
+  line-height: var(--lh-body);
   margin-bottom: 1rem;
 }
 
@@ -1000,9 +1020,9 @@ button {
 
 .testimonials__label {
   display: block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.25em;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 0.6rem;
@@ -1010,7 +1030,7 @@ button {
 
 .testimonials__title {
   font-size: clamp(1.8rem, 3vw, 2.5rem);
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   letter-spacing: -0.02em;
   color: var(--text-dark);
 }
@@ -1045,9 +1065,10 @@ button {
 }
 
 .testimonial-card__text {
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-body);
   color: #444;
-  line-height: 1.75;
+  line-height: var(--lh-body);
   flex: 1;
 }
 
@@ -1134,7 +1155,7 @@ button {
 
 .services__image-badge-num {
   font-size: 1.4rem;
-  font-weight: 900;
+  font-weight: var(--fw-heading);
   color: #fff;
 }
 
@@ -1150,9 +1171,9 @@ button {
 /* Content side */
 .services__label {
   display: block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.25em;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 0.5rem;
@@ -1160,16 +1181,17 @@ button {
 
 .services__title {
   font-size: clamp(1.8rem, 3vw, 2.5rem);
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   letter-spacing: -0.02em;
   color: var(--text-dark);
   margin-bottom: 0.75rem;
 }
 
 .services__subtitle {
-  font-size: 0.95rem;
+  font-size: var(--fs-body-lead);
+  font-weight: var(--fw-body);
   color: var(--text-dark-secondary);
-  line-height: 1.7;
+  line-height: var(--lh-body);
   margin-bottom: 2.5rem;
 }
 
@@ -1215,9 +1237,10 @@ button {
 }
 
 .service-feature__text {
-  font-size: 0.8rem;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-body);
   color: var(--text-dark-secondary);
-  line-height: 1.65;
+  line-height: var(--lh-body);
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -1243,9 +1266,9 @@ button {
 
 .listing-overview__label {
   display: block;
-  font-size: 0.7rem;
-  font-weight: 700;
-  letter-spacing: 0.25em;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 0.5rem;
@@ -1253,13 +1276,15 @@ button {
 
 .listing-overview__title {
   font-size: clamp(1.8rem, 3vw, 2.5rem);
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   letter-spacing: -0.02em;
   color: var(--text-dark);
 }
 
 .listing-overview__subtitle {
-  font-size: 0.9rem;
+  font-size: var(--fs-body-lead);
+  font-weight: var(--fw-body);
+  line-height: var(--lh-body);
   color: var(--text-dark-secondary);
   margin-top: 0.4rem;
   max-width: 440px;
@@ -1434,7 +1459,7 @@ button {
 
 .cta-banner__title {
   font-size: clamp(1.6rem, 3vw, 2.2rem);
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   margin-bottom: 0.75rem;
 }
 
@@ -1554,15 +1579,16 @@ button {
 
 .nl__heading {
   font-size: clamp(2.2rem, 3.5vw, 3.2rem);
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   color: #fff;
   line-height: 1.1;
 }
 
 .nl__desc {
-  font-size: 1rem;
+  font-size: var(--fs-body-lead);
+  font-weight: var(--fw-body);
   color: rgba(255, 255, 255, 0.85);
-  line-height: 1.7;
+  line-height: var(--lh-body);
   max-width: 580px;
   margin: 0 auto 0 0;
 }
@@ -1883,24 +1909,24 @@ button {
 
 .gallery-hero__label {
   display: block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 1rem;
 }
 
 .gallery-hero__title {
-  font-size: clamp(1.8rem, 4vw, 3rem);
-  font-weight: 800;
-  line-height: 1.2;
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-hero);
+  line-height: var(--lh-hero);
   color: #fff;
   letter-spacing: -0.02em;
 }
 
 .gallery-hero__title em {
-  font-style: italic;
+  font-style: normal;
   font-weight: 800;
 }
 
@@ -1916,18 +1942,19 @@ button {
 
 .page-heading {
   font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 900;
+  font-weight: var(--fw-heading);
   letter-spacing: -0.03em;
   margin-bottom: 0.75rem;
   color: var(--text-dark);
 }
 
 .page-description {
-  font-size: 1rem;
+  font-size: var(--fs-body-lead);
+  font-weight: var(--fw-body);
   color: var(--text-dark-muted);
   max-width: 600px;
   margin-bottom: 3rem;
-  line-height: 1.7;
+  line-height: var(--lh-body);
 }
 
 /* ── About Hero ── */
@@ -1975,25 +2002,25 @@ button {
 
 .about-hero__label {
   display: block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 1rem;
 }
 
 .about-hero__title {
-  font-size: clamp(2rem, 4.5vw, 3.5rem);
-  font-weight: 800;
-  line-height: 1.15;
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-hero);
+  line-height: var(--lh-hero);
   color: #fff;
   letter-spacing: -0.02em;
   max-width: 600px;
 }
 
 .about-hero__title em {
-  font-style: italic;
+  font-style: normal;
   font-weight: 800;
 }
 
@@ -2018,7 +2045,7 @@ button {
 
 .about-hero__stat-num {
   font-size: clamp(1.8rem, 3.5vw, 2.5rem);
-  font-weight: 900;
+  font-weight: var(--fw-heading);
   color: #fff;
   letter-spacing: -0.02em;
   line-height: 1;
@@ -2047,9 +2074,9 @@ button {
 /* ── Shared About Label ── */
 .about-section-label {
   display: block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 1.25rem;
@@ -2081,7 +2108,7 @@ button {
 
 .about-story__heading {
   font-size: clamp(1.6rem, 3vw, 2.4rem);
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   line-height: 1.2;
   letter-spacing: -0.03em;
   color: var(--text-dark);
@@ -2089,13 +2116,14 @@ button {
 }
 
 .about-story__heading em {
-  font-style: italic;
+  font-style: normal;
 }
 
 .about-story__text p {
-  font-size: 0.92rem;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-body);
   color: var(--text-dark-secondary);
-  line-height: 1.8;
+  line-height: var(--lh-body);
   margin-bottom: 1rem;
 }
 
@@ -2134,7 +2162,7 @@ button {
 
 .about-founder__heading {
   font-size: clamp(1.5rem, 2.8vw, 2.2rem);
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   line-height: 1.2;
   letter-spacing: -0.03em;
   color: var(--text-on-dark);
@@ -2142,13 +2170,14 @@ button {
 }
 
 .about-founder__heading em {
-  font-style: italic;
+  font-style: normal;
 }
 
 .about-founder__text p {
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-body);
   color: var(--text-on-dark-secondary);
-  line-height: 1.8;
+  line-height: var(--lh-body);
   margin-bottom: 1rem;
 }
 
@@ -2226,16 +2255,17 @@ button {
 
 .about-vm__title {
   font-size: 1.6rem;
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   color: #fff;
   letter-spacing: -0.02em;
   margin-bottom: 1.25rem;
 }
 
 .about-vm__text {
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-body);
   color: rgba(255, 255, 255, 0.65);
-  line-height: 1.8;
+  line-height: var(--lh-body);
   flex: 1;
   margin-bottom: 2.5rem;
 }
@@ -2245,7 +2275,7 @@ button {
   font-weight: 600;
   letter-spacing: 0.08em;
   color: rgba(255, 255, 255, 0.3);
-  font-style: italic;
+  font-style: normal;
 }
 
 /* ── Milestones / Our Journey ── */
@@ -2278,14 +2308,14 @@ button {
 
 .about-journey__heading {
   font-size: clamp(1.6rem, 3vw, 2.2rem);
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   letter-spacing: -0.03em;
   color: var(--text-dark);
   margin-bottom: 3rem;
 }
 
 .about-journey__heading em {
-  font-style: italic;
+  font-style: normal;
 }
 
 .about-journey__grid {
@@ -2345,15 +2375,16 @@ button {
 
 .about-milestone__title {
   font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: var(--fw-heading);
   color: var(--text-dark);
   line-height: 1.3;
 }
 
 .about-milestone__desc {
-  font-size: 0.82rem;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-body);
   color: var(--text-dark-secondary);
-  line-height: 1.7;
+  line-height: var(--lh-body);
 }
 
 /* ── About CTA ── */
@@ -2370,7 +2401,7 @@ button {
 
 .about-cta__heading {
   font-size: clamp(2rem, 4vw, 3rem);
-  font-weight: 900;
+  font-weight: var(--fw-heading);
   color: #fff;
   letter-spacing: -0.03em;
   margin-bottom: 1rem;
@@ -2432,9 +2463,10 @@ button {
 }
 
 .about-intro {
-  font-size: 1.15rem;
+  font-size: var(--fs-body-lead);
+  font-weight: var(--fw-body);
   color: var(--text-dark-muted);
-  line-height: 1.8;
+  line-height: var(--lh-body);
   margin-bottom: 1rem;
 }
 
@@ -2467,7 +2499,7 @@ button {
 .stat-number {
   display: block;
   font-size: 2.5rem;
-  font-weight: 900;
+  font-weight: var(--fw-heading);
   color: var(--accent);
   letter-spacing: -0.02em;
 }
@@ -2628,14 +2660,17 @@ button {
 }
 
 .bikes-page__title {
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  font-weight: 800;
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-hero);
+  line-height: var(--lh-hero);
   color: var(--text-dark);
   margin-bottom: 0.4rem;
 }
 
 .bikes-page__subtitle {
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-body);
+  line-height: var(--lh-body);
   color: var(--text-dark-muted);
 }
 
@@ -2860,24 +2895,24 @@ button {
 
 .blog-hero__label {
   display: block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 1rem;
 }
 
 .blog-hero__title {
-  font-size: clamp(1.8rem, 4vw, 3rem);
-  font-weight: 800;
-  line-height: 1.2;
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-hero);
+  line-height: var(--lh-hero);
   color: #fff;
   letter-spacing: -0.02em;
 }
 
 .blog-hero__title em {
-  font-style: italic;
+  font-style: normal;
   font-weight: 800;
 }
 
@@ -2893,14 +2928,16 @@ button {
 
 .blog-heading {
   font-size: clamp(2rem, 4vw, 2.8rem);
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   text-align: center;
   color: var(--text-dark);
   margin-bottom: 0.75rem;
 }
 
 .blog-subheading {
-  font-size: 0.95rem;
+  font-size: var(--fs-body-lead);
+  font-weight: var(--fw-body);
+  line-height: var(--lh-body);
   color: var(--text-dark-secondary);
   text-align: center;
   max-width: 600px;
@@ -3088,9 +3125,10 @@ button {
 }
 
 .blogpost-content p {
-  font-size: 0.92rem;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-body);
   color: var(--text-dark-secondary);
-  line-height: 1.8;
+  line-height: var(--lh-body);
   margin-bottom: 1.25rem;
 }
 
@@ -3308,9 +3346,10 @@ button {
 }
 
 .bikedetail__desc p {
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-body);
   color: var(--text-dark-secondary);
-  line-height: 1.75;
+  line-height: var(--lh-body);
 }
 
 /* ── Actions ── */
@@ -3435,24 +3474,24 @@ button {
 
 .contact-hero__label {
   display: block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 1rem;
 }
 
 .contact-hero__title {
-  font-size: clamp(1.8rem, 4vw, 3rem);
-  font-weight: 800;
-  line-height: 1.2;
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-hero);
+  line-height: var(--lh-hero);
   color: #fff;
   letter-spacing: -0.02em;
 }
 
 .contact-hero__title em {
-  font-style: italic;
+  font-style: normal;
   font-weight: 800;
 }
 
@@ -3507,14 +3546,15 @@ button {
 
 .contact-info__title {
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   margin-bottom: 1rem;
 }
 
 .contact-info__desc {
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-body);
   color: var(--text-on-dark-secondary);
-  line-height: 1.7;
+  line-height: var(--lh-body);
   margin-bottom: 2rem;
 }
 
@@ -3598,13 +3638,15 @@ button {
 
 .contact-form__title {
   font-size: 1.4rem;
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   color: #f5f0e8;
   margin-bottom: 0.4rem;
 }
 
 .contact-form__desc {
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-body);
+  line-height: var(--lh-body);
   color: rgba(245, 240, 232, 0.55);
   margin-bottom: 1.75rem;
 }
@@ -3780,7 +3822,7 @@ button {
 
 .contact-map__title {
   font-size: 1.5rem;
-  font-weight: 800;
+  font-weight: var(--fw-heading);
   color: var(--text-dark);
   margin-bottom: 0.5rem;
 }
@@ -3859,24 +3901,24 @@ button {
 
 .faq-hero__label {
   display: block;
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.18em;
+  font-size: var(--fs-label);
+  font-weight: var(--fw-label);
+  letter-spacing: var(--ls-label);
   text-transform: uppercase;
   color: var(--accent);
   margin-bottom: 1rem;
 }
 
 .faq-hero__title {
-  font-size: clamp(1.8rem, 4vw, 3rem);
-  font-weight: 800;
-  line-height: 1.2;
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-hero);
+  line-height: var(--lh-hero);
   color: #fff;
   letter-spacing: -0.02em;
 }
 
 .faq-hero__title em {
-  font-style: italic;
+  font-style: normal;
   font-weight: 800;
 }
 
@@ -3921,7 +3963,7 @@ button {
 
 .contact-faq__title {
   font-size: clamp(1.6rem, 4vw, 2.4rem);
-  font-weight: 700;
+  font-weight: var(--fw-heading);
   color: #fff;
   margin: 0 0 0.75rem;
   line-height: 1.25;
@@ -3929,10 +3971,11 @@ button {
 
 .contact-faq__subtitle {
   color: rgba(255, 255, 255, 0.55);
-  font-size: 1rem;
+  font-size: var(--fs-body-lead);
+  font-weight: var(--fw-body);
   max-width: 560px;
   margin: 0 auto;
-  line-height: 1.7;
+  line-height: var(--lh-body);
 }
 
 .contact-faq__tabs {
@@ -4371,7 +4414,7 @@ button {
   }
 
   .hero__title {
-    font-size: clamp(2rem, 8vw, 3rem);
+    font-size: var(--fs-hero);
   }
 
   .slider-card {
@@ -4803,17 +4846,19 @@ button {
 }
 
 .po-page__title {
-  font-size: clamp(1.8rem, 3vw, 2.4rem);
-  font-weight: 800;
+  font-size: var(--fs-hero);
+  font-weight: var(--fw-hero);
+  line-height: var(--lh-hero);
   color: var(--text-dark);
   margin-bottom: 0.35rem;
 }
 
 .po-page__subtitle {
-  font-size: 0.88rem;
+  font-size: var(--fs-body);
+  font-weight: var(--fw-body);
   color: var(--text-dark-muted);
   max-width: 560px;
-  line-height: 1.6;
+  line-height: var(--lh-body);
 }
 
 .po-page__divider {

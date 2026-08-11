@@ -4,9 +4,10 @@ import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
 import Pagination from "../components/Pagination";
 import FadeIn from "../components/FadeIn";
+import { useListingPageState } from "../hooks/useListingState";
 
 const MAX_PRICE = 3_000_000;
-const ITEMS_PER_PAGE = 6;
+const ITEMS_PER_PAGE = 8;
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 type PreOrderImage = {
@@ -132,7 +133,7 @@ export default function PreOrdersPage() {
   const [availability, setAvailability] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
+  const { currentPage, setCurrentPage } = useListingPageState(!loadingBikes);
 
   useEffect(() => {
     fetch(`${BACKEND_URL}/api/pre-orders`)

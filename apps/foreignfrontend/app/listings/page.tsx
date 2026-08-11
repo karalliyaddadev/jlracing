@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { VehicleCategory } from "../data/vehicles";
 import FadeIn from "../components/FadeIn";
+import { useListingPageState } from "../hooks/useListingState";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
@@ -42,7 +43,7 @@ const CATEGORY_DESCS: Record<VehicleCategory, string> = {
     "Explore excavators, loaders, and industrial machinery available for international export.",
 };
 
-const PER_PAGE = 6;
+const PER_PAGE = 9;
 
 interface VehicleImage {
   id: number;
@@ -103,12 +104,20 @@ function toCards(vehicles: ListingVehicle[]): ListingCard[] {
 }
 
 export default function ListingsPage() {
-  const [active, setActive] = useState<VehicleCategory>("Automobiles");
-  const [page, setPage] = useState(1);
-
   const [bikes, setBikes] = useState<FetchState>(INITIAL_STATE);
   const [autos, setAutos] = useState<FetchState>(INITIAL_STATE);
   const [heavy, setHeavy] = useState<FetchState>(INITIAL_STATE);
+
+  const {
+    currentPage: page,
+    setCurrentPage: setPage,
+    active: activeRaw,
+    setActive,
+  } = useListingPageState<VehicleCategory>(
+    !bikes.loading && !autos.loading && !heavy.loading,
+    "Automobiles",
+  );
+  const active = activeRaw ?? "Automobiles";
 
   function fetchCategory(
     cat: VehicleCategory,
@@ -155,7 +164,15 @@ export default function ListingsPage() {
     <>
       {/* ── Hero ── */}
       <section className="lst-hero">
-        <div className="lst-hero__bg" />
+        <Image
+          src="/hero/listing-hero-desktop.jpg"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="lst-hero__bg"
+          style={{ objectFit: "cover" }}
+        />
         <div className="lst-hero__overlay" />
         <div className="lst-hero__content">
           <span className="lst-hero__label">Vehicles</span>
@@ -216,11 +233,13 @@ export default function ListingsPage() {
                   >
                     <div className="int-veh-card__img-wrap">
                       {vehicle.image ? (
-                        /* eslint-disable-next-line @next/next/no-img-element */
-                        <img
+                        <Image
                           src={vehicle.image}
                           alt={`${vehicle.name} ${vehicle.year ?? ""}`}
+                          fill
+                          sizes="(max-width: 900px) 100vw, 33vw"
                           className="int-veh-card__img"
+                          style={{ objectFit: "cover" }}
                         />
                       ) : (
                         <div className="bike-card__no-image">No image</div>
