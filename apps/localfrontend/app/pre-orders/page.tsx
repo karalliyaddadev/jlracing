@@ -157,7 +157,7 @@ export default function PreOrdersPage() {
   const { currentPage, setCurrentPage } = useListingPageState(!loadingBikes);
 
   useEffect(() => {
-    fetch(`${BACKEND_URL}/api/pre-orders`)
+    fetch(`${BACKEND_URL}/api/pre-orders?limit=200`)
       .then((r) => r.json())
       .then((data) => setAllBikes(data.data ?? []))
       .catch(() => setAllBikes([]))
