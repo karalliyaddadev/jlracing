@@ -31,6 +31,13 @@ type PreOrderBike = {
   images: PreOrderImage[];
 };
 
+type PreOrderGroup = {
+  key: string;
+  items: PreOrderBike[];
+  representative: PreOrderBike;
+  totalQuantity: number;
+};
+
 function getStatusDisplay(status: string): "In Stock" | "Pre Order" {
   return status === "in-stock" ? "In Stock" : "Pre Order";
 }
@@ -39,6 +46,18 @@ function getPrimaryImageSrc(images: PreOrderImage[]): string | null {
   if (!images?.length) return null;
   const primary = images.find((i) => i.isPrimary) ?? images[0];
   return `${BACKEND_URL}${primary.url}`;
+}
+
+function getPreOrderGroupKey(bike: PreOrderBike) {
+  return [
+    bike.brand.trim().toLowerCase(),
+    bike.model.trim().toLowerCase(),
+    bike.year ?? "none",
+    (bike.cc ?? "").trim().toLowerCase() || "none",
+    (bike.colour ?? "").trim().toLowerCase() || "none",
+    bike.price ?? "none",
+    bike.status.trim().toLowerCase(),
+  ].join(":");
 }
 
 const AVAILABILITY_OPTIONS = ["In Stock", "Pre Order"] as const;
@@ -134,6 +153,7 @@ export default function PreOrdersPage() {
   const [availability, setAvailability] = useState<string[]>([]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const [expandedGroupKey, setExpandedGroupKey] = useState<string | null>(null);
   const { currentPage, setCurrentPage } = useListingPageState(!loadingBikes);
 
   useEffect(() => {
@@ -180,6 +200,7 @@ export default function PreOrdersPage() {
       return;
     }
     setCurrentPage(1);
+    setExpandedGroupKey(null);
   }, [search, availability, brands, ccFilters]);
 
   const q = search.toLowerCase();
@@ -202,8 +223,32 @@ export default function PreOrdersPage() {
     return true;
   });
 
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice(
+  const groupedPreOrders = useMemo(() => {
+    const groups = new Map<string, PreOrderGroup>();
+
+    filtered.forEach((bike) => {
+      const key = getPreOrderGroupKey(bike);
+      const existing = groups.get(key);
+
+      if (!existing) {
+        groups.set(key, {
+          key,
+          items: [bike],
+          representative: bike,
+          totalQuantity: 1,
+        });
+        return;
+      }
+
+      existing.items.push(bike);
+      existing.totalQuantity += 1;
+    });
+
+    return Array.from(groups.values());
+  }, [filtered]);
+
+  const totalPages = Math.ceil(groupedPreOrders.length / ITEMS_PER_PAGE);
+  const paginated = groupedPreOrders.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE,
   );
@@ -345,75 +390,184 @@ export default function PreOrdersPage() {
           <div className="po-grid">
             {loadingBikes ? (
               <p className="po-grid__empty">Loading pre-orders…</p>
-            ) : filtered.length === 0 ? (
+            ) : groupedPreOrders.length === 0 ? (
               <p className="po-grid__empty">No bikes match your filters.</p>
             ) : (
-              paginated.map((bike, i) => {
+              paginated.map((group, i) => {
+                const bike = group.representative;
                 const imgSrc = getPrimaryImageSrc(bike.images);
                 const displayStatus = getStatusDisplay(bike.status);
-                return (
-                  <FadeIn key={`${currentPage}-${bike.id}`} delay={i * 0.07}>
-                    <Link href={`/pre-orders/${bike.id}`} className="po-card">
-                      <div className="po-card__image">
-                        {imgSrc ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={imgSrc}
-                            alt={`${bike.brand} ${bike.model}`}
-                            style={{ width: "100%", height: "100%", objectFit: "cover" }}
-                          />
-                        ) : (
-                          <div className="po-card__placeholder">
-                            <svg
-                              width="56"
-                              height="56"
-                              viewBox="0 0 640 512"
-                              fill="currentColor"
-                            >
-                              <path d="M280 32a80 80 0 1 1 0 160 80 80 0 1 1 0-160zM128 0c-44.2 0-80 35.8-80 80v16H32C14.3 96 0 110.3 0 128s14.3 32 32 32H48v16c0 17.7 14.3 32 32 32H96c17.7 0 32-14.3 32-32V160h5.4l34.9 104.7A96 96 0 1 0 344 352h48a96 96 0 1 0 192 0 96 96 0 1 0-183.2-40H336A96 96 0 0 0 193 192H96V80c0-44.2-35.8-80-80-80H128zM488 352a48 48 0 1 1-96 0 48 48 0 1 1 96 0zm-240 48a48 48 0 1 1 0-96 48 48 0 1 1 0 96z" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                      <div className="po-card__body">
-                        <span
-                          className={`po-card__badge${
-                            displayStatus === "Pre Order" ? " po-card__badge--preorder" : ""
-                          }`}
-                        >
-                          {displayStatus}
-                        </span>
-                        <h3 className="po-card__title">
-                          {bike.brand} {bike.model} {bike.year}
-                        </h3>
-                        <div className="po-card__footer">
-                          <span className="po-card__price">
-                            Rs.&nbsp;
-                            {bike.price != null
-                              ? bike.price.toLocaleString("en-LK")
-                              : "—"}
-                            .00
-                          </span>
-                          <button
-                            className="po-card__cart"
-                            aria-label="Enquire about this bike"
-                          >
-                            <svg
-                              width="15"
-                              height="15"
-                              viewBox="0 0 24 24"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth="2"
-                            >
-                              <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                              <line x1="3" y1="6" x2="21" y2="6" />
-                              <path d="M16 10a4 4 0 01-8 0" />
-                            </svg>
-                          </button>
+                const isExpanded = expandedGroupKey === group.key;
+
+                if (group.items.length === 1) {
+                  return (
+                    <FadeIn key={`${currentPage}-${bike.id}`} delay={i * 0.07}>
+                      <Link href={`/pre-orders/${bike.id}`} className="po-card">
+                        <div className="po-card__image">
+                          {imgSrc ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={imgSrc}
+                              alt={`${bike.brand} ${bike.model}`}
+                              style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                            />
+                          ) : (
+                            <div className="po-card__placeholder">
+                              <svg
+                                width="56"
+                                height="56"
+                                viewBox="0 0 640 512"
+                                fill="currentColor"
+                              >
+                                <path d="M280 32a80 80 0 1 1 0 160 80 80 0 1 1 0-160zM128 0c-44.2 0-80 35.8-80 80v16H32C14.3 96 0 110.3 0 128s14.3 32 32 32H48v16c0 17.7 14.3 32 32 32H96c17.7 0 32-14.3 32-32V160h5.4l34.9 104.7A96 96 0 1 0 344 352h48a96 96 0 1 0 192 0 96 96 0 1 0-183.2-40H336A96 96 0 0 0 193 192H96V80c0-44.2-35.8-80-80-80H128zM488 352a48 48 0 1 1-96 0 48 48 0 1 1 96 0zm-240 48a48 48 0 1 1 0-96 48 48 0 1 1 0 96z" />
+                              </svg>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    </Link>
+                        <div className="po-card__body">
+                          <span
+                            className={`po-card__badge${
+                              displayStatus === "Pre Order" ? " po-card__badge--preorder" : ""
+                            }`}
+                          >
+                            {displayStatus}
+                          </span>
+                          <h3 className="po-card__title">
+                            {bike.brand} {bike.model} {bike.year}
+                          </h3>
+                          <div className="po-card__footer">
+                            <span className="po-card__price">
+                              Rs.&nbsp;
+                              {bike.price != null
+                                ? bike.price.toLocaleString("en-LK")
+                                : "—"}
+                              .00
+                            </span>
+                            <button
+                              className="po-card__cart"
+                              aria-label="Enquire about this bike"
+                            >
+                              <svg
+                                width="15"
+                                height="15"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                                <line x1="3" y1="6" x2="21" y2="6" />
+                                <path d="M16 10a4 4 0 01-8 0" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </Link>
+                    </FadeIn>
+                  );
+                }
+
+                return (
+                  <FadeIn key={`${currentPage}-${group.key}`} delay={i * 0.07}>
+                    <article className={`po-card po-card--group${isExpanded ? " po-card--expanded" : ""}`}>
+                      <button
+                        type="button"
+                        className="po-card__summary"
+                        onClick={() => setExpandedGroupKey(isExpanded ? null : group.key)}
+                        aria-expanded={isExpanded}
+                      >
+                        <div className="po-card__summary-visual">
+                          <div className="po-card__image">
+                            {imgSrc ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img
+                                src={imgSrc}
+                                alt={`${bike.brand} ${bike.model}`}
+                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                              />
+                            ) : (
+                              <div className="po-card__placeholder">
+                                <svg
+                                  width="56"
+                                  height="56"
+                                  viewBox="0 0 640 512"
+                                  fill="currentColor"
+                                >
+                                  <path d="M280 32a80 80 0 1 1 0 160 80 80 0 1 1 0-160zM128 0c-44.2 0-80 35.8-80 80v16H32C14.3 96 0 110.3 0 128s14.3 32 32 32H48v16c0 17.7 14.3 32 32 32H96c17.7 0 32-14.3 32-32V160h5.4l34.9 104.7A96 96 0 1 0 344 352h48a96 96 0 1 0 192 0 96 96 0 1 0-183.2-40H336A96 96 0 0 0 193 192H96V80c0-44.2-35.8-80-80-80H128zM488 352a48 48 0 1 1-96 0 48 48 0 1 1 96 0zm-240 48a48 48 0 1 1 0-96 48 48 0 1 1 0 96z" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                          <div className="po-card__body">
+                            <div className="po-card__eyebrow">
+                              <span className="po-card__count">{displayStatus}</span>
+                              <span className="po-card__count">{group.items.length} matches</span>
+                            </div>
+                            <h3 className="po-card__title">
+                              {bike.brand} {bike.model} {bike.year}
+                            </h3>
+                            <div className="po-card__action-row">
+                              <span className="po-card__summary-pill">
+                                Qty {group.totalQuantity.toLocaleString("en-LK")}
+                              </span>
+                              <span className="po-card__summary-button">
+                                {isExpanded ? "Close group" : `View ${group.items.length} listings`}
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M9 18l6-6-6-6" />
+                                </svg>
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="po-card__expanded">
+                          <div className="po-card__expanded-head">
+                            <div>
+                              <span className="po-card__expanded-title">Matching listings</span>
+                              <span className="po-card__expanded-note">Tap a row to open its detail page</span>
+                            </div>
+                            <button
+                              type="button"
+                              className="po-card__collapse-btn"
+                              onClick={() => setExpandedGroupKey(null)}
+                            >
+                              Collapse
+                            </button>
+                          </div>
+                          <div className="po-card__variant-list">
+                            {group.items.map((item) => (
+                              <Link
+                                key={item.id}
+                                href={`/pre-orders/${item.id}`}
+                                className="po-card__variant"
+                              >
+                                <div className="po-card__variant-thumb">
+                                  {getPrimaryImageSrc(item.images) ? (
+                                    // eslint-disable-next-line @next/next/no-img-element
+                                    <img
+                                      src={getPrimaryImageSrc(item.images) ?? ""}
+                                      alt={`${item.brand} ${item.model}`}
+                                    />
+                                  ) : (
+                                    <div className="po-card__variant-empty">No image</div>
+                                  )}
+                                </div>
+                                <div className="po-card__variant-body">
+                                  <strong>
+                                    {item.brand} {item.model} {item.year ?? ""}
+                                  </strong>
+                                  <span>
+                                    {getStatusDisplay(item.status)} • Rs. {item.price != null ? item.price.toLocaleString("en-LK") : "—"}.00
+                                  </span>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </article>
                   </FadeIn>
                 );
               })
