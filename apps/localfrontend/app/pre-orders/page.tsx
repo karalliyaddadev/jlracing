@@ -53,10 +53,6 @@ function getPreOrderGroupKey(bike: PreOrderBike) {
     bike.brand.trim().toLowerCase(),
     bike.model.trim().toLowerCase(),
     bike.year ?? "none",
-    (bike.cc ?? "").trim().toLowerCase() || "none",
-    (bike.colour ?? "").trim().toLowerCase() || "none",
-    bike.price ?? "none",
-    bike.status.trim().toLowerCase(),
   ].join(":");
 }
 
@@ -387,13 +383,14 @@ export default function PreOrdersPage() {
           </aside>
 
           {/* ── Product Grid ── */}
-          <div className="po-grid">
-            {loadingBikes ? (
-              <p className="po-grid__empty">Loading pre-orders…</p>
-            ) : groupedPreOrders.length === 0 ? (
-              <p className="po-grid__empty">No bikes match your filters.</p>
-            ) : (
-              paginated.map((group, i) => {
+          <div className="po-results">
+            <div className="po-grid">
+              {loadingBikes ? (
+                <p className="po-grid__empty">Loading pre-orders…</p>
+              ) : groupedPreOrders.length === 0 ? (
+                <p className="po-grid__empty">No bikes match your filters.</p>
+              ) : (
+                paginated.map((group, i) => {
                 const bike = group.representative;
                 const imgSrc = getPrimaryImageSrc(bike.images);
                 const displayStatus = getStatusDisplay(bike.status);
@@ -559,6 +556,10 @@ export default function PreOrdersPage() {
                                     {item.brand} {item.model} {item.year ?? ""}
                                   </strong>
                                   <span>
+                                    {[item.colour, item.cc]
+                                      .filter(Boolean)
+                                      .join(" • ")}
+                                    {(item.colour || item.cc) ? " • " : ""}
                                     {getStatusDisplay(item.status)} • Rs. {item.price != null ? item.price.toLocaleString("en-LK") : "—"}.00
                                   </span>
                                 </div>
@@ -570,15 +571,16 @@ export default function PreOrdersPage() {
                     </article>
                   </FadeIn>
                 );
-              })
-            )}
+                })
+              )}
+            </div>
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           </div>
         </div>
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={setCurrentPage}
-        />
       </div>
     </section>
   );

@@ -5220,6 +5220,10 @@ button {
 }
 
 /* ── Product Grid ── */
+.po-results {
+  min-width: 0;
+}
+
 .po-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
