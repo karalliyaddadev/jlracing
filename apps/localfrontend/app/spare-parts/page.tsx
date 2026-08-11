@@ -473,40 +473,46 @@ export default function SparePartsPage() {
                         aria-expanded={isExpanded}
                         aria-label={`${isExpanded ? "Collapse" : "Expand"} ${group.representative.name}`}
                       >
-                        <div className="po-card__image">
-                          <img
-                            src={partImage}
-                            alt={group.representative.name}
-                            className="po-card__img"
-                          />
-                        </div>
-                        <div className="po-card__body">
-                          <span
-                            className={`po-card__badge${
-                              status === "Out of Stock"
-                                ? " po-card__badge--preorder"
-                                : status === "Low Stock"
-                                  ? " po-card__badge--low"
-                                  : ""
-                            }`}
-                          >
-                            {status}
-                          </span>
-                          <h3 className="po-card__title">
-                            {group.representative.name}
-                          </h3>
-                          <p className="sp-card__brand">
-                            {group.representative.brand?.name ?? ""}
-                          </p>
-                          <div className="po-card__footer">
-                            <span className="po-card__price">
-                              Qty {group.totalQuantity.toLocaleString("en-LK")}
-                            </span>
-                            <span className="po-card__toggle">
-                              {isExpanded
-                                ? "Collapse"
-                                : `Expand (${group.items.length})`}
-                            </span>
+                        <div className="po-card__summary-visual">
+                          <div className="po-card__image">
+                            <img
+                              src={partImage}
+                              alt={group.representative.name}
+                              className="po-card__img"
+                            />
+                          </div>
+                          <div className="po-card__body">
+                            <div className="po-card__eyebrow">
+                              <span
+                                className={`po-card__badge${
+                                  status === "Out of Stock"
+                                    ? " po-card__badge--preorder"
+                                    : status === "Low Stock"
+                                      ? " po-card__badge--low"
+                                      : ""
+                                }`}
+                              >
+                                {status}
+                              </span>
+                              <span className="po-card__count">{group.items.length} matches</span>
+                            </div>
+                            <h3 className="po-card__title">
+                              {group.representative.name}
+                            </h3>
+                            <p className="sp-card__brand">
+                              {group.representative.brand?.name ?? ""}
+                            </p>
+                            <div className="po-card__action-row">
+                              <span className="po-card__summary-pill">
+                                Qty {group.totalQuantity.toLocaleString("en-LK")}
+                              </span>
+                              <span className="po-card__summary-button">
+                                {isExpanded ? "Close group" : `View ${group.items.length} parts`}
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M9 18l6-6-6-6" />
+                                </svg>
+                              </span>
+                            </div>
                           </div>
                         </div>
                       </button>
@@ -514,12 +520,21 @@ export default function SparePartsPage() {
                       {isExpanded && (
                         <div className="po-card__expanded">
                           <div className="po-card__expanded-head">
-                            <span className="po-card__expanded-title">
-                              Matching products
-                            </span>
-                            <span className="po-card__expanded-note">
-                              Tap a row to open its detail page
-                            </span>
+                            <div>
+                              <span className="po-card__expanded-title">
+                                Matching products
+                              </span>
+                              <span className="po-card__expanded-note">
+                                Tap a row to open its detail page
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              className="po-card__collapse-btn"
+                              onClick={() => setExpandedGroupKey(null)}
+                            >
+                              Collapse
+                            </button>
                           </div>
                           <div className="po-card__variant-list">
                             {group.items.map((item) => (

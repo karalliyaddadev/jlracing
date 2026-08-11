@@ -508,39 +508,62 @@ export default function BikesPage() {
                         }
                         aria-expanded={isExpanded}
                       >
-                        <div className="bike-card__image">
-                          {imgSrc ? (
-                            <img
-                              src={imgSrc}
-                              alt={`${group.representative.brand.name} ${group.representative.model.name}`}
-                            />
-                          ) : (
-                            <div className="bike-card__no-image">No image</div>
-                          )}
-                        </div>
-                        <div className="bike-card__body">
-                          <h3 className="bike-card__title">
-                            {group.representative.brand.name} {group.representative.model.name} {group.representative.year ?? ""}
-                          </h3>
-                          <p className="bike-card__meta">
-                            {getCCBucket(group.representative.engineCapacityCc) ||
-                              (group.representative.engineCapacityCc
-                                ? `${group.representative.engineCapacityCc}cc`
-                                : "")}
-                            {group.representative.engineCapacityCc ? "\u00a0\u00a0|\u00a0\u00a0" : ""}
-                            {status}
-                          </p>
-                          <p className="bike-card__price">
-                            Qty {group.totalQuantity.toLocaleString("en-LK")} • {isExpanded ? "Collapse" : `Expand (${group.items.length})`}
-                          </p>
+                        <div className="bike-card__summary-visual">
+                          <div className="bike-card__image">
+                            {imgSrc ? (
+                              <img
+                                src={imgSrc}
+                                alt={`${group.representative.brand.name} ${group.representative.model.name}`}
+                              />
+                            ) : (
+                              <div className="bike-card__no-image">No image</div>
+                            )}
+                          </div>
+                          <div className="bike-card__body">
+                            <div className="bike-card__eyebrow">
+                              <span className="bike-card__chip">Stock</span>
+                              <span className="bike-card__count">{group.items.length} matches</span>
+                            </div>
+                            <h3 className="bike-card__title">
+                              {group.representative.brand.name} {group.representative.model.name} {group.representative.year ?? ""}
+                            </h3>
+                            <p className="bike-card__meta">
+                              {getCCBucket(group.representative.engineCapacityCc) ||
+                                (group.representative.engineCapacityCc
+                                  ? `${group.representative.engineCapacityCc}cc`
+                                  : "")}
+                              {group.representative.engineCapacityCc ? "\u00a0\u00a0|\u00a0\u00a0" : ""}
+                              {status}
+                            </p>
+                            <div className="bike-card__action-row">
+                              <span className="bike-card__summary-pill">
+                                Qty {group.totalQuantity.toLocaleString("en-LK")}
+                              </span>
+                              <span className="bike-card__summary-button">
+                                {isExpanded ? "Close group" : `View ${group.items.length} bikes`}
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                  <path d="M9 18l6-6-6-6" />
+                                </svg>
+                              </span>
+                            </div>
+                          </div>
                         </div>
                       </button>
 
                       {isExpanded && (
                         <div className="bike-card__expanded">
                           <div className="bike-card__expanded-head">
-                            <span className="bike-card__expanded-title">Matching bikes</span>
-                            <span className="bike-card__expanded-note">Tap a row to open its detail page</span>
+                            <div>
+                              <span className="bike-card__expanded-title">Matching bikes</span>
+                              <span className="bike-card__expanded-note">Tap a row to open its detail page</span>
+                            </div>
+                            <button
+                              type="button"
+                              className="bike-card__collapse-btn"
+                              onClick={() => setExpandedGroupKey(null)}
+                            >
+                              Collapse
+                            </button>
                           </div>
                           <div className="bike-card__variant-list">
                             {group.items.map((vehicle) => (
