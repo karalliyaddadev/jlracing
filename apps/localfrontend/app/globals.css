@@ -2836,13 +2836,11 @@ button {
   gap: 0;
 }
 
-.bike-card--group .bike-card__image,
-.po-card--group .po-card__image {
+.bike-card--group .bike-card__image {
   height: 145px;
 }
 
-.bike-card--group .bike-card__body,
-.po-card--group .po-card__body {
+.bike-card--group .bike-card__body {
   padding: 0.8rem 0.9rem 0.85rem;
 }
 
@@ -5228,6 +5226,7 @@ button {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 1.25rem;
+  align-items: start;
 }
 
 .po-grid__empty {
@@ -5240,10 +5239,14 @@ button {
 
 /* ── Product Card ── */
 .po-card {
+  display: block;
+  width: 100%;
   background: #fff;
   border: 1px solid var(--border-light);
   border-radius: var(--radius-lg);
   overflow: hidden;
+  color: inherit;
+  text-decoration: none;
   transition: transform 0.25s, box-shadow 0.25s;
 }
 
@@ -5256,6 +5259,10 @@ button {
   display: flex;
   flex-direction: column;
   background: linear-gradient(180deg, #ffffff 0%, #fcfcfa 100%);
+}
+
+.po-card--group .po-card__body {
+  padding: 0.9rem 0.9rem 1rem;
 }
 
 .po-card__summary {
