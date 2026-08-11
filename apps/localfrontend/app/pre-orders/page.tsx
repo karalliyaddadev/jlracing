@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import Pagination from "../components/Pagination";
 import FadeIn from "../components/FadeIn";
@@ -125,6 +125,7 @@ function CheckGroup({
 export default function PreOrdersPage() {
   const [allBikes, setAllBikes] = useState<PreOrderBike[]>([]);
   const [loadingBikes, setLoadingBikes] = useState(true);
+  const didMountRef = useRef(false);
 
   const [priceRange, setPriceRange] = useState<[number, number]>([0, MAX_PRICE]);
   const [yearRange, setYearRange] = useState<[number, number]>([2015, new Date().getFullYear()]);
@@ -173,7 +174,13 @@ export default function PreOrdersPage() {
 
   useEffect(() => { setPriceRange([0, dynamicMax]); }, [dynamicMax]);
   useEffect(() => { setYearRange([dynamicMinYear, dynamicMaxYear]); }, [dynamicMinYear, dynamicMaxYear]);
-  useEffect(() => { setCurrentPage(1); }, [search, priceRange, availability, brands, yearRange, ccFilters]);
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+    setCurrentPage(1);
+  }, [search, priceRange, availability, brands, yearRange, ccFilters]);
 
   const q = search.toLowerCase();
   const priceFiltered = priceRange[0] > 0 || priceRange[1] < dynamicMax;

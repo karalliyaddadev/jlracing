@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import Pagination from "../components/Pagination";
 import FadeIn from "../components/FadeIn";
@@ -127,6 +127,7 @@ const STATUS_OPTIONS = ["In Stock", "Low Stock", "Out of Stock"] as const;
 export default function SparePartsPage() {
   const [products, setProducts] = useState<PublicProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const didMountRef = useRef(false);
 
   // Filter state
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 0]);
@@ -176,6 +177,10 @@ export default function SparePartsPage() {
   );
 
   useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
     setCurrentPage(1);
   }, [search, priceRange, priceFiltered, categories, brands, statuses]);
 

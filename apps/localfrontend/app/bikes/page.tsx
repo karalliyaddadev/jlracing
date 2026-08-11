@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import Pagination from "../components/Pagination";
 import FadeIn from "../components/FadeIn";
@@ -153,6 +153,7 @@ export default function BikesPage() {
   const [vehicles, setVehicles] = useState<PublicVehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const didMountRef = useRef(false);
 
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000000]);
   const [yearRange, setYearRange] = useState<[number, number]>([
@@ -206,6 +207,10 @@ export default function BikesPage() {
   }, [dynamicMinYear, dynamicMaxYear]);
 
   useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
     setCurrentPage(1);
   }, [search, brands, ccOptions, statuses]);
 
