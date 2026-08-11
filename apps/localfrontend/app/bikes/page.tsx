@@ -18,6 +18,13 @@ const CC_OPTIONS = [
 const STATUS_OPTIONS = ["Brand New"];
 const ITEMS_PER_PAGE = 8;
 
+type VehicleGroup = {
+  key: string;
+  items: PublicVehicle[];
+  representative: PublicVehicle;
+  totalQuantity: number;
+};
+
 interface VehicleImage {
   id: number;
   url: string;
@@ -64,6 +71,18 @@ function getPrimaryImage(images: VehicleImage[]): string | null {
   if (!images.length) return null;
   const primary = images.find((i) => i.isPrimary) ?? images[0];
   return `${BACKEND_URL}${primary.url}`;
+}
+
+function getVehicleGroupKey(vehicle: PublicVehicle) {
+  return [
+    vehicle.brand.id,
+    vehicle.model.id,
+    vehicle.year ?? "none",
+    vehicle.colour.trim().toLowerCase(),
+    vehicle.engineCapacityCc ?? "none",
+    vehicle.condition.trim().toLowerCase(),
+    vehicle.sellingPrice ?? "none",
+  ].join(":");
 }
 
 function RangeSlider({
@@ -153,6 +172,7 @@ export default function BikesPage() {
   const [vehicles, setVehicles] = useState<PublicVehicle[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expandedGroupKey, setExpandedGroupKey] = useState<string | null>(null);
   const didMountRef = useRef(false);
 
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 5000000]);
@@ -212,6 +232,7 @@ export default function BikesPage() {
       return;
     }
     setCurrentPage(1);
+    setExpandedGroupKey(null);
   }, [search, brands, ccOptions, statuses]);
 
   // Derive unique brand names from fetched vehicles
@@ -266,8 +287,32 @@ export default function BikesPage() {
     return true;
   });
 
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice(
+  const groupedVehicles = useMemo(() => {
+    const groups = new Map<string, VehicleGroup>();
+
+    filtered.forEach((vehicle) => {
+      const key = getVehicleGroupKey(vehicle);
+      const existing = groups.get(key);
+
+      if (!existing) {
+        groups.set(key, {
+          key,
+          items: [vehicle],
+          representative: vehicle,
+          totalQuantity: 1,
+        });
+        return;
+      }
+
+      existing.items.push(vehicle);
+      existing.totalQuantity += 1;
+    });
+
+    return Array.from(groups.values());
+  }, [filtered]);
+
+  const totalPages = Math.ceil(groupedVehicles.length / ITEMS_PER_PAGE);
+  const paginated = groupedVehicles.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE,
   );
@@ -280,8 +325,8 @@ export default function BikesPage() {
           onClick={() => setFiltersOpen(false)}
         />
       )}
+
       <div className="bikes-page__inner">
-        {/* ── Header ── */}
         <FadeIn className="bikes-page__header">
           <div className="bikes-page__header-row">
             <div>
@@ -324,7 +369,6 @@ export default function BikesPage() {
           <hr className="bikes-page__divider" />
         </FadeIn>
 
-        {/* Mobile filter toggle */}
         <button
           className="po-filter-toggle"
           onClick={() => setFiltersOpen(true)}
@@ -343,7 +387,6 @@ export default function BikesPage() {
         </button>
 
         <div className="bikes-page__body">
-          {/* â”€â”€ Sidebar Filters â”€â”€ */}
           <aside className={`bikes-filter${filtersOpen ? " is-open" : ""}`}>
             <div className="po-filter__mobile-header">
               <span className="po-filter__mobile-title">Filters</span>
@@ -405,56 +448,138 @@ export default function BikesPage() {
             />
           </aside>
 
-          {/* â”€â”€ Product Grid â”€â”€ */}
           <div className="bikes-grid">
             {loading ? (
               <p className="bikes-grid__empty">Loading bikes…</p>
             ) : error ? (
               <p className="bikes-grid__empty">{error}</p>
-            ) : filtered.length === 0 ? (
+            ) : groupedVehicles.length === 0 ? (
               <p className="bikes-grid__empty">No bikes match your filters.</p>
             ) : (
-              paginated.map((vehicle, i) => {
-                const imgSrc = getPrimaryImage(vehicle.images);
+              paginated.map((group, i) => {
+                const status = mapCondition(group.representative.condition);
+                const imgSrc = getPrimaryImage(group.representative.images);
+                const isExpanded = expandedGroupKey === group.key;
+
+                if (group.items.length === 1) {
+                  const vehicle = group.representative;
+                  return (
+                    <FadeIn key={`${currentPage}-${vehicle.id}`} delay={i * 0.07}>
+                      <Link href={`/bikes/${vehicle.id}`} className="bike-card">
+                        <div className="bike-card__image">
+                          {imgSrc ? (
+                            <img
+                              src={imgSrc}
+                              alt={`${vehicle.brand.name} ${vehicle.model.name}`}
+                            />
+                          ) : (
+                            <div className="bike-card__no-image">No image</div>
+                          )}
+                        </div>
+                        <div className="bike-card__body">
+                          <h3 className="bike-card__title">
+                            {vehicle.brand.name} {vehicle.model.name} {vehicle.year ?? ""}
+                          </h3>
+                          <p className="bike-card__meta">
+                            {getCCBucket(vehicle.engineCapacityCc) ||
+                              (vehicle.engineCapacityCc
+                                ? `${vehicle.engineCapacityCc}cc`
+                                : "")}
+                            {vehicle.engineCapacityCc ? "\u00a0\u00a0|\u00a0\u00a0" : ""}
+                            {status}
+                          </p>
+                          <p className="bike-card__price">
+                            {formatPrice(vehicle.sellingPrice)}
+                          </p>
+                        </div>
+                      </Link>
+                    </FadeIn>
+                  );
+                }
+
                 return (
-                  <FadeIn key={`${currentPage}-${vehicle.id}`} delay={i * 0.07}>
-                    <Link href={`/bikes/${vehicle.id}`} className="bike-card">
-                      <div className="bike-card__image">
-                        {imgSrc ? (
-                          <img
-                            src={imgSrc}
-                            alt={`${vehicle.brand.name} ${vehicle.model.name}`}
-                          />
-                        ) : (
-                          <div className="bike-card__no-image">No image</div>
-                        )}
-                      </div>
-                      <div className="bike-card__body">
-                        <h3 className="bike-card__title">
-                          {vehicle.brand.name} {vehicle.model.name}{" "}
-                          {vehicle.year ?? ""}
-                        </h3>
-                        <p className="bike-card__meta">
-                          {getCCBucket(vehicle.engineCapacityCc) ||
-                            (vehicle.engineCapacityCc
-                              ? `${vehicle.engineCapacityCc}cc`
-                              : "")}
-                          {vehicle.engineCapacityCc
-                            ? "\u00a0\u00a0|\u00a0\u00a0"
-                            : ""}
-                          {mapCondition(vehicle.condition)}
-                        </p>
-                        <p className="bike-card__price">
-                          {formatPrice(vehicle.sellingPrice)}
-                        </p>
-                      </div>
-                    </Link>
+                  <FadeIn key={`${currentPage}-${group.key}`} delay={i * 0.07}>
+                    <article className={`bike-card bike-card--group${isExpanded ? " bike-card--expanded" : ""}`}>
+                      <button
+                        type="button"
+                        className="bike-card__summary"
+                        onClick={() =>
+                          setExpandedGroupKey(isExpanded ? null : group.key)
+                        }
+                        aria-expanded={isExpanded}
+                      >
+                        <div className="bike-card__image">
+                          {imgSrc ? (
+                            <img
+                              src={imgSrc}
+                              alt={`${group.representative.brand.name} ${group.representative.model.name}`}
+                            />
+                          ) : (
+                            <div className="bike-card__no-image">No image</div>
+                          )}
+                        </div>
+                        <div className="bike-card__body">
+                          <h3 className="bike-card__title">
+                            {group.representative.brand.name} {group.representative.model.name} {group.representative.year ?? ""}
+                          </h3>
+                          <p className="bike-card__meta">
+                            {getCCBucket(group.representative.engineCapacityCc) ||
+                              (group.representative.engineCapacityCc
+                                ? `${group.representative.engineCapacityCc}cc`
+                                : "")}
+                            {group.representative.engineCapacityCc ? "\u00a0\u00a0|\u00a0\u00a0" : ""}
+                            {status}
+                          </p>
+                          <p className="bike-card__price">
+                            Qty {group.totalQuantity.toLocaleString("en-LK")} • {isExpanded ? "Collapse" : `Expand (${group.items.length})`}
+                          </p>
+                        </div>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="bike-card__expanded">
+                          <div className="bike-card__expanded-head">
+                            <span className="bike-card__expanded-title">Matching bikes</span>
+                            <span className="bike-card__expanded-note">Tap a row to open its detail page</span>
+                          </div>
+                          <div className="bike-card__variant-list">
+                            {group.items.map((vehicle) => (
+                              <Link
+                                key={vehicle.id}
+                                href={`/bikes/${vehicle.id}`}
+                                className="bike-card__variant"
+                              >
+                                <div className="bike-card__variant-thumb">
+                                  {getPrimaryImage(vehicle.images) ? (
+                                    <img
+                                      src={getPrimaryImage(vehicle.images) ?? ""}
+                                      alt={`${vehicle.brand.name} ${vehicle.model.name}`}
+                                    />
+                                  ) : (
+                                    <div className="bike-card__variant-empty">No image</div>
+                                  )}
+                                </div>
+                                <div className="bike-card__variant-body">
+                                  <strong>
+                                    {vehicle.brand.name} {vehicle.model.name} {vehicle.year ?? ""}
+                                  </strong>
+                                  <span>
+                                    Qty 1 • {formatPrice(vehicle.sellingPrice)}
+                                  </span>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </article>
                   </FadeIn>
                 );
               })
             )}
           </div>
         </div>
+
         <Pagination
           currentPage={currentPage}
           totalPages={totalPages}

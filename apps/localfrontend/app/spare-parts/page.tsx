@@ -124,10 +124,26 @@ function CheckGroup({
 
 const STATUS_OPTIONS = ["In Stock", "Low Stock", "Out of Stock"] as const;
 
+type ProductGroup = {
+  key: string;
+  items: PublicProduct[];
+  representative: PublicProduct;
+  totalQuantity: number;
+};
+
+function getProductGroupKey(product: PublicProduct) {
+  return [
+    product.brand?.id ?? "none",
+    product.category?.id ?? "none",
+    product.name.trim().toLowerCase(),
+  ].join(":");
+}
+
 export default function SparePartsPage() {
   const [products, setProducts] = useState<PublicProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const didMountRef = useRef(false);
+  const [expandedGroupKey, setExpandedGroupKey] = useState<string | null>(null);
 
   // Filter state
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 0]);
@@ -182,6 +198,7 @@ export default function SparePartsPage() {
       return;
     }
     setCurrentPage(1);
+    setExpandedGroupKey(null);
   }, [search, priceRange, priceFiltered, categories, brands, statuses]);
 
   const q = search.toLowerCase();
@@ -204,8 +221,32 @@ export default function SparePartsPage() {
     return true;
   });
 
-  const totalPages = Math.ceil(filtered.length / ITEMS_PER_PAGE);
-  const paginated = filtered.slice(
+  const groupedProducts = useMemo(() => {
+    const groups = new Map<string, ProductGroup>();
+
+    filtered.forEach((product) => {
+      const key = getProductGroupKey(product);
+      const existing = groups.get(key);
+
+      if (!existing) {
+        groups.set(key, {
+          key,
+          items: [product],
+          representative: product,
+          totalQuantity: product.quantity,
+        });
+        return;
+      }
+
+      existing.items.push(product);
+      existing.totalQuantity += product.quantity;
+    });
+
+    return Array.from(groups.values());
+  }, [filtered]);
+
+  const totalPages = Math.ceil(groupedProducts.length / ITEMS_PER_PAGE);
+  const paginated = groupedProducts.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE,
   );
@@ -354,63 +395,159 @@ export default function SparePartsPage() {
           <div className="po-grid">
             {loading ? (
               <p className="po-grid__empty">Loading parts…</p>
-            ) : filtered.length === 0 ? (
+            ) : groupedProducts.length === 0 ? (
               <p className="po-grid__empty">No parts match your filters.</p>
             ) : (
-              paginated.map((part, i) => {
-                const status = getStatus(part.quantity, part.lowStockThreshold);
-                return (
-                  <FadeIn key={`${currentPage}-${part.id}`} delay={i * 0.07}>
-                  <Link
-                    href={`/spare-parts/${part.id}`}
-                    className="po-card"
-                  >
-                    <div className="po-card__image">
-                      <img
-                        src={getImageSrc(part.images)}
-                        alt={part.name}
-                        className="po-card__img"
-                      />
-                    </div>
-                    <div className="po-card__body">
-                      <span
-                        className={`po-card__badge${
-                          status === "Out of Stock"
-                            ? " po-card__badge--preorder"
-                            : status === "Low Stock"
-                              ? " po-card__badge--low"
-                              : ""
-                        }`}
-                      >
-                        {status}
-                      </span>
-                      <h3 className="po-card__title">{part.name}</h3>
-                      <p className="sp-card__brand">{part.brand?.name ?? ""}</p>
-                      <div className="po-card__footer">
-                        <span className="po-card__price">
-                          Rs.&nbsp;
-                          {(part.sellingPrice ?? 0).toLocaleString("en-LK")}.00
-                        </span>
-                        <button
-                          className="po-card__cart"
-                          aria-label="Enquire about this part"
-                        >
-                          <svg
-                            width="14"
-                            height="14"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            strokeWidth="2"
+              paginated.map((group, i) => {
+                const status = getStatus(
+                  group.totalQuantity,
+                  group.representative.lowStockThreshold,
+                );
+                const isExpanded = expandedGroupKey === group.key;
+
+                if (group.items.length === 1) {
+                  const part = group.representative;
+                  return (
+                    <FadeIn key={`${currentPage}-${part.id}`} delay={i * 0.07}>
+                      <Link href={`/spare-parts/${part.id}`} className="po-card">
+                        <div className="po-card__image">
+                          <img
+                            src={getImageSrc(part.images)}
+                            alt={part.name}
+                            className="po-card__img"
+                          />
+                        </div>
+                        <div className="po-card__body">
+                          <span
+                            className={`po-card__badge${
+                              status === "Out of Stock"
+                                ? " po-card__badge--preorder"
+                                : status === "Low Stock"
+                                  ? " po-card__badge--low"
+                                  : ""
+                            }`}
                           >
-                            <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
-                            <line x1="3" y1="6" x2="21" y2="6" />
-                            <path d="M16 10a4 4 0 01-8 0" />
-                          </svg>
-                        </button>
-                      </div>
-                    </div>
-                  </Link>
+                            {status}
+                          </span>
+                          <h3 className="po-card__title">{part.name}</h3>
+                          <p className="sp-card__brand">{part.brand?.name ?? ""}</p>
+                          <div className="po-card__footer">
+                            <span className="po-card__price">
+                              Qty {part.quantity.toLocaleString("en-LK")}
+                            </span>
+                            <button
+                              className="po-card__cart"
+                              aria-label="Enquire about this part"
+                            >
+                              <svg
+                                width="14"
+                                height="14"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z" />
+                                <line x1="3" y1="6" x2="21" y2="6" />
+                                <path d="M16 10a4 4 0 01-8 0" />
+                              </svg>
+                            </button>
+                          </div>
+                        </div>
+                      </Link>
+                    </FadeIn>
+                  );
+                }
+
+                const partImage = getImageSrc(group.representative.images);
+
+                return (
+                  <FadeIn key={`${currentPage}-${group.key}`} delay={i * 0.07}>
+                    <article className={`po-card po-card--group${isExpanded ? " po-card--expanded" : ""}`}>
+                      <button
+                        type="button"
+                        className="po-card__summary"
+                        onClick={() =>
+                          setExpandedGroupKey(isExpanded ? null : group.key)
+                        }
+                        aria-expanded={isExpanded}
+                        aria-label={`${isExpanded ? "Collapse" : "Expand"} ${group.representative.name}`}
+                      >
+                        <div className="po-card__image">
+                          <img
+                            src={partImage}
+                            alt={group.representative.name}
+                            className="po-card__img"
+                          />
+                        </div>
+                        <div className="po-card__body">
+                          <span
+                            className={`po-card__badge${
+                              status === "Out of Stock"
+                                ? " po-card__badge--preorder"
+                                : status === "Low Stock"
+                                  ? " po-card__badge--low"
+                                  : ""
+                            }`}
+                          >
+                            {status}
+                          </span>
+                          <h3 className="po-card__title">
+                            {group.representative.name}
+                          </h3>
+                          <p className="sp-card__brand">
+                            {group.representative.brand?.name ?? ""}
+                          </p>
+                          <div className="po-card__footer">
+                            <span className="po-card__price">
+                              Qty {group.totalQuantity.toLocaleString("en-LK")}
+                            </span>
+                            <span className="po-card__toggle">
+                              {isExpanded
+                                ? "Collapse"
+                                : `Expand (${group.items.length})`}
+                            </span>
+                          </div>
+                        </div>
+                      </button>
+
+                      {isExpanded && (
+                        <div className="po-card__expanded">
+                          <div className="po-card__expanded-head">
+                            <span className="po-card__expanded-title">
+                              Matching products
+                            </span>
+                            <span className="po-card__expanded-note">
+                              Tap a row to open its detail page
+                            </span>
+                          </div>
+                          <div className="po-card__variant-list">
+                            {group.items.map((item) => (
+                              <Link
+                                key={item.id}
+                                href={`/spare-parts/${item.id}`}
+                                className="po-card__variant"
+                              >
+                                <div className="po-card__variant-thumb">
+                                  <img
+                                    src={getImageSrc(item.images)}
+                                    alt={item.name}
+                                  />
+                                </div>
+                                <div className="po-card__variant-body">
+                                  <strong>{item.displayId}</strong>
+                                  <span>
+                                    Qty {item.quantity.toLocaleString("en-LK")} • Rs. {(
+                                      item.sellingPrice ?? 0
+                                    ).toLocaleString("en-LK")}.00
+                                  </span>
+                                </div>
+                              </Link>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </article>
                   </FadeIn>
                 );
               })
