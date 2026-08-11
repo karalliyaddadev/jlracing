@@ -180,7 +180,7 @@ export default function PreOrdersPage() {
       return;
     }
     setCurrentPage(1);
-  }, [search, priceRange, availability, brands, yearRange, ccFilters]);
+  }, [search, availability, brands, ccFilters]);
 
   const q = search.toLowerCase();
   const priceFiltered = priceRange[0] > 0 || priceRange[1] < dynamicMax;
