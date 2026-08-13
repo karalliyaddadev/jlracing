@@ -17,6 +17,11 @@ const nextConfig = {
         hostname: "localhost",
         port: "5001",
       },
+      {
+        protocol: "https",
+        hostname: "cms-api.jlracingshop.com",
+        pathname: "/uploads/**",
+      },
     ],
   },
 };
