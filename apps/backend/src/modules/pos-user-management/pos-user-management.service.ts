@@ -59,6 +59,34 @@ function roundCurrency(value: number) {
   return Math.round(value * 100) / 100;
 }
 
+function normalizeExtraCosts(
+  costs: Array<{ label: string; amount: number }> | undefined,
+) {
+  return (costs ?? []).map((cost) => ({
+    label: cost.label.trim(),
+    amount: roundCurrency(cost.amount),
+  }));
+}
+
+function getExtraCostsTotal(
+  costs: Array<{ label: string; amount: number }> | undefined,
+) {
+  return roundCurrency(
+    normalizeExtraCosts(costs).reduce((sum, cost) => sum + cost.amount, 0),
+  );
+}
+
+function getStoredExtraCostsTotal(value: unknown) {
+  if (!Array.isArray(value)) return 0;
+  return roundCurrency(
+    value.reduce((sum, cost) => {
+      if (!cost || typeof cost !== "object") return sum;
+      const amount = Number((cost as { amount?: unknown }).amount);
+      return Number.isFinite(amount) && amount > 0 ? sum + amount : sum;
+    }, 0),
+  );
+}
+
 function nullableTrimmedText(value?: string | null) {
   const normalized = value?.trim();
   return normalized && normalized.length > 0 ? normalized : null;
@@ -744,7 +772,10 @@ async function createInvoicePaymentRecord(
   } else if (dto.paymentType === "DOWNPAYMENT" || (dto.downPaymentAmount != null && dto.downPaymentAmount > 0 && dto.downPaymentAmount < dto.finalSellingPrice)) {
     amount = dto.downPaymentAmount ?? 0;
   } else {
-    amount = dto.finalSellingPrice + (dto.hasRegistrationFee ? (dto.registrationFeeAmount ?? 0) : 0);
+    amount =
+      dto.finalSellingPrice +
+      (dto.hasRegistrationFee ? (dto.registrationFeeAmount ?? 0) : 0) +
+      getExtraCostsTotal(dto.extraCosts);
   }
   if (amount <= 0) return;
   const invoiceRef = invoiceGroupCode ?? `INV-${String(purchaseId).padStart(5, "0")}`;
@@ -812,6 +843,7 @@ export async function createPurchase(
       registrationFeeAmount: ["Registration fee amount must be greater than 0"],
     });
   }
+  const extraCosts = normalizeExtraCosts(dto.extraCosts);
   const leasingCompanyId =
     purchaseChannel === "LEASING" ? dto.leasingCompanyId : undefined;
   const leasingDownPaymentAmount =
@@ -964,6 +996,7 @@ export async function createPurchase(
           leasingFinancedAmount,
           hasRegistrationFee,
           registrationFeeAmount,
+          extraCosts,
           interestRate,
           installmentMonths,
           monthlyInstallmentAmount,
@@ -1108,6 +1141,7 @@ export async function createPurchase(
       leasingFinancedAmount: result.leasingFinancedAmount,
       hasRegistrationFee: result.hasRegistrationFee,
       registrationFeeAmount: result.registrationFeeAmount,
+      extraCosts: result.extraCosts,
       interestRate: result.interestRate,
       installmentMonths: result.installmentMonths,
       monthlyInstallmentAmount: result.monthlyInstallmentAmount,
@@ -1167,6 +1201,7 @@ export async function createPurchase(
           leasingFinancedAmount: 0,
           hasRegistrationFee,
           registrationFeeAmount,
+          extraCosts,
           interestRate,
           installmentMonths,
           monthlyInstallmentAmount,
@@ -1301,6 +1336,7 @@ export async function createPurchase(
       leasingFinancedAmount: result.leasingFinancedAmount,
       hasRegistrationFee: result.hasRegistrationFee,
       registrationFeeAmount: result.registrationFeeAmount,
+      extraCosts: result.extraCosts,
       interestRate: result.interestRate,
       installmentMonths: result.installmentMonths,
       monthlyInstallmentAmount: result.monthlyInstallmentAmount,
@@ -1344,6 +1380,7 @@ export async function createPurchase(
           leasingFinancedAmount,
           hasRegistrationFee: false,
           registrationFeeAmount: 0,
+          extraCosts,
           interestRate,
           installmentMonths,
           monthlyInstallmentAmount,
@@ -1437,6 +1474,7 @@ export async function createPurchase(
       installmentMonths: result.installmentMonths,
       monthlyInstallmentAmount: result.monthlyInstallmentAmount,
       totalWithInterest: result.totalWithInterest,
+      extraCosts: result.extraCosts,
       purchasedAt: result.purchasedAt,
     };
   }
@@ -1472,6 +1510,7 @@ export async function createPurchase(
           leasingFinancedAmount: 0,
           hasRegistrationFee: false,
           registrationFeeAmount: 0,
+          extraCosts,
           interestRate,
           installmentMonths,
           monthlyInstallmentAmount,
@@ -1557,6 +1596,7 @@ export async function createPurchase(
       installmentMonths: result.installmentMonths,
       monthlyInstallmentAmount: result.monthlyInstallmentAmount,
       totalWithInterest: result.totalWithInterest,
+      extraCosts: result.extraCosts,
       purchasedAt: result.purchasedAt,
     };
   }
@@ -1709,6 +1749,7 @@ export async function listPurchases(query: PurchaseQueryDto) {
       leasingFinancedAmount: row.leasingFinancedAmount,
       hasRegistrationFee: row.hasRegistrationFee,
       registrationFeeAmount: row.registrationFeeAmount,
+      extraCosts: Array.isArray(row.extraCosts) ? row.extraCosts : [],
       interestRate: row.interestRate,
       installmentMonths: row.installmentMonths,
       monthlyInstallmentAmount: row.monthlyInstallmentAmount,
@@ -1939,6 +1980,7 @@ export async function listPurchasesByUser(
       leasingFinancedAmount: row.leasingFinancedAmount,
       hasRegistrationFee: row.hasRegistrationFee,
       registrationFeeAmount: row.registrationFeeAmount,
+      extraCosts: Array.isArray(row.extraCosts) ? row.extraCosts : [],
       interestRate: row.interestRate,
       installmentMonths: row.installmentMonths,
       monthlyInstallmentAmount: row.monthlyInstallmentAmount,
@@ -2481,7 +2523,9 @@ export async function updatePurchase(
   const newPaymentAmount =
     (purchase as any).paymentType === "DIRECT"
       ? roundCurrency(
-          newFSP + ((purchase as any).hasRegistrationFee ? newRegFee : 0),
+          newFSP +
+            ((purchase as any).hasRegistrationFee ? newRegFee : 0) +
+            getStoredExtraCostsTotal((purchase as any).extraCosts),
         )
       : newDown;
 

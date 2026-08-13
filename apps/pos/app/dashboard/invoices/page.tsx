@@ -49,6 +49,7 @@ type Purchase = {
   settlementStatus?: "SETTLED" | "TO_SETTLE";
   hasRegistrationFee?: boolean;
   registrationFeeAmount?: number;
+  extraCosts?: Array<{ label: string; amount: number }>;
   interestRate?: number | null;
   installmentMonths?: number | null;
   monthlyInstallmentAmount?: number | null;
@@ -111,6 +112,7 @@ type InvoiceRow = {
   currentSellingPrice: number;
   downPaymentAmount: number;
   registrationFeeTotal: number;
+  extraCosts: Array<{ label: string; amount: number }>;
   remainingAmount: number;
   settlementStatus: "SETTLED" | "TO_SETTLE";
   paymentTypeText: string;
@@ -424,6 +426,7 @@ export default function InvoicesPage() {
         if (!entry.hasRegistrationFee) return sum;
         return sum + (entry.registrationFeeAmount ?? 0);
       }, 0);
+      const extraCosts = sorted.flatMap((entry) => Array.isArray(entry.extraCosts) ? entry.extraCosts : []);
       const remainingAmount = Math.max(0, Math.round(sorted.reduce((sum, entry) => sum + (entry.remainingAmount ?? 0), 0) * 100) / 100);
       const settlementStatus: "SETTLED" | "TO_SETTLE" = remainingAmount > 0 || sorted.some((entry) => entry.settlementStatus === "TO_SETTLE")
         ? "TO_SETTLE"
@@ -452,6 +455,7 @@ export default function InvoicesPage() {
         currentSellingPrice,
         downPaymentAmount,
         registrationFeeTotal,
+        extraCosts,
         remainingAmount,
         settlementStatus,
         paymentTypeText,
@@ -523,7 +527,8 @@ export default function InvoicesPage() {
 
   const getInvoiceGrandTotal = (invoice: InvoiceRow) => {
     const effectiveTotal = invoice.entries.reduce((sum, e) => sum + (e.totalWithInterest ?? e.finalSellingPrice), 0);
-    return effectiveTotal + invoice.registrationFeeTotal;
+    const extraCostsTotal = invoice.extraCosts.reduce((sum, cost) => sum + cost.amount, 0);
+    return effectiveTotal + invoice.registrationFeeTotal + extraCostsTotal;
   };
 
   return (
@@ -758,6 +763,14 @@ export default function InvoicesPage() {
                           <td className="invoice-col-amount">Rs. {((entry.registrationFeeAmount ?? 0) * entry.quantity).toLocaleString()}</td>
                         </tr>
                       ))}
+                    {selectedInvoice.extraCosts.map((cost, index) => (
+                      <tr key={`extra-${index}-${cost.label}`} className="invoice-registration-row">
+                        <td className="invoice-desc-cell">{cost.label}</td>
+                        <td className="invoice-col-qty">1</td>
+                        <td className="invoice-col-amount">Rs. {cost.amount.toLocaleString()}</td>
+                        <td className="invoice-col-amount">Rs. {cost.amount.toLocaleString()}</td>
+                      </tr>
+                    ))}
                     {selectedInvoice.entries.some((entry) => entry.purchaseChannel === "LEASING") && (
                       <>
                         <tr className="invoice-summary-row">

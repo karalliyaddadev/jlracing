@@ -88,6 +88,16 @@ export const createPurchaseSchema = z
       .number()
       .min(0, "Registration fee must be >= 0")
       .optional(),
+    extraCosts: z
+      .array(
+        z.object({
+          label: z.string().trim().min(1, "Extra cost name is required").max(120),
+          amount: z.number().positive("Extra cost amount must be greater than 0"),
+        }),
+      )
+      .max(20, "A maximum of 20 extra costs is allowed")
+      .optional()
+      .default([]),
     interestRate: z
       .number()
       .min(0, "Interest rate must be >= 0")

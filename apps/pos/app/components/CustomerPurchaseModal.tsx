@@ -36,6 +36,19 @@ const CUSTOM_CATEGORIES = [
   "Miscellaneous",
 ] as const;
 
+const EXTRA_COST_OPTIONS = [
+  "VIP Number Plate",
+  "Helmet",
+  "Accessories",
+  "Other",
+] as const;
+
+type ExtraCost = {
+  id: string;
+  label: string;
+  amount: number;
+};
+
 type CustomerPurchaseModalProps = {
   token: string;
   itemType: "BIKE" | "INVENTORY" | "PRE_ORDER" | "CUSTOM";
@@ -145,6 +158,10 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
   const [leasingDownPaymentAmount, setLeasingDownPaymentAmount] = useState("");
   const [hasRegistrationFee, setHasRegistrationFee] = useState(false);
   const [registrationFeeAmount, setRegistrationFeeAmount] = useState("");
+  const [extraCostType, setExtraCostType] = useState<(typeof EXTRA_COST_OPTIONS)[number]>("VIP Number Plate");
+  const [customExtraCostLabel, setCustomExtraCostLabel] = useState("");
+  const [extraCostAmount, setExtraCostAmount] = useState("");
+  const [extraCosts, setExtraCosts] = useState<ExtraCost[]>([]);
   const [interestRate, setInterestRate] = useState("");
   const [installmentMonths, setInstallmentMonths] = useState("");
 
@@ -218,8 +235,13 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
   }, [bulkRegistrationFeeTotal, hasRegistrationFee, itemType, purchaseMode, registrationFeeAmount]);
 
   const computedInvoiceGrandTotal = useMemo(
-    () => computedInvoiceTotal + computedRegistrationTotal,
-    [computedInvoiceTotal, computedRegistrationTotal]
+    () => computedInvoiceTotal + computedRegistrationTotal + extraCosts.reduce((sum, cost) => sum + cost.amount, 0),
+    [computedInvoiceTotal, computedRegistrationTotal, extraCosts]
+  );
+
+  const computedExtraCostsTotal = useMemo(
+    () => roundCurrency(extraCosts.reduce((sum, cost) => sum + cost.amount, 0)),
+    [extraCosts]
   );
 
   const parsedDownPayment = Number(downPaymentAmount || "0");
@@ -373,6 +395,26 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
     setBulkLines((prev) => prev.filter((line) => line.key !== key));
   };
 
+  const addExtraCost = () => {
+    const label = extraCostType === "Other" ? customExtraCostLabel.trim() : extraCostType;
+    const amount = Number(extraCostAmount);
+    if (!label) {
+      setError("Please enter an extra cost name");
+      return;
+    }
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setError("Please enter a valid extra cost amount");
+      return;
+    }
+    setExtraCosts((prev) => [
+      ...prev,
+      { id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, label, amount: roundCurrency(amount) },
+    ]);
+    setExtraCostAmount("");
+    setCustomExtraCostLabel("");
+    setError(null);
+  };
+
   const allocateDownPayments = (lineItems: Array<{ bikeId: number; unitPrice: number }>, totalDownPayment: number) => {
     if (lineItems.length === 0) return [] as Array<{ bikeId: number; unitPrice: number; downPayment: number }>;
     const totalPrice = lineItems.reduce((sum, item) => sum + item.unitPrice, 0);
@@ -508,7 +550,7 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
           : (paymentType === "DIRECT" ? bulkTotal : parsedDownPayment);
         const allocation = allocateDownPayments(lineItems, effectiveDownPayment);
 
-        for (const allocated of allocation) {
+        for (const [allocationIndex, allocated] of allocation.entries()) {
           const response = await fetch(`${base}/${resolvedUserId}/purchases`, {
             method: "POST",
             headers: { ...auth, "Content-Type": "application/json" },
@@ -527,6 +569,9 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                 : (paymentType === "DOWNPAYMENT" ? allocated.downPayment : undefined),
               hasRegistrationFee: bulkLines.find((line) => line.bikeIds.includes(allocated.bikeId))?.hasRegistrationFee ?? false,
               registrationFeeAmount: bulkLines.find((line) => line.bikeIds.includes(allocated.bikeId))?.registrationFeeAmount ?? 0,
+              extraCosts: allocationIndex === 0
+                ? extraCosts.map(({ label, amount }) => ({ label, amount }))
+                : [],
             }),
           });
 
@@ -571,6 +616,7 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
             : (paymentType === "DOWNPAYMENT" ? parsedDownPayment : undefined),
           hasRegistrationFee: itemType === "BIKE" ? hasRegistrationFee : false,
           registrationFeeAmount: itemType === "BIKE" && hasRegistrationFee ? Number(registrationFeeAmount || "0") : undefined,
+          extraCosts: extraCosts.map(({ label, amount }) => ({ label, amount })),
           interestRate: paymentType === "DOWNPAYMENT" && parsedInterestRate > 0 ? parsedInterestRate : undefined,
           installmentMonths: paymentType === "DOWNPAYMENT" && parsedInstallmentMonths >= 1 ? parsedInstallmentMonths : undefined,
           paymentMethod,
@@ -936,6 +982,66 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                 </>
               )}
 
+              <div className="bm-field-group users-span-2">
+                <label>Extra Costs</label>
+                <div className="users-form-grid" style={{ marginTop: 6 }}>
+                  <div className="bm-field-group">
+                    <label>Cost Type</label>
+                    <select
+                      className="bm-input"
+                      value={extraCostType}
+                      onChange={(event) => setExtraCostType(event.target.value as (typeof EXTRA_COST_OPTIONS)[number])}
+                    >
+                      {EXTRA_COST_OPTIONS.map((option) => <option key={option} value={option}>{option}</option>)}
+                    </select>
+                  </div>
+                  {extraCostType === "Other" && (
+                    <div className="bm-field-group">
+                      <label>Cost Name</label>
+                      <input
+                        className="bm-input"
+                        maxLength={120}
+                        value={customExtraCostLabel}
+                        onChange={(event) => setCustomExtraCostLabel(event.target.value)}
+                        placeholder="Enter cost name"
+                      />
+                    </div>
+                  )}
+                  <div className="bm-field-group">
+                    <label>Amount (Rs.)</label>
+                    <input
+                      className="bm-input"
+                      type="number"
+                      min={0.01}
+                      step="0.01"
+                      value={extraCostAmount}
+                      onChange={(event) => setExtraCostAmount(event.target.value)}
+                    />
+                  </div>
+                  <div className="bm-field-group" style={{ display: "flex", justifyContent: "end" }}>
+                    <button type="button" className="btn-accent" onClick={addExtraCost}>+ Add Cost</button>
+                  </div>
+                </div>
+                {extraCosts.length > 0 && (
+                  <div className="data-table-wrap" style={{ marginTop: 10 }}>
+                    <table className="data-table">
+                      <thead><tr><th>Description</th><th>Amount</th><th>Action</th></tr></thead>
+                      <tbody>
+                        {extraCosts.map((cost) => (
+                          <tr key={cost.id}>
+                            <td>{cost.label}</td>
+                            <td>Rs. {cost.amount.toLocaleString()}</td>
+                            <td>
+                              <button type="button" className="btn-outline" onClick={() => setExtraCosts((prev) => prev.filter((item) => item.id !== cost.id))}>Remove</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+
               {(itemType === "BIKE" || itemType === "PRE_ORDER") && (
                 <>
                   <div className="bm-field-group">
@@ -1143,9 +1249,16 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                 </div>
               )}
 
+              {extraCosts.length > 0 && (
+                <div className="bm-field-group">
+                  <label>Extra Costs Total</label>
+                  <input className="bm-input" value={`Rs. ${computedExtraCostsTotal.toLocaleString()}`} readOnly />
+                </div>
+              )}
+
               <div className="bm-field-group">
                 <label>Grand Total{computedTotalWithInterest != null ? " (incl. finance charge)" : ""}</label>
-                <input className="bm-input" value={`Rs. ${(computedTotalWithInterest != null ? computedTotalWithInterest + computedRegistrationTotal : computedInvoiceGrandTotal).toLocaleString()}`} readOnly />
+                <input className="bm-input" value={`Rs. ${(computedTotalWithInterest != null ? computedTotalWithInterest + computedRegistrationTotal + computedExtraCostsTotal : computedInvoiceGrandTotal).toLocaleString()}`} readOnly />
               </div>
 
               <div className="bm-field-group">

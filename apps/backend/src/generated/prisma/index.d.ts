@@ -23043,6 +23043,7 @@ export namespace Prisma {
     leasingFinancedAmount: number
     hasRegistrationFee: number
     registrationFeeAmount: number
+    extraCosts: number
     interestRate: number
     installmentMonths: number
     monthlyInstallmentAmount: number
@@ -23180,6 +23181,7 @@ export namespace Prisma {
     leasingFinancedAmount?: true
     hasRegistrationFee?: true
     registrationFeeAmount?: true
+    extraCosts?: true
     interestRate?: true
     installmentMonths?: true
     monthlyInstallmentAmount?: true
@@ -23298,6 +23300,7 @@ export namespace Prisma {
     leasingFinancedAmount: number
     hasRegistrationFee: boolean
     registrationFeeAmount: number
+    extraCosts: JsonValue
     interestRate: number | null
     installmentMonths: number | null
     monthlyInstallmentAmount: number | null
@@ -23348,6 +23351,7 @@ export namespace Prisma {
     leasingFinancedAmount?: boolean
     hasRegistrationFee?: boolean
     registrationFeeAmount?: boolean
+    extraCosts?: boolean
     interestRate?: boolean
     installmentMonths?: boolean
     monthlyInstallmentAmount?: boolean
@@ -23388,6 +23392,7 @@ export namespace Prisma {
     leasingFinancedAmount?: boolean
     hasRegistrationFee?: boolean
     registrationFeeAmount?: boolean
+    extraCosts?: boolean
     interestRate?: boolean
     installmentMonths?: boolean
     monthlyInstallmentAmount?: boolean
@@ -23424,6 +23429,7 @@ export namespace Prisma {
     leasingFinancedAmount?: boolean
     hasRegistrationFee?: boolean
     registrationFeeAmount?: boolean
+    extraCosts?: boolean
     interestRate?: boolean
     installmentMonths?: boolean
     monthlyInstallmentAmount?: boolean
@@ -23486,6 +23492,7 @@ export namespace Prisma {
       leasingFinancedAmount: number
       hasRegistrationFee: boolean
       registrationFeeAmount: number
+      extraCosts: Prisma.JsonValue
       interestRate: number | null
       installmentMonths: number | null
       monthlyInstallmentAmount: number | null
@@ -23915,6 +23922,7 @@ export namespace Prisma {
     readonly leasingFinancedAmount: FieldRef<"PosCustomerPurchase", 'Float'>
     readonly hasRegistrationFee: FieldRef<"PosCustomerPurchase", 'Boolean'>
     readonly registrationFeeAmount: FieldRef<"PosCustomerPurchase", 'Float'>
+    readonly extraCosts: FieldRef<"PosCustomerPurchase", 'Json'>
     readonly interestRate: FieldRef<"PosCustomerPurchase", 'Float'>
     readonly installmentMonths: FieldRef<"PosCustomerPurchase", 'Int'>
     readonly monthlyInstallmentAmount: FieldRef<"PosCustomerPurchase", 'Float'>
@@ -40682,6 +40690,7 @@ export namespace Prisma {
     leasingFinancedAmount: 'leasingFinancedAmount',
     hasRegistrationFee: 'hasRegistrationFee',
     registrationFeeAmount: 'registrationFeeAmount',
+    extraCosts: 'extraCosts',
     interestRate: 'interestRate',
     installmentMonths: 'installmentMonths',
     monthlyInstallmentAmount: 'monthlyInstallmentAmount',
@@ -40948,6 +40957,13 @@ export namespace Prisma {
   export type SortOrder = (typeof SortOrder)[keyof typeof SortOrder]
 
 
+  export const JsonNullValueInput: {
+    JsonNull: typeof JsonNull
+  };
+
+  export type JsonNullValueInput = (typeof JsonNullValueInput)[keyof typeof JsonNullValueInput]
+
+
   export const QueryMode: {
     default: 'default',
     insensitive: 'insensitive'
@@ -40962,6 +40978,15 @@ export namespace Prisma {
   };
 
   export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
+
+
+  export const JsonNullValueFilter: {
+    DbNull: typeof DbNull,
+    JsonNull: typeof JsonNull,
+    AnyNull: typeof AnyNull
+  };
+
+  export type JsonNullValueFilter = (typeof JsonNullValueFilter)[keyof typeof JsonNullValueFilter]
 
 
   /**
@@ -41113,6 +41138,13 @@ export namespace Prisma {
    * Reference to a field of type 'PosPurchaseChannel[]'
    */
   export type ListEnumPosPurchaseChannelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'PosPurchaseChannel[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'Json'
+   */
+  export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
     
 
 
@@ -42581,6 +42613,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFilter<"PosCustomerPurchase"> | number
     hasRegistrationFee?: BoolFilter<"PosCustomerPurchase"> | boolean
     registrationFeeAmount?: FloatFilter<"PosCustomerPurchase"> | number
+    extraCosts?: JsonFilter<"PosCustomerPurchase">
     interestRate?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
     installmentMonths?: IntNullableFilter<"PosCustomerPurchase"> | number | null
     monthlyInstallmentAmount?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
@@ -42620,6 +42653,7 @@ export namespace Prisma {
     leasingFinancedAmount?: SortOrder
     hasRegistrationFee?: SortOrder
     registrationFeeAmount?: SortOrder
+    extraCosts?: SortOrder
     interestRate?: SortOrderInput | SortOrder
     installmentMonths?: SortOrderInput | SortOrder
     monthlyInstallmentAmount?: SortOrderInput | SortOrder
@@ -42662,6 +42696,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFilter<"PosCustomerPurchase"> | number
     hasRegistrationFee?: BoolFilter<"PosCustomerPurchase"> | boolean
     registrationFeeAmount?: FloatFilter<"PosCustomerPurchase"> | number
+    extraCosts?: JsonFilter<"PosCustomerPurchase">
     interestRate?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
     installmentMonths?: IntNullableFilter<"PosCustomerPurchase"> | number | null
     monthlyInstallmentAmount?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
@@ -42701,6 +42736,7 @@ export namespace Prisma {
     leasingFinancedAmount?: SortOrder
     hasRegistrationFee?: SortOrder
     registrationFeeAmount?: SortOrder
+    extraCosts?: SortOrder
     interestRate?: SortOrderInput | SortOrder
     installmentMonths?: SortOrderInput | SortOrder
     monthlyInstallmentAmount?: SortOrderInput | SortOrder
@@ -42740,6 +42776,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatWithAggregatesFilter<"PosCustomerPurchase"> | number
     hasRegistrationFee?: BoolWithAggregatesFilter<"PosCustomerPurchase"> | boolean
     registrationFeeAmount?: FloatWithAggregatesFilter<"PosCustomerPurchase"> | number
+    extraCosts?: JsonWithAggregatesFilter<"PosCustomerPurchase">
     interestRate?: FloatNullableWithAggregatesFilter<"PosCustomerPurchase"> | number | null
     installmentMonths?: IntNullableWithAggregatesFilter<"PosCustomerPurchase"> | number | null
     monthlyInstallmentAmount?: FloatNullableWithAggregatesFilter<"PosCustomerPurchase"> | number | null
@@ -45454,6 +45491,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -45493,6 +45531,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -45521,6 +45560,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -45560,6 +45600,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -45594,6 +45635,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -45619,6 +45661,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -45650,6 +45693,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -48301,6 +48345,28 @@ export namespace Prisma {
     notIn?: $Enums.PosPurchaseChannel[] | ListEnumPosPurchaseChannelFieldRefInput<$PrismaModel>
     not?: NestedEnumPosPurchaseChannelFilter<$PrismaModel> | $Enums.PosPurchaseChannel
   }
+  export type JsonFilter<$PrismaModel = never> = 
+    | PatchUndefined<
+        Either<Required<JsonFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type BikeVehicleNullableRelationFilter = {
     is?: BikeVehicleWhereInput | null
@@ -48375,6 +48441,7 @@ export namespace Prisma {
     leasingFinancedAmount?: SortOrder
     hasRegistrationFee?: SortOrder
     registrationFeeAmount?: SortOrder
+    extraCosts?: SortOrder
     interestRate?: SortOrder
     installmentMonths?: SortOrder
     monthlyInstallmentAmount?: SortOrder
@@ -48535,6 +48602,31 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumPosPurchaseChannelFilter<$PrismaModel>
     _max?: NestedEnumPosPurchaseChannelFilter<$PrismaModel>
+  }
+  export type JsonWithAggregatesFilter<$PrismaModel = never> = 
+    | PatchUndefined<
+        Either<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, Exclude<keyof Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>,
+        Required<JsonWithAggregatesFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<JsonWithAggregatesFilterBase<$PrismaModel>>, 'path'>>
+
+  export type JsonWithAggregatesFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedJsonFilter<$PrismaModel>
+    _max?: NestedJsonFilter<$PrismaModel>
   }
 
   export type PosInvoiceTermCountOrderByAggregateInput = {
@@ -52030,6 +52122,28 @@ export namespace Prisma {
     _min?: NestedEnumPosPurchaseChannelFilter<$PrismaModel>
     _max?: NestedEnumPosPurchaseChannelFilter<$PrismaModel>
   }
+  export type NestedJsonFilter<$PrismaModel = never> = 
+    | PatchUndefined<
+        Either<Required<NestedJsonFilterBase<$PrismaModel>>, Exclude<keyof Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>,
+        Required<NestedJsonFilterBase<$PrismaModel>>
+      >
+    | OptionalFlat<Omit<Required<NestedJsonFilterBase<$PrismaModel>>, 'path'>>
+
+  export type NestedJsonFilterBase<$PrismaModel = never> = {
+    equals?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+    path?: string[]
+    string_contains?: string | StringFieldRefInput<$PrismaModel>
+    string_starts_with?: string | StringFieldRefInput<$PrismaModel>
+    string_ends_with?: string | StringFieldRefInput<$PrismaModel>
+    array_contains?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_starts_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    array_ends_with?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | null
+    lt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    lte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
+    not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
 
   export type NestedEnumInstallmentStatusFilter<$PrismaModel = never> = {
     equals?: $Enums.InstallmentStatus | EnumInstallmentStatusFieldRefInput<$PrismaModel>
@@ -52813,6 +52927,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -52850,6 +52965,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -53088,6 +53204,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFilter<"PosCustomerPurchase"> | number
     hasRegistrationFee?: BoolFilter<"PosCustomerPurchase"> | boolean
     registrationFeeAmount?: FloatFilter<"PosCustomerPurchase"> | number
+    extraCosts?: JsonFilter<"PosCustomerPurchase">
     interestRate?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
     installmentMonths?: IntNullableFilter<"PosCustomerPurchase"> | number | null
     monthlyInstallmentAmount?: FloatNullableFilter<"PosCustomerPurchase"> | number | null
@@ -53645,6 +53762,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -53682,6 +53800,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -54120,6 +54239,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -54157,6 +54277,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -54227,6 +54348,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -54264,6 +54386,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -55217,6 +55340,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -55255,6 +55379,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -55323,6 +55448,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -55361,6 +55487,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -55523,6 +55650,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -55560,6 +55688,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -56261,6 +56390,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -56299,6 +56429,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -56467,6 +56598,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -56505,6 +56637,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -57129,6 +57262,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -57167,6 +57301,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -57256,6 +57391,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -57294,6 +57430,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -58196,6 +58333,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -58281,6 +58419,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -58318,6 +58457,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -58351,6 +58491,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -58574,6 +58715,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -58642,6 +58784,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -58679,6 +58822,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -58712,6 +58856,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -58748,6 +58893,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -58790,6 +58936,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -58827,6 +58974,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -58860,6 +59008,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -58890,6 +59039,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -58915,6 +59065,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -58952,6 +59103,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -58985,6 +59137,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -59243,6 +59396,7 @@ export namespace Prisma {
     leasingFinancedAmount?: number
     hasRegistrationFee?: boolean
     registrationFeeAmount?: number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: number | null
     installmentMonths?: number | null
     monthlyInstallmentAmount?: number | null
@@ -59291,6 +59445,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -59328,6 +59483,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null
@@ -59361,6 +59517,7 @@ export namespace Prisma {
     leasingFinancedAmount?: FloatFieldUpdateOperationsInput | number
     hasRegistrationFee?: BoolFieldUpdateOperationsInput | boolean
     registrationFeeAmount?: FloatFieldUpdateOperationsInput | number
+    extraCosts?: JsonNullValueInput | InputJsonValue
     interestRate?: NullableFloatFieldUpdateOperationsInput | number | null
     installmentMonths?: NullableIntFieldUpdateOperationsInput | number | null
     monthlyInstallmentAmount?: NullableFloatFieldUpdateOperationsInput | number | null

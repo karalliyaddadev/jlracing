@@ -389,6 +389,7 @@ model PosCustomerPurchase {
   leasingFinancedAmount Float      @default(0)
   hasRegistrationFee  Boolean     @default(false)
   registrationFeeAmount Float     @default(0)
+  extraCosts          Json        @default("[]")
   interestRate              Float?
   installmentMonths         Int?
   monthlyInstallmentAmount  Float?
