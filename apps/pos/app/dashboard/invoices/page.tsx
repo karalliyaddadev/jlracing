@@ -239,9 +239,11 @@ export default function InvoicesPage() {
   const [editFsp, setEditFsp] = useState("");
   const [editDown, setEditDown] = useState("");
   const [editRegFee, setEditRegFee] = useState("");
+  const [editMobileNumber, setEditMobileNumber] = useState("");
   const [editSaving, setEditSaving] = useState(false);
   const [editError, setEditError] = useState<string | null>(null);
   const [editHasReceipts, setEditHasReceipts] = useState(false);
+  const [editFinancialsEnabled, setEditFinancialsEnabled] = useState(false);
 
   const handlePrintInvoice = useCallback((_invoice: InvoiceRow) => {
     setIsPreparingPrint(true);
@@ -256,29 +258,44 @@ export default function InvoicesPage() {
     setEditFsp(String(entry.finalSellingPrice));
     setEditDown(String(entry.downPaymentAmount ?? ""));
     setEditRegFee(String(entry.registrationFeeAmount ?? ""));
+    setEditMobileNumber(entry.customer.mobileNumber);
     setEditError(null);
+    setEditFinancialsEnabled(invoice.purchaseModeText === "Single" && entry.purchaseChannel !== "LEASING");
     const outstanding = entry.finalSellingPrice - (entry.downPaymentAmount ?? 0);
-    setEditHasReceipts((entry.remainingAmount ?? 0) < outstanding);
+    setEditHasReceipts(
+      invoice.purchaseModeText === "Single" &&
+      entry.purchaseChannel !== "LEASING" &&
+      (entry.remainingAmount ?? 0) < outstanding
+    );
     setEditingEntry(entry);
   }
 
   async function submitEditInvoice() {
     if (!editingEntry) return;
-    const fsp = parseFloat(editFsp);
-    if (!isFinite(fsp) || fsp < 0) {
-      setEditError("Final selling price must be a valid positive number");
+    const mobileNumber = editMobileNumber.trim();
+    if (mobileNumber.length < 7 || mobileNumber.length > 20) {
+      setEditError("Mobile number must be between 7 and 20 characters");
       return;
     }
-    const body: Record<string, number> = { finalSellingPrice: fsp };
-    if (editingEntry.paymentType === "DOWNPAYMENT") {
-      const down = parseFloat(editDown);
-      if (!isFinite(down) || down < 0) { setEditError("Down payment must be a valid number"); return; }
-      body.downPaymentAmount = down;
-    }
-    if (editingEntry.hasRegistrationFee) {
-      const reg = parseFloat(editRegFee);
-      if (!isFinite(reg) || reg <= 0) { setEditError("Registration fee must be greater than 0"); return; }
-      body.registrationFeeAmount = reg;
+
+    const body: Record<string, number | string> = { mobileNumber };
+    if (editFinancialsEnabled) {
+      const fsp = parseFloat(editFsp);
+      if (!isFinite(fsp) || fsp < 0) {
+        setEditError("Final selling price must be a valid positive number");
+        return;
+      }
+      body.finalSellingPrice = fsp;
+      if (editingEntry.paymentType === "DOWNPAYMENT") {
+        const down = parseFloat(editDown);
+        if (!isFinite(down) || down < 0) { setEditError("Down payment must be a valid number"); return; }
+        body.downPaymentAmount = down;
+      }
+      if (editingEntry.hasRegistrationFee) {
+        const reg = parseFloat(editRegFee);
+        if (!isFinite(reg) || reg <= 0) { setEditError("Registration fee must be greater than 0"); return; }
+        body.registrationFeeAmount = reg;
+      }
     }
     setEditSaving(true);
     setEditError(null);
@@ -578,6 +595,7 @@ export default function InvoicesPage() {
                 <th>Invoice #</th>
                 <th>Date</th>
                 <th>Customer</th>
+                <th>Mobile Number</th>
                 <th>Item</th>
                 <th>Final Price</th>
                 <th>Status</th>
@@ -585,13 +603,14 @@ export default function InvoicesPage() {
               </tr>
             </thead>
             <tbody>
-              {loading && <tr><td colSpan={7} className="bm-table-empty">Loading invoices...</td></tr>}
-              {!loading && filteredInvoiceRows.length === 0 && <tr><td colSpan={7} className="bm-table-empty">No invoices found.</td></tr>}
+              {loading && <tr><td colSpan={8} className="bm-table-empty">Loading invoices...</td></tr>}
+              {!loading && filteredInvoiceRows.length === 0 && <tr><td colSpan={8} className="bm-table-empty">No invoices found.</td></tr>}
               {!loading && pagedRows.map((invoice) => (
                 <tr key={invoice.key}>
                   <td>{invoice.invoiceLabel}</td>
                   <td>{new Date(invoice.purchasedAt).toLocaleString()}</td>
                   <td>{invoice.customer.firstName} {invoice.customer.lastName}</td>
+                  <td>{invoice.customer.mobileNumber}</td>
                   <td>
                     <div className="users-order-title">{invoice.itemTitle}</div>
                     <span className="users-order-item-meta">{invoice.itemSubtitle}</span>
@@ -612,11 +631,7 @@ export default function InvoicesPage() {
                   <td>
                     <div style={{ display: "flex", gap: "0.5rem" }}>
                       <button type="button" className="btn-outline" onClick={() => setSelectedInvoice(invoice)}>View Invoice</button>
-                      {invoice.purchaseModeText === "Single" && invoice.entries[0]?.purchaseChannel !== "LEASING" ? (
-                        <button type="button" className="btn-outline" onClick={() => openEditModal(invoice)}>Edit</button>
-                      ) : (
-                        <button type="button" className="btn-outline" disabled title="Bulk or leasing invoices cannot be edited here">Edit</button>
-                      )}
+                      <button type="button" className="btn-outline" onClick={() => openEditModal(invoice)}>Edit</button>
                     </div>
                   </td>
                 </tr>
@@ -693,6 +708,7 @@ export default function InvoicesPage() {
 
                 <div className="invoice-customer-block">
                   <strong>{selectedInvoice.customer.firstName} {selectedInvoice.customer.lastName}</strong>
+                  <span>Mobile: {selectedInvoice.customer.mobileNumber}</span>
                   <span>{selectedInvoice.customer.address}</span>
                   <span>{selectedInvoice.customer.district}</span>
                 </div>
@@ -922,17 +938,32 @@ export default function InvoicesPage() {
               )}
               <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
                 <div className="bm-field-group">
-                  <label className="users-label">Final Selling Price (Rs.)</label>
+                  <label className="users-label" htmlFor="invoice-mobile-number">Customer Mobile Number</label>
                   <input
+                    id="invoice-mobile-number"
                     className="bm-input"
-                    type="number"
-                    min={0}
-                    step="0.01"
-                    value={editFsp}
-                    onChange={(e) => setEditFsp(e.target.value)}
+                    type="tel"
+                    minLength={7}
+                    maxLength={20}
+                    value={editMobileNumber}
+                    onChange={(e) => setEditMobileNumber(e.target.value)}
+                    required
                   />
                 </div>
-                {editingEntry.paymentType === "DOWNPAYMENT" && (
+                {editFinancialsEnabled && (
+                  <div className="bm-field-group">
+                    <label className="users-label">Final Selling Price (Rs.)</label>
+                    <input
+                      className="bm-input"
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      value={editFsp}
+                      onChange={(e) => setEditFsp(e.target.value)}
+                    />
+                  </div>
+                )}
+                {editFinancialsEnabled && editingEntry.paymentType === "DOWNPAYMENT" && (
                   <div className="bm-field-group">
                     <label className="users-label">Down Payment Amount (Rs.)</label>
                     <input
@@ -945,7 +976,7 @@ export default function InvoicesPage() {
                     />
                   </div>
                 )}
-                {editingEntry.hasRegistrationFee && (
+                {editFinancialsEnabled && editingEntry.hasRegistrationFee && (
                   <div className="bm-field-group">
                     <label className="users-label">Registration Fee (Rs.)</label>
                     <input

@@ -247,6 +247,12 @@ export const updatePurchaseSchema = z
     finalSellingPrice: z.number().min(0).optional(),
     downPaymentAmount: z.number().min(0).optional(),
     registrationFeeAmount: z.number().min(0).optional(),
+    mobileNumber: z
+      .string()
+      .trim()
+      .min(7, "Mobile number must be at least 7 characters")
+      .max(20, "Mobile number is too long")
+      .optional(),
   })
   .refine((d) => Object.keys(d).length > 0, {
     message: "At least one field must be provided",

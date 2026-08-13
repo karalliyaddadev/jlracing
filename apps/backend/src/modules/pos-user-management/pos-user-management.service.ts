@@ -2333,6 +2333,40 @@ export async function updatePurchase(
   });
   if (!purchase) throw AppError.notFound("Purchase not found");
 
+  const hasFinancialEdits =
+    dto.finalSellingPrice !== undefined ||
+    dto.downPaymentAmount !== undefined ||
+    dto.registrationFeeAmount !== undefined;
+
+  // Mobile numbers belong to the customer, so changing the number from an
+  // invoice keeps the customer record and all of their invoices in sync.
+  // Bulk and leasing invoices may update this customer detail even though
+  // their financial fields remain immutable here.
+  if (dto.mobileNumber !== undefined && !hasFinancialEdits) {
+    try {
+      await prisma.posCustomer.update({
+        where: { id: (purchase as any).customerId },
+        data: { mobileNumber: dto.mobileNumber },
+      });
+    } catch (error) {
+      if (
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === "P2002"
+      ) {
+        throw mapUniqueConstraint(error);
+      }
+      throw error;
+    }
+
+    return getPurchaseModelClient(prisma as any).findUniqueOrThrow({
+      where: { id: purchaseId },
+      select: {
+        id: true,
+        customer: { select: { id: true, mobileNumber: true } },
+      },
+    });
+  }
+
   const installments = await getInstallmentModelClient(prisma as any).findMany({
     where: { purchaseId },
     select: {
@@ -2451,82 +2485,99 @@ export async function updatePurchase(
         )
       : newDown;
 
-  await prisma.$transaction(async (tx) => {
-    await getPurchaseModelClient(tx as any).update({
-      where: { id: purchaseId },
-      data: {
-        finalSellingPrice: newFSP,
-        downPaymentAmount: newDown,
-        remainingAmount: newRemaining,
-        settlementStatus: newStatus as any,
-        registrationFeeAmount: newRegFee,
-        ...(newTotalWithInterest != null
-          ? { totalWithInterest: newTotalWithInterest }
-          : {}),
-        ...(newMonthly != null ? { monthlyInstallmentAmount: newMonthly } : {}),
-      },
-    });
-
-    if (initialPayment && initialPayment.receiptId === null) {
-      await tx.invoicePayment.update({
-        where: { id: initialPayment.id },
-        data: { amount: newPaymentAmount },
+  try {
+    await prisma.$transaction(async (tx) => {
+      await getPurchaseModelClient(tx as any).update({
+        where: { id: purchaseId },
+        data: {
+          finalSellingPrice: newFSP,
+          downPaymentAmount: newDown,
+          remainingAmount: newRemaining,
+          settlementStatus: newStatus as any,
+          registrationFeeAmount: newRegFee,
+          ...(newTotalWithInterest != null
+            ? { totalWithInterest: newTotalWithInterest }
+            : {}),
+          ...(newMonthly != null ? { monthlyInstallmentAmount: newMonthly } : {}),
+        },
       });
-    }
 
-    if (
-      hasInstallmentPlan &&
-      allInstallmentsPending &&
-      dto.finalSellingPrice !== undefined
-    ) {
-      await (tx as any).posInstallment.deleteMany({ where: { purchaseId } });
-
-      const baseDate = new Date((purchase as any).purchasedAt);
-      const months = (purchase as any).installmentMonths as number;
-      const installmentData = Array.from({ length: months }, (_, i) => {
-        const dueDate = new Date(baseDate);
-        dueDate.setMonth(dueDate.getMonth() + i + 1);
-        const isLast = i === months - 1;
-        const dueAmount = isLast
-          ? roundCurrency(newTotalWithInterest! - newMonthly! * (months - 1))
-          : newMonthly!;
-        return { purchaseId, installmentNo: i + 1, dueDate, dueAmount };
-      });
-      await (tx as any).posInstallment.createMany({ data: installmentData });
-
-      const newInstallments = await (tx as any).posInstallment.findMany({
-        where: { purchaseId },
-        orderBy: { installmentNo: "asc" },
-      });
-      let dp = newDown;
-      for (const inst of newInstallments) {
-        if (dp <= 0) break;
-        const pay = roundCurrency(Math.min(dp, inst.dueAmount));
-        dp = roundCurrency(dp - pay);
-        const fullyPaid = pay >= inst.dueAmount;
-        await (tx as any).posInstallment.update({
-          where: { id: inst.id },
-          data: fullyPaid
-            ? {
-                paidAmount: pay,
-                status: "PAID",
-                isPartial: false,
-                settledAt: new Date(),
-              }
-            : { paidAmount: pay, status: "PARTIAL", isPartial: true },
-        });
-        await (tx as any).posInstallmentPayment.create({
-          data: {
-            installmentId: inst.id,
-            amount: pay,
-            penaltyAmount: 0,
-            note: "Initial advance payment (re-applied after invoice edit)",
-            paidAt: new Date(),
-          },
+      if (dto.mobileNumber !== undefined) {
+        await tx.posCustomer.update({
+          where: { id: (purchase as any).customerId },
+          data: { mobileNumber: dto.mobileNumber },
         });
       }
+
+      if (initialPayment && initialPayment.receiptId === null) {
+        await tx.invoicePayment.update({
+          where: { id: initialPayment.id },
+          data: { amount: newPaymentAmount },
+        });
+      }
+
+      if (
+        hasInstallmentPlan &&
+        allInstallmentsPending &&
+        dto.finalSellingPrice !== undefined
+      ) {
+        await (tx as any).posInstallment.deleteMany({ where: { purchaseId } });
+
+        const baseDate = new Date((purchase as any).purchasedAt);
+        const months = (purchase as any).installmentMonths as number;
+        const installmentData = Array.from({ length: months }, (_, i) => {
+          const dueDate = new Date(baseDate);
+          dueDate.setMonth(dueDate.getMonth() + i + 1);
+          const isLast = i === months - 1;
+          const dueAmount = isLast
+            ? roundCurrency(newTotalWithInterest! - newMonthly! * (months - 1))
+            : newMonthly!;
+          return { purchaseId, installmentNo: i + 1, dueDate, dueAmount };
+        });
+        await (tx as any).posInstallment.createMany({ data: installmentData });
+
+        const newInstallments = await (tx as any).posInstallment.findMany({
+          where: { purchaseId },
+          orderBy: { installmentNo: "asc" },
+        });
+        let dp = newDown;
+        for (const inst of newInstallments) {
+          if (dp <= 0) break;
+          const pay = roundCurrency(Math.min(dp, inst.dueAmount));
+          dp = roundCurrency(dp - pay);
+          const fullyPaid = pay >= inst.dueAmount;
+          await (tx as any).posInstallment.update({
+            where: { id: inst.id },
+            data: fullyPaid
+              ? {
+                  paidAmount: pay,
+                  status: "PAID",
+                  isPartial: false,
+                  settledAt: new Date(),
+                }
+              : { paidAmount: pay, status: "PARTIAL", isPartial: true },
+          });
+          await (tx as any).posInstallmentPayment.create({
+            data: {
+              installmentId: inst.id,
+              amount: pay,
+              penaltyAmount: 0,
+              note: "Initial advance payment (re-applied after invoice edit)",
+              paidAt: new Date(),
+            },
+          });
+        }
+      }
+    });
+  } catch (error) {
+    if (
+      error instanceof Prisma.PrismaClientKnownRequestError &&
+      error.code === "P2002"
+    ) {
+      throw mapUniqueConstraint(error);
     }
-  });
+    throw error;
+  }
 
   return getPurchaseModelClient(prisma as any).findUniqueOrThrow({
     where: { id: purchaseId },
@@ -2539,6 +2590,7 @@ export async function updatePurchase(
       registrationFeeAmount: true,
       totalWithInterest: true,
       monthlyInstallmentAmount: true,
+      customer: { select: { id: true, mobileNumber: true } },
     },
   });
 }
