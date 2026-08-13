@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { IconAccounts, IconEdit, IconPlus } from "../../lib/icons";
+import TablePagination, { paginateRows } from "../../components/TablePagination";
 
 type Account = {
   id: number;
@@ -26,6 +27,15 @@ export default function ManageAccountsPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const filteredAccounts = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return needle ? accounts.filter((account) => [account.code, account.name, account.type].some((value) => value.toLowerCase().includes(needle))) : accounts;
+  }, [accounts, search]);
+  const pagedAccounts = useMemo(() => paginateRows(filteredAccounts, page, pageSize), [filteredAccounts, page, pageSize]);
+  useEffect(() => { setPage(1); }, [search, pageSize]);
 
   async function fetchAccounts() {
     setLoading(true);
@@ -111,6 +121,7 @@ export default function ManageAccountsPage() {
       </div>
 
       <div className="bm-table-card">
+        <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)" }}><input className="bm-input" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search account code, name or type" /></div>
         {loading ? (
           <div className="bm-table-empty">Loading accounts...</div>
         ) : (
@@ -129,7 +140,7 @@ export default function ManageAccountsPage() {
               <tbody>
                 {accounts.length === 0 ? (
                   <tr><td colSpan={6} className="bm-table-empty">No accounts yet. Add your first account.</td></tr>
-                ) : accounts.map((acc) => (
+                ) : pagedAccounts.map((acc) => (
                   <tr key={acc.id} style={{ opacity: acc.isActive ? 1 : 0.55 }}>
                     <td>
                       <span style={{ fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 700, color: "var(--accent)" }}>
@@ -170,6 +181,7 @@ export default function ManageAccountsPage() {
             </table>
           </div>
         )}
+        <TablePagination page={page} pageSize={pageSize} total={filteredAccounts.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 
       {modalOpen && (

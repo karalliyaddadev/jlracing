@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
 import { IconActivity, IconBike, IconInventory, IconInvoice } from "../../../lib/icons";
+import TablePagination, { paginateRows } from "../../../components/TablePagination";
 
 type VehicleImage = { id: number; vehicleId: number; url: string; isPrimary: boolean; sortOrder: number; createdAt: string };
 type Expense = { id: number; description: string; amount: number; createdAt: string };
@@ -366,6 +367,8 @@ export default function SoldBikesPage() {
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
   const [chassisSearch, setChassisSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const base = `${API_URL}/api/pos/bike-management`;
   const auth = { Authorization: `Bearer ${token}` };
@@ -422,6 +425,8 @@ export default function SoldBikesPage() {
       return true;
     });
   }, [chassisSearch, fromDate, toDate, purchasesByBikeId, vehicles]);
+  const pagedVehicles = useMemo(() => paginateRows(filteredVehicles, page, pageSize), [filteredVehicles, page, pageSize]);
+  useEffect(() => { setPage(1); }, [chassisSearch, fromDate, toDate, pageSize]);
 
   const restore = async (id: number) => {
     setRestoring(id);
@@ -728,7 +733,7 @@ export default function SoldBikesPage() {
             <tbody>
               {loading && <tr><td colSpan={8} className="bm-table-empty">Loading…</td></tr>}
               {!loading && filteredVehicles.length === 0 && <tr><td colSpan={8} className="bm-table-empty">No sold bikes for the selected filters.</td></tr>}
-              {!loading && filteredVehicles.map((vehicle) => {
+              {!loading && pagedVehicles.map((vehicle) => {
                 const primaryImg = (vehicle.images ?? []).find((img) => img.isPrimary) ?? (vehicle.images ?? [])[0];
                 const purchase = purchasesByBikeId[vehicle.id];
                 return (
@@ -775,6 +780,7 @@ export default function SoldBikesPage() {
             </tbody>
           </table>
         </div>
+        <TablePagination page={page} pageSize={pageSize} total={filteredVehicles.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 
       {viewVehicle && <ViewVehicleModal vehicle={viewVehicle} relatedVehicles={filteredVehicles} token={token} purchase={purchasesByBikeId[viewVehicle.id]} onClose={() => setViewVehicle(null)} />}

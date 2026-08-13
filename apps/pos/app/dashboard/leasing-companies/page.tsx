@@ -4,6 +4,7 @@ import { FormEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { IconLeasing } from "../../lib/icons";
+import TablePagination, { paginateRows } from "../../components/TablePagination";
 
 type LeasingCompany = {
   id: number;
@@ -58,6 +59,10 @@ export default function LeasingCompaniesPage() {
   const [applicationsLoading, setApplicationsLoading] = useState(false);
   const [applicationsError, setApplicationsError] = useState<string | null>(null);
   const [applications, setApplications] = useState<LeasingApplication[]>([]);
+  const [companySearch, setCompanySearch] = useState("");
+  const [companyPage, setCompanyPage] = useState(1);
+  const [applicationPage, setApplicationPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [settleTarget, setSettleTarget] = useState<LeasingApplication | null>(null);
   const [settleAmount, setSettleAmount] = useState("");
   const [settleSaving, setSettleSaving] = useState(false);
@@ -89,6 +94,14 @@ export default function LeasingCompaniesPage() {
     () => applications.filter((entry) => (entry.remainingAmount ?? 0) <= 0).length,
     [applications]
   );
+  const filteredCompanies = useMemo(() => {
+    const needle = companySearch.trim().toLowerCase();
+    return needle ? companies.filter((company) => company.name.toLowerCase().includes(needle)) : companies;
+  }, [companies, companySearch]);
+  const pagedCompanies = useMemo(() => paginateRows(filteredCompanies, companyPage, pageSize), [filteredCompanies, companyPage, pageSize]);
+  const pagedApplications = useMemo(() => paginateRows(applications, applicationPage, pageSize), [applications, applicationPage, pageSize]);
+  useEffect(() => { setCompanyPage(1); }, [companySearch, pageSize]);
+  useEffect(() => { setApplicationPage(1); }, [selectedCompany, pageSize]);
 
   const loadCompanies = useCallback(async () => {
     if (!token) return;
@@ -334,6 +347,7 @@ export default function LeasingCompaniesPage() {
             value={newCompanyName}
             onChange={(event) => setNewCompanyName(event.target.value)}
           />
+          <input className="bm-input" style={{ minWidth: 240 }} type="search" value={companySearch} onChange={(event) => setCompanySearch(event.target.value)} placeholder="Search leasing companies" />
           <button type="submit" className="btn-accent" disabled={saving}>{saving ? "Saving..." : "Add Company"}</button>
           <button type="button" className="btn-outline" onClick={() => void loadCompanies()} disabled={saving}>Refresh</button>
         </form>
@@ -350,7 +364,7 @@ export default function LeasingCompaniesPage() {
             <tbody>
               {loading && <tr><td colSpan={3} className="bm-table-empty">Loading leasing companies...</td></tr>}
               {!loading && companies.length === 0 && <tr><td colSpan={3} className="bm-table-empty">No leasing companies added yet.</td></tr>}
-              {!loading && companies.map((company) => (
+              {!loading && pagedCompanies.map((company) => (
                 <tr key={company.id}>
                   <td>
                     {editingCompanyId === company.id ? (
@@ -379,6 +393,7 @@ export default function LeasingCompaniesPage() {
             </tbody>
           </table>
         </div>
+        <TablePagination page={companyPage} pageSize={pageSize} total={filteredCompanies.length} onPageChange={setCompanyPage} onPageSizeChange={setPageSize} />
       </div>
 
       <div className="bm-table-card">
@@ -410,7 +425,7 @@ export default function LeasingCompaniesPage() {
               {!selectedCompany && <tr><td colSpan={10} className="bm-table-empty">Select a leasing company to view applications.</td></tr>}
               {selectedCompany && applicationsLoading && <tr><td colSpan={10} className="bm-table-empty">Loading applications...</td></tr>}
               {selectedCompany && !applicationsLoading && applications.length === 0 && <tr><td colSpan={10} className="bm-table-empty">No leasing applications found.</td></tr>}
-              {selectedCompany && !applicationsLoading && applications.map((entry) => (
+              {selectedCompany && !applicationsLoading && pagedApplications.map((entry) => (
                 <tr key={entry.id}>
                   <td>{new Date(entry.purchasedAt).toLocaleString()}</td>
                   <td>{entry.invoiceGroupCode || `INV-${String(entry.id).padStart(5, "0")}`}</td>
@@ -442,6 +457,7 @@ export default function LeasingCompaniesPage() {
             </tbody>
           </table>
         </div>
+        <TablePagination page={applicationPage} pageSize={pageSize} total={applications.length} onPageChange={setApplicationPage} onPageSizeChange={setPageSize} />
       </div>
 
       {settleTarget && (

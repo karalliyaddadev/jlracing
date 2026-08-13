@@ -14,6 +14,7 @@ import { API_URL } from "../../lib/constants";
 import { exportTableToPdf } from "../../lib/pdf-export";
 import { IconActivity, IconInventory, IconInvoice, IconSupplier } from "../../lib/icons";
 import CustomerPurchaseModal from "../../components/CustomerPurchaseModal";
+import TablePagination, { paginateRows } from "../../components/TablePagination";
 
 type ProductBrand = { id: number; name: string; _count?: { products: number } };
 type ProductCategory = {
@@ -1495,6 +1496,8 @@ export default function InventoryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
   const [expanded, setExpanded] = useState<Record<number, boolean>>({});
   const [showProductModal, setShowProductModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
@@ -1626,6 +1629,8 @@ export default function InventoryPage() {
       products: group.products,
     }));
   }, [products]);
+  const pagedProductGroups = useMemo(() => paginateRows(groupedProducts, page, pageSize), [groupedProducts, page, pageSize]);
+  useEffect(() => { setPage(1); }, [search, pageSize]);
 
   const totalQty = products.reduce((sum, product) => sum + product.quantity, 0);
   const totalSoldQty = products.reduce(
@@ -1862,7 +1867,7 @@ export default function InventoryPage() {
                 </tr>
               )}
               {!loading &&
-                groupedProducts.map((group) => (
+                pagedProductGroups.map((group) => (
                   <Fragment key={group.categoryId}>
                     <tr className="bm-group-row">
                       <td>
@@ -2068,6 +2073,7 @@ export default function InventoryPage() {
             </tbody>
           </table>
         </div>
+        <TablePagination page={page} pageSize={pageSize} total={groupedProducts.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 
       {showProductModal && (

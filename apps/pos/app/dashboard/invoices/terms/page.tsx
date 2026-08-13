@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
 import { IconInvoice } from "../../../lib/icons";
 import { readApiData } from "../../../lib/api";
+import TablePagination, { paginateRows } from "../../../components/TablePagination";
 
 type InvoiceTerm = {
   id: number;
@@ -20,6 +21,9 @@ export default function InvoiceTermsPage() {
   const { token } = useAdmin();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const [newText, setNewText] = useState("");
   const [newSortOrder, setNewSortOrder] = useState("");
@@ -45,6 +49,13 @@ export default function InvoiceTermsPage() {
       return payload.terms ?? [];
     },
   });
+  const filteredTerms = useMemo(() => {
+    const terms = termsQuery.data ?? [];
+    const needle = search.trim().toLowerCase();
+    return needle ? terms.filter((term) => term.text.toLowerCase().includes(needle)) : terms;
+  }, [search, termsQuery.data]);
+  const pagedTerms = useMemo(() => paginateRows(filteredTerms, page, pageSize), [filteredTerms, page, pageSize]);
+  useEffect(() => { setPage(1); }, [search, pageSize]);
 
   const createTermMutation = useMutation({
     mutationFn: async (input: { text: string; sortOrder?: number; isActive: boolean }) => {
@@ -227,6 +238,7 @@ export default function InvoiceTermsPage() {
       </div>
 
       <div className="bm-table-card">
+        <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)" }}><input className="bm-input" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search terms" /></div>
         <div className="data-table-wrap">
           <table className="data-table">
             <thead>
@@ -244,7 +256,7 @@ export default function InvoiceTermsPage() {
               {!loading && (termsQuery.data ?? []).length === 0 && (
                 <tr><td colSpan={4} className="bm-table-empty">No terms found.</td></tr>
               )}
-              {!loading && (termsQuery.data ?? []).map((term) => {
+              {!loading && pagedTerms.map((term) => {
                 const isEditing = editId === term.id;
                 return (
                   <tr key={term.id}>
@@ -308,6 +320,7 @@ export default function InvoiceTermsPage() {
             </tbody>
           </table>
         </div>
+        <TablePagination page={page} pageSize={pageSize} total={filteredTerms.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
     </div>
   );

@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { exportTableToPdf } from "../../lib/pdf-export";
 import { IconBike, IconInventory, IconActivity, IconInvoice } from "../../lib/icons";
 import CustomerPurchaseModal from "../../components/CustomerPurchaseModal";
+import TablePagination, { paginateRows } from "../../components/TablePagination";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 type Brand = { id: number; name: string };
@@ -1871,6 +1872,8 @@ export default function BikeInventoryPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [showAdd, setShowAdd] = useState(false);
   const [statsSource, setStatsSource] = useState<Vehicle[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const [filters, setFilters] = useState({
     brandId: "",
@@ -1967,6 +1970,9 @@ export default function BikeInventoryPage() {
   }, [token, filters]);
 
   useEffect(() => { void load(); }, [load]);
+
+  useEffect(() => { setPage(1); }, [filters, pageSize]);
+  const pagedGroups = useMemo(() => paginateRows(groups, page, pageSize), [groups, page, pageSize]);
 
   const totalAvailable = statsSource.length;
   const brandCount = new Set(statsSource.map((v) => v.brandId)).size;
@@ -2160,12 +2166,13 @@ export default function BikeInventoryPage() {
               {!loading && groups.length === 0 && (
                 <tr><td colSpan={6} className="bm-table-empty">No bikes in stock. Add your first bike!</td></tr>
               )}
-              {!loading && groups.map((g) => (
+              {!loading && pagedGroups.map((g) => (
                 <GroupRow key={`${g.brandId}_${g.modelId}`} group={g} token={token} onRefresh={load} />
               ))}
             </tbody>
           </table>
         </div>
+        <TablePagination page={page} pageSize={pageSize} total={groups.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 
       {showAdd && (

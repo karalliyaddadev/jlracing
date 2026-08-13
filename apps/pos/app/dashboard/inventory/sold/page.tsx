@@ -6,6 +6,7 @@ import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
 import { exportTableToPdf } from "../../../lib/pdf-export";
 import { IconActivity, IconInventory, IconInvoice, IconSupplier } from "../../../lib/icons";
+import TablePagination, { paginateRows } from "../../../components/TablePagination";
 
 type InventoryPurchase = {
   id: number;
@@ -35,6 +36,8 @@ export default function SoldInventoryPage() {
   const [search, setSearch] = useState("");
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = { Authorization: `Bearer ${token}` };
@@ -93,6 +96,8 @@ export default function SoldInventoryPage() {
     
     return filtered;
   }, [purchases, fromDate, toDate]);
+  const pagedPurchases = useMemo(() => paginateRows(filteredPurchases, page, pageSize), [filteredPurchases, page, pageSize]);
+  useEffect(() => { setPage(1); }, [search, fromDate, toDate, pageSize]);
 
   const totalSoldUnits = useMemo(
     () => filteredPurchases.reduce((sum, purchase) => sum + purchase.quantity, 0),
@@ -263,7 +268,7 @@ export default function SoldInventoryPage() {
                 </tr>
               )}
               {!loading &&
-                filteredPurchases.map((purchase) => {
+                pagedPurchases.map((purchase) => {
                   return (
                     <tr key={purchase.id} className="bm-vehicle-row">
                       <td>INV-{String(purchase.id).padStart(5, "0")}</td>
@@ -294,6 +299,7 @@ export default function SoldInventoryPage() {
             </tbody>
           </table>
         </div>
+        <TablePagination page={page} pageSize={pageSize} total={filteredPurchases.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
     </div>
   );

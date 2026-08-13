@@ -1,11 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
 import { IconInvoice } from "../../../lib/icons";
 import { readApiData } from "../../../lib/api";
+import TablePagination, { paginateRows } from "../../../components/TablePagination";
 
 type InvoiceAccount = {
   id: number;
@@ -34,6 +35,9 @@ export default function InvoiceAccountsPage() {
   const { token } = useAdmin();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const [newAccountHolder, setNewAccountHolder] = useState("");
   const [newAccountNumber, setNewAccountNumber] = useState("");
@@ -69,6 +73,13 @@ export default function InvoiceAccountsPage() {
       return payload.accounts ?? [];
     },
   });
+  const filteredAccounts = useMemo(() => {
+    const accounts = accountsQuery.data ?? [];
+    const needle = search.trim().toLowerCase();
+    return needle ? accounts.filter((account) => [account.accountNumber, account.accountHolder, account.bankName, account.branchName].some((value) => value?.toLowerCase().includes(needle))) : accounts;
+  }, [accountsQuery.data, search]);
+  const pagedAccounts = useMemo(() => paginateRows(filteredAccounts, page, pageSize), [filteredAccounts, page, pageSize]);
+  useEffect(() => { setPage(1); }, [search, pageSize]);
 
   const createAccountMutation = useMutation({
     mutationFn: async (input: InvoiceAccountInput) => {
@@ -328,6 +339,7 @@ export default function InvoiceAccountsPage() {
       </div>
 
       <div className="bm-table-card">
+        <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)" }}><input className="bm-input" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search account, holder, bank or branch" /></div>
         <div className="data-table-wrap">
           <table className="data-table">
             <thead>
@@ -348,7 +360,7 @@ export default function InvoiceAccountsPage() {
               {!loading && (accountsQuery.data ?? []).length === 0 && (
                 <tr><td colSpan={7} className="bm-table-empty">No accounts found.</td></tr>
               )}
-              {!loading && (accountsQuery.data ?? []).map((account) => {
+              {!loading && pagedAccounts.map((account) => {
                 const isEditing = editId === account.id;
                 return (
                   <tr key={account.id}>
@@ -437,6 +449,7 @@ export default function InvoiceAccountsPage() {
             </tbody>
           </table>
         </div>
+        <TablePagination page={page} pageSize={pageSize} total={filteredAccounts.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
     </div>
   );

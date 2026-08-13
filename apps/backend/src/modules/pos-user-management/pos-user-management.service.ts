@@ -1617,6 +1617,7 @@ export async function listPurchases(query: PurchaseQueryDto) {
           },
           { customer: { lastName: { contains: search, mode: "insensitive" } } },
           { customer: { nic: { contains: search, mode: "insensitive" } } },
+          { customer: { mobileNumber: { contains: search, mode: "insensitive" } } },
           {
             bikeVehicle: {
               displayId: { contains: search, mode: "insensitive" },
@@ -1635,6 +1636,23 @@ export async function listPurchases(query: PurchaseQueryDto) {
           {
             leasingCompany: { name: { contains: search, mode: "insensitive" } },
           },
+          {
+            inventoryProduct: {
+              displayId: { contains: search, mode: "insensitive" },
+            },
+          },
+          {
+            inventoryProduct: {
+              name: { contains: search, mode: "insensitive" },
+            },
+          },
+          {
+            inventoryProduct: {
+              brand: { name: { contains: search, mode: "insensitive" } },
+            },
+          },
+          { customCategory: { contains: search, mode: "insensitive" } },
+          { customDescription: { contains: search, mode: "insensitive" } },
         ],
       }
     : {};

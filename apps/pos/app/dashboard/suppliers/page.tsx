@@ -1,10 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { exportTableToPdf } from "../../lib/pdf-export";
 import { IconBike, IconSupplier } from "../../lib/icons";
+import TablePagination, { paginateRows } from "../../components/TablePagination";
 
 type Supplier = {
   id: number;
@@ -563,6 +564,9 @@ export default function SupplierManagementPage() {
   const [error, setError] = useState<string | null>(null);
   const [confirm, setConfirm] = useState<ConfirmState>(null);
   const [viewSupplier, setViewSupplier] = useState<Supplier | null>(null);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const base = `${API_URL}/api/pos/bike-management`;
   const authHeader = { Authorization: `Bearer ${token}` };
@@ -674,6 +678,14 @@ export default function SupplierManagementPage() {
 
   const linkedBikeCount = suppliers.reduce((sum, supplier) => sum + (supplier._count?.vehicles ?? 0), 0);
   const activeContacts = suppliers.filter((supplier) => supplier.contactPerson || supplier.telephone || supplier.email).length;
+  const filteredSuppliers = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    if (!needle) return suppliers;
+    return suppliers.filter((supplier) => [supplier.name, supplier.code, supplier.contactPerson, supplier.telephone, supplier.email, supplier.vatRegistrationNo, supplier.address]
+      .some((value) => value?.toLowerCase().includes(needle)));
+  }, [search, suppliers]);
+  const pagedSuppliers = useMemo(() => paginateRows(filteredSuppliers, page, pageSize), [filteredSuppliers, page, pageSize]);
+  useEffect(() => { setPage(1); }, [search, pageSize]);
 
   const exportSuppliersPdf = () => {
     exportTableToPdf({
@@ -785,14 +797,16 @@ export default function SupplierManagementPage() {
         <div className="bm-manage-col">
           <div className="bm-col-header">
             <span className="bm-col-title">Suppliers</span>
-            <span className="bm-col-count">{suppliers.length}</span>
+            <span className="bm-col-count">{filteredSuppliers.length}</span>
           </div>
+
+          <input className="bm-input" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search supplier, code, contact or VAT number" />
 
           {loading && <p className="bm-empty">Loading...</p>}
           {!loading && suppliers.length === 0 && <p className="bm-empty">No suppliers yet.</p>}
 
           <div className="bm-list">
-            {suppliers.map((supplier) => (
+            {pagedSuppliers.map((supplier) => (
               <div key={supplier.id} className="bm-list-item">
                 <div className="bm-item-name-btn">
                   <span className="bm-item-name">{supplier.name}</span>
@@ -807,6 +821,7 @@ export default function SupplierManagementPage() {
               </div>
             ))}
           </div>
+          <TablePagination page={page} pageSize={pageSize} total={filteredSuppliers.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
         </div>
       </div>
 

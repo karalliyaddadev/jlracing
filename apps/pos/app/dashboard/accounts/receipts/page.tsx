@@ -1,9 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
 import { IconAccounts, IconEdit } from "../../../lib/icons";
+import TablePagination, { paginateRows } from "../../../components/TablePagination";
 
 type Account = { id: number; name: string; code: string; type: string; isActive: boolean };
 
@@ -109,6 +110,16 @@ export default function ReceiptsPage() {
   const [depositError, setDepositError] = useState("");
   const [depositSaving, setDepositSaving] = useState(false);
   const [showDepositHistory, setShowDepositHistory] = useState(false);
+  const [paymentsPage, setPaymentsPage] = useState(1);
+  const [receiptsPage, setReceiptsPage] = useState(1);
+  const [depositsPage, setDepositsPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const pagedPayments = useMemo(() => paginateRows(payments, paymentsPage, pageSize), [payments, paymentsPage, pageSize]);
+  const pagedReceipts = useMemo(() => paginateRows(receipts, receiptsPage, pageSize), [receipts, receiptsPage, pageSize]);
+  const pagedDeposits = useMemo(() => paginateRows(deposits, depositsPage, pageSize), [deposits, depositsPage, pageSize]);
+  useEffect(() => { setPaymentsPage(1); }, [paymentSearch, pageSize]);
+  useEffect(() => { setReceiptsPage(1); }, [search, fromDate, toDate, pageSize]);
+  useEffect(() => { setDepositsPage(1); }, [pageSize]);
 
   async function fetchAccounts() {
     const res = await fetch(`${API_URL}/api/pos/accounts/chart`, {
@@ -431,7 +442,7 @@ export default function ReceiptsPage() {
                 </tr>
               </thead>
               <tbody>
-                {payments.map((p) => (
+                {pagedPayments.map((p) => (
                   <tr key={p.id}>
                     <td>
                       <span style={{ fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 700, color: "var(--accent)" }}>
@@ -471,6 +482,7 @@ export default function ReceiptsPage() {
             </table>
           </div>
         )}
+        <TablePagination page={paymentsPage} pageSize={pageSize} total={payments.length} onPageChange={setPaymentsPage} onPageSizeChange={setPageSize} />
       </div>
 
       {/* ── Section 2: Receipts + Deposit Selection ── */}
@@ -551,7 +563,7 @@ export default function ReceiptsPage() {
               <tbody>
                 {receipts.length === 0 ? (
                   <tr><td colSpan={10} className="bm-table-empty">No receipts found</td></tr>
-                ) : receipts.map((r) => {
+                ) : pagedReceipts.map((r) => {
                   const canSelect = !r.isVoided && !r.isDeposited;
                   return (
                     <tr key={r.id} style={{ opacity: r.isVoided ? 0.5 : 1, background: selectedReceiptIds.has(r.id) ? "var(--accent-bg, #f0f7ff)" : undefined }}>
@@ -616,6 +628,7 @@ export default function ReceiptsPage() {
             </table>
           </div>
         )}
+        <TablePagination page={receiptsPage} pageSize={pageSize} total={receipts.length} onPageChange={setReceiptsPage} onPageSizeChange={setPageSize} />
       </div>
 
       {/* ── Section 3: Deposit Panel ── */}
@@ -679,7 +692,7 @@ export default function ReceiptsPage() {
                   </tr>
                 </thead>
                 <tbody>
-                  {deposits.map((d) => (
+                  {pagedDeposits.map((d) => (
                     <tr key={d.id} style={{ opacity: d.isReversed ? 0.5 : 1 }}>
                       <td>
                         <span style={{ fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 700, color: "var(--accent)" }}>
@@ -715,6 +728,7 @@ export default function ReceiptsPage() {
             </div>
           )
         )}
+        {showDepositHistory && <TablePagination page={depositsPage} pageSize={pageSize} total={deposits.length} onPageChange={setDepositsPage} onPageSizeChange={setPageSize} />}
       </div>
 
       {/* Confirm action modal */}

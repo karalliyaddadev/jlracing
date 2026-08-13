@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
 import { IconAccounts } from "../../../lib/icons";
 import { exportTableToPdf } from "../../../lib/pdf-export";
 import { exportLedgerToExcel } from "../../../lib/excel-export";
+import TablePagination, { paginateRows } from "../../../components/TablePagination";
 
 type Account = { id: number; name: string; code: string; type: string };
 
@@ -59,6 +60,16 @@ export default function LedgerPage() {
   const [result, setResult] = useState<LedgerResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [rowSearch, setRowSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const filteredRows = useMemo(() => {
+    const rows = result?.rows ?? [];
+    const needle = rowSearch.trim().toLowerCase();
+    return needle ? rows.filter((row) => [row.typeLabel, row.refNo, row.description, row.chequeNo].some((value) => value?.toLowerCase().includes(needle))) : rows;
+  }, [result, rowSearch]);
+  const pagedRows = useMemo(() => paginateRows(filteredRows, page, pageSize), [filteredRows, page, pageSize]);
+  useEffect(() => { setPage(1); }, [rowSearch, pageSize, result]);
 
   useEffect(() => {
     if (!token) return;
@@ -238,6 +249,7 @@ export default function LedgerPage() {
             </div>
           </div>
 
+          <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)" }}><input className="bm-input" type="search" value={rowSearch} onChange={(event) => setRowSearch(event.target.value)} placeholder="Search transaction, reference, description or cheque" /></div>
           <div className="data-table-wrap">
             <table className="data-table">
               <thead>
@@ -274,7 +286,7 @@ export default function LedgerPage() {
                 ); })()}
                 {result.rows.length === 0 ? (
                   <tr><td colSpan={8} className="bm-table-empty">No transactions in this period</td></tr>
-                ) : result.rows.map((row) => (
+                ) : pagedRows.map((row) => (
                   <tr key={row.id} style={{ background: row.typeLabel === "Reversal" ? "rgba(220,38,38,0.04)" : undefined }}>
                     <td>
                       <span
@@ -329,6 +341,7 @@ export default function LedgerPage() {
               </tbody>
             </table>
           </div>
+          <TablePagination page={page} pageSize={pageSize} total={filteredRows.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
         </div>
       )}
     </div>

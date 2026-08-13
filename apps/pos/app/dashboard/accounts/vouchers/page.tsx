@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
 import { IconAccounts, IconEdit, IconPlus } from "../../../lib/icons";
+import TablePagination, { paginateRows } from "../../../components/TablePagination";
 
 type Account = { id: number; name: string; code: string };
 
@@ -123,6 +124,16 @@ export default function VouchersPage() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const filteredVouchers = useMemo(() => {
+    const needle = search.trim().toLowerCase();
+    return needle ? vouchers.filter((voucher) => [voucher.voucherNo, voucher.typeLabel, voucher.payee, voucher.description, voucher.referenceNo, voucher.account.name, voucher.account.code]
+      .some((value) => value?.toLowerCase().includes(needle))) : vouchers;
+  }, [search, vouchers]);
+  const pagedVouchers = useMemo(() => paginateRows(filteredVouchers, page, pageSize), [filteredVouchers, page, pageSize]);
+  useEffect(() => { setPage(1); }, [search, pageSize]);
 
   const [availableBalance, setAvailableBalance] = useState<number | null>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
@@ -424,6 +435,7 @@ export default function VouchersPage() {
             <h3>Voucher History</h3>
           </div>
         </div>
+        <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)" }}><input className="bm-input" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search voucher, payee, reference or account" /></div>
         {loading ? (
           <div className="bm-table-empty">Loading...</div>
         ) : (
@@ -447,7 +459,7 @@ export default function VouchersPage() {
               <tbody>
                 {vouchers.length === 0 ? (
                   <tr><td colSpan={11} className="bm-table-empty">No vouchers yet</td></tr>
-                ) : vouchers.map((v) => (
+                ) : pagedVouchers.map((v) => (
                   <tr key={v.id} style={{ opacity: v.isVoided ? 0.5 : 1 }}>
                     <td>
                       <span style={{ fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 700, color: "var(--accent)" }}>
@@ -491,6 +503,7 @@ export default function VouchersPage() {
             </table>
           </div>
         )}
+        <TablePagination page={page} pageSize={pageSize} total={filteredVouchers.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
       </div>
 
       {/* Edit voucher modal */}

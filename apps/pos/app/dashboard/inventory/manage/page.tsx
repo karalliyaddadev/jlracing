@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
 import { IconActivity, IconInventory, IconInvoice } from "../../../lib/icons";
+import TablePagination, { paginateRows } from "../../../components/TablePagination";
 
 type ProductBrand = { id: number; name: string; _count?: { products: number } };
 type ProductCategory = { id: number; name: string; _count?: { products: number } };
@@ -29,6 +30,9 @@ export default function InventoryManagePage() {
   const [editingBrandName, setEditingBrandName] = useState("");
   const [editingCategoryId, setEditingCategoryId] = useState<number | null>(null);
   const [editingCategoryName, setEditingCategoryName] = useState("");
+  const [brandPage, setBrandPage] = useState(1);
+  const [categoryPage, setCategoryPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
 
   const base = `${API_URL}/api/pos/bike-management`;
   const auth = { Authorization: `Bearer ${token}` };
@@ -72,6 +76,9 @@ export default function InventoryManagePage() {
 
   const totalQty = useMemo(() => products.reduce((sum, product) => sum + product.quantity, 0), [products]);
   const totalSoldQty = useMemo(() => products.reduce((sum, product) => sum + (product.soldQuantity ?? 0), 0), [products]);
+  const pagedBrands = useMemo(() => paginateRows(brands, brandPage, pageSize), [brands, brandPage, pageSize]);
+  const pagedCategories = useMemo(() => paginateRows(categories, categoryPage, pageSize), [categories, categoryPage, pageSize]);
+  useEffect(() => { setBrandPage(1); setCategoryPage(1); }, [pageSize]);
 
   const saveBrand = async () => {
     if (!brandDraft.trim()) return;
@@ -201,7 +208,7 @@ export default function InventoryManagePage() {
           </div>
           <div className="bm-list">
             {loading && <div className="bm-table-empty">Loading brands...</div>}
-            {!loading && brands.map((brand) => (
+            {!loading && pagedBrands.map((brand) => (
               <div key={brand.id} className="bm-list-item">
                 {editingBrandId === brand.id ? (
                   <div className="bm-edit-row">
@@ -224,6 +231,7 @@ export default function InventoryManagePage() {
               </div>
             ))}
           </div>
+          <TablePagination page={brandPage} pageSize={pageSize} total={brands.length} onPageChange={setBrandPage} onPageSizeChange={setPageSize} />
         </div>
 
         <div className="bm-manage-col">
@@ -234,7 +242,7 @@ export default function InventoryManagePage() {
           </div>
           <div className="bm-list">
             {loading && <div className="bm-table-empty">Loading categories...</div>}
-            {!loading && categories.map((category) => (
+            {!loading && pagedCategories.map((category) => (
               <div key={category.id} className="bm-list-item">
                 {editingCategoryId === category.id ? (
                   <div className="bm-edit-row">
@@ -257,6 +265,7 @@ export default function InventoryManagePage() {
               </div>
             ))}
           </div>
+          <TablePagination page={categoryPage} pageSize={pageSize} total={categories.length} onPageChange={setCategoryPage} onPageSizeChange={setPageSize} />
         </div>
       </div>
     </div>

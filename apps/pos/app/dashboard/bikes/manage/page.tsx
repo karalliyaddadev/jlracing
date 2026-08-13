@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
 import { IconBike, IconInventory, IconActivity, IconInvoice } from "../../../lib/icons";
+import TablePagination, { paginateRows } from "../../../components/TablePagination";
 
 type Brand = { id: number; name: string; _count?: { models: number; vehicles: number } };
 type Model = { id: number; name: string; brandId: number; lowStockThreshold?: number | null; _count?: { vehicles: number } };
@@ -43,6 +44,12 @@ export default function ManageBikesPage() {
   const [loading, setLoading]             = useState(false);
   const [error, setError]                 = useState<string | null>(null);
   const [confirm, setConfirm]             = useState<ConfirmState>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+  const pagedBrands = useMemo(() => paginateRows(brands, page, pageSize), [brands, page, pageSize]);
+  const pagedModels = useMemo(() => paginateRows(models, page, pageSize), [models, page, pageSize]);
+  const pagedColors = useMemo(() => paginateRows(colors, page, pageSize), [colors, page, pageSize]);
+  const pagedFileNos = useMemo(() => paginateRows(fileNos, page, pageSize), [fileNos, page, pageSize]);
 
   // Inline edit state
   const [editingBrand, setEditingBrand] = useState<{ id: number; name: string } | null>(null);
@@ -118,6 +125,7 @@ export default function ManageBikesPage() {
   useEffect(() => {
     setTab(getTabFromQuery());
   }, [getTabFromQuery]);
+  useEffect(() => { setPage(1); }, [tab, selectedBrand, pageSize]);
   useEffect(() => {
     if (selectedBrand) void loadModels(selectedBrand);
     else setModels([]);
@@ -499,7 +507,7 @@ export default function ManageBikesPage() {
             {!loading && brands.length === 0 && <p className="bm-empty">No brands yet.</p>}
 
             <div className="bm-list">
-              {brands.map((brand) => {
+              {pagedBrands.map((brand) => {
                 const isSelected = selectedBrand?.id === brand.id;
                 const isEditing  = editingBrand?.id === brand.id;
                 return (
@@ -534,6 +542,7 @@ export default function ManageBikesPage() {
                 );
               })}
             </div>
+            <TablePagination page={page} pageSize={pageSize} total={brands.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
           </div>
 
           {/* Models column */}
@@ -580,7 +589,7 @@ export default function ManageBikesPage() {
                 {models.length === 0 && <p className="bm-empty">No models yet for this brand.</p>}
 
                 <div className="bm-list">
-                  {models.map((model) => {
+                  {pagedModels.map((model) => {
                     const isEditing = editingModel?.id === model.id;
                     return (
                       <div key={model.id} className="bm-list-item">
@@ -631,6 +640,7 @@ export default function ManageBikesPage() {
                     );
                   })}
                 </div>
+                <TablePagination page={page} pageSize={pageSize} total={models.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
               </>
             )}
           </div>
@@ -661,7 +671,7 @@ export default function ManageBikesPage() {
           {colors.length === 0 && <p className="bm-empty">No colours yet.</p>}
 
           <div className="bm-list">
-            {colors.map((color) => {
+            {pagedColors.map((color) => {
               const isEditing = editingColor?.id === color.id;
               return (
                 <div key={color.id} className="bm-list-item">
@@ -692,6 +702,7 @@ export default function ManageBikesPage() {
               );
             })}
           </div>
+          <TablePagination page={page} pageSize={pageSize} total={colors.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
         </div>
       )}
 
@@ -708,7 +719,7 @@ export default function ManageBikesPage() {
           {fileNos.length === 0 && <p className="bm-empty">No file numbers yet.</p>}
 
           <div className="bm-list">
-            {fileNos.map((fileNo, idx) => {
+            {pagedFileNos.map((fileNo, idx) => {
               const isEditing = editingFileNo?.oldValue === fileNo;
               return (
                 <div key={`${fileNo}-${idx}`} className="bm-list-item">
@@ -739,6 +750,7 @@ export default function ManageBikesPage() {
               );
             })}
           </div>
+          <TablePagination page={page} pageSize={pageSize} total={fileNos.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
         </div>
       )}
 

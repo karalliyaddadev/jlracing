@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useAdmin } from "../../components/AdminContext";
 import { API_URL } from "../../lib/constants";
 import { IconActivity, IconBike, IconClock, IconInvoice, IconUsers } from "../../lib/icons";
+import TablePagination, { paginateRows } from "../../components/TablePagination";
 
 type ProvinceMeta = { name: string; districts: string[] };
 type DreamBikeOption = {
@@ -267,6 +268,11 @@ export default function UsersPage() {
   const [showFormModal, setShowFormModal] = useState(false);
 
   const [users, setUsers] = useState<PosUser[]>([]);
+  const [userSearch, setUserSearch] = useState("");
+  const [userPage, setUserPage] = useState(1);
+  const [userPageSize, setUserPageSize] = useState(20);
+  const [historyPage, setHistoryPage] = useState(1);
+  const [historyPageSize, setHistoryPageSize] = useState(20);
   const [provinces, setProvinces] = useState<ProvinceMeta[]>([]);
   const [dreamBikeOptions, setDreamBikeOptions] = useState<DreamBikeOption[]>([]);
   const [inventoryOptions, setInventoryOptions] = useState<InventoryProductOption[]>([]);
@@ -706,6 +712,16 @@ export default function UsersPage() {
   }, [getPurchaseItemMeta]);
 
   const historyInvoiceRows = useMemo(() => buildInvoiceRows(purchaseHistory), [buildInvoiceRows, purchaseHistory]);
+  const filteredUsers = useMemo(() => {
+    const needle = userSearch.trim().toLowerCase();
+    if (!needle) return users;
+    return users.filter((user) => [user.firstName, user.lastName, user.nic, user.mobileNumber, user.email, user.province, user.district]
+      .some((value) => value?.toLowerCase().includes(needle)));
+  }, [userSearch, users]);
+  const pagedUsers = useMemo(() => paginateRows(filteredUsers, userPage, userPageSize), [filteredUsers, userPage, userPageSize]);
+  const pagedHistoryRows = useMemo(() => paginateRows(historyInvoiceRows, historyPage, historyPageSize), [historyInvoiceRows, historyPage, historyPageSize]);
+  useEffect(() => { setUserPage(1); }, [userSearch, userPageSize]);
+  useEffect(() => { setHistoryPage(1); }, [historySearch, historyPageSize]);
   const orderInvoiceRows = useMemo(() => buildInvoiceRows(orders), [buildInvoiceRows, orders]);
 
   const getInvoiceRemaining = (entry: PurchaseHistoryEntry) => {
@@ -1653,7 +1669,7 @@ export default function UsersPage() {
               <tbody>
                 {historyLoading && <tr><td colSpan={8} className="bm-table-empty">Loading purchase history...</td></tr>}
                 {!historyLoading && historyInvoiceRows.length === 0 && <tr><td colSpan={8} className="bm-table-empty">No purchase history records found.</td></tr>}
-                {!historyLoading && historyInvoiceRows.map((row) => (
+                {!historyLoading && pagedHistoryRows.map((row) => (
                   <tr key={row.key}>
                     <td><span className="users-order-code">{row.invoiceLabel}</span></td>
                     <td>
@@ -1705,6 +1721,7 @@ export default function UsersPage() {
               </tbody>
             </table>
           </div>
+          <TablePagination page={historyPage} pageSize={historyPageSize} total={historyInvoiceRows.length} onPageChange={setHistoryPage} onPageSizeChange={setHistoryPageSize} />
         </div>
       )}
 
@@ -1714,6 +1731,7 @@ export default function UsersPage() {
             <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)", display: "flex", justifyContent: "space-between", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
               <h3 className="users-section-title" style={{ margin: 0 }}>Users</h3>
               <div style={{ display: "flex", gap: "0.55rem", flexWrap: "wrap" }}>
+                <input className="bm-input" style={{ minWidth: 280 }} type="search" value={userSearch} onChange={(event) => setUserSearch(event.target.value)} placeholder="Search name, NIC, mobile or location" />
                 <button type="button" className="btn-accent" onClick={openAddUserModal}>Add User</button>
                 <button type="button" className="btn-outline" onClick={() => void loadInitialData()}>Refresh</button>
               </div>
@@ -1734,7 +1752,7 @@ export default function UsersPage() {
                 <tbody>
                   {loading && <tr><td colSpan={6} className="bm-table-empty">Loading users...</td></tr>}
                   {!loading && users.length === 0 && <tr><td colSpan={6} className="bm-table-empty">No users found.</td></tr>}
-                  {!loading && users.map((user) => (
+                  {!loading && pagedUsers.map((user) => (
                     <tr key={user.id}>
                       <td>
                         <div>{user.firstName} {user.lastName}</div>
@@ -1758,6 +1776,7 @@ export default function UsersPage() {
                 </tbody>
               </table>
             </div>
+            <TablePagination page={userPage} pageSize={userPageSize} total={filteredUsers.length} onPageChange={setUserPage} onPageSizeChange={setUserPageSize} />
           </div>
         </>
       )}
