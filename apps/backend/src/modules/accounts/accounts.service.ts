@@ -29,6 +29,19 @@ import type {
 
 const ACCOUNT_TRANSFER_TYPE = "ACCOUNT_TRANSFER";
 const TRANSFER_TRANSACTION_TYPE = "TRANSFER";
+const VOUCHER_TYPE_LABELS: Record<string, string> = {
+  VEHICLE_CLEARANCE: "Vehicle Clearance Payment",
+  BILL: "Bill",
+  OTHER_PAYMENT: "Other Payment",
+  PERMIT: "Permit Payment",
+  LEASING_PAYMENT: "Leasing Payment",
+  LOAN_PAYMENT: "Loan Payment",
+  SALARY: "Salary",
+  CUSTOMER_REFUND: "Customer Refund",
+  VEHICLE_PURCHASE: "Vehicle Purchase",
+  ADVANCE_REFUND: "Advance Invoice Refund",
+  [ACCOUNT_TRANSFER_TYPE]: "Account Transfer",
+};
 
 async function generateAccountCode(): Promise<string> {
   const count = await prisma.account.count();
@@ -36,20 +49,7 @@ async function generateAccountCode(): Promise<string> {
 }
 
 function voucherTypeLabel(type: string): string {
-  const map: Record<string, string> = {
-    VEHICLE_CLEARANCE: "Vehicle Clearance Payment",
-    BILL: "Bill",
-    OTHER_PAYMENT: "Other Payment",
-    PERMIT: "Permit Payment",
-    LEASING_PAYMENT: "Leasing Payment",
-    LOAN_PAYMENT: "Loan Payment",
-    SALARY: "Salary",
-    CUSTOMER_REFUND: "Customer Refund",
-    VEHICLE_PURCHASE: "Vehicle Purchase",
-    ADVANCE_REFUND: "Advance Invoice Refund",
-    [ACCOUNT_TRANSFER_TYPE]: "Account Transfer",
-  };
-  return map[type] ?? type;
+  return VOUCHER_TYPE_LABELS[type] ?? type;
 }
 
 function calculateTotalReceivable(p: {
@@ -776,14 +776,46 @@ export async function getReceiptById(id: number) {
 
 export async function listVouchers(dto: VoucherQueryDto) {
   const skip = (dto.page - 1) * dto.limit;
-  const whereSql = dto.accountId
-    ? Prisma.sql`WHERE v."accountId" = ${dto.accountId}`
+  const filters: Prisma.Sql[] = [];
+
+  if (dto.accountId) {
+    filters.push(Prisma.sql`v."accountId" = ${dto.accountId}`);
+  }
+  if (dto.type) {
+    filters.push(Prisma.sql`v."type"::text = ${dto.type}`);
+  }
+  if (dto.search) {
+    const search = `%${dto.search}%`;
+    const matchingTypes = Object.entries(VOUCHER_TYPE_LABELS)
+      .filter(([, label]) => label.toLowerCase().includes(dto.search!.toLowerCase()))
+      .map(([type]) => type);
+    const typeLabelFilter = matchingTypes.length > 0
+      ? Prisma.sql`OR v."type"::text IN (${Prisma.join(matchingTypes)})`
+      : Prisma.empty;
+    filters.push(Prisma.sql`(
+      v."voucherNo" ILIKE ${search}
+      OR REPLACE(v."type"::text, '_', ' ') ILIKE ${search}
+      ${typeLabelFilter}
+      OR COALESCE(v."payee", '') ILIKE ${search}
+      OR COALESCE(v."description", '') ILIKE ${search}
+      OR COALESCE(v."referenceNo", '') ILIKE ${search}
+      OR a."name" ILIKE ${search}
+      OR a."code" ILIKE ${search}
+      OR COALESCE(ta."name", '') ILIKE ${search}
+      OR COALESCE(ta."code", '') ILIKE ${search}
+    )`);
+  }
+
+  const whereSql = filters.length > 0
+    ? Prisma.sql`WHERE ${Prisma.join(filters, " AND ")}`
     : Prisma.empty;
 
   const [totalRows, vouchers] = await Promise.all([
     prisma.$queryRaw<Array<{ count: number }>>`
       SELECT COUNT(*)::int AS "count"
       FROM "account_vouchers" v
+      JOIN "accounts" a ON a."id" = v."accountId"
+      LEFT JOIN "accounts" ta ON ta."id" = v."toAccountId"
       ${whereSql}
     `,
     prisma.$queryRaw<RawVoucherRow[]>`

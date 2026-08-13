@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useAdmin } from "../../../components/AdminContext";
 import { API_URL } from "../../../lib/constants";
 import { IconAccounts, IconEdit, IconPlus } from "../../../lib/icons";
-import TablePagination, { paginateRows } from "../../../components/TablePagination";
+import TablePagination from "../../../components/TablePagination";
 
 type Account = { id: number; name: string; code: string };
 
@@ -103,19 +103,6 @@ function normalizeVoucherRow(voucher: VoucherRow): VoucherRow {
   };
 }
 
-function mergeVoucherRows(existingRows: VoucherRow[], incomingRows: VoucherRow[]) {
-  const byId = new Map<number, VoucherRow>();
-  for (const row of existingRows) {
-    byId.set(row.id, normalizeVoucherRow(row));
-  }
-  for (const row of incomingRows) {
-    const normalized = normalizeVoucherRow(row);
-    const previous = byId.get(normalized.id);
-    byId.set(normalized.id, previous ? { ...previous, ...normalized, payee: normalized.payee ?? previous.payee, description: normalized.description ?? previous.description, referenceNo: normalized.referenceNo ?? previous.referenceNo } : normalized);
-  }
-  return Array.from(byId.values()).sort((left, right) => right.id - left.id);
-}
-
 export default function VouchersPage() {
   const { token } = useAdmin();
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -125,15 +112,19 @@ export default function VouchersPage() {
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [voucherType, setVoucherType] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
-  const filteredVouchers = useMemo(() => {
-    const needle = search.trim().toLowerCase();
-    return needle ? vouchers.filter((voucher) => [voucher.voucherNo, voucher.typeLabel, voucher.payee, voucher.description, voucher.referenceNo, voucher.account.name, voucher.account.code]
-      .some((value) => value?.toLowerCase().includes(needle))) : vouchers;
-  }, [search, vouchers]);
-  const pagedVouchers = useMemo(() => paginateRows(filteredVouchers, page, pageSize), [filteredVouchers, page, pageSize]);
-  useEffect(() => { setPage(1); }, [search, pageSize]);
+  const [totalVouchers, setTotalVouchers] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      setDebouncedSearch(search.trim());
+      setPage(1);
+    }, 250);
+    return () => window.clearTimeout(timer);
+  }, [search]);
 
   const [availableBalance, setAvailableBalance] = useState<number | null>(null);
   const [balanceLoading, setBalanceLoading] = useState(false);
@@ -160,16 +151,31 @@ export default function VouchersPage() {
     setAccounts((d.data ?? []).filter((a: Account & { isActive: boolean }) => a.isActive));
   }
 
-  async function fetchVouchers() {
+  async function fetchVouchers(signal?: AbortSignal) {
     setLoading(true);
-    const res = await fetch(`${API_URL}/api/pos/accounts/vouchers?limit=100`, {
-      headers: { Authorization: `Bearer ${token}` },
-      cache: "no-store",
-    });
-    const d = await res.json();
-    const rows = Array.isArray(d.data?.data) ? d.data.data : Array.isArray(d.data) ? d.data : [];
-    setVouchers((current) => mergeVoucherRows(current, rows));
-    setLoading(false);
+    const params = new URLSearchParams({ page: String(page), limit: String(pageSize) });
+    if (debouncedSearch) params.set("search", debouncedSearch);
+    if (voucherType) params.set("type", voucherType);
+
+    try {
+      const res = await fetch(`${API_URL}/api/pos/accounts/vouchers?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${token}` },
+        cache: "no-store",
+        signal,
+      });
+      if (!res.ok) throw new Error("Failed to load vouchers");
+      const d = await res.json();
+      if (signal?.aborted) return;
+      const rows = Array.isArray(d.data?.data) ? d.data.data : Array.isArray(d.data) ? d.data : [];
+      setVouchers(rows.map(normalizeVoucherRow));
+      setTotalVouchers(Number(d.data?.pagination?.total ?? rows.length));
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      setVouchers([]);
+      setTotalVouchers(0);
+    } finally {
+      if (!signal?.aborted) setLoading(false);
+    }
   }
 
   async function fetchVoucherById(id: number) {
@@ -200,9 +206,15 @@ export default function VouchersPage() {
   useEffect(() => {
     if (token) {
       fetchAccounts();
-      fetchVouchers();
     }
   }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
+    const controller = new AbortController();
+    void fetchVouchers(controller.signal);
+    return () => controller.abort();
+  }, [token, page, pageSize, debouncedSearch, voucherType]);
 
   async function submitVoucher() {
     if (!form.accountId) { setFormError("Select a from account"); return; }
@@ -249,8 +261,11 @@ export default function VouchersPage() {
       setForm(EMPTY_FORM);
       setAvailableBalance(null);
       setPrintVoucher(createdVoucher);
-      setVouchers((current) => mergeVoucherRows([createdVoucher], current.filter((voucher) => voucher.id !== createdVoucher.id)));
-      fetchVouchers();
+      if (page === 1) {
+        void fetchVouchers();
+      } else {
+        setPage(1);
+      }
     } catch {
       setFormError("Network error");
     } finally {
@@ -435,7 +450,30 @@ export default function VouchersPage() {
             <h3>Voucher History</h3>
           </div>
         </div>
-        <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)" }}><input className="bm-input" type="search" value={search} onChange={(event) => setSearch(event.target.value)} placeholder="Search voucher, payee, reference or account" /></div>
+        <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)", display: "flex", flexWrap: "wrap", gap: "0.75rem" }}>
+          <input
+            className="bm-input"
+            style={{ flex: "1 1 320px" }}
+            type="search"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Search voucher, payee, reference or account"
+            aria-label="Search voucher history"
+          />
+          <select
+            className="bm-select"
+            style={{ flex: "1 1 240px", maxWidth: 360 }}
+            value={voucherType}
+            onChange={(event) => {
+              setVoucherType(event.target.value);
+              setPage(1);
+            }}
+            aria-label="Filter voucher history by voucher type"
+          >
+            <option value="">All Voucher Types</option>
+            {VOUCHER_TYPES.map((type) => <option key={type.value} value={type.value}>{type.label}</option>)}
+          </select>
+        </div>
         {loading ? (
           <div className="bm-table-empty">Loading...</div>
         ) : (
@@ -458,8 +496,8 @@ export default function VouchersPage() {
               </thead>
               <tbody>
                 {vouchers.length === 0 ? (
-                  <tr><td colSpan={11} className="bm-table-empty">No vouchers yet</td></tr>
-                ) : pagedVouchers.map((v) => (
+                  <tr><td colSpan={11} className="bm-table-empty">No vouchers match the selected filters</td></tr>
+                ) : vouchers.map((v) => (
                   <tr key={v.id} style={{ opacity: v.isVoided ? 0.5 : 1 }}>
                     <td>
                       <span style={{ fontFamily: "monospace", fontSize: "0.82rem", fontWeight: 700, color: "var(--accent)" }}>
@@ -503,7 +541,16 @@ export default function VouchersPage() {
             </table>
           </div>
         )}
-        <TablePagination page={page} pageSize={pageSize} total={filteredVouchers.length} onPageChange={setPage} onPageSizeChange={setPageSize} />
+        <TablePagination
+          page={page}
+          pageSize={pageSize}
+          total={totalVouchers}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+        />
       </div>
 
       {/* Edit voucher modal */}
