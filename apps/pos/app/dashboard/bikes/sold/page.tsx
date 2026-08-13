@@ -365,6 +365,7 @@ export default function SoldBikesPage() {
   const [viewVehicle, setViewVehicle] = useState<Vehicle | null>(null);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
+  const [chassisSearch, setChassisSearch] = useState("");
 
   const base = `${API_URL}/api/pos/bike-management`;
   const auth = { Authorization: `Bearer ${token}` };
@@ -408,8 +409,10 @@ export default function SoldBikesPage() {
   const filteredVehicles = useMemo(() => {
     const fromBoundary = fromDate ? new Date(`${fromDate}T00:00:00`) : null;
     const toBoundary = toDate ? new Date(`${toDate}T23:59:59.999`) : null;
+    const chassisNeedle = chassisSearch.trim().toLowerCase();
 
     return vehicles.filter((vehicle) => {
+      if (chassisNeedle && !vehicle.chassisNo?.toLowerCase().includes(chassisNeedle)) return false;
       const soldDateRaw = vehicle.soldAt ?? purchasesByBikeId[vehicle.id]?.purchasedAt;
       if (!soldDateRaw) return !fromBoundary && !toBoundary;
       const soldDate = new Date(soldDateRaw);
@@ -418,7 +421,7 @@ export default function SoldBikesPage() {
       if (toBoundary && soldDate > toBoundary) return false;
       return true;
     });
-  }, [fromDate, toDate, purchasesByBikeId, vehicles]);
+  }, [chassisSearch, fromDate, toDate, purchasesByBikeId, vehicles]);
 
   const restore = async (id: number) => {
     setRestoring(id);
@@ -581,7 +584,7 @@ export default function SoldBikesPage() {
     </div>
 
     <div class="section-title">Sold Bike List</div>
-    ${filteredVehicles.length === 0 ? '<div class="empty">No sold bikes found for the selected date range.</div>' : `
+    ${filteredVehicles.length === 0 ? '<div class="empty">No sold bikes found for the selected filters.</div>' : `
       <table class="table">
         <thead>
           <tr>
@@ -679,6 +682,16 @@ export default function SoldBikesPage() {
 
       <div className="bm-table-card">
         <div style={{ padding: "1rem", borderBottom: "1px solid var(--panel-border)", display: "flex", gap: "0.75rem", alignItems: "center", flexWrap: "wrap" }}>
+          <label htmlFor="sold-bikes-chassis" style={{ fontSize: 13, color: "var(--text-soft)" }}>Chassis No</label>
+          <input
+            id="sold-bikes-chassis"
+            className="bm-input"
+            style={{ maxWidth: 280 }}
+            type="search"
+            value={chassisSearch}
+            onChange={(event) => setChassisSearch(event.target.value)}
+            placeholder="Search chassis number"
+          />
           <label htmlFor="sold-bikes-from" style={{ fontSize: 13, color: "var(--text-soft)" }}>From</label>
           <input
             id="sold-bikes-from"
@@ -695,7 +708,7 @@ export default function SoldBikesPage() {
             value={toDate}
             onChange={(event) => setToDate(event.target.value)}
           />
-          <button type="button" className="btn-outline" onClick={() => { setFromDate(""); setToDate(""); }}>Clear Dates</button>
+          <button type="button" className="btn-outline" onClick={() => { setChassisSearch(""); setFromDate(""); setToDate(""); }}>Clear Filters</button>
           <button type="button" className="btn-outline" onClick={() => void load()}>Refresh</button>
         </div>
         <div className="data-table-wrap">
@@ -714,7 +727,7 @@ export default function SoldBikesPage() {
             </thead>
             <tbody>
               {loading && <tr><td colSpan={8} className="bm-table-empty">Loading…</td></tr>}
-              {!loading && filteredVehicles.length === 0 && <tr><td colSpan={8} className="bm-table-empty">No sold bikes for selected dates.</td></tr>}
+              {!loading && filteredVehicles.length === 0 && <tr><td colSpan={8} className="bm-table-empty">No sold bikes for the selected filters.</td></tr>}
               {!loading && filteredVehicles.map((vehicle) => {
                 const primaryImg = (vehicle.images ?? []).find((img) => img.isPrimary) ?? (vehicle.images ?? [])[0];
                 const purchase = purchasesByBikeId[vehicle.id];
@@ -727,6 +740,7 @@ export default function SoldBikesPage() {
                         <span className="bm-vehicle-detail">{vehicle.brand.name} · {vehicle.model.name}</span>
                         <span className="bm-vehicle-meta">{vehicle.colour}{vehicle.year ? ` · ${vehicle.year}` : ""}</span>
                         <span className="bm-vehicle-meta">{vehicle.engineCapacityCc ? `${vehicle.engineCapacityCc} cc` : "No engine capacity"}</span>
+                        <span className="bm-vehicle-meta">Chassis: {vehicle.chassisNo ?? "—"}</span>
                       </td>
                       <td>{vehicle.supplier ? `${vehicle.supplier.name} (${vehicle.supplier.code})` : <em className="bm-missing">—</em>}</td>
                       <td>

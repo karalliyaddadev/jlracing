@@ -817,6 +817,7 @@ export async function listVehicles(query: VehicleQueryDto) {
     year,
     fileNo,
     registerNo,
+    chassisNo,
     status,
     search,
   } = query;
@@ -834,6 +835,9 @@ export async function listVehicles(query: VehicleQueryDto) {
       : {}),
     ...(registerNo
       ? { registerNo: { contains: registerNo, mode: "insensitive" as const } }
+      : {}),
+    ...(chassisNo
+      ? { chassisNo: { contains: chassisNo, mode: "insensitive" as const } }
       : {}),
     ...(status ? { status } : {}),
     ...(search

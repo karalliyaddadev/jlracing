@@ -1879,6 +1879,7 @@ export default function BikeInventoryPage() {
     year: "",
     fileNo: "",
     registerNo: "",
+    chassisNo: "",
     search: "",
   });
 
@@ -1897,6 +1898,7 @@ export default function BikeInventoryPage() {
       year: "",
       fileNo: "",
       registerNo: "",
+      chassisNo: "",
       search: "",
     });
   };
@@ -1912,6 +1914,7 @@ export default function BikeInventoryPage() {
       if (filters.year) params.set("year", filters.year);
       if (filters.fileNo) params.set("fileNo", filters.fileNo);
       if (filters.registerNo) params.set("registerNo", filters.registerNo);
+      if (filters.chassisNo) params.set("chassisNo", filters.chassisNo);
       if (filters.search) params.set("search", filters.search);
 
       const vRes = await fetch(`${base}/vehicles?${params.toString()}`, {
@@ -2123,8 +2126,12 @@ export default function BikeInventoryPage() {
             <input className="bm-input" value={filters.registerNo} onChange={(e) => setFilter("registerNo")(e.target.value)} placeholder="Type register no" />
           </div>
           <div className="bm-field-group">
-            <label>Chassis / Engine</label>
-            <input className="bm-input" value={filters.search} onChange={(e) => setFilter("search")(e.target.value)} placeholder="Search chassis or engine no" />
+            <label>Chassis No</label>
+            <input className="bm-input" value={filters.chassisNo} onChange={(e) => setFilter("chassisNo")(e.target.value)} placeholder="Type chassis number" />
+          </div>
+          <div className="bm-field-group">
+            <label>Engine / Bike ID</label>
+            <input className="bm-input" value={filters.search} onChange={(e) => setFilter("search")(e.target.value)} placeholder="Search engine no or bike ID" />
           </div>
         </div>
         <div className="bm-filter-actions">

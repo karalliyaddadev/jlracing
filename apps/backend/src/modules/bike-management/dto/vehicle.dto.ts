@@ -63,6 +63,7 @@ export const vehicleQuerySchema = z.object({
   year: z.coerce.number().int().min(1900).max(new Date().getFullYear() + 2).optional(),
   fileNo: z.string().optional(),
   registerNo: z.string().optional(),
+  chassisNo: z.string().optional(),
   status:  z.enum(STATUSES).optional(),
   search:  z.string().optional(),
 });
