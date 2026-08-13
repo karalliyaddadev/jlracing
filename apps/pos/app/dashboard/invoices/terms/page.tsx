@@ -13,6 +13,7 @@ type InvoiceTerm = {
   text: string;
   sortOrder: number;
   isActive: boolean;
+  termType: "ADVANCE" | "FINAL";
   createdAt: string;
   updatedAt: string;
 };
@@ -24,6 +25,7 @@ export default function InvoiceTermsPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(20);
+  const [activeType, setActiveType] = useState<"ADVANCE" | "FINAL">("ADVANCE");
 
   const [newText, setNewText] = useState("");
   const [newSortOrder, setNewSortOrder] = useState("");
@@ -33,6 +35,7 @@ export default function InvoiceTermsPage() {
   const [editText, setEditText] = useState("");
   const [editSortOrder, setEditSortOrder] = useState("");
   const [editIsActive, setEditIsActive] = useState(true);
+  const [editTermType, setEditTermType] = useState<"ADVANCE" | "FINAL">("ADVANCE");
 
   const base = `${API_URL}/api/pos/user-management`;
   const auth = useMemo(() => ({ Authorization: `Bearer ${token}` }), [token]);
@@ -52,13 +55,14 @@ export default function InvoiceTermsPage() {
   const filteredTerms = useMemo(() => {
     const terms = termsQuery.data ?? [];
     const needle = search.trim().toLowerCase();
-    return needle ? terms.filter((term) => term.text.toLowerCase().includes(needle)) : terms;
-  }, [search, termsQuery.data]);
+    const typedTerms = terms.filter((term) => term.termType === activeType);
+    return needle ? typedTerms.filter((term) => term.text.toLowerCase().includes(needle)) : typedTerms;
+  }, [activeType, search, termsQuery.data]);
   const pagedTerms = useMemo(() => paginateRows(filteredTerms, page, pageSize), [filteredTerms, page, pageSize]);
-  useEffect(() => { setPage(1); }, [search, pageSize]);
+  useEffect(() => { setPage(1); }, [activeType, search, pageSize]);
 
   const createTermMutation = useMutation({
-    mutationFn: async (input: { text: string; sortOrder?: number; isActive: boolean }) => {
+    mutationFn: async (input: { text: string; sortOrder?: number; isActive: boolean; termType: "ADVANCE" | "FINAL" }) => {
       const response = await fetch(`${base}/invoice-terms`, {
         method: "POST",
         headers: { ...auth, "Content-Type": "application/json" },
@@ -78,7 +82,7 @@ export default function InvoiceTermsPage() {
   });
 
   const updateTermMutation = useMutation({
-    mutationFn: async (input: { id: number; text: string; sortOrder?: number; isActive: boolean }) => {
+    mutationFn: async (input: { id: number; text: string; sortOrder?: number; isActive: boolean; termType: "ADVANCE" | "FINAL" }) => {
       const response = await fetch(`${base}/invoice-terms/${input.id}`, {
         method: "PATCH",
         headers: { ...auth, "Content-Type": "application/json" },
@@ -86,6 +90,7 @@ export default function InvoiceTermsPage() {
           text: input.text,
           sortOrder: input.sortOrder,
           isActive: input.isActive,
+          termType: input.termType,
         }),
       });
       const payload = await response.json() as { message?: string };
@@ -136,6 +141,7 @@ export default function InvoiceTermsPage() {
     setEditText(term.text);
     setEditSortOrder(String(term.sortOrder));
     setEditIsActive(term.isActive);
+    setEditTermType(term.termType);
   };
 
   const stopEdit = () => {
@@ -143,6 +149,7 @@ export default function InvoiceTermsPage() {
     setEditText("");
     setEditSortOrder("");
     setEditIsActive(true);
+    setEditTermType(activeType);
   };
 
   const handleCreate = async () => {
@@ -158,6 +165,7 @@ export default function InvoiceTermsPage() {
       text,
       sortOrder: newSortOrder.trim() ? Number(newSortOrder) : undefined,
       isActive: newIsActive,
+      termType: activeType,
     });
   };
 
@@ -176,6 +184,7 @@ export default function InvoiceTermsPage() {
       text,
       sortOrder: editSortOrder.trim() ? Number(editSortOrder) : undefined,
       isActive: editIsActive,
+      termType: editTermType,
     });
   };
 
@@ -195,7 +204,7 @@ export default function InvoiceTermsPage() {
           <div className="page-title-icon"><IconInvoice /></div>
           <div>
             <h2 className="page-title">Invoice Terms & Conditions</h2>
-            <p className="page-subtitle">Manage terms shown at the bottom of printed invoices.</p>
+            <p className="page-subtitle">Manage separate terms for advance-payment and final-payment invoices.</p>
           </div>
         </div>
       </div>
@@ -203,9 +212,14 @@ export default function InvoiceTermsPage() {
       {visibleError && <div className="bm-alert bm-alert-error">{visibleError}</div>}
       {success && <div className="bm-alert bm-alert-success">{success}</div>}
 
+      <div className="bm-manage-tabs">
+        <button type="button" className={`bm-tab-btn ${activeType === "ADVANCE" ? "active" : ""}`} onClick={() => { setActiveType("ADVANCE"); stopEdit(); }}>Advance Payment Terms</button>
+        <button type="button" className={`bm-tab-btn ${activeType === "FINAL" ? "active" : ""}`} onClick={() => { setActiveType("FINAL"); stopEdit(); }}>Final Payment Terms</button>
+      </div>
+
       <div className="bm-table-card" style={{ marginBottom: "1rem" }}>
         <div style={{ padding: "1rem", display: "grid", gap: "0.75rem" }}>
-          <h3 className="users-section-title" style={{ margin: 0 }}>Add New Term</h3>
+          <h3 className="users-section-title" style={{ margin: 0 }}>Add {activeType === "ADVANCE" ? "Advance Payment" : "Final Payment"} Term</h3>
           <textarea
             className="bm-input invoice-terms-textarea"
             placeholder="Enter term and condition text"
@@ -244,6 +258,7 @@ export default function InvoiceTermsPage() {
             <thead>
               <tr>
                 <th style={{ width: 120 }}>Order</th>
+                <th style={{ width: 160 }}>Payment Stage</th>
                 <th>Term Text</th>
                 <th style={{ width: 120 }}>Status</th>
                 <th style={{ width: 220 }}>Action</th>
@@ -251,10 +266,10 @@ export default function InvoiceTermsPage() {
             </thead>
             <tbody>
               {loading && (
-                <tr><td colSpan={4} className="bm-table-empty">Loading terms...</td></tr>
+                <tr><td colSpan={5} className="bm-table-empty">Loading terms...</td></tr>
               )}
-              {!loading && (termsQuery.data ?? []).length === 0 && (
-                <tr><td colSpan={4} className="bm-table-empty">No terms found.</td></tr>
+              {!loading && filteredTerms.length === 0 && (
+                <tr><td colSpan={5} className="bm-table-empty">No {activeType === "ADVANCE" ? "advance-payment" : "final-payment"} terms found.</td></tr>
               )}
               {!loading && pagedTerms.map((term) => {
                 const isEditing = editId === term.id;
@@ -271,6 +286,14 @@ export default function InvoiceTermsPage() {
                           onChange={(e) => setEditSortOrder(e.target.value)}
                         />
                       ) : term.sortOrder}
+                    </td>
+                    <td>
+                      {isEditing ? (
+                        <select className="bm-select" value={editTermType} onChange={(event) => setEditTermType(event.target.value as "ADVANCE" | "FINAL")}>
+                          <option value="ADVANCE">Advance Payment</option>
+                          <option value="FINAL">Final Payment</option>
+                        </select>
+                      ) : term.termType === "ADVANCE" ? "Advance Payment" : "Final Payment"}
                     </td>
                     <td>
                       {isEditing ? (

@@ -415,15 +415,22 @@ model PosCustomerPurchase {
   @@map("pos_customer_purchases")
 }
 
+enum InvoiceTermType {
+  ADVANCE
+  FINAL
+}
+
 model PosInvoiceTerm {
   id        Int      @id @default(autoincrement())
   text      String
+  termType  InvoiceTermType @default(FINAL)
   sortOrder Int      @default(1)
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([sortOrder])
+  @@index([termType, sortOrder])
   @@map("pos_invoice_terms")
 }
 

@@ -353,6 +353,7 @@ exports.Prisma.PosCustomerPurchaseScalarFieldEnum = {
 exports.Prisma.PosInvoiceTermScalarFieldEnum = {
   id: 'id',
   text: 'text',
+  termType: 'termType',
   sortOrder: 'sortOrder',
   isActive: 'isActive',
   createdAt: 'createdAt',
@@ -607,6 +608,11 @@ exports.PosSettlementStatus = exports.$Enums.PosSettlementStatus = {
 exports.PosPurchaseChannel = exports.$Enums.PosPurchaseChannel = {
   PERSONAL: 'PERSONAL',
   LEASING: 'LEASING'
+};
+
+exports.InvoiceTermType = exports.$Enums.InvoiceTermType = {
+  ADVANCE: 'ADVANCE',
+  FINAL: 'FINAL'
 };
 
 exports.InstallmentStatus = exports.$Enums.InstallmentStatus = {

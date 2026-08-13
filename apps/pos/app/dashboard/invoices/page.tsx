@@ -126,6 +126,7 @@ type InvoiceTerm = {
   text: string;
   sortOrder: number;
   isActive: boolean;
+  termType: "ADVANCE" | "FINAL";
 };
 
 type InvoiceAccount = {
@@ -138,9 +139,9 @@ type InvoiceAccount = {
   isActive: boolean;
 };
 
-function getActiveInvoiceTerms(terms: InvoiceTerm[]) {
+function getActiveInvoiceTerms(terms: InvoiceTerm[], termType: "ADVANCE" | "FINAL") {
   return terms
-    .filter((term) => term.isActive)
+    .filter((term) => term.isActive && term.termType === termType)
     .sort((a, b) => a.sortOrder - b.sortOrder || a.id - b.id)
     .map((term) => term.text);
 }
@@ -517,9 +518,12 @@ export default function InvoicesPage() {
     [invoiceRows]
   );
 
+  const selectedInvoiceTermType: "ADVANCE" | "FINAL" = selectedInvoice && selectedInvoice.remainingAmount > 0
+    ? "ADVANCE"
+    : "FINAL";
   const activeInvoiceTerms = useMemo((): string[] => {
-    return getActiveInvoiceTerms(invoiceTerms);
-  }, [invoiceTerms]);
+    return getActiveInvoiceTerms(invoiceTerms, selectedInvoiceTermType);
+  }, [invoiceTerms, selectedInvoiceTermType]);
 
   const activeInvoiceAccounts = useMemo((): InvoiceAccount[] => {
     return getActiveInvoiceAccounts(invoiceAccounts);
@@ -908,6 +912,9 @@ export default function InvoicesPage() {
                 {activeInvoiceTerms.length > 0 && (
                   <>
                     <div className="invoice-divider" />
+                    <strong style={{ display: "block", marginBottom: "0.45rem" }}>
+                      {selectedInvoiceTermType === "ADVANCE" ? "Advance Payment" : "Final Payment"} Terms &amp; Conditions
+                    </strong>
                     <ul className="invoice-paper-terms">
                       {activeInvoiceTerms.map((term, index) => (
                         <li key={`${index}-${term.slice(0, 24)}`}>{term}</li>

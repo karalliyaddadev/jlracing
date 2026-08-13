@@ -239,6 +239,14 @@ export const PosPurchaseChannel: {
 export type PosPurchaseChannel = (typeof PosPurchaseChannel)[keyof typeof PosPurchaseChannel]
 
 
+export const InvoiceTermType: {
+  ADVANCE: 'ADVANCE',
+  FINAL: 'FINAL'
+};
+
+export type InvoiceTermType = (typeof InvoiceTermType)[keyof typeof InvoiceTermType]
+
+
 export const InstallmentStatus: {
   PENDING: 'PENDING',
   PARTIAL: 'PARTIAL',
@@ -342,6 +350,10 @@ export const PosSettlementStatus: typeof $Enums.PosSettlementStatus
 export type PosPurchaseChannel = $Enums.PosPurchaseChannel
 
 export const PosPurchaseChannel: typeof $Enums.PosPurchaseChannel
+
+export type InvoiceTermType = $Enums.InvoiceTermType
+
+export const InvoiceTermType: typeof $Enums.InvoiceTermType
 
 export type InstallmentStatus = $Enums.InstallmentStatus
 
@@ -24406,6 +24418,7 @@ export namespace Prisma {
   export type PosInvoiceTermMinAggregateOutputType = {
     id: number | null
     text: string | null
+    termType: $Enums.InvoiceTermType | null
     sortOrder: number | null
     isActive: boolean | null
     createdAt: Date | null
@@ -24415,6 +24428,7 @@ export namespace Prisma {
   export type PosInvoiceTermMaxAggregateOutputType = {
     id: number | null
     text: string | null
+    termType: $Enums.InvoiceTermType | null
     sortOrder: number | null
     isActive: boolean | null
     createdAt: Date | null
@@ -24424,6 +24438,7 @@ export namespace Prisma {
   export type PosInvoiceTermCountAggregateOutputType = {
     id: number
     text: number
+    termType: number
     sortOrder: number
     isActive: number
     createdAt: number
@@ -24445,6 +24460,7 @@ export namespace Prisma {
   export type PosInvoiceTermMinAggregateInputType = {
     id?: true
     text?: true
+    termType?: true
     sortOrder?: true
     isActive?: true
     createdAt?: true
@@ -24454,6 +24470,7 @@ export namespace Prisma {
   export type PosInvoiceTermMaxAggregateInputType = {
     id?: true
     text?: true
+    termType?: true
     sortOrder?: true
     isActive?: true
     createdAt?: true
@@ -24463,6 +24480,7 @@ export namespace Prisma {
   export type PosInvoiceTermCountAggregateInputType = {
     id?: true
     text?: true
+    termType?: true
     sortOrder?: true
     isActive?: true
     createdAt?: true
@@ -24559,6 +24577,7 @@ export namespace Prisma {
   export type PosInvoiceTermGroupByOutputType = {
     id: number
     text: string
+    termType: $Enums.InvoiceTermType
     sortOrder: number
     isActive: boolean
     createdAt: Date
@@ -24587,6 +24606,7 @@ export namespace Prisma {
   export type PosInvoiceTermSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     text?: boolean
+    termType?: boolean
     sortOrder?: boolean
     isActive?: boolean
     createdAt?: boolean
@@ -24596,6 +24616,7 @@ export namespace Prisma {
   export type PosInvoiceTermSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     text?: boolean
+    termType?: boolean
     sortOrder?: boolean
     isActive?: boolean
     createdAt?: boolean
@@ -24605,6 +24626,7 @@ export namespace Prisma {
   export type PosInvoiceTermSelectScalar = {
     id?: boolean
     text?: boolean
+    termType?: boolean
     sortOrder?: boolean
     isActive?: boolean
     createdAt?: boolean
@@ -24618,6 +24640,7 @@ export namespace Prisma {
     scalars: $Extensions.GetPayloadResult<{
       id: number
       text: string
+      termType: $Enums.InvoiceTermType
       sortOrder: number
       isActive: boolean
       createdAt: Date
@@ -25017,6 +25040,7 @@ export namespace Prisma {
   interface PosInvoiceTermFieldRefs {
     readonly id: FieldRef<"PosInvoiceTerm", 'Int'>
     readonly text: FieldRef<"PosInvoiceTerm", 'String'>
+    readonly termType: FieldRef<"PosInvoiceTerm", 'InvoiceTermType'>
     readonly sortOrder: FieldRef<"PosInvoiceTerm", 'Int'>
     readonly isActive: FieldRef<"PosInvoiceTerm", 'Boolean'>
     readonly createdAt: FieldRef<"PosInvoiceTerm", 'DateTime'>
@@ -40705,6 +40729,7 @@ export namespace Prisma {
   export const PosInvoiceTermScalarFieldEnum: {
     id: 'id',
     text: 'text',
+    termType: 'termType',
     sortOrder: 'sortOrder',
     isActive: 'isActive',
     createdAt: 'createdAt',
@@ -41145,6 +41170,20 @@ export namespace Prisma {
    * Reference to a field of type 'Json'
    */
   export type JsonFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Json'>
+    
+
+
+  /**
+   * Reference to a field of type 'InvoiceTermType'
+   */
+  export type EnumInvoiceTermTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InvoiceTermType'>
+    
+
+
+  /**
+   * Reference to a field of type 'InvoiceTermType[]'
+   */
+  export type ListEnumInvoiceTermTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'InvoiceTermType[]'>
     
 
 
@@ -42791,6 +42830,7 @@ export namespace Prisma {
     NOT?: PosInvoiceTermWhereInput | PosInvoiceTermWhereInput[]
     id?: IntFilter<"PosInvoiceTerm"> | number
     text?: StringFilter<"PosInvoiceTerm"> | string
+    termType?: EnumInvoiceTermTypeFilter<"PosInvoiceTerm"> | $Enums.InvoiceTermType
     sortOrder?: IntFilter<"PosInvoiceTerm"> | number
     isActive?: BoolFilter<"PosInvoiceTerm"> | boolean
     createdAt?: DateTimeFilter<"PosInvoiceTerm"> | Date | string
@@ -42800,6 +42840,7 @@ export namespace Prisma {
   export type PosInvoiceTermOrderByWithRelationInput = {
     id?: SortOrder
     text?: SortOrder
+    termType?: SortOrder
     sortOrder?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -42812,6 +42853,7 @@ export namespace Prisma {
     OR?: PosInvoiceTermWhereInput[]
     NOT?: PosInvoiceTermWhereInput | PosInvoiceTermWhereInput[]
     text?: StringFilter<"PosInvoiceTerm"> | string
+    termType?: EnumInvoiceTermTypeFilter<"PosInvoiceTerm"> | $Enums.InvoiceTermType
     sortOrder?: IntFilter<"PosInvoiceTerm"> | number
     isActive?: BoolFilter<"PosInvoiceTerm"> | boolean
     createdAt?: DateTimeFilter<"PosInvoiceTerm"> | Date | string
@@ -42821,6 +42863,7 @@ export namespace Prisma {
   export type PosInvoiceTermOrderByWithAggregationInput = {
     id?: SortOrder
     text?: SortOrder
+    termType?: SortOrder
     sortOrder?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -42838,6 +42881,7 @@ export namespace Prisma {
     NOT?: PosInvoiceTermScalarWhereWithAggregatesInput | PosInvoiceTermScalarWhereWithAggregatesInput[]
     id?: IntWithAggregatesFilter<"PosInvoiceTerm"> | number
     text?: StringWithAggregatesFilter<"PosInvoiceTerm"> | string
+    termType?: EnumInvoiceTermTypeWithAggregatesFilter<"PosInvoiceTerm"> | $Enums.InvoiceTermType
     sortOrder?: IntWithAggregatesFilter<"PosInvoiceTerm"> | number
     isActive?: BoolWithAggregatesFilter<"PosInvoiceTerm"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"PosInvoiceTerm"> | Date | string
@@ -45704,6 +45748,7 @@ export namespace Prisma {
 
   export type PosInvoiceTermCreateInput = {
     text: string
+    termType?: $Enums.InvoiceTermType
     sortOrder?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -45713,6 +45758,7 @@ export namespace Prisma {
   export type PosInvoiceTermUncheckedCreateInput = {
     id?: number
     text: string
+    termType?: $Enums.InvoiceTermType
     sortOrder?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -45721,6 +45767,7 @@ export namespace Prisma {
 
   export type PosInvoiceTermUpdateInput = {
     text?: StringFieldUpdateOperationsInput | string
+    termType?: EnumInvoiceTermTypeFieldUpdateOperationsInput | $Enums.InvoiceTermType
     sortOrder?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45730,6 +45777,7 @@ export namespace Prisma {
   export type PosInvoiceTermUncheckedUpdateInput = {
     id?: IntFieldUpdateOperationsInput | number
     text?: StringFieldUpdateOperationsInput | string
+    termType?: EnumInvoiceTermTypeFieldUpdateOperationsInput | $Enums.InvoiceTermType
     sortOrder?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45739,6 +45787,7 @@ export namespace Prisma {
   export type PosInvoiceTermCreateManyInput = {
     id?: number
     text: string
+    termType?: $Enums.InvoiceTermType
     sortOrder?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -45747,6 +45796,7 @@ export namespace Prisma {
 
   export type PosInvoiceTermUpdateManyMutationInput = {
     text?: StringFieldUpdateOperationsInput | string
+    termType?: EnumInvoiceTermTypeFieldUpdateOperationsInput | $Enums.InvoiceTermType
     sortOrder?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -45756,6 +45806,7 @@ export namespace Prisma {
   export type PosInvoiceTermUncheckedUpdateManyInput = {
     id?: IntFieldUpdateOperationsInput | number
     text?: StringFieldUpdateOperationsInput | string
+    termType?: EnumInvoiceTermTypeFieldUpdateOperationsInput | $Enums.InvoiceTermType
     sortOrder?: IntFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -48629,9 +48680,17 @@ export namespace Prisma {
     _max?: NestedJsonFilter<$PrismaModel>
   }
 
+  export type EnumInvoiceTermTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.InvoiceTermType | EnumInvoiceTermTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.InvoiceTermType[] | ListEnumInvoiceTermTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.InvoiceTermType[] | ListEnumInvoiceTermTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumInvoiceTermTypeFilter<$PrismaModel> | $Enums.InvoiceTermType
+  }
+
   export type PosInvoiceTermCountOrderByAggregateInput = {
     id?: SortOrder
     text?: SortOrder
+    termType?: SortOrder
     sortOrder?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -48646,6 +48705,7 @@ export namespace Prisma {
   export type PosInvoiceTermMaxOrderByAggregateInput = {
     id?: SortOrder
     text?: SortOrder
+    termType?: SortOrder
     sortOrder?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -48655,6 +48715,7 @@ export namespace Prisma {
   export type PosInvoiceTermMinOrderByAggregateInput = {
     id?: SortOrder
     text?: SortOrder
+    termType?: SortOrder
     sortOrder?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -48664,6 +48725,16 @@ export namespace Prisma {
   export type PosInvoiceTermSumOrderByAggregateInput = {
     id?: SortOrder
     sortOrder?: SortOrder
+  }
+
+  export type EnumInvoiceTermTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.InvoiceTermType | EnumInvoiceTermTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.InvoiceTermType[] | ListEnumInvoiceTermTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.InvoiceTermType[] | ListEnumInvoiceTermTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumInvoiceTermTypeWithAggregatesFilter<$PrismaModel> | $Enums.InvoiceTermType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumInvoiceTermTypeFilter<$PrismaModel>
+    _max?: NestedEnumInvoiceTermTypeFilter<$PrismaModel>
   }
 
   export type EnumInstallmentStatusFilter<$PrismaModel = never> = {
@@ -50896,6 +50967,10 @@ export namespace Prisma {
     deleteMany?: InvoicePaymentScalarWhereInput | InvoicePaymentScalarWhereInput[]
   }
 
+  export type EnumInvoiceTermTypeFieldUpdateOperationsInput = {
+    set?: $Enums.InvoiceTermType
+  }
+
   export type PosCustomerPurchaseCreateNestedOneWithoutInstallmentsInput = {
     create?: XOR<PosCustomerPurchaseCreateWithoutInstallmentsInput, PosCustomerPurchaseUncheckedCreateWithoutInstallmentsInput>
     connectOrCreate?: PosCustomerPurchaseCreateOrConnectWithoutInstallmentsInput
@@ -52143,6 +52218,23 @@ export namespace Prisma {
     gt?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     gte?: InputJsonValue | JsonFieldRefInput<$PrismaModel>
     not?: InputJsonValue | JsonFieldRefInput<$PrismaModel> | JsonNullValueFilter
+  }
+
+  export type NestedEnumInvoiceTermTypeFilter<$PrismaModel = never> = {
+    equals?: $Enums.InvoiceTermType | EnumInvoiceTermTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.InvoiceTermType[] | ListEnumInvoiceTermTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.InvoiceTermType[] | ListEnumInvoiceTermTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumInvoiceTermTypeFilter<$PrismaModel> | $Enums.InvoiceTermType
+  }
+
+  export type NestedEnumInvoiceTermTypeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.InvoiceTermType | EnumInvoiceTermTypeFieldRefInput<$PrismaModel>
+    in?: $Enums.InvoiceTermType[] | ListEnumInvoiceTermTypeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.InvoiceTermType[] | ListEnumInvoiceTermTypeFieldRefInput<$PrismaModel>
+    not?: NestedEnumInvoiceTermTypeWithAggregatesFilter<$PrismaModel> | $Enums.InvoiceTermType
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumInvoiceTermTypeFilter<$PrismaModel>
+    _max?: NestedEnumInvoiceTermTypeFilter<$PrismaModel>
   }
 
   export type NestedEnumInstallmentStatusFilter<$PrismaModel = never> = {

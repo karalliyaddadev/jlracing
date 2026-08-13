@@ -2704,7 +2704,7 @@ export async function deleteInvoiceAccount(accountId: number) {
 export async function listInvoiceTerms() {
   const model = getInvoiceTermModelClient(prisma as any);
   const terms = await model.findMany({
-    orderBy: [{ sortOrder: "asc" }, { id: "asc" }],
+    orderBy: [{ termType: "asc" }, { sortOrder: "asc" }, { id: "asc" }],
   });
 
   return {
@@ -2715,6 +2715,7 @@ export async function listInvoiceTerms() {
 export async function createInvoiceTerm(dto: CreateInvoiceTermDto) {
   const model = getInvoiceTermModelClient(prisma as any);
   const maxSortOrderRow = await model.findFirst({
+    where: { termType: dto.termType },
     orderBy: { sortOrder: "desc" },
     select: { sortOrder: true },
   });
@@ -2722,6 +2723,7 @@ export async function createInvoiceTerm(dto: CreateInvoiceTermDto) {
   return model.create({
     data: {
       text: dto.text,
+      termType: dto.termType,
       sortOrder: dto.sortOrder ?? (maxSortOrderRow?.sortOrder ?? 0) + 1,
       isActive: dto.isActive ?? true,
     },
@@ -2741,6 +2743,7 @@ export async function updateInvoiceTerm(
         ...(dto.text != null ? { text: dto.text } : {}),
         ...(dto.sortOrder != null ? { sortOrder: dto.sortOrder } : {}),
         ...(dto.isActive != null ? { isActive: dto.isActive } : {}),
+        ...(dto.termType != null ? { termType: dto.termType } : {}),
       },
     });
   } catch (error) {

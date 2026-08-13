@@ -244,6 +244,7 @@ export const createInvoiceTermSchema = z.object({
     .max(800, "Term text is too long"),
   sortOrder: z.coerce.number().int().min(1).max(9999).optional(),
   isActive: z.coerce.boolean().optional().default(true),
+  termType: z.enum(["ADVANCE", "FINAL"]).default("FINAL"),
 });
 
 export const updateInvoiceTermSchema = createInvoiceTermSchema
