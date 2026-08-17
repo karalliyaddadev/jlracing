@@ -503,11 +503,19 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
         if (leasingCompanyId === "") {
           throw new Error("Please select a leasing company");
         }
-        if (!Number.isFinite(parsedLeasingDownPayment) || parsedLeasingDownPayment < 0) {
-          throw new Error("Please enter a valid leasing downpayment amount");
+        if (
+          !Number.isFinite(parsedLeasingDownPayment) ||
+          parsedLeasingDownPayment < 0 ||
+          (itemType === "BIKE" && parsedLeasingDownPayment <= 0)
+        ) {
+          throw new Error(
+            itemType === "BIKE"
+              ? "Please enter a leasing advance payment greater than 0"
+              : "Please enter a valid leasing downpayment amount",
+          );
         }
-        if (parsedLeasingDownPayment > computedInvoiceTotal) {
-          throw new Error("Leasing downpayment amount cannot exceed total invoice amount");
+        if (parsedLeasingDownPayment >= computedInvoiceTotal) {
+          throw new Error("Leasing advance payment must be less than the total invoice amount");
         }
       }
 
@@ -519,8 +527,15 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
         if (!Number.isFinite(parsedDownPayment) || parsedDownPayment <= 0) {
           throw new Error("Please enter a valid downpayment amount");
         }
-        if (parsedDownPayment > computedInvoiceTotal) {
-          throw new Error("Downpayment amount cannot exceed total invoice amount");
+        if (
+          parsedDownPayment > computedInvoiceTotal ||
+          (itemType === "BIKE" && parsedDownPayment >= computedInvoiceTotal)
+        ) {
+          throw new Error(
+            itemType === "BIKE"
+              ? "Advance payment must be less than the total invoice amount"
+              : "Downpayment amount cannot exceed total invoice amount",
+          );
         }
       }
 
@@ -1045,10 +1060,10 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
               {(itemType === "BIKE" || itemType === "PRE_ORDER") && (
                 <>
                   <div className="bm-field-group">
-                    <label>Payment Option</label>
+                    <label>Selling Option</label>
                     <select className="bm-input" value={purchaseChannel} onChange={(event) => setPurchaseChannel(event.target.value as "PERSONAL" | "LEASING") }>
-                      <option value="PERSONAL">Pay Personally</option>
-                      <option value="LEASING">Go With Leasing</option>
+                      <option value="PERSONAL">Full / Advance Payment</option>
+                      <option value="LEASING">Leasing Downpayment</option>
                     </select>
                   </div>
 
@@ -1063,17 +1078,17 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                             setInstallmentMonths("");
                           }
                         }}>
-                          <option value="DIRECT">Direct Buy</option>
-                          <option value="DOWNPAYMENT">Downpayment (Installments)</option>
+                          <option value="DIRECT">Full Payment</option>
+                          <option value="DOWNPAYMENT">Advance Payment</option>
                         </select>
                       </div>
 
                       <div className="bm-field-group">
-                        <label>Downpayment Amount</label>
+                        <label>{itemType === "BIKE" ? "Advance Payment" : "Downpayment Amount"}</label>
                         <input
                           className="bm-input"
                           type="number"
-                          min={0}
+                          min={itemType === "BIKE" ? 0.01 : 0}
                           step="0.01"
                           value={downPaymentAmount}
                           onChange={(event) => setDownPaymentAmount(event.target.value)}
@@ -1082,7 +1097,7 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                         />
                       </div>
 
-                      {paymentType === "DOWNPAYMENT" && (
+                      {paymentType === "DOWNPAYMENT" && itemType !== "BIKE" && (
                         <>
                           <div className="bm-field-group">
                             <label>Finance Charge (%)</label>
@@ -1147,16 +1162,16 @@ export default function CustomerPurchaseModal(props: CustomerPurchaseModalProps)
                       </div>
 
                       <div className="bm-field-group">
-                        <label>Customer Downpayment</label>
+                        <label>Leasing Advance Payment</label>
                         <input
                           className="bm-input"
                           type="number"
-                          min={0}
+                          min={itemType === "BIKE" ? 0.01 : 0}
                           step="0.01"
                           value={leasingDownPaymentAmount}
                           onChange={(event) => setLeasingDownPaymentAmount(event.target.value)}
                         />
-                        <span className="users-muted">Remaining amount will be attached to selected leasing company.</span>
+                        <span className="users-muted">Complete the remaining balance from Users → View Orders → Settle.</span>
                       </div>
                     </>
                   )}

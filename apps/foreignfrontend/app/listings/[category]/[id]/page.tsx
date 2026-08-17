@@ -43,6 +43,15 @@ function formatPrice(price: number | null | undefined): string {
   return `Rs. ${price.toLocaleString("en-LK")}`;
 }
 
+function getDescriptionPoints(description: string | null): string[] {
+  return (description ?? "")
+    .replace(/\r/g, "")
+    .replace(/\s*•\s*/g, "\n")
+    .split("\n")
+    .map((line) => line.replace(/^[*-]\s*/, "").trim())
+    .filter(Boolean);
+}
+
 const CATEGORY_LABELS: Record<string, string> = {
   "2-wheelers": "2-Wheelers",
   automobiles: "Automobiles",
@@ -99,6 +108,7 @@ export default function ListingDetailPage() {
   );
   const images = sortedImages.map((img) => `${CMS_API_URL}${img.url}`);
   const categoryLabel = CATEGORY_LABELS[category] ?? "Listings";
+  const descriptionPoints = getDescriptionPoints(vehicle.description);
 
   const specs = [
     { label: "Brand", value: vehicle.brand },
@@ -166,10 +176,14 @@ export default function ListingDetailPage() {
 
             <div className="bikedetail__divider" />
 
-            {vehicle.description && (
+            {descriptionPoints.length > 0 && (
               <div className="bikedetail__desc">
                 <h3>About This Vehicle</h3>
-                <p>{vehicle.description}</p>
+                <ul>
+                  {descriptionPoints.map((point, index) => (
+                    <li key={`${point}-${index}`}>{point}</li>
+                  ))}
+                </ul>
               </div>
             )}
 

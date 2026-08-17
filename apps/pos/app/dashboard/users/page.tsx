@@ -325,6 +325,9 @@ export default function UsersPage() {
   const [orders, setOrders] = useState<PurchaseHistoryEntry[]>([]);
   const [settleTarget, setSettleTarget] = useState<PurchaseHistoryEntry | null>(null);
   const [settleAmount, setSettleAmount] = useState("");
+  const [settleMethod, setSettleMethod] = useState<"FULL_PAYMENT" | "LEASING">("FULL_PAYMENT");
+  const [settleLeasingType, setSettleLeasingType] = useState<"DOWNPAYMENT_AND_LEASE" | "FULL_LEASE">("FULL_LEASE");
+  const [settleLeasingCompanyId, setSettleLeasingCompanyId] = useState<number | "">("");
   const [settleSaving, setSettleSaving] = useState(false);
   const [settleError, setSettleError] = useState<string | null>(null);
   const [settleInstallments, setSettleInstallments] = useState<Installment[]>([]);
@@ -750,6 +753,9 @@ export default function UsersPage() {
     const remaining = getInvoiceRemaining(entry);
     setSettleTarget(entry);
     setSettleAmount(remaining > 0 ? String(remaining) : "");
+    setSettleMethod("FULL_PAYMENT");
+    setSettleLeasingType("FULL_LEASE");
+    setSettleLeasingCompanyId(entry.leasingCompany?.id ?? "");
     setSettleError(null);
     setSettleInstallmentId("");
     setSettleIsPartial(false);
@@ -759,7 +765,7 @@ export default function UsersPage() {
     setSettleChequeNo("");
     setSettleChequeBank("");
     setSettleChequeDate("");
-    if ((entry.installmentMonths ?? 0) > 0) {
+    if (entry.itemType !== "BIKE" && (entry.installmentMonths ?? 0) > 0) {
       setSettleInstallmentsLoading(true);
       void (async () => {
         try {
@@ -782,6 +788,9 @@ export default function UsersPage() {
   const closeSettleModal = () => {
     setSettleTarget(null);
     setSettleAmount("");
+    setSettleMethod("FULL_PAYMENT");
+    setSettleLeasingType("FULL_LEASE");
+    setSettleLeasingCompanyId("");
     setSettleError(null);
     setSettleSaving(false);
     setSettleInstallments([]);
@@ -800,12 +809,26 @@ export default function UsersPage() {
 
     const remaining = getInvoiceRemaining(settleTarget);
     const amount = Number(settleAmount);
-    if (!Number.isFinite(amount) || amount <= 0) {
+    const isLeasingSettlement =
+      settleTarget.itemType === "BIKE" && settleMethod === "LEASING";
+    if (!Number.isFinite(amount) || (!isLeasingSettlement && amount <= 0)) {
       setSettleError("Please enter a valid settle amount");
       return;
     }
     if (amount > remaining) {
       setSettleError(`Settle amount cannot exceed remaining amount (Rs. ${remaining.toLocaleString()})`);
+      return;
+    }
+    if (isLeasingSettlement && settleLeasingCompanyId === "") {
+      setSettleError("Please select a leasing company");
+      return;
+    }
+    if (
+      isLeasingSettlement &&
+      settleLeasingType === "DOWNPAYMENT_AND_LEASE" &&
+      (amount <= 0 || amount >= remaining)
+    ) {
+      setSettleError("Additional downpayment must be greater than 0 and less than the remaining amount");
       return;
     }
 
@@ -818,6 +841,9 @@ export default function UsersPage() {
         headers: { ...authHeader, "Content-Type": "application/json" },
         body: JSON.stringify({
           amount,
+          settlementMethod: isLeasingSettlement ? "LEASING" : "FULL_PAYMENT",
+          leasingSettlementType: isLeasingSettlement ? settleLeasingType : undefined,
+          leasingCompanyId: isLeasingSettlement ? settleLeasingCompanyId : undefined,
           installmentId: settleInstallmentId !== "" ? settleInstallmentId : undefined,
           isPartial: settleIsPartial || undefined,
           penaltyRate: settleIsPartial && parsedPenaltyRate > 0 ? parsedPenaltyRate : undefined,
@@ -830,7 +856,7 @@ export default function UsersPage() {
       const payload = await response.json() as { message?: string };
       if (!response.ok) throw new Error(payload.message ?? "Failed to settle amount");
 
-      setSuccess("Settlement payment added successfully");
+      setSuccess(isLeasingSettlement ? "Bike balance settled through leasing" : "Remaining balance paid successfully");
       if (ordersUser) {
         await loadOrdersForUser(ordersUser.id, ordersSearch);
       }
@@ -2882,7 +2908,68 @@ export default function UsersPage() {
               <div><strong>Payment Type:</strong> {getPaymentTypeText(settleTarget)}</div>
             </div>
 
-            {settleInstallments.length > 0 && (
+            {settleTarget.itemType === "BIKE" && (
+              <>
+                <div className="bm-field-group">
+                  <label>How will the remaining balance be settled?</label>
+                  <select
+                    className="bm-input"
+                    value={settleMethod}
+                    onChange={(event) => {
+                      const method = event.target.value as "FULL_PAYMENT" | "LEASING";
+                      setSettleMethod(method);
+                      setSettleError(null);
+                      if (method === "FULL_PAYMENT") {
+                        setSettleAmount(String(getInvoiceRemaining(settleTarget)));
+                      } else {
+                        setSettleLeasingType("FULL_LEASE");
+                        setSettleAmount("0");
+                      }
+                    }}
+                  >
+                    <option value="FULL_PAYMENT">Fully Pay Remaining</option>
+                    <option value="LEASING">Settle Through Leasing</option>
+                  </select>
+                </div>
+
+                {settleMethod === "LEASING" && (
+                  <>
+                    <div className="bm-field-group">
+                      <label>Leasing Option</label>
+                      <select
+                        className="bm-input"
+                        value={settleLeasingType}
+                        onChange={(event) => {
+                          const type = event.target.value as "DOWNPAYMENT_AND_LEASE" | "FULL_LEASE";
+                          setSettleLeasingType(type);
+                          setSettleAmount(type === "FULL_LEASE" ? "0" : "");
+                          setSettleError(null);
+                        }}
+                      >
+                        <option value="DOWNPAYMENT_AND_LEASE">Another Downpayment + Leasing</option>
+                        <option value="FULL_LEASE">Full Lease</option>
+                      </select>
+                    </div>
+                    <div className="bm-field-group">
+                      <label>Leasing Company</label>
+                      <select
+                        className="bm-input"
+                        value={settleLeasingCompanyId}
+                        onChange={(event) => setSettleLeasingCompanyId(event.target.value ? Number(event.target.value) : "")}
+                        required
+                      >
+                        <option value="">Select leasing company</option>
+                        {leasingCompanies.map((company) => (
+                          <option key={company.id} value={company.id}>{company.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
+              </>
+            )}
+
+            {settleTarget.itemType !== "BIKE" && settleInstallments.length > 0 && (
               <div className="bm-field-group">
                 <label>Select Installment</label>
                 {settleInstallmentsLoading
@@ -2912,11 +2999,25 @@ export default function UsersPage() {
             )}
 
             <div className="bm-field-group">
-              <label>Settle Amount</label>
+              <label>
+                {settleTarget.itemType === "BIKE" && settleMethod === "LEASING"
+                  ? settleLeasingType === "FULL_LEASE"
+                    ? "Additional Customer Payment"
+                    : "Additional Downpayment"
+                  : settleTarget.itemType === "BIKE"
+                    ? "Full Remaining Payment"
+                    : "Settle Amount"}
+              </label>
               <input
                 className="bm-input"
                 type="number"
-                min={0.01}
+                min={
+                  settleTarget.itemType === "BIKE" &&
+                  settleMethod === "LEASING" &&
+                  settleLeasingType === "FULL_LEASE"
+                    ? 0
+                    : 0.01
+                }
                 step="0.01"
                 value={settleAmount}
                 onChange={(event) => {
@@ -2930,11 +3031,20 @@ export default function UsersPage() {
                     }
                   }
                 }}
+                readOnly={
+                  settleTarget.itemType === "BIKE" &&
+                  (settleMethod === "FULL_PAYMENT" || settleLeasingType === "FULL_LEASE")
+                }
                 required
               />
+              {settleTarget.itemType === "BIKE" && settleMethod === "LEASING" && (
+                <span className="users-muted">
+                  Leasing amount: Rs. {Math.max(0, getInvoiceRemaining(settleTarget) - (Number(settleAmount) || 0)).toLocaleString()}
+                </span>
+              )}
             </div>
 
-            {settleInstallmentId !== "" && (
+            {settleTarget.itemType !== "BIKE" && settleInstallmentId !== "" && (
               <div className="bm-field-group" style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
                 <input
                   type="checkbox"
@@ -2946,7 +3056,7 @@ export default function UsersPage() {
               </div>
             )}
 
-            {settleIsPartial && (
+            {settleTarget.itemType !== "BIKE" && settleIsPartial && (
               <div className="bm-field-group">
                 <label>Penalty for Underpayment (%)</label>
                 <input
@@ -2962,7 +3072,8 @@ export default function UsersPage() {
               </div>
             )}
 
-            <div style={{ marginTop: "1rem", padding: "0.85rem 1rem", border: "1px solid var(--panel-border)", borderRadius: "var(--radius-sm)", background: "var(--panel-bg)" }}>
+            {!(settleTarget.itemType === "BIKE" && settleMethod === "LEASING" && settleLeasingType === "FULL_LEASE") && (
+              <div style={{ marginTop: "1rem", padding: "0.85rem 1rem", border: "1px solid var(--panel-border)", borderRadius: "var(--radius-sm)", background: "var(--panel-bg)" }}>
               <div style={{ fontWeight: 600, fontSize: "0.85rem", marginBottom: "0.65rem", color: "var(--accent)" }}>How is this being paid?</div>
               <div className="bm-field-group">
                 <label>Payment Method</label>
@@ -2991,10 +3102,17 @@ export default function UsersPage() {
                   </div>
                 </div>
               )}
-            </div>
+              </div>
+            )}
 
             <div className="bm-modal-actions" style={{ marginTop: "1rem" }}>
-              <button type="submit" className="btn-accent" disabled={settleSaving}>{settleSaving ? "Saving..." : "Add Settlement"}</button>
+              <button type="submit" className="btn-accent" disabled={settleSaving}>
+                {settleSaving
+                  ? "Saving..."
+                  : settleTarget.itemType === "BIKE" && settleMethod === "LEASING"
+                    ? "Confirm Leasing Settlement"
+                    : "Pay Remaining"}
+              </button>
               <button type="button" className="btn-outline" onClick={closeSettleModal}>Cancel</button>
             </div>
           </form>

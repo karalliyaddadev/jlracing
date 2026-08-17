@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import ImageLightbox from "../../components/ImageLightbox";
 import { BackLink } from "../../components/BackLink";
+import { getDescriptionPoints } from "../../lib/description";
 import { WHATSAPP_LINK } from "../../lib/whatsapp";
 
 const BACKEND_URL = (process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000").replace(/\/$/, "");
@@ -101,6 +102,7 @@ export default function PreOrderDetailPage() {
     return a.sortOrder - b.sortOrder;
   });
   const brochureUrl = resolveBackendUrl(bike.pdfUrl?.trim() || null);
+  const descriptionPoints = getDescriptionPoints(bike.description);
 
   return (
     <section className="bikedetail-page">
@@ -192,10 +194,14 @@ export default function PreOrderDetailPage() {
             <div className="bikedetail__divider" />
 
             {/* Description */}
-            {bike.description && (
+            {descriptionPoints.length > 0 && (
               <div className="bikedetail__desc">
                 <h3>About This Bike</h3>
-                <p>{bike.description}</p>
+                <ul>
+                  {descriptionPoints.map((point, index) => (
+                    <li key={`${point}-${index}`}>{point}</li>
+                  ))}
+                </ul>
               </div>
             )}
 

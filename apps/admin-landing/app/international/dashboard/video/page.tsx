@@ -6,6 +6,9 @@ import { apiFetch } from "../../../lib/api";
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
 
+const HOME_VIDEO_REQUIREMENTS =
+  "Aspect ratio: 16:9 · Formats: MP4, WebM, OGG · Max 200 MB";
+
 interface VideoBannerItem {
   id: number;
   site: string;
@@ -89,6 +92,7 @@ export default function IntlVideoBannerAdminPage() {
         body: JSON.stringify({
           site: "FOREIGN",
           videoUrl: url,
+          aspectRatio: "16:9",
           isActive: true,
         }),
       });
@@ -212,8 +216,8 @@ export default function IntlVideoBannerAdminPage() {
       <div className="video-admin__upload-panel">
         <h2 className="video-admin__section-title">Upload New Video</h2>
         <p className="video-admin__section-hint">
-          MP4 recommended · max 200 MB · will become the active banner
-          automatically
+          {HOME_VIDEO_REQUIREMENTS} · MP4 recommended · The upload will become
+          the active banner automatically
         </p>
 
         {uploadError && (
@@ -275,7 +279,7 @@ export default function IntlVideoBannerAdminPage() {
                 Click to select a video file
               </span>
               <span className="video-admin__drop-hint">
-                MP4, WebM · max 200 MB
+                {HOME_VIDEO_REQUIREMENTS}
               </span>
             </label>
           )}

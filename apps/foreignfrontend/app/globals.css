@@ -3289,10 +3289,19 @@ span.exp-feat__icon {
   margin-bottom: 0.6rem;
 }
 
-.bikedetail__desc p {
+.bikedetail__desc ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.bikedetail__desc li {
   font-size: 0.88rem;
   color: var(--text-dark-secondary);
   line-height: 1.75;
+}
+
+.bikedetail__desc li + li {
+  margin-top: 0.2rem;
 }
 
 .bikedetail__actions {

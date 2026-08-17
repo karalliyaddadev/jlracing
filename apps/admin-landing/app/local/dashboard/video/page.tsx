@@ -6,6 +6,9 @@ import { apiFetch } from "../../../lib/api";
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
 
+const HOME_VIDEO_REQUIREMENTS =
+  "Aspect ratio: 16:9 · Formats: MP4, WebM, OGG · Max 200 MB";
+
 interface VideoBannerItem {
   id: number;
   site: string;
@@ -86,7 +89,12 @@ export default function VideoBannerAdminPage() {
       const createRes = await apiFetch(`/api/video-banner`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ site: "LOCAL", videoUrl: url, isActive: true }),
+        body: JSON.stringify({
+          site: "LOCAL",
+          videoUrl: url,
+          aspectRatio: "16:9",
+          isActive: true,
+        }),
       });
       if (!createRes.ok) {
         const d = await createRes.json();
@@ -209,8 +217,8 @@ export default function VideoBannerAdminPage() {
       <div className="video-admin__upload-panel">
         <h2 className="video-admin__section-title">Upload New Video</h2>
         <p className="video-admin__section-hint">
-          MP4 recommended · max 200 MB · will become the active banner
-          automatically
+          {HOME_VIDEO_REQUIREMENTS} · MP4 recommended · The upload will become
+          the active banner automatically
         </p>
 
         {uploadError && (
@@ -272,7 +280,7 @@ export default function VideoBannerAdminPage() {
                 Click to select a video file
               </span>
               <span className="video-admin__drop-hint">
-                MP4, WebM · max 200 MB
+                {HOME_VIDEO_REQUIREMENTS}
               </span>
             </label>
           )}

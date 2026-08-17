@@ -3592,11 +3592,20 @@ button {
   margin-bottom: 0.6rem;
 }
 
-.bikedetail__desc p {
+.bikedetail__desc ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.bikedetail__desc li {
   font-size: var(--fs-body);
   font-weight: var(--fw-body);
   color: var(--text-dark-secondary);
   line-height: var(--lh-body);
+}
+
+.bikedetail__desc li + li {
+  margin-top: 0.2rem;
 }
 
 /* ── Actions ── */

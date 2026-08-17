@@ -6,6 +6,11 @@ import { apiFetch } from "../../../lib/api";
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
 
+const HERO_DESKTOP_REQUIREMENTS =
+  "Aspect ratio: 16:9 · Formats: JPEG, PNG, WebP, AVIF · Max 20 MB";
+const HERO_MOBILE_REQUIREMENTS =
+  "Aspect ratio: 9:16 · Formats: JPEG, PNG, WebP, AVIF · Max 20 MB";
+
 /* ── Types ─────────────────────────────────────────────────────────────── */
 
 interface HeroImage {
@@ -482,9 +487,11 @@ export default function IntlHeroBannerAdminPage() {
                     {/* Desktop */}
                     <div className="hero-admin__field">
                       <label>
-                        Desktop{" "}
-                        <span className="hero-admin__optional">16:9</span>
+                        Desktop Image
                       </label>
+                      <p className="hero-admin__field-guidance">
+                        {HERO_DESKTOP_REQUIREMENTS}
+                      </p>
                       <div className="hero-admin__image-picker">
                         {draft.desktopPreview ? (
                           <div className="hero-admin__image-preview">
@@ -522,7 +529,7 @@ export default function IntlHeroBannerAdminPage() {
                             </svg>
                             <span>Desktop image</span>
                             <span className="hero-admin__image-hint">
-                              JPEG/PNG/WebP · 20MB
+                              {HERO_DESKTOP_REQUIREMENTS}
                             </span>
                           </label>
                         )}
@@ -546,9 +553,11 @@ export default function IntlHeroBannerAdminPage() {
                     {/* Mobile */}
                     <div className="hero-admin__field">
                       <label>
-                        Mobile{" "}
-                        <span className="hero-admin__optional">9:16</span>
+                        Mobile Image
                       </label>
+                      <p className="hero-admin__field-guidance">
+                        {HERO_MOBILE_REQUIREMENTS}
+                      </p>
                       <div className="hero-admin__image-picker">
                         {draft.mobilePreview ? (
                           <div className="hero-admin__image-preview hero-admin__image-preview--mobile">
@@ -586,7 +595,7 @@ export default function IntlHeroBannerAdminPage() {
                             </svg>
                             <span>Mobile image</span>
                             <span className="hero-admin__image-hint">
-                              JPEG/PNG/WebP · 20MB
+                              {HERO_MOBILE_REQUIREMENTS}
                             </span>
                           </label>
                         )}
@@ -736,6 +745,9 @@ export default function IntlHeroBannerAdminPage() {
                     · leave empty to keep current
                   </span>
                 </label>
+                <p className="hero-admin__field-guidance">
+                  {HERO_DESKTOP_REQUIREMENTS}
+                </p>
                 <div className="hero-admin__image-picker">
                   {editDesktopPreview ? (
                     <div className="hero-admin__image-preview">
@@ -771,7 +783,7 @@ export default function IntlHeroBannerAdminPage() {
                       </svg>
                       <span>Click to replace desktop image</span>
                       <span className="hero-admin__image-hint">
-                        JPEG, PNG, WebP · max 20 MB · 16:9
+                        {HERO_DESKTOP_REQUIREMENTS}
                       </span>
                     </label>
                   )}
@@ -800,6 +812,9 @@ export default function IntlHeroBannerAdminPage() {
                     · leave empty to keep current
                   </span>
                 </label>
+                <p className="hero-admin__field-guidance">
+                  {HERO_MOBILE_REQUIREMENTS}
+                </p>
                 <div className="hero-admin__image-picker">
                   {editMobilePreview ? (
                     <div className="hero-admin__image-preview hero-admin__image-preview--mobile">
@@ -835,7 +850,7 @@ export default function IntlHeroBannerAdminPage() {
                       </svg>
                       <span>Click to replace mobile image</span>
                       <span className="hero-admin__image-hint">
-                        JPEG, PNG, WebP · max 20 MB · 9:16
+                        {HERO_MOBILE_REQUIREMENTS}
                       </span>
                     </label>
                   )}

@@ -863,11 +863,14 @@ export async function createPurchase(
     }
     if (
       !Number.isFinite(leasingDownPaymentAmount) ||
-      leasingDownPaymentAmount < 0
+      leasingDownPaymentAmount < 0 ||
+      (dto.purchaseType === "BIKE" && leasingDownPaymentAmount <= 0)
     ) {
       throw AppError.validation({
         leasingDownPaymentAmount: [
-          "Leasing downpayment amount must be a valid value",
+          dto.purchaseType === "BIKE"
+            ? "Leasing advance payment must be greater than 0"
+            : "Leasing downpayment amount must be a valid value",
         ],
       });
     }
@@ -889,6 +892,19 @@ export async function createPurchase(
         leasingCompanyId: ["Selected leasing company does not exist"],
       });
     }
+  }
+
+  if (
+    dto.purchaseType === "BIKE" &&
+    purchaseChannel === "PERSONAL" &&
+    paymentType === "DOWNPAYMENT" &&
+    (dto.downPaymentAmount ?? 0) >= dto.finalSellingPrice
+  ) {
+    throw AppError.validation({
+      downPaymentAmount: [
+        "Advance payment must be less than the final selling price",
+      ],
+    });
   }
 
   const interestRate =
@@ -933,7 +949,9 @@ export async function createPurchase(
         );
   const leasingFinancedAmount =
     purchaseChannel === "LEASING"
-      ? roundCurrency(effectiveTotal - leasingDownPaymentAmount)
+      ? dto.purchaseType === "BIKE"
+        ? 0
+        : roundCurrency(effectiveTotal - leasingDownPaymentAmount)
       : 0;
 
   if (dto.purchaseType === "BIKE") {
@@ -2070,6 +2088,7 @@ export async function settlePurchase(
     select: {
       id: true,
       customerId: true,
+      itemType: true,
       invoiceGroupCode: true,
       remainingAmount: true,
       downPaymentAmount: true,
@@ -2093,9 +2112,11 @@ export async function settlePurchase(
     orderBy: [{ purchasedAt: "asc" }, { id: "asc" }],
     select: {
       id: true,
+      itemType: true,
       remainingAmount: true,
       downPaymentAmount: true,
       finalSellingPrice: true,
+      leasingDownPaymentAmount: true,
     },
   });
 
@@ -2112,13 +2133,16 @@ export async function settlePurchase(
     });
   }
 
-  const settleAmount = roundCurrency(dto.amount);
-  if (settleAmount <= 0) {
+  const customerPaymentAmount = roundCurrency(dto.amount);
+  const isLeasingSettlement = dto.settlementMethod === "LEASING";
+  const isBikeInvoice = targets.every((row: any) => row.itemType === "BIKE");
+
+  if (!isLeasingSettlement && customerPaymentAmount <= 0) {
     throw AppError.validation({
       amount: ["Settlement amount must be greater than 0"],
     });
   }
-  if (settleAmount > totalRemainingBefore) {
+  if (customerPaymentAmount > totalRemainingBefore) {
     throw AppError.validation({
       amount: [
         `Settlement amount cannot exceed remaining amount (Rs. ${totalRemainingBefore.toLocaleString()})`,
@@ -2126,7 +2150,57 @@ export async function settlePurchase(
     });
   }
 
+  if (
+    !isLeasingSettlement &&
+    isBikeInvoice &&
+    customerPaymentAmount !== totalRemainingBefore
+  ) {
+    throw AppError.validation({
+      amount: ["The full remaining amount is required for a bike settlement"],
+    });
+  }
+
+  if (isLeasingSettlement) {
+    if (!isBikeInvoice) {
+      throw AppError.validation({
+        settlementMethod: ["Leasing settlement is available only for bike purchases"],
+      });
+    }
+    if (!dto.leasingCompanyId) {
+      throw AppError.validation({
+        leasingCompanyId: ["Leasing company is required"],
+      });
+    }
+    if (
+      dto.leasingSettlementType === "DOWNPAYMENT_AND_LEASE" &&
+      (customerPaymentAmount <= 0 || customerPaymentAmount >= totalRemainingBefore)
+    ) {
+      throw AppError.validation({
+        amount: ["Additional downpayment must be greater than 0 and less than the remaining amount"],
+      });
+    }
+    const leasingCompany = await getLeasingCompanyModelClient(
+      prisma as any,
+    ).findUnique({
+      where: { id: dto.leasingCompanyId },
+      select: { id: true },
+    });
+    if (!leasingCompany) {
+      throw AppError.validation({
+        leasingCompanyId: ["Selected leasing company does not exist"],
+      });
+    }
+  }
+
+  const settleAmount = isLeasingSettlement
+    ? totalRemainingBefore
+    : customerPaymentAmount;
+  const leasingFinancedAmount = isLeasingSettlement
+    ? roundCurrency(totalRemainingBefore - customerPaymentAmount)
+    : 0;
+
   let remainingToApply = settleAmount;
+  let customerPaymentToApply = customerPaymentAmount;
 
   const updates = targets.map((row: any) => {
     const rowRemaining = roundCurrency(row.remainingAmount ?? 0);
@@ -2146,15 +2220,29 @@ export async function settlePurchase(
     );
     remainingToApply = roundCurrency(remainingToApply - appliedAmount);
     const newRemainingAmount = roundCurrency(rowRemaining - appliedAmount);
+    const customerPaymentApplied = roundCurrency(
+      Math.min(appliedAmount, customerPaymentToApply),
+    );
+    customerPaymentToApply = roundCurrency(
+      customerPaymentToApply - customerPaymentApplied,
+    );
+    const leasingApplied = roundCurrency(
+      appliedAmount - customerPaymentApplied,
+    );
     const newDownPaymentAmount = roundCurrency(
-      (row.downPaymentAmount ?? 0) + appliedAmount,
+      (row.downPaymentAmount ?? 0) + customerPaymentApplied,
     );
 
     return {
       id: row.id,
       appliedAmount,
+      customerPaymentApplied,
+      leasingApplied,
       newDownPaymentAmount,
       newRemainingAmount,
+      newLeasingDownPaymentAmount: roundCurrency(
+        (row.leasingDownPaymentAmount ?? 0) + customerPaymentApplied,
+      ),
     };
   });
 
@@ -2169,11 +2257,39 @@ export async function settlePurchase(
           remainingAmount: update.newRemainingAmount,
           settlementStatus:
             update.newRemainingAmount > 0 ? "TO_SETTLE" : "SETTLED",
+          ...(isLeasingSettlement
+            ? {
+                purchaseChannel: "LEASING",
+                leasingCompanyId: dto.leasingCompanyId,
+                leasingDownPaymentAmount:
+                  update.newLeasingDownPaymentAmount,
+                leasingFinancedAmount: update.leasingApplied,
+              }
+            : isBikeInvoice
+              ? {
+                  purchaseChannel: "PERSONAL",
+                  leasingCompanyId: null,
+                  leasingDownPaymentAmount: 0,
+                  leasingFinancedAmount: 0,
+                }
+              : {}),
         },
       });
     }
 
-    if (dto.installmentId) {
+    if (isLeasingSettlement) {
+      await (tx as any).posInstallment.updateMany({
+        where: {
+          purchaseId: { in: targets.map((row: any) => row.id) },
+          status: { in: ["PENDING", "PARTIAL"] },
+        },
+        data: {
+          status: "PAID",
+          isPartial: false,
+          settledAt: new Date(),
+        },
+      });
+    } else if (dto.installmentId) {
       const installment = await (tx as any).posInstallment.findFirst({
         where: { id: dto.installmentId, purchaseId: basePurchase.id },
       });
@@ -2332,19 +2448,21 @@ export async function settlePurchase(
     }
   });
 
-  if (settleAmount > 0) {
+  if (customerPaymentAmount > 0) {
     const invoiceRef = basePurchase.invoiceGroupCode
       ? basePurchase.invoiceGroupCode
       : `INV-${String(basePurchase.id).padStart(5, "0")}`;
     await prisma.invoicePayment.create({
       data: {
         purchaseId: basePurchase.id,
-        amount: settleAmount,
+        amount: customerPaymentAmount,
         paymentMethod: (dto.paymentMethod ?? "CASH") as any,
         chequeNo: dto.chequeNo,
         chequeBank: dto.chequeBank,
         chequeDate: dto.chequeDate ? new Date(dto.chequeDate) : undefined,
-        description: `Installment payment — ${invoiceRef}`,
+        description: isLeasingSettlement
+          ? `Additional downpayment before leasing — ${invoiceRef}`
+          : `Settlement payment — ${invoiceRef}`,
       },
     });
   }
@@ -2377,6 +2495,8 @@ export async function settlePurchase(
     invoiceGroupCode: basePurchase.invoiceGroupCode,
     purchaseId: basePurchase.id,
     appliedAmount: settleAmount,
+    customerPaymentAmount,
+    leasingFinancedAmount,
     totalRemainingBefore,
     totalRemainingAfter,
     settlementStatus: totalRemainingAfter > 0 ? "TO_SETTLE" : "SETTLED",

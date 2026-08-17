@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import ImageLightbox from "../../components/ImageLightbox";
 import { BackLink } from "../../components/BackLink";
+import { getDescriptionPoints } from "../../lib/description";
 import { WHATSAPP_LINK } from "../../lib/whatsapp";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
@@ -92,6 +93,7 @@ export default function SparePartDetailPage() {
   }
 
   const status = getStatus(part.quantity, part.lowStockThreshold);
+  const descriptionPoints = getDescriptionPoints(part.description);
   const thumbs =
     part.images.length > 0
       ? part.images.map(getImageUrl)
@@ -179,10 +181,14 @@ export default function SparePartDetailPage() {
             <div className="bikedetail__divider" />
 
             {/* Description */}
-            {part.description && (
+            {descriptionPoints.length > 0 && (
               <div className="bikedetail__desc">
                 <h3>About This Part</h3>
-                <p>{part.description}</p>
+                <ul>
+                  {descriptionPoints.map((point, index) => (
+                    <li key={`${point}-${index}`}>{point}</li>
+                  ))}
+                </ul>
               </div>
             )}
 

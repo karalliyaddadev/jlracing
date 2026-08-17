@@ -9,6 +9,13 @@ import { useListingPageState } from "../hooks/useListingState";
 const MAX_PRICE = 3_000_000;
 const ITEMS_PER_PAGE = 8;
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
+const CC_OPTIONS = [
+  "Under 150cc",
+  "150–250cc",
+  "250–400cc",
+  "400–600cc",
+  "600cc +",
+];
 
 type PreOrderImage = {
   id: number;
@@ -40,6 +47,18 @@ type PreOrderGroup = {
 
 function getStatusDisplay(status: string): "In Stock" | "Pre Order" {
   return status === "in-stock" ? "In Stock" : "Pre Order";
+}
+
+function getCCBucket(value?: string | null): string {
+  const match = value?.replace(/,/g, "").match(/\d+(?:\.\d+)?/);
+  const cc = match ? Number(match[0]) : 0;
+
+  if (!Number.isFinite(cc) || cc <= 0) return "";
+  if (cc < 150) return "Under 150cc";
+  if (cc <= 250) return "150–250cc";
+  if (cc <= 400) return "250–400cc";
+  if (cc <= 600) return "400–600cc";
+  return "600cc +";
 }
 
 function getPrimaryImageSrc(images: PreOrderImage[]): string | null {
@@ -180,14 +199,6 @@ export default function PreOrdersPage() {
     [allBikes],
   );
 
-  const availableCCValues = useMemo(
-    () =>
-      Array.from(
-        new Set(allBikes.map((b) => b.cc).filter((cc): cc is string => !!cc)),
-      ).sort(),
-    [allBikes],
-  );
-
   useEffect(() => { setPriceRange([0, dynamicMax]); }, [dynamicMax]);
   useEffect(() => { setYearRange([dynamicMinYear, dynamicMaxYear]); }, [dynamicMinYear, dynamicMaxYear]);
   useEffect(() => {
@@ -212,7 +223,7 @@ export default function PreOrdersPage() {
       if (b.year < yearRange[0] || b.year > yearRange[1]) return false;
     }
     if (brands.length && !brands.includes(b.brand)) return false;
-    if (ccFilters.length && (!b.cc || !ccFilters.includes(b.cc))) return false;
+    if (ccFilters.length && !ccFilters.includes(getCCBucket(b.cc))) return false;
     const displayStatus = getStatusDisplay(b.status);
     if (availability.length && !availability.includes(displayStatus)) return false;
     if (q && !`${b.brand} ${b.model} ${b.year ?? ""}`.toLowerCase().includes(q)) return false;
@@ -365,14 +376,12 @@ export default function PreOrdersPage() {
               onChange={setYearRange}
             />
 
-            {availableCCValues.length > 0 && (
-              <CheckGroup
-                title="CC"
-                options={availableCCValues}
-                selected={ccFilters}
-                onChange={setCcFilters}
-              />
-            )}
+            <CheckGroup
+              title="CC"
+              options={CC_OPTIONS}
+              selected={ccFilters}
+              onChange={setCcFilters}
+            />
 
             <CheckGroup
               title="AVAILABILITY"

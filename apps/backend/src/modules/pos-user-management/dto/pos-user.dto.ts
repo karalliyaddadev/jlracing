@@ -211,7 +211,12 @@ export const purchaseQuerySchema = z.object({
 });
 
 export const settlePurchaseSchema = z.object({
-  amount: z.number().min(0.01, "Settlement amount must be greater than 0"),
+  amount: z.number().min(0, "Settlement amount must be greater than or equal to 0"),
+  settlementMethod: z.enum(["FULL_PAYMENT", "LEASING"]).default("FULL_PAYMENT"),
+  leasingSettlementType: z
+    .enum(["DOWNPAYMENT_AND_LEASE", "FULL_LEASE"])
+    .optional(),
+  leasingCompanyId: z.number().int().positive().optional(),
   installmentId: z.number().int().positive().optional(),
   isPartial: z.boolean().optional(),
   penaltyRate: z.number().min(0).max(100).optional(),
@@ -219,6 +224,47 @@ export const settlePurchaseSchema = z.object({
   chequeNo: z.string().trim().max(80).optional(),
   chequeBank: z.string().trim().max(80).optional(),
   chequeDate: z.string().trim().optional(),
+}).superRefine((data, ctx) => {
+  if (data.settlementMethod === "FULL_PAYMENT" && data.amount <= 0) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Settlement amount must be greater than 0",
+      path: ["amount"],
+    });
+  }
+  if (data.settlementMethod === "LEASING") {
+    if (!data.leasingSettlementType) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Select a leasing settlement option",
+        path: ["leasingSettlementType"],
+      });
+    }
+    if (!data.leasingCompanyId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Leasing company is required",
+        path: ["leasingCompanyId"],
+      });
+    }
+    if (
+      data.leasingSettlementType === "DOWNPAYMENT_AND_LEASE" &&
+      data.amount <= 0
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Additional downpayment must be greater than 0",
+        path: ["amount"],
+      });
+    }
+    if (data.leasingSettlementType === "FULL_LEASE" && data.amount !== 0) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Customer payment must be 0 for a full lease",
+        path: ["amount"],
+      });
+    }
+  }
 });
 
 export const createInvoiceAccountSchema = z.object({

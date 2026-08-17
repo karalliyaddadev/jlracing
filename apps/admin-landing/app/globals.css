@@ -2748,6 +2748,13 @@ body {
   font-size: 0.72rem;
 }
 
+.hero-admin__field-guidance {
+  margin: 0.3rem 0 0.55rem;
+  color: var(--d-text-3);
+  font-size: 0.72rem;
+  line-height: 1.45;
+}
+
 /* ── Image picker ── */
 .hero-admin__image-picker {
   position: relative;

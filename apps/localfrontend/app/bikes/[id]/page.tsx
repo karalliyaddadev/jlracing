@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import ImageLightbox from "../../components/ImageLightbox";
 import { BackLink } from "../../components/BackLink";
+import { getDescriptionPoints } from "../../lib/description";
 import { WHATSAPP_LINK } from "../../lib/whatsapp";
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000";
@@ -94,6 +95,7 @@ export default function BikeDetailPage() {
   }
 
   const images = vehicle.images.map((img) => `${BACKEND_URL}${img.url}`);
+  const descriptionPoints = getDescriptionPoints(vehicle.description);
 
   const specs = [
     { label: "Brand", value: vehicle.brand.name },
@@ -178,10 +180,14 @@ export default function BikeDetailPage() {
             <div className="bikedetail__divider" />
 
             {/* Description */}
-            {vehicle.description && (
+            {descriptionPoints.length > 0 && (
               <div className="bikedetail__desc">
                 <h3>About This Bike</h3>
-                <p>{vehicle.description}</p>
+                <ul>
+                  {descriptionPoints.map((point, index) => (
+                    <li key={`${point}-${index}`}>{point}</li>
+                  ))}
+                </ul>
               </div>
             )}
 
