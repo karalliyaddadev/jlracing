@@ -91,13 +91,20 @@ function RangeSlider({
   max,
   value,
   onChange,
+  unit,
+  noGrouping,
 }: {
   label: string;
   min: number;
   max: number;
   value: [number, number];
   onChange: (v: [number, number]) => void;
+  unit?: string;
+  noGrouping?: boolean;
 }) {
+  const formatValue = (n: number) =>
+    (noGrouping ? String(n) : n.toLocaleString()) + (unit ? ` ${unit}` : "");
+
   return (
     <div className="bikes-filter__group">
       <h4 className="bikes-filter__group-title">{label}</h4>
@@ -120,12 +127,8 @@ function RangeSlider({
         />
       </div>
       <div className="bikes-filter__range-labels">
-        <span>{value[0].toLocaleString()}</span>
-        <span>
-          {value[1] === max
-            ? `${max.toLocaleString()}`
-            : value[1].toLocaleString()}
-        </span>
+        <span>{formatValue(value[0])}</span>
+        <span>{formatValue(value[1])}</span>
       </div>
       <hr className="bikes-filter__divider" />
     </div>
@@ -413,6 +416,7 @@ export default function BikesPage() {
               max={5000000}
               value={priceRange}
               onChange={setPriceRange}
+              unit="LKR"
             />
             <CheckGroup
               title="Brand"
@@ -426,6 +430,7 @@ export default function BikesPage() {
               max={dynamicMaxYear}
               value={yearRange}
               onChange={setYearRange}
+              noGrouping
             />
             <CheckGroup
               title="CC"
