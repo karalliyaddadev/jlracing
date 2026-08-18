@@ -685,7 +685,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/sanjananimesh/Documents/Projects/jlracing/apps/backend/src/generated/prisma",
+      "value": "/root/projects/jlracing/jlracing-live/jlracing/apps/backend/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -694,16 +694,17 @@ const config = {
     "binaryTargets": [
       {
         "fromEnvVar": null,
-        "value": "darwin-arm64",
+        "value": "debian-openssl-3.0.x",
         "native": true
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/sanjananimesh/Documents/Projects/jlracing/apps/backend/prisma/schema.prisma",
+    "sourceFilePath": "/root/projects/jlracing/jlracing-live/jlracing/apps/backend/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null
+    "rootEnvPath": null,
+    "schemaEnvPath": "../../../.env"
   },
   "relativePath": "../../../prisma",
   "clientVersion": "5.22.0",
