@@ -44,6 +44,13 @@ type InventoryProduct = {
   additionalExpenses?: number;
 };
 
+type InventoryHealth = {
+  totalProducts: number;
+  inStock: number;
+  lowStock: number;
+  outOfStock: number;
+};
+
 type VehicleSummary = {
   id: number;
   status: "available" | "sold";
@@ -212,6 +219,18 @@ export default function DashboardPage() {
     },
   });
 
+  const inventoryHealthQuery = useQuery({
+    queryKey: ["pos", "dashboard", "inventory-health", token],
+    enabled: Boolean(token),
+    queryFn: async () => {
+      const response = await fetch(`${API_URL}/api/pos/bike-management/products/health`, {
+        headers: auth,
+        cache: "no-store",
+      });
+      return readApiData<InventoryHealth>(response, "Failed to load inventory health");
+    },
+  });
+
   const vehiclesQuery = useQuery({
     queryKey: ["pos", "dashboard", "vehicles", token],
     enabled: Boolean(token),
@@ -228,14 +247,30 @@ export default function DashboardPage() {
   const purchases: Purchase[] = purchasesQuery.data ?? [];
   const products: InventoryProduct[] = productsQuery.data ?? [];
   const vehicles: VehicleSummary[] = vehiclesQuery.data ?? [];
-  const loading = purchasesQuery.isPending || productsQuery.isPending || vehiclesQuery.isPending;
+  const inventoryHealth = inventoryHealthQuery.data ?? {
+    totalProducts: 0,
+    inStock: 0,
+    lowStock: 0,
+    outOfStock: 0,
+  };
+  const loading = purchasesQuery.isPending
+    || productsQuery.isPending
+    || inventoryHealthQuery.isPending
+    || vehiclesQuery.isPending;
   const error = purchasesQuery.error instanceof Error
     ? purchasesQuery.error.message
     : productsQuery.error instanceof Error
       ? productsQuery.error.message
-      : vehiclesQuery.error instanceof Error
-        ? vehiclesQuery.error.message
-        : null;
+      : inventoryHealthQuery.error instanceof Error
+        ? inventoryHealthQuery.error.message
+        : vehiclesQuery.error instanceof Error
+          ? vehiclesQuery.error.message
+          : null;
+
+  const inventoryHealthPercent = (count: number) =>
+    inventoryHealth.totalProducts > 0
+      ? Math.round((count / inventoryHealth.totalProducts) * 100)
+      : 0;
 
   const financeDateRangeInvalid = Boolean(
     financeDateFrom && financeDateTo && financeDateFrom > financeDateTo,
@@ -367,20 +402,15 @@ export default function DashboardPage() {
       }
     });
 
-    const lowStockAlerts = products.filter((product: InventoryProduct) => {
-      const threshold = product.lowStockThreshold ?? 0;
-      return threshold > 0 && product.quantity <= threshold;
-    }).length;
-
     return {
       totalRevenue: allTimeRevenue,
       todayRevenue,
       todaySoldUnits,
       openInvoices,
       activeUsers: uniqueCustomers.size,
-      lowStockAlerts,
+      lowStockAlerts: inventoryHealth.lowStock,
     };
-  }, [allTimeRevenue, products, purchases]);
+  }, [allTimeRevenue, inventoryHealth.lowStock, purchases]);
 
   const groupedRevenue = useMemo(() => {
     const map = new Map<string, { revenue: number; soldUnits: number }>();
@@ -943,7 +973,7 @@ export default function DashboardPage() {
           </div>
           <div className="inv-health-wrap">
             <Donut
-              pct={products.length > 0 ? Math.round((products.filter((product) => product.quantity > 0).length / products.length) * 100) : 0}
+              pct={inventoryHealthPercent(inventoryHealth.inStock)}
               color="#10B981"
               label="In Stock"
               sublabel="products"
@@ -954,26 +984,17 @@ export default function DashboardPage() {
               {[
                 {
                   label: "In Stock",
-                  val: products.length > 0
-                    ? `${Math.round((products.filter((product) => product.quantity > 0).length / products.length) * 100)}%`
-                    : "0%",
+                  val: `${inventoryHealthPercent(inventoryHealth.inStock)}%`,
                   color: "#10B981",
                 },
                 {
                   label: "Low Stock",
-                  val: products.length > 0
-                    ? `${Math.round((products.filter((product) => {
-                      const threshold = product.lowStockThreshold ?? 0;
-                      return threshold > 0 && product.quantity <= threshold;
-                    }).length / products.length) * 100)}%`
-                    : "0%",
+                  val: `${inventoryHealthPercent(inventoryHealth.lowStock)}%`,
                   color: "#F59E0B",
                 },
                 {
                   label: "Out of Stock",
-                  val: products.length > 0
-                    ? `${Math.round((products.filter((product) => product.quantity <= 0).length / products.length) * 100)}%`
-                    : "0%",
+                  val: `${inventoryHealthPercent(inventoryHealth.outOfStock)}%`,
                   color: "#EF4444",
                 },
               ].map((s) => (

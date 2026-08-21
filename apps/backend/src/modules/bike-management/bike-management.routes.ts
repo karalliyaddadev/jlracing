@@ -106,6 +106,7 @@ router.delete("/product-categories/:id", ctrl.deleteProductCategory);
 
 // ── Inventory Products ──────────────────────────────────────────────────────
 router.get(   "/products",               ctrl.getProducts);
+router.get(   "/products/health",        ctrl.getInventoryHealth);
 router.get(   "/products/:id",           ctrl.getProduct);
 router.post(  "/products",               ctrl.createProduct);
 router.patch( "/products/:id",           ctrl.updateProduct);

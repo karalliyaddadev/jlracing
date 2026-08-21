@@ -123,6 +123,9 @@ export async function deleteProductCategory(req: Request, res: Response, next: N
 export async function getProducts(req: Request, res: Response, next: NextFunction) {
   try { return sendSuccess(res, await service.listProducts(validate(productQuerySchema, req.query))); } catch (err) { return next(err); }
 }
+export async function getInventoryHealth(_req: Request, res: Response, next: NextFunction) {
+  try { return sendSuccess(res, await service.getInventoryHealth()); } catch (err) { return next(err); }
+}
 export async function getProduct(req: Request, res: Response, next: NextFunction) {
   try { return sendSuccess(res, await service.getProduct(Number(req.params.id))); } catch (err) { return next(err); }
 }

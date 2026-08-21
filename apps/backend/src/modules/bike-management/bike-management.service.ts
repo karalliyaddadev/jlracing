@@ -560,6 +560,37 @@ export async function listProducts(query: ProductQueryDto) {
   };
 }
 
+export async function getInventoryHealth() {
+  const products = await prisma.inventoryProduct.findMany({
+    select: { quantity: true, lowStockThreshold: true },
+  });
+
+  let inStock = 0;
+  let lowStock = 0;
+  let outOfStock = 0;
+
+  for (const product of products) {
+    if (product.quantity <= 0) {
+      outOfStock += 1;
+      continue;
+    }
+
+    const threshold = product.lowStockThreshold ?? 0;
+    if (threshold > 0 && product.quantity <= threshold) {
+      lowStock += 1;
+    } else {
+      inStock += 1;
+    }
+  }
+
+  return {
+    totalProducts: products.length,
+    inStock,
+    lowStock,
+    outOfStock,
+  };
+}
+
 export async function getProduct(id: number) {
   const product = await prisma.inventoryProduct.findUnique({
     where: { id },
