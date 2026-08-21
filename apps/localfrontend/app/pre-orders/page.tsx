@@ -45,6 +45,11 @@ type PreOrderGroup = {
   totalQuantity: number;
 };
 
+type PreOrderResponse = {
+  data?: PreOrderBike[];
+  totalPages?: number;
+};
+
 function getStatusDisplay(status: string): "In Stock" | "Pre Order" {
   return status === "in-stock" ? "In Stock" : "Pre Order";
 }
@@ -179,11 +184,47 @@ export default function PreOrdersPage() {
   const { currentPage, setCurrentPage } = useListingPageState(!loadingBikes);
 
   useEffect(() => {
-    fetch(`${BACKEND_URL}/api/pre-orders?limit=200`)
-      .then((r) => r.json())
-      .then((data) => setAllBikes(data.data ?? []))
-      .catch(() => setAllBikes([]))
-      .finally(() => setLoadingBikes(false));
+    const controller = new AbortController();
+
+    async function fetchAllPreOrders() {
+      try {
+        const firstResponse = await fetch(
+          `${BACKEND_URL}/api/pre-orders?page=1&limit=200`,
+          { signal: controller.signal },
+        );
+        if (!firstResponse.ok) throw new Error("Failed to load pre-orders");
+
+        const firstPage = (await firstResponse.json()) as PreOrderResponse;
+        const totalPages = Math.max(1, firstPage.totalPages ?? 1);
+        const remainingPageNumbers = Array.from(
+          { length: totalPages - 1 },
+          (_, index) => index + 2,
+        );
+        const remainingPages = await Promise.all(
+          remainingPageNumbers.map(async (page) => {
+            const response = await fetch(
+              `${BACKEND_URL}/api/pre-orders?page=${page}&limit=200`,
+              { signal: controller.signal },
+            );
+            if (!response.ok) throw new Error("Failed to load pre-orders");
+            return (await response.json()) as PreOrderResponse;
+          }),
+        );
+
+        setAllBikes([
+          ...(firstPage.data ?? []),
+          ...remainingPages.flatMap((page) => page.data ?? []),
+        ]);
+      } catch (error) {
+        if (error instanceof DOMException && error.name === "AbortError") return;
+        setAllBikes([]);
+      } finally {
+        if (!controller.signal.aborted) setLoadingBikes(false);
+      }
+    }
+
+    void fetchAllPreOrders();
+    return () => controller.abort();
   }, []);
 
   const dynamicMax = useMemo(() => {
