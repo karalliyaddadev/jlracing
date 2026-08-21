@@ -154,6 +154,11 @@ export type ExportVehicleImage = $Result.DefaultSelection<Prisma.$ExportVehicleI
  */
 export type Account = $Result.DefaultSelection<Prisma.$AccountPayload>
 /**
+ * Model AccountRelationship
+ * 
+ */
+export type AccountRelationship = $Result.DefaultSelection<Prisma.$AccountRelationshipPayload>
+/**
  * Model AccountReceipt
  * 
  */
@@ -272,6 +277,14 @@ export const AccountType: {
 export type AccountType = (typeof AccountType)[keyof typeof AccountType]
 
 
+export const AccountLevel: {
+  MAIN: 'MAIN',
+  SUB: 'SUB'
+};
+
+export type AccountLevel = (typeof AccountLevel)[keyof typeof AccountLevel]
+
+
 export const PaymentMethod: {
   CASH: 'CASH',
   CHEQUE: 'CHEQUE',
@@ -366,6 +379,10 @@ export const ExportVehicleCategory: typeof $Enums.ExportVehicleCategory
 export type AccountType = $Enums.AccountType
 
 export const AccountType: typeof $Enums.AccountType
+
+export type AccountLevel = $Enums.AccountLevel
+
+export const AccountLevel: typeof $Enums.AccountLevel
 
 export type PaymentMethod = $Enums.PaymentMethod
 
@@ -789,6 +806,16 @@ export class PrismaClient<
     * ```
     */
   get account(): Prisma.AccountDelegate<ExtArgs>;
+
+  /**
+   * `prisma.accountRelationship`: Exposes CRUD operations for the **AccountRelationship** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AccountRelationships
+    * const accountRelationships = await prisma.accountRelationship.findMany()
+    * ```
+    */
+  get accountRelationship(): Prisma.AccountRelationshipDelegate<ExtArgs>;
 
   /**
    * `prisma.accountReceipt`: Exposes CRUD operations for the **AccountReceipt** model.
@@ -1318,6 +1345,7 @@ export namespace Prisma {
     ExportVehicle: 'ExportVehicle',
     ExportVehicleImage: 'ExportVehicleImage',
     Account: 'Account',
+    AccountRelationship: 'AccountRelationship',
     AccountReceipt: 'AccountReceipt',
     AccountVoucher: 'AccountVoucher',
     AccountTransaction: 'AccountTransaction',
@@ -1339,7 +1367,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "bike" | "posAdmin" | "bikeBrand" | "bikeModel" | "bikeColor" | "bikeSupplier" | "bikeVehicle" | "bikeVehicleImage" | "bikeVehicleExpense" | "inventoryBrand" | "inventoryCategory" | "inventoryProduct" | "inventoryProductExpense" | "inventoryProductImage" | "posCustomer" | "posLeasingCompany" | "posCustomerDreamBike" | "posCustomerPurchase" | "posInvoiceTerm" | "posInstallment" | "posInstallmentPayment" | "preOrder" | "preOrderImage" | "contactRequest" | "exportVehicle" | "exportVehicleImage" | "account" | "accountReceipt" | "accountVoucher" | "accountTransaction" | "invoicePayment" | "accountDeposit" | "accountDepositItem"
+      modelProps: "user" | "bike" | "posAdmin" | "bikeBrand" | "bikeModel" | "bikeColor" | "bikeSupplier" | "bikeVehicle" | "bikeVehicleImage" | "bikeVehicleExpense" | "inventoryBrand" | "inventoryCategory" | "inventoryProduct" | "inventoryProductExpense" | "inventoryProductImage" | "posCustomer" | "posLeasingCompany" | "posCustomerDreamBike" | "posCustomerPurchase" | "posInvoiceTerm" | "posInstallment" | "posInstallmentPayment" | "preOrder" | "preOrderImage" | "contactRequest" | "exportVehicle" | "exportVehicleImage" | "account" | "accountRelationship" | "accountReceipt" | "accountVoucher" | "accountTransaction" | "invoicePayment" | "accountDeposit" | "accountDepositItem"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3303,6 +3331,76 @@ export namespace Prisma {
           }
         }
       }
+      AccountRelationship: {
+        payload: Prisma.$AccountRelationshipPayload<ExtArgs>
+        fields: Prisma.AccountRelationshipFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AccountRelationshipFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountRelationshipPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AccountRelationshipFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountRelationshipPayload>
+          }
+          findFirst: {
+            args: Prisma.AccountRelationshipFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountRelationshipPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AccountRelationshipFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountRelationshipPayload>
+          }
+          findMany: {
+            args: Prisma.AccountRelationshipFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountRelationshipPayload>[]
+          }
+          create: {
+            args: Prisma.AccountRelationshipCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountRelationshipPayload>
+          }
+          createMany: {
+            args: Prisma.AccountRelationshipCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AccountRelationshipCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountRelationshipPayload>[]
+          }
+          delete: {
+            args: Prisma.AccountRelationshipDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountRelationshipPayload>
+          }
+          update: {
+            args: Prisma.AccountRelationshipUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountRelationshipPayload>
+          }
+          deleteMany: {
+            args: Prisma.AccountRelationshipDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AccountRelationshipUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.AccountRelationshipUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AccountRelationshipPayload>
+          }
+          aggregate: {
+            args: Prisma.AccountRelationshipAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAccountRelationship>
+          }
+          groupBy: {
+            args: Prisma.AccountRelationshipGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AccountRelationshipGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AccountRelationshipCountArgs<ExtArgs>
+            result: $Utils.Optional<AccountRelationshipCountAggregateOutputType> | number
+          }
+        }
+      }
       AccountReceipt: {
         payload: Prisma.$AccountReceiptPayload<ExtArgs>
         fields: Prisma.AccountReceiptFieldRefs
@@ -4391,6 +4489,9 @@ export namespace Prisma {
     toVouchers: number
     transactions: number
     deposits: number
+    subDeposits: number
+    mainLinks: number
+    subLinks: number
   }
 
   export type AccountCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -4399,6 +4500,9 @@ export namespace Prisma {
     toVouchers?: boolean | AccountCountOutputTypeCountToVouchersArgs
     transactions?: boolean | AccountCountOutputTypeCountTransactionsArgs
     deposits?: boolean | AccountCountOutputTypeCountDepositsArgs
+    subDeposits?: boolean | AccountCountOutputTypeCountSubDepositsArgs
+    mainLinks?: boolean | AccountCountOutputTypeCountMainLinksArgs
+    subLinks?: boolean | AccountCountOutputTypeCountSubLinksArgs
   }
 
   // Custom InputTypes
@@ -4445,6 +4549,27 @@ export namespace Prisma {
    */
   export type AccountCountOutputTypeCountDepositsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AccountDepositWhereInput
+  }
+
+  /**
+   * AccountCountOutputType without action
+   */
+  export type AccountCountOutputTypeCountSubDepositsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AccountDepositWhereInput
+  }
+
+  /**
+   * AccountCountOutputType without action
+   */
+  export type AccountCountOutputTypeCountMainLinksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AccountRelationshipWhereInput
+  }
+
+  /**
+   * AccountCountOutputType without action
+   */
+  export type AccountCountOutputTypeCountSubLinksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AccountRelationshipWhereInput
   }
 
 
@@ -32726,6 +32851,7 @@ export namespace Prisma {
     name: string | null
     code: string | null
     type: $Enums.AccountType | null
+    level: $Enums.AccountLevel | null
     openingBalance: number | null
     isActive: boolean | null
     createdAt: Date | null
@@ -32737,6 +32863,7 @@ export namespace Prisma {
     name: string | null
     code: string | null
     type: $Enums.AccountType | null
+    level: $Enums.AccountLevel | null
     openingBalance: number | null
     isActive: boolean | null
     createdAt: Date | null
@@ -32748,6 +32875,7 @@ export namespace Prisma {
     name: number
     code: number
     type: number
+    level: number
     openingBalance: number
     isActive: number
     createdAt: number
@@ -32771,6 +32899,7 @@ export namespace Prisma {
     name?: true
     code?: true
     type?: true
+    level?: true
     openingBalance?: true
     isActive?: true
     createdAt?: true
@@ -32782,6 +32911,7 @@ export namespace Prisma {
     name?: true
     code?: true
     type?: true
+    level?: true
     openingBalance?: true
     isActive?: true
     createdAt?: true
@@ -32793,6 +32923,7 @@ export namespace Prisma {
     name?: true
     code?: true
     type?: true
+    level?: true
     openingBalance?: true
     isActive?: true
     createdAt?: true
@@ -32891,6 +33022,7 @@ export namespace Prisma {
     name: string
     code: string
     type: $Enums.AccountType
+    level: $Enums.AccountLevel
     openingBalance: number
     isActive: boolean
     createdAt: Date
@@ -32921,6 +33053,7 @@ export namespace Prisma {
     name?: boolean
     code?: boolean
     type?: boolean
+    level?: boolean
     openingBalance?: boolean
     isActive?: boolean
     createdAt?: boolean
@@ -32930,6 +33063,9 @@ export namespace Prisma {
     toVouchers?: boolean | Account$toVouchersArgs<ExtArgs>
     transactions?: boolean | Account$transactionsArgs<ExtArgs>
     deposits?: boolean | Account$depositsArgs<ExtArgs>
+    subDeposits?: boolean | Account$subDepositsArgs<ExtArgs>
+    mainLinks?: boolean | Account$mainLinksArgs<ExtArgs>
+    subLinks?: boolean | Account$subLinksArgs<ExtArgs>
     _count?: boolean | AccountCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["account"]>
 
@@ -32938,6 +33074,7 @@ export namespace Prisma {
     name?: boolean
     code?: boolean
     type?: boolean
+    level?: boolean
     openingBalance?: boolean
     isActive?: boolean
     createdAt?: boolean
@@ -32949,6 +33086,7 @@ export namespace Prisma {
     name?: boolean
     code?: boolean
     type?: boolean
+    level?: boolean
     openingBalance?: boolean
     isActive?: boolean
     createdAt?: boolean
@@ -32961,6 +33099,9 @@ export namespace Prisma {
     toVouchers?: boolean | Account$toVouchersArgs<ExtArgs>
     transactions?: boolean | Account$transactionsArgs<ExtArgs>
     deposits?: boolean | Account$depositsArgs<ExtArgs>
+    subDeposits?: boolean | Account$subDepositsArgs<ExtArgs>
+    mainLinks?: boolean | Account$mainLinksArgs<ExtArgs>
+    subLinks?: boolean | Account$subLinksArgs<ExtArgs>
     _count?: boolean | AccountCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type AccountIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -32973,12 +33114,16 @@ export namespace Prisma {
       toVouchers: Prisma.$AccountVoucherPayload<ExtArgs>[]
       transactions: Prisma.$AccountTransactionPayload<ExtArgs>[]
       deposits: Prisma.$AccountDepositPayload<ExtArgs>[]
+      subDeposits: Prisma.$AccountDepositPayload<ExtArgs>[]
+      mainLinks: Prisma.$AccountRelationshipPayload<ExtArgs>[]
+      subLinks: Prisma.$AccountRelationshipPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: number
       name: string
       code: string
       type: $Enums.AccountType
+      level: $Enums.AccountLevel
       openingBalance: number
       isActive: boolean
       createdAt: Date
@@ -33352,6 +33497,9 @@ export namespace Prisma {
     toVouchers<T extends Account$toVouchersArgs<ExtArgs> = {}>(args?: Subset<T, Account$toVouchersArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountVoucherPayload<ExtArgs>, T, "findMany"> | Null>
     transactions<T extends Account$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, Account$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountTransactionPayload<ExtArgs>, T, "findMany"> | Null>
     deposits<T extends Account$depositsArgs<ExtArgs> = {}>(args?: Subset<T, Account$depositsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "findMany"> | Null>
+    subDeposits<T extends Account$subDepositsArgs<ExtArgs> = {}>(args?: Subset<T, Account$subDepositsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountDepositPayload<ExtArgs>, T, "findMany"> | Null>
+    mainLinks<T extends Account$mainLinksArgs<ExtArgs> = {}>(args?: Subset<T, Account$mainLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountRelationshipPayload<ExtArgs>, T, "findMany"> | Null>
+    subLinks<T extends Account$subLinksArgs<ExtArgs> = {}>(args?: Subset<T, Account$subLinksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountRelationshipPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -33385,6 +33533,7 @@ export namespace Prisma {
     readonly name: FieldRef<"Account", 'String'>
     readonly code: FieldRef<"Account", 'String'>
     readonly type: FieldRef<"Account", 'AccountType'>
+    readonly level: FieldRef<"Account", 'AccountLevel'>
     readonly openingBalance: FieldRef<"Account", 'Float'>
     readonly isActive: FieldRef<"Account", 'Boolean'>
     readonly createdAt: FieldRef<"Account", 'DateTime'>
@@ -33803,6 +33952,66 @@ export namespace Prisma {
   }
 
   /**
+   * Account.subDeposits
+   */
+  export type Account$subDepositsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountDeposit
+     */
+    select?: AccountDepositSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountDepositInclude<ExtArgs> | null
+    where?: AccountDepositWhereInput
+    orderBy?: AccountDepositOrderByWithRelationInput | AccountDepositOrderByWithRelationInput[]
+    cursor?: AccountDepositWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AccountDepositScalarFieldEnum | AccountDepositScalarFieldEnum[]
+  }
+
+  /**
+   * Account.mainLinks
+   */
+  export type Account$mainLinksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountRelationship
+     */
+    select?: AccountRelationshipSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountRelationshipInclude<ExtArgs> | null
+    where?: AccountRelationshipWhereInput
+    orderBy?: AccountRelationshipOrderByWithRelationInput | AccountRelationshipOrderByWithRelationInput[]
+    cursor?: AccountRelationshipWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AccountRelationshipScalarFieldEnum | AccountRelationshipScalarFieldEnum[]
+  }
+
+  /**
+   * Account.subLinks
+   */
+  export type Account$subLinksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountRelationship
+     */
+    select?: AccountRelationshipSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountRelationshipInclude<ExtArgs> | null
+    where?: AccountRelationshipWhereInput
+    orderBy?: AccountRelationshipOrderByWithRelationInput | AccountRelationshipOrderByWithRelationInput[]
+    cursor?: AccountRelationshipWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AccountRelationshipScalarFieldEnum | AccountRelationshipScalarFieldEnum[]
+  }
+
+  /**
    * Account without action
    */
   export type AccountDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -33814,6 +34023,959 @@ export namespace Prisma {
      * Choose, which related nodes to fetch as well
      */
     include?: AccountInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model AccountRelationship
+   */
+
+  export type AggregateAccountRelationship = {
+    _count: AccountRelationshipCountAggregateOutputType | null
+    _avg: AccountRelationshipAvgAggregateOutputType | null
+    _sum: AccountRelationshipSumAggregateOutputType | null
+    _min: AccountRelationshipMinAggregateOutputType | null
+    _max: AccountRelationshipMaxAggregateOutputType | null
+  }
+
+  export type AccountRelationshipAvgAggregateOutputType = {
+    mainAccountId: number | null
+    subAccountId: number | null
+  }
+
+  export type AccountRelationshipSumAggregateOutputType = {
+    mainAccountId: number | null
+    subAccountId: number | null
+  }
+
+  export type AccountRelationshipMinAggregateOutputType = {
+    mainAccountId: number | null
+    subAccountId: number | null
+    createdAt: Date | null
+  }
+
+  export type AccountRelationshipMaxAggregateOutputType = {
+    mainAccountId: number | null
+    subAccountId: number | null
+    createdAt: Date | null
+  }
+
+  export type AccountRelationshipCountAggregateOutputType = {
+    mainAccountId: number
+    subAccountId: number
+    createdAt: number
+    _all: number
+  }
+
+
+  export type AccountRelationshipAvgAggregateInputType = {
+    mainAccountId?: true
+    subAccountId?: true
+  }
+
+  export type AccountRelationshipSumAggregateInputType = {
+    mainAccountId?: true
+    subAccountId?: true
+  }
+
+  export type AccountRelationshipMinAggregateInputType = {
+    mainAccountId?: true
+    subAccountId?: true
+    createdAt?: true
+  }
+
+  export type AccountRelationshipMaxAggregateInputType = {
+    mainAccountId?: true
+    subAccountId?: true
+    createdAt?: true
+  }
+
+  export type AccountRelationshipCountAggregateInputType = {
+    mainAccountId?: true
+    subAccountId?: true
+    createdAt?: true
+    _all?: true
+  }
+
+  export type AccountRelationshipAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AccountRelationship to aggregate.
+     */
+    where?: AccountRelationshipWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountRelationships to fetch.
+     */
+    orderBy?: AccountRelationshipOrderByWithRelationInput | AccountRelationshipOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AccountRelationshipWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountRelationships from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountRelationships.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AccountRelationships
+    **/
+    _count?: true | AccountRelationshipCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AccountRelationshipAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AccountRelationshipSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AccountRelationshipMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AccountRelationshipMaxAggregateInputType
+  }
+
+  export type GetAccountRelationshipAggregateType<T extends AccountRelationshipAggregateArgs> = {
+        [P in keyof T & keyof AggregateAccountRelationship]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAccountRelationship[P]>
+      : GetScalarType<T[P], AggregateAccountRelationship[P]>
+  }
+
+
+
+
+  export type AccountRelationshipGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AccountRelationshipWhereInput
+    orderBy?: AccountRelationshipOrderByWithAggregationInput | AccountRelationshipOrderByWithAggregationInput[]
+    by: AccountRelationshipScalarFieldEnum[] | AccountRelationshipScalarFieldEnum
+    having?: AccountRelationshipScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AccountRelationshipCountAggregateInputType | true
+    _avg?: AccountRelationshipAvgAggregateInputType
+    _sum?: AccountRelationshipSumAggregateInputType
+    _min?: AccountRelationshipMinAggregateInputType
+    _max?: AccountRelationshipMaxAggregateInputType
+  }
+
+  export type AccountRelationshipGroupByOutputType = {
+    mainAccountId: number
+    subAccountId: number
+    createdAt: Date
+    _count: AccountRelationshipCountAggregateOutputType | null
+    _avg: AccountRelationshipAvgAggregateOutputType | null
+    _sum: AccountRelationshipSumAggregateOutputType | null
+    _min: AccountRelationshipMinAggregateOutputType | null
+    _max: AccountRelationshipMaxAggregateOutputType | null
+  }
+
+  type GetAccountRelationshipGroupByPayload<T extends AccountRelationshipGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AccountRelationshipGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AccountRelationshipGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AccountRelationshipGroupByOutputType[P]>
+            : GetScalarType<T[P], AccountRelationshipGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AccountRelationshipSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    mainAccountId?: boolean
+    subAccountId?: boolean
+    createdAt?: boolean
+    mainAccount?: boolean | AccountDefaultArgs<ExtArgs>
+    subAccount?: boolean | AccountDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["accountRelationship"]>
+
+  export type AccountRelationshipSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    mainAccountId?: boolean
+    subAccountId?: boolean
+    createdAt?: boolean
+    mainAccount?: boolean | AccountDefaultArgs<ExtArgs>
+    subAccount?: boolean | AccountDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["accountRelationship"]>
+
+  export type AccountRelationshipSelectScalar = {
+    mainAccountId?: boolean
+    subAccountId?: boolean
+    createdAt?: boolean
+  }
+
+  export type AccountRelationshipInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    mainAccount?: boolean | AccountDefaultArgs<ExtArgs>
+    subAccount?: boolean | AccountDefaultArgs<ExtArgs>
+  }
+  export type AccountRelationshipIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    mainAccount?: boolean | AccountDefaultArgs<ExtArgs>
+    subAccount?: boolean | AccountDefaultArgs<ExtArgs>
+  }
+
+  export type $AccountRelationshipPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AccountRelationship"
+    objects: {
+      mainAccount: Prisma.$AccountPayload<ExtArgs>
+      subAccount: Prisma.$AccountPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      mainAccountId: number
+      subAccountId: number
+      createdAt: Date
+    }, ExtArgs["result"]["accountRelationship"]>
+    composites: {}
+  }
+
+  type AccountRelationshipGetPayload<S extends boolean | null | undefined | AccountRelationshipDefaultArgs> = $Result.GetResult<Prisma.$AccountRelationshipPayload, S>
+
+  type AccountRelationshipCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<AccountRelationshipFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: AccountRelationshipCountAggregateInputType | true
+    }
+
+  export interface AccountRelationshipDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AccountRelationship'], meta: { name: 'AccountRelationship' } }
+    /**
+     * Find zero or one AccountRelationship that matches the filter.
+     * @param {AccountRelationshipFindUniqueArgs} args - Arguments to find a AccountRelationship
+     * @example
+     * // Get one AccountRelationship
+     * const accountRelationship = await prisma.accountRelationship.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AccountRelationshipFindUniqueArgs>(args: SelectSubset<T, AccountRelationshipFindUniqueArgs<ExtArgs>>): Prisma__AccountRelationshipClient<$Result.GetResult<Prisma.$AccountRelationshipPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one AccountRelationship that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {AccountRelationshipFindUniqueOrThrowArgs} args - Arguments to find a AccountRelationship
+     * @example
+     * // Get one AccountRelationship
+     * const accountRelationship = await prisma.accountRelationship.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AccountRelationshipFindUniqueOrThrowArgs>(args: SelectSubset<T, AccountRelationshipFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AccountRelationshipClient<$Result.GetResult<Prisma.$AccountRelationshipPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first AccountRelationship that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountRelationshipFindFirstArgs} args - Arguments to find a AccountRelationship
+     * @example
+     * // Get one AccountRelationship
+     * const accountRelationship = await prisma.accountRelationship.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AccountRelationshipFindFirstArgs>(args?: SelectSubset<T, AccountRelationshipFindFirstArgs<ExtArgs>>): Prisma__AccountRelationshipClient<$Result.GetResult<Prisma.$AccountRelationshipPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first AccountRelationship that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountRelationshipFindFirstOrThrowArgs} args - Arguments to find a AccountRelationship
+     * @example
+     * // Get one AccountRelationship
+     * const accountRelationship = await prisma.accountRelationship.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AccountRelationshipFindFirstOrThrowArgs>(args?: SelectSubset<T, AccountRelationshipFindFirstOrThrowArgs<ExtArgs>>): Prisma__AccountRelationshipClient<$Result.GetResult<Prisma.$AccountRelationshipPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more AccountRelationships that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountRelationshipFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AccountRelationships
+     * const accountRelationships = await prisma.accountRelationship.findMany()
+     * 
+     * // Get first 10 AccountRelationships
+     * const accountRelationships = await prisma.accountRelationship.findMany({ take: 10 })
+     * 
+     * // Only select the `mainAccountId`
+     * const accountRelationshipWithMainAccountIdOnly = await prisma.accountRelationship.findMany({ select: { mainAccountId: true } })
+     * 
+     */
+    findMany<T extends AccountRelationshipFindManyArgs>(args?: SelectSubset<T, AccountRelationshipFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountRelationshipPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a AccountRelationship.
+     * @param {AccountRelationshipCreateArgs} args - Arguments to create a AccountRelationship.
+     * @example
+     * // Create one AccountRelationship
+     * const AccountRelationship = await prisma.accountRelationship.create({
+     *   data: {
+     *     // ... data to create a AccountRelationship
+     *   }
+     * })
+     * 
+     */
+    create<T extends AccountRelationshipCreateArgs>(args: SelectSubset<T, AccountRelationshipCreateArgs<ExtArgs>>): Prisma__AccountRelationshipClient<$Result.GetResult<Prisma.$AccountRelationshipPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many AccountRelationships.
+     * @param {AccountRelationshipCreateManyArgs} args - Arguments to create many AccountRelationships.
+     * @example
+     * // Create many AccountRelationships
+     * const accountRelationship = await prisma.accountRelationship.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AccountRelationshipCreateManyArgs>(args?: SelectSubset<T, AccountRelationshipCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AccountRelationships and returns the data saved in the database.
+     * @param {AccountRelationshipCreateManyAndReturnArgs} args - Arguments to create many AccountRelationships.
+     * @example
+     * // Create many AccountRelationships
+     * const accountRelationship = await prisma.accountRelationship.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AccountRelationships and only return the `mainAccountId`
+     * const accountRelationshipWithMainAccountIdOnly = await prisma.accountRelationship.createManyAndReturn({ 
+     *   select: { mainAccountId: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AccountRelationshipCreateManyAndReturnArgs>(args?: SelectSubset<T, AccountRelationshipCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountRelationshipPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a AccountRelationship.
+     * @param {AccountRelationshipDeleteArgs} args - Arguments to delete one AccountRelationship.
+     * @example
+     * // Delete one AccountRelationship
+     * const AccountRelationship = await prisma.accountRelationship.delete({
+     *   where: {
+     *     // ... filter to delete one AccountRelationship
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AccountRelationshipDeleteArgs>(args: SelectSubset<T, AccountRelationshipDeleteArgs<ExtArgs>>): Prisma__AccountRelationshipClient<$Result.GetResult<Prisma.$AccountRelationshipPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one AccountRelationship.
+     * @param {AccountRelationshipUpdateArgs} args - Arguments to update one AccountRelationship.
+     * @example
+     * // Update one AccountRelationship
+     * const accountRelationship = await prisma.accountRelationship.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AccountRelationshipUpdateArgs>(args: SelectSubset<T, AccountRelationshipUpdateArgs<ExtArgs>>): Prisma__AccountRelationshipClient<$Result.GetResult<Prisma.$AccountRelationshipPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more AccountRelationships.
+     * @param {AccountRelationshipDeleteManyArgs} args - Arguments to filter AccountRelationships to delete.
+     * @example
+     * // Delete a few AccountRelationships
+     * const { count } = await prisma.accountRelationship.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AccountRelationshipDeleteManyArgs>(args?: SelectSubset<T, AccountRelationshipDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AccountRelationships.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountRelationshipUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AccountRelationships
+     * const accountRelationship = await prisma.accountRelationship.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AccountRelationshipUpdateManyArgs>(args: SelectSubset<T, AccountRelationshipUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one AccountRelationship.
+     * @param {AccountRelationshipUpsertArgs} args - Arguments to update or create a AccountRelationship.
+     * @example
+     * // Update or create a AccountRelationship
+     * const accountRelationship = await prisma.accountRelationship.upsert({
+     *   create: {
+     *     // ... data to create a AccountRelationship
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AccountRelationship we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AccountRelationshipUpsertArgs>(args: SelectSubset<T, AccountRelationshipUpsertArgs<ExtArgs>>): Prisma__AccountRelationshipClient<$Result.GetResult<Prisma.$AccountRelationshipPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of AccountRelationships.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountRelationshipCountArgs} args - Arguments to filter AccountRelationships to count.
+     * @example
+     * // Count the number of AccountRelationships
+     * const count = await prisma.accountRelationship.count({
+     *   where: {
+     *     // ... the filter for the AccountRelationships we want to count
+     *   }
+     * })
+    **/
+    count<T extends AccountRelationshipCountArgs>(
+      args?: Subset<T, AccountRelationshipCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AccountRelationshipCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AccountRelationship.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountRelationshipAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AccountRelationshipAggregateArgs>(args: Subset<T, AccountRelationshipAggregateArgs>): Prisma.PrismaPromise<GetAccountRelationshipAggregateType<T>>
+
+    /**
+     * Group by AccountRelationship.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AccountRelationshipGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AccountRelationshipGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AccountRelationshipGroupByArgs['orderBy'] }
+        : { orderBy?: AccountRelationshipGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AccountRelationshipGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAccountRelationshipGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AccountRelationship model
+   */
+  readonly fields: AccountRelationshipFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AccountRelationship.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AccountRelationshipClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    mainAccount<T extends AccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AccountDefaultArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    subAccount<T extends AccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AccountDefaultArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AccountRelationship model
+   */ 
+  interface AccountRelationshipFieldRefs {
+    readonly mainAccountId: FieldRef<"AccountRelationship", 'Int'>
+    readonly subAccountId: FieldRef<"AccountRelationship", 'Int'>
+    readonly createdAt: FieldRef<"AccountRelationship", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AccountRelationship findUnique
+   */
+  export type AccountRelationshipFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountRelationship
+     */
+    select?: AccountRelationshipSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountRelationshipInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountRelationship to fetch.
+     */
+    where: AccountRelationshipWhereUniqueInput
+  }
+
+  /**
+   * AccountRelationship findUniqueOrThrow
+   */
+  export type AccountRelationshipFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountRelationship
+     */
+    select?: AccountRelationshipSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountRelationshipInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountRelationship to fetch.
+     */
+    where: AccountRelationshipWhereUniqueInput
+  }
+
+  /**
+   * AccountRelationship findFirst
+   */
+  export type AccountRelationshipFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountRelationship
+     */
+    select?: AccountRelationshipSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountRelationshipInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountRelationship to fetch.
+     */
+    where?: AccountRelationshipWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountRelationships to fetch.
+     */
+    orderBy?: AccountRelationshipOrderByWithRelationInput | AccountRelationshipOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AccountRelationships.
+     */
+    cursor?: AccountRelationshipWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountRelationships from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountRelationships.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AccountRelationships.
+     */
+    distinct?: AccountRelationshipScalarFieldEnum | AccountRelationshipScalarFieldEnum[]
+  }
+
+  /**
+   * AccountRelationship findFirstOrThrow
+   */
+  export type AccountRelationshipFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountRelationship
+     */
+    select?: AccountRelationshipSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountRelationshipInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountRelationship to fetch.
+     */
+    where?: AccountRelationshipWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountRelationships to fetch.
+     */
+    orderBy?: AccountRelationshipOrderByWithRelationInput | AccountRelationshipOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AccountRelationships.
+     */
+    cursor?: AccountRelationshipWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountRelationships from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountRelationships.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AccountRelationships.
+     */
+    distinct?: AccountRelationshipScalarFieldEnum | AccountRelationshipScalarFieldEnum[]
+  }
+
+  /**
+   * AccountRelationship findMany
+   */
+  export type AccountRelationshipFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountRelationship
+     */
+    select?: AccountRelationshipSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountRelationshipInclude<ExtArgs> | null
+    /**
+     * Filter, which AccountRelationships to fetch.
+     */
+    where?: AccountRelationshipWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AccountRelationships to fetch.
+     */
+    orderBy?: AccountRelationshipOrderByWithRelationInput | AccountRelationshipOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AccountRelationships.
+     */
+    cursor?: AccountRelationshipWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AccountRelationships from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AccountRelationships.
+     */
+    skip?: number
+    distinct?: AccountRelationshipScalarFieldEnum | AccountRelationshipScalarFieldEnum[]
+  }
+
+  /**
+   * AccountRelationship create
+   */
+  export type AccountRelationshipCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountRelationship
+     */
+    select?: AccountRelationshipSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountRelationshipInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AccountRelationship.
+     */
+    data: XOR<AccountRelationshipCreateInput, AccountRelationshipUncheckedCreateInput>
+  }
+
+  /**
+   * AccountRelationship createMany
+   */
+  export type AccountRelationshipCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AccountRelationships.
+     */
+    data: AccountRelationshipCreateManyInput | AccountRelationshipCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * AccountRelationship createManyAndReturn
+   */
+  export type AccountRelationshipCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountRelationship
+     */
+    select?: AccountRelationshipSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many AccountRelationships.
+     */
+    data: AccountRelationshipCreateManyInput | AccountRelationshipCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountRelationshipIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AccountRelationship update
+   */
+  export type AccountRelationshipUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountRelationship
+     */
+    select?: AccountRelationshipSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountRelationshipInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AccountRelationship.
+     */
+    data: XOR<AccountRelationshipUpdateInput, AccountRelationshipUncheckedUpdateInput>
+    /**
+     * Choose, which AccountRelationship to update.
+     */
+    where: AccountRelationshipWhereUniqueInput
+  }
+
+  /**
+   * AccountRelationship updateMany
+   */
+  export type AccountRelationshipUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AccountRelationships.
+     */
+    data: XOR<AccountRelationshipUpdateManyMutationInput, AccountRelationshipUncheckedUpdateManyInput>
+    /**
+     * Filter which AccountRelationships to update
+     */
+    where?: AccountRelationshipWhereInput
+  }
+
+  /**
+   * AccountRelationship upsert
+   */
+  export type AccountRelationshipUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountRelationship
+     */
+    select?: AccountRelationshipSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountRelationshipInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AccountRelationship to update in case it exists.
+     */
+    where: AccountRelationshipWhereUniqueInput
+    /**
+     * In case the AccountRelationship found by the `where` argument doesn't exist, create a new AccountRelationship with this data.
+     */
+    create: XOR<AccountRelationshipCreateInput, AccountRelationshipUncheckedCreateInput>
+    /**
+     * In case the AccountRelationship was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AccountRelationshipUpdateInput, AccountRelationshipUncheckedUpdateInput>
+  }
+
+  /**
+   * AccountRelationship delete
+   */
+  export type AccountRelationshipDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountRelationship
+     */
+    select?: AccountRelationshipSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountRelationshipInclude<ExtArgs> | null
+    /**
+     * Filter which AccountRelationship to delete.
+     */
+    where: AccountRelationshipWhereUniqueInput
+  }
+
+  /**
+   * AccountRelationship deleteMany
+   */
+  export type AccountRelationshipDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AccountRelationships to delete
+     */
+    where?: AccountRelationshipWhereInput
+  }
+
+  /**
+   * AccountRelationship without action
+   */
+  export type AccountRelationshipDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AccountRelationship
+     */
+    select?: AccountRelationshipSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountRelationshipInclude<ExtArgs> | null
   }
 
 
@@ -38392,6 +39554,7 @@ export namespace Prisma {
   export type AccountDepositAvgAggregateOutputType = {
     id: number | null
     accountId: number | null
+    subAccountId: number | null
     totalAmount: number | null
     createdById: number | null
   }
@@ -38399,6 +39562,7 @@ export namespace Prisma {
   export type AccountDepositSumAggregateOutputType = {
     id: number | null
     accountId: number | null
+    subAccountId: number | null
     totalAmount: number | null
     createdById: number | null
   }
@@ -38407,6 +39571,7 @@ export namespace Prisma {
     id: number | null
     depositNo: string | null
     accountId: number | null
+    subAccountId: number | null
     totalAmount: number | null
     notes: string | null
     isReversed: boolean | null
@@ -38419,6 +39584,7 @@ export namespace Prisma {
     id: number | null
     depositNo: string | null
     accountId: number | null
+    subAccountId: number | null
     totalAmount: number | null
     notes: string | null
     isReversed: boolean | null
@@ -38431,6 +39597,7 @@ export namespace Prisma {
     id: number
     depositNo: number
     accountId: number
+    subAccountId: number
     totalAmount: number
     notes: number
     isReversed: number
@@ -38444,6 +39611,7 @@ export namespace Prisma {
   export type AccountDepositAvgAggregateInputType = {
     id?: true
     accountId?: true
+    subAccountId?: true
     totalAmount?: true
     createdById?: true
   }
@@ -38451,6 +39619,7 @@ export namespace Prisma {
   export type AccountDepositSumAggregateInputType = {
     id?: true
     accountId?: true
+    subAccountId?: true
     totalAmount?: true
     createdById?: true
   }
@@ -38459,6 +39628,7 @@ export namespace Prisma {
     id?: true
     depositNo?: true
     accountId?: true
+    subAccountId?: true
     totalAmount?: true
     notes?: true
     isReversed?: true
@@ -38471,6 +39641,7 @@ export namespace Prisma {
     id?: true
     depositNo?: true
     accountId?: true
+    subAccountId?: true
     totalAmount?: true
     notes?: true
     isReversed?: true
@@ -38483,6 +39654,7 @@ export namespace Prisma {
     id?: true
     depositNo?: true
     accountId?: true
+    subAccountId?: true
     totalAmount?: true
     notes?: true
     isReversed?: true
@@ -38582,6 +39754,7 @@ export namespace Prisma {
     id: number
     depositNo: string
     accountId: number
+    subAccountId: number | null
     totalAmount: number
     notes: string | null
     isReversed: boolean
@@ -38613,6 +39786,7 @@ export namespace Prisma {
     id?: boolean
     depositNo?: boolean
     accountId?: boolean
+    subAccountId?: boolean
     totalAmount?: boolean
     notes?: boolean
     isReversed?: boolean
@@ -38620,6 +39794,7 @@ export namespace Prisma {
     createdById?: boolean
     createdAt?: boolean
     account?: boolean | AccountDefaultArgs<ExtArgs>
+    subAccount?: boolean | AccountDeposit$subAccountArgs<ExtArgs>
     items?: boolean | AccountDeposit$itemsArgs<ExtArgs>
     transactions?: boolean | AccountDeposit$transactionsArgs<ExtArgs>
     _count?: boolean | AccountDepositCountOutputTypeDefaultArgs<ExtArgs>
@@ -38629,6 +39804,7 @@ export namespace Prisma {
     id?: boolean
     depositNo?: boolean
     accountId?: boolean
+    subAccountId?: boolean
     totalAmount?: boolean
     notes?: boolean
     isReversed?: boolean
@@ -38636,12 +39812,14 @@ export namespace Prisma {
     createdById?: boolean
     createdAt?: boolean
     account?: boolean | AccountDefaultArgs<ExtArgs>
+    subAccount?: boolean | AccountDeposit$subAccountArgs<ExtArgs>
   }, ExtArgs["result"]["accountDeposit"]>
 
   export type AccountDepositSelectScalar = {
     id?: boolean
     depositNo?: boolean
     accountId?: boolean
+    subAccountId?: boolean
     totalAmount?: boolean
     notes?: boolean
     isReversed?: boolean
@@ -38652,18 +39830,21 @@ export namespace Prisma {
 
   export type AccountDepositInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     account?: boolean | AccountDefaultArgs<ExtArgs>
+    subAccount?: boolean | AccountDeposit$subAccountArgs<ExtArgs>
     items?: boolean | AccountDeposit$itemsArgs<ExtArgs>
     transactions?: boolean | AccountDeposit$transactionsArgs<ExtArgs>
     _count?: boolean | AccountDepositCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type AccountDepositIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     account?: boolean | AccountDefaultArgs<ExtArgs>
+    subAccount?: boolean | AccountDeposit$subAccountArgs<ExtArgs>
   }
 
   export type $AccountDepositPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     name: "AccountDeposit"
     objects: {
       account: Prisma.$AccountPayload<ExtArgs>
+      subAccount: Prisma.$AccountPayload<ExtArgs> | null
       items: Prisma.$AccountDepositItemPayload<ExtArgs>[]
       transactions: Prisma.$AccountTransactionPayload<ExtArgs>[]
     }
@@ -38671,6 +39852,7 @@ export namespace Prisma {
       id: number
       depositNo: string
       accountId: number
+      subAccountId: number | null
       totalAmount: number
       notes: string | null
       isReversed: boolean
@@ -39042,6 +40224,7 @@ export namespace Prisma {
   export interface Prisma__AccountDepositClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
     readonly [Symbol.toStringTag]: "PrismaPromise"
     account<T extends AccountDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AccountDefaultArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    subAccount<T extends AccountDeposit$subAccountArgs<ExtArgs> = {}>(args?: Subset<T, AccountDeposit$subAccountArgs<ExtArgs>>): Prisma__AccountClient<$Result.GetResult<Prisma.$AccountPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     items<T extends AccountDeposit$itemsArgs<ExtArgs> = {}>(args?: Subset<T, AccountDeposit$itemsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountDepositItemPayload<ExtArgs>, T, "findMany"> | Null>
     transactions<T extends AccountDeposit$transactionsArgs<ExtArgs> = {}>(args?: Subset<T, AccountDeposit$transactionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AccountTransactionPayload<ExtArgs>, T, "findMany"> | Null>
     /**
@@ -39076,6 +40259,7 @@ export namespace Prisma {
     readonly id: FieldRef<"AccountDeposit", 'Int'>
     readonly depositNo: FieldRef<"AccountDeposit", 'String'>
     readonly accountId: FieldRef<"AccountDeposit", 'Int'>
+    readonly subAccountId: FieldRef<"AccountDeposit", 'Int'>
     readonly totalAmount: FieldRef<"AccountDeposit", 'Float'>
     readonly notes: FieldRef<"AccountDeposit", 'String'>
     readonly isReversed: FieldRef<"AccountDeposit", 'Boolean'>
@@ -39397,6 +40581,21 @@ export namespace Prisma {
      * Filter which AccountDeposits to delete
      */
     where?: AccountDepositWhereInput
+  }
+
+  /**
+   * AccountDeposit.subAccount
+   */
+  export type AccountDeposit$subAccountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Account
+     */
+    select?: AccountSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AccountInclude<ExtArgs> | null
+    where?: AccountWhereInput
   }
 
   /**
@@ -40862,6 +42061,7 @@ export namespace Prisma {
     name: 'name',
     code: 'code',
     type: 'type',
+    level: 'level',
     openingBalance: 'openingBalance',
     isActive: 'isActive',
     createdAt: 'createdAt',
@@ -40869,6 +42069,15 @@ export namespace Prisma {
   };
 
   export type AccountScalarFieldEnum = (typeof AccountScalarFieldEnum)[keyof typeof AccountScalarFieldEnum]
+
+
+  export const AccountRelationshipScalarFieldEnum: {
+    mainAccountId: 'mainAccountId',
+    subAccountId: 'subAccountId',
+    createdAt: 'createdAt'
+  };
+
+  export type AccountRelationshipScalarFieldEnum = (typeof AccountRelationshipScalarFieldEnum)[keyof typeof AccountRelationshipScalarFieldEnum]
 
 
   export const AccountReceiptScalarFieldEnum: {
@@ -40953,6 +42162,7 @@ export namespace Prisma {
     id: 'id',
     depositNo: 'depositNo',
     accountId: 'accountId',
+    subAccountId: 'subAccountId',
     totalAmount: 'totalAmount',
     notes: 'notes',
     isReversed: 'isReversed',
@@ -41226,6 +42436,20 @@ export namespace Prisma {
    * Reference to a field of type 'AccountType[]'
    */
   export type ListEnumAccountTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AccountType[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'AccountLevel'
+   */
+  export type EnumAccountLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AccountLevel'>
+    
+
+
+  /**
+   * Reference to a field of type 'AccountLevel[]'
+   */
+  export type ListEnumAccountLevelFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AccountLevel[]'>
     
 
 
@@ -43503,6 +44727,7 @@ export namespace Prisma {
     name?: StringFilter<"Account"> | string
     code?: StringFilter<"Account"> | string
     type?: EnumAccountTypeFilter<"Account"> | $Enums.AccountType
+    level?: EnumAccountLevelFilter<"Account"> | $Enums.AccountLevel
     openingBalance?: FloatFilter<"Account"> | number
     isActive?: BoolFilter<"Account"> | boolean
     createdAt?: DateTimeFilter<"Account"> | Date | string
@@ -43512,6 +44737,9 @@ export namespace Prisma {
     toVouchers?: AccountVoucherListRelationFilter
     transactions?: AccountTransactionListRelationFilter
     deposits?: AccountDepositListRelationFilter
+    subDeposits?: AccountDepositListRelationFilter
+    mainLinks?: AccountRelationshipListRelationFilter
+    subLinks?: AccountRelationshipListRelationFilter
   }
 
   export type AccountOrderByWithRelationInput = {
@@ -43519,6 +44747,7 @@ export namespace Prisma {
     name?: SortOrder
     code?: SortOrder
     type?: SortOrder
+    level?: SortOrder
     openingBalance?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -43528,6 +44757,9 @@ export namespace Prisma {
     toVouchers?: AccountVoucherOrderByRelationAggregateInput
     transactions?: AccountTransactionOrderByRelationAggregateInput
     deposits?: AccountDepositOrderByRelationAggregateInput
+    subDeposits?: AccountDepositOrderByRelationAggregateInput
+    mainLinks?: AccountRelationshipOrderByRelationAggregateInput
+    subLinks?: AccountRelationshipOrderByRelationAggregateInput
   }
 
   export type AccountWhereUniqueInput = Prisma.AtLeast<{
@@ -43538,6 +44770,7 @@ export namespace Prisma {
     NOT?: AccountWhereInput | AccountWhereInput[]
     name?: StringFilter<"Account"> | string
     type?: EnumAccountTypeFilter<"Account"> | $Enums.AccountType
+    level?: EnumAccountLevelFilter<"Account"> | $Enums.AccountLevel
     openingBalance?: FloatFilter<"Account"> | number
     isActive?: BoolFilter<"Account"> | boolean
     createdAt?: DateTimeFilter<"Account"> | Date | string
@@ -43547,6 +44780,9 @@ export namespace Prisma {
     toVouchers?: AccountVoucherListRelationFilter
     transactions?: AccountTransactionListRelationFilter
     deposits?: AccountDepositListRelationFilter
+    subDeposits?: AccountDepositListRelationFilter
+    mainLinks?: AccountRelationshipListRelationFilter
+    subLinks?: AccountRelationshipListRelationFilter
   }, "id" | "code">
 
   export type AccountOrderByWithAggregationInput = {
@@ -43554,6 +44790,7 @@ export namespace Prisma {
     name?: SortOrder
     code?: SortOrder
     type?: SortOrder
+    level?: SortOrder
     openingBalance?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -43573,10 +44810,62 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"Account"> | string
     code?: StringWithAggregatesFilter<"Account"> | string
     type?: EnumAccountTypeWithAggregatesFilter<"Account"> | $Enums.AccountType
+    level?: EnumAccountLevelWithAggregatesFilter<"Account"> | $Enums.AccountLevel
     openingBalance?: FloatWithAggregatesFilter<"Account"> | number
     isActive?: BoolWithAggregatesFilter<"Account"> | boolean
     createdAt?: DateTimeWithAggregatesFilter<"Account"> | Date | string
     updatedAt?: DateTimeWithAggregatesFilter<"Account"> | Date | string
+  }
+
+  export type AccountRelationshipWhereInput = {
+    AND?: AccountRelationshipWhereInput | AccountRelationshipWhereInput[]
+    OR?: AccountRelationshipWhereInput[]
+    NOT?: AccountRelationshipWhereInput | AccountRelationshipWhereInput[]
+    mainAccountId?: IntFilter<"AccountRelationship"> | number
+    subAccountId?: IntFilter<"AccountRelationship"> | number
+    createdAt?: DateTimeFilter<"AccountRelationship"> | Date | string
+    mainAccount?: XOR<AccountRelationFilter, AccountWhereInput>
+    subAccount?: XOR<AccountRelationFilter, AccountWhereInput>
+  }
+
+  export type AccountRelationshipOrderByWithRelationInput = {
+    mainAccountId?: SortOrder
+    subAccountId?: SortOrder
+    createdAt?: SortOrder
+    mainAccount?: AccountOrderByWithRelationInput
+    subAccount?: AccountOrderByWithRelationInput
+  }
+
+  export type AccountRelationshipWhereUniqueInput = Prisma.AtLeast<{
+    mainAccountId_subAccountId?: AccountRelationshipMainAccountIdSubAccountIdCompoundUniqueInput
+    AND?: AccountRelationshipWhereInput | AccountRelationshipWhereInput[]
+    OR?: AccountRelationshipWhereInput[]
+    NOT?: AccountRelationshipWhereInput | AccountRelationshipWhereInput[]
+    mainAccountId?: IntFilter<"AccountRelationship"> | number
+    subAccountId?: IntFilter<"AccountRelationship"> | number
+    createdAt?: DateTimeFilter<"AccountRelationship"> | Date | string
+    mainAccount?: XOR<AccountRelationFilter, AccountWhereInput>
+    subAccount?: XOR<AccountRelationFilter, AccountWhereInput>
+  }, "mainAccountId_subAccountId">
+
+  export type AccountRelationshipOrderByWithAggregationInput = {
+    mainAccountId?: SortOrder
+    subAccountId?: SortOrder
+    createdAt?: SortOrder
+    _count?: AccountRelationshipCountOrderByAggregateInput
+    _avg?: AccountRelationshipAvgOrderByAggregateInput
+    _max?: AccountRelationshipMaxOrderByAggregateInput
+    _min?: AccountRelationshipMinOrderByAggregateInput
+    _sum?: AccountRelationshipSumOrderByAggregateInput
+  }
+
+  export type AccountRelationshipScalarWhereWithAggregatesInput = {
+    AND?: AccountRelationshipScalarWhereWithAggregatesInput | AccountRelationshipScalarWhereWithAggregatesInput[]
+    OR?: AccountRelationshipScalarWhereWithAggregatesInput[]
+    NOT?: AccountRelationshipScalarWhereWithAggregatesInput | AccountRelationshipScalarWhereWithAggregatesInput[]
+    mainAccountId?: IntWithAggregatesFilter<"AccountRelationship"> | number
+    subAccountId?: IntWithAggregatesFilter<"AccountRelationship"> | number
+    createdAt?: DateTimeWithAggregatesFilter<"AccountRelationship"> | Date | string
   }
 
   export type AccountReceiptWhereInput = {
@@ -44014,6 +45303,7 @@ export namespace Prisma {
     id?: IntFilter<"AccountDeposit"> | number
     depositNo?: StringFilter<"AccountDeposit"> | string
     accountId?: IntFilter<"AccountDeposit"> | number
+    subAccountId?: IntNullableFilter<"AccountDeposit"> | number | null
     totalAmount?: FloatFilter<"AccountDeposit"> | number
     notes?: StringNullableFilter<"AccountDeposit"> | string | null
     isReversed?: BoolFilter<"AccountDeposit"> | boolean
@@ -44021,6 +45311,7 @@ export namespace Prisma {
     createdById?: IntFilter<"AccountDeposit"> | number
     createdAt?: DateTimeFilter<"AccountDeposit"> | Date | string
     account?: XOR<AccountRelationFilter, AccountWhereInput>
+    subAccount?: XOR<AccountNullableRelationFilter, AccountWhereInput> | null
     items?: AccountDepositItemListRelationFilter
     transactions?: AccountTransactionListRelationFilter
   }
@@ -44029,6 +45320,7 @@ export namespace Prisma {
     id?: SortOrder
     depositNo?: SortOrder
     accountId?: SortOrder
+    subAccountId?: SortOrderInput | SortOrder
     totalAmount?: SortOrder
     notes?: SortOrderInput | SortOrder
     isReversed?: SortOrder
@@ -44036,6 +45328,7 @@ export namespace Prisma {
     createdById?: SortOrder
     createdAt?: SortOrder
     account?: AccountOrderByWithRelationInput
+    subAccount?: AccountOrderByWithRelationInput
     items?: AccountDepositItemOrderByRelationAggregateInput
     transactions?: AccountTransactionOrderByRelationAggregateInput
   }
@@ -44047,6 +45340,7 @@ export namespace Prisma {
     OR?: AccountDepositWhereInput[]
     NOT?: AccountDepositWhereInput | AccountDepositWhereInput[]
     accountId?: IntFilter<"AccountDeposit"> | number
+    subAccountId?: IntNullableFilter<"AccountDeposit"> | number | null
     totalAmount?: FloatFilter<"AccountDeposit"> | number
     notes?: StringNullableFilter<"AccountDeposit"> | string | null
     isReversed?: BoolFilter<"AccountDeposit"> | boolean
@@ -44054,6 +45348,7 @@ export namespace Prisma {
     createdById?: IntFilter<"AccountDeposit"> | number
     createdAt?: DateTimeFilter<"AccountDeposit"> | Date | string
     account?: XOR<AccountRelationFilter, AccountWhereInput>
+    subAccount?: XOR<AccountNullableRelationFilter, AccountWhereInput> | null
     items?: AccountDepositItemListRelationFilter
     transactions?: AccountTransactionListRelationFilter
   }, "id" | "depositNo">
@@ -44062,6 +45357,7 @@ export namespace Prisma {
     id?: SortOrder
     depositNo?: SortOrder
     accountId?: SortOrder
+    subAccountId?: SortOrderInput | SortOrder
     totalAmount?: SortOrder
     notes?: SortOrderInput | SortOrder
     isReversed?: SortOrder
@@ -44082,6 +45378,7 @@ export namespace Prisma {
     id?: IntWithAggregatesFilter<"AccountDeposit"> | number
     depositNo?: StringWithAggregatesFilter<"AccountDeposit"> | string
     accountId?: IntWithAggregatesFilter<"AccountDeposit"> | number
+    subAccountId?: IntNullableWithAggregatesFilter<"AccountDeposit"> | number | null
     totalAmount?: FloatWithAggregatesFilter<"AccountDeposit"> | number
     notes?: StringNullableWithAggregatesFilter<"AccountDeposit"> | string | null
     isReversed?: BoolWithAggregatesFilter<"AccountDeposit"> | boolean
@@ -46487,6 +47784,7 @@ export namespace Prisma {
     name: string
     code: string
     type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
     openingBalance?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -46496,6 +47794,9 @@ export namespace Prisma {
     toVouchers?: AccountVoucherCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
     deposits?: AccountDepositCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositCreateNestedManyWithoutSubAccountInput
+    mainLinks?: AccountRelationshipCreateNestedManyWithoutMainAccountInput
+    subLinks?: AccountRelationshipCreateNestedManyWithoutSubAccountInput
   }
 
   export type AccountUncheckedCreateInput = {
@@ -46503,6 +47804,7 @@ export namespace Prisma {
     name: string
     code: string
     type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
     openingBalance?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -46512,12 +47814,16 @@ export namespace Prisma {
     toVouchers?: AccountVoucherUncheckedCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
     deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositUncheckedCreateNestedManyWithoutSubAccountInput
+    mainLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutMainAccountInput
+    subLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutSubAccountInput
   }
 
   export type AccountUpdateInput = {
     name?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
     openingBalance?: FloatFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -46527,6 +47833,9 @@ export namespace Prisma {
     toVouchers?: AccountVoucherUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
     deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUpdateManyWithoutSubAccountNestedInput
+    mainLinks?: AccountRelationshipUpdateManyWithoutMainAccountNestedInput
+    subLinks?: AccountRelationshipUpdateManyWithoutSubAccountNestedInput
   }
 
   export type AccountUncheckedUpdateInput = {
@@ -46534,6 +47843,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
     openingBalance?: FloatFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -46543,6 +47853,9 @@ export namespace Prisma {
     toVouchers?: AccountVoucherUncheckedUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
     deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUncheckedUpdateManyWithoutSubAccountNestedInput
+    mainLinks?: AccountRelationshipUncheckedUpdateManyWithoutMainAccountNestedInput
+    subLinks?: AccountRelationshipUncheckedUpdateManyWithoutSubAccountNestedInput
   }
 
   export type AccountCreateManyInput = {
@@ -46550,6 +47863,7 @@ export namespace Prisma {
     name: string
     code: string
     type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
     openingBalance?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -46560,6 +47874,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
     openingBalance?: FloatFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -46571,10 +47886,51 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
     openingBalance?: FloatFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountRelationshipCreateInput = {
+    createdAt?: Date | string
+    mainAccount: AccountCreateNestedOneWithoutMainLinksInput
+    subAccount: AccountCreateNestedOneWithoutSubLinksInput
+  }
+
+  export type AccountRelationshipUncheckedCreateInput = {
+    mainAccountId: number
+    subAccountId: number
+    createdAt?: Date | string
+  }
+
+  export type AccountRelationshipUpdateInput = {
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mainAccount?: AccountUpdateOneRequiredWithoutMainLinksNestedInput
+    subAccount?: AccountUpdateOneRequiredWithoutSubLinksNestedInput
+  }
+
+  export type AccountRelationshipUncheckedUpdateInput = {
+    mainAccountId?: IntFieldUpdateOperationsInput | number
+    subAccountId?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountRelationshipCreateManyInput = {
+    mainAccountId: number
+    subAccountId: number
+    createdAt?: Date | string
+  }
+
+  export type AccountRelationshipUpdateManyMutationInput = {
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountRelationshipUncheckedUpdateManyInput = {
+    mainAccountId?: IntFieldUpdateOperationsInput | number
+    subAccountId?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type AccountReceiptCreateInput = {
@@ -47042,6 +48398,7 @@ export namespace Prisma {
     createdById: number
     createdAt?: Date | string
     account: AccountCreateNestedOneWithoutDepositsInput
+    subAccount?: AccountCreateNestedOneWithoutSubDepositsInput
     items?: AccountDepositItemCreateNestedManyWithoutDepositInput
     transactions?: AccountTransactionCreateNestedManyWithoutDepositInput
   }
@@ -47050,6 +48407,7 @@ export namespace Prisma {
     id?: number
     depositNo: string
     accountId: number
+    subAccountId?: number | null
     totalAmount: number
     notes?: string | null
     isReversed?: boolean
@@ -47069,6 +48427,7 @@ export namespace Prisma {
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     account?: AccountUpdateOneRequiredWithoutDepositsNestedInput
+    subAccount?: AccountUpdateOneWithoutSubDepositsNestedInput
     items?: AccountDepositItemUpdateManyWithoutDepositNestedInput
     transactions?: AccountTransactionUpdateManyWithoutDepositNestedInput
   }
@@ -47077,6 +48436,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     depositNo?: StringFieldUpdateOperationsInput | string
     accountId?: IntFieldUpdateOperationsInput | number
+    subAccountId?: NullableIntFieldUpdateOperationsInput | number | null
     totalAmount?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     isReversed?: BoolFieldUpdateOperationsInput | boolean
@@ -47091,6 +48451,7 @@ export namespace Prisma {
     id?: number
     depositNo: string
     accountId: number
+    subAccountId?: number | null
     totalAmount: number
     notes?: string | null
     isReversed?: boolean
@@ -47113,6 +48474,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     depositNo?: StringFieldUpdateOperationsInput | string
     accountId?: IntFieldUpdateOperationsInput | number
+    subAccountId?: NullableIntFieldUpdateOperationsInput | number | null
     totalAmount?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     isReversed?: BoolFieldUpdateOperationsInput | boolean
@@ -49215,6 +50577,13 @@ export namespace Prisma {
     not?: NestedEnumAccountTypeFilter<$PrismaModel> | $Enums.AccountType
   }
 
+  export type EnumAccountLevelFilter<$PrismaModel = never> = {
+    equals?: $Enums.AccountLevel | EnumAccountLevelFieldRefInput<$PrismaModel>
+    in?: $Enums.AccountLevel[] | ListEnumAccountLevelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AccountLevel[] | ListEnumAccountLevelFieldRefInput<$PrismaModel>
+    not?: NestedEnumAccountLevelFilter<$PrismaModel> | $Enums.AccountLevel
+  }
+
   export type AccountVoucherListRelationFilter = {
     every?: AccountVoucherWhereInput
     some?: AccountVoucherWhereInput
@@ -49233,6 +50602,12 @@ export namespace Prisma {
     none?: AccountDepositWhereInput
   }
 
+  export type AccountRelationshipListRelationFilter = {
+    every?: AccountRelationshipWhereInput
+    some?: AccountRelationshipWhereInput
+    none?: AccountRelationshipWhereInput
+  }
+
   export type AccountVoucherOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -49245,11 +50620,16 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type AccountRelationshipOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type AccountCountOrderByAggregateInput = {
     id?: SortOrder
     name?: SortOrder
     code?: SortOrder
     type?: SortOrder
+    level?: SortOrder
     openingBalance?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -49266,6 +50646,7 @@ export namespace Prisma {
     name?: SortOrder
     code?: SortOrder
     type?: SortOrder
+    level?: SortOrder
     openingBalance?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -49277,6 +50658,7 @@ export namespace Prisma {
     name?: SortOrder
     code?: SortOrder
     type?: SortOrder
+    level?: SortOrder
     openingBalance?: SortOrder
     isActive?: SortOrder
     createdAt?: SortOrder
@@ -49296,6 +50678,54 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumAccountTypeFilter<$PrismaModel>
     _max?: NestedEnumAccountTypeFilter<$PrismaModel>
+  }
+
+  export type EnumAccountLevelWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AccountLevel | EnumAccountLevelFieldRefInput<$PrismaModel>
+    in?: $Enums.AccountLevel[] | ListEnumAccountLevelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AccountLevel[] | ListEnumAccountLevelFieldRefInput<$PrismaModel>
+    not?: NestedEnumAccountLevelWithAggregatesFilter<$PrismaModel> | $Enums.AccountLevel
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAccountLevelFilter<$PrismaModel>
+    _max?: NestedEnumAccountLevelFilter<$PrismaModel>
+  }
+
+  export type AccountRelationFilter = {
+    is?: AccountWhereInput
+    isNot?: AccountWhereInput
+  }
+
+  export type AccountRelationshipMainAccountIdSubAccountIdCompoundUniqueInput = {
+    mainAccountId: number
+    subAccountId: number
+  }
+
+  export type AccountRelationshipCountOrderByAggregateInput = {
+    mainAccountId?: SortOrder
+    subAccountId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AccountRelationshipAvgOrderByAggregateInput = {
+    mainAccountId?: SortOrder
+    subAccountId?: SortOrder
+  }
+
+  export type AccountRelationshipMaxOrderByAggregateInput = {
+    mainAccountId?: SortOrder
+    subAccountId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AccountRelationshipMinOrderByAggregateInput = {
+    mainAccountId?: SortOrder
+    subAccountId?: SortOrder
+    createdAt?: SortOrder
+  }
+
+  export type AccountRelationshipSumOrderByAggregateInput = {
+    mainAccountId?: SortOrder
+    subAccountId?: SortOrder
   }
 
   export type EnumPaymentMethodFilter<$PrismaModel = never> = {
@@ -49425,11 +50855,6 @@ export namespace Prisma {
     in?: $Enums.VoucherType[] | ListEnumVoucherTypeFieldRefInput<$PrismaModel>
     notIn?: $Enums.VoucherType[] | ListEnumVoucherTypeFieldRefInput<$PrismaModel>
     not?: NestedEnumVoucherTypeFilter<$PrismaModel> | $Enums.VoucherType
-  }
-
-  export type AccountRelationFilter = {
-    is?: AccountWhereInput
-    isNot?: AccountWhereInput
   }
 
   export type AccountVoucherCountOrderByAggregateInput = {
@@ -49696,6 +51121,7 @@ export namespace Prisma {
     id?: SortOrder
     depositNo?: SortOrder
     accountId?: SortOrder
+    subAccountId?: SortOrder
     totalAmount?: SortOrder
     notes?: SortOrder
     isReversed?: SortOrder
@@ -49707,6 +51133,7 @@ export namespace Prisma {
   export type AccountDepositAvgOrderByAggregateInput = {
     id?: SortOrder
     accountId?: SortOrder
+    subAccountId?: SortOrder
     totalAmount?: SortOrder
     createdById?: SortOrder
   }
@@ -49715,6 +51142,7 @@ export namespace Prisma {
     id?: SortOrder
     depositNo?: SortOrder
     accountId?: SortOrder
+    subAccountId?: SortOrder
     totalAmount?: SortOrder
     notes?: SortOrder
     isReversed?: SortOrder
@@ -49727,6 +51155,7 @@ export namespace Prisma {
     id?: SortOrder
     depositNo?: SortOrder
     accountId?: SortOrder
+    subAccountId?: SortOrder
     totalAmount?: SortOrder
     notes?: SortOrder
     isReversed?: SortOrder
@@ -49738,6 +51167,7 @@ export namespace Prisma {
   export type AccountDepositSumOrderByAggregateInput = {
     id?: SortOrder
     accountId?: SortOrder
+    subAccountId?: SortOrder
     totalAmount?: SortOrder
     createdById?: SortOrder
   }
@@ -51238,6 +52668,27 @@ export namespace Prisma {
     connect?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
   }
 
+  export type AccountDepositCreateNestedManyWithoutSubAccountInput = {
+    create?: XOR<AccountDepositCreateWithoutSubAccountInput, AccountDepositUncheckedCreateWithoutSubAccountInput> | AccountDepositCreateWithoutSubAccountInput[] | AccountDepositUncheckedCreateWithoutSubAccountInput[]
+    connectOrCreate?: AccountDepositCreateOrConnectWithoutSubAccountInput | AccountDepositCreateOrConnectWithoutSubAccountInput[]
+    createMany?: AccountDepositCreateManySubAccountInputEnvelope
+    connect?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+  }
+
+  export type AccountRelationshipCreateNestedManyWithoutMainAccountInput = {
+    create?: XOR<AccountRelationshipCreateWithoutMainAccountInput, AccountRelationshipUncheckedCreateWithoutMainAccountInput> | AccountRelationshipCreateWithoutMainAccountInput[] | AccountRelationshipUncheckedCreateWithoutMainAccountInput[]
+    connectOrCreate?: AccountRelationshipCreateOrConnectWithoutMainAccountInput | AccountRelationshipCreateOrConnectWithoutMainAccountInput[]
+    createMany?: AccountRelationshipCreateManyMainAccountInputEnvelope
+    connect?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+  }
+
+  export type AccountRelationshipCreateNestedManyWithoutSubAccountInput = {
+    create?: XOR<AccountRelationshipCreateWithoutSubAccountInput, AccountRelationshipUncheckedCreateWithoutSubAccountInput> | AccountRelationshipCreateWithoutSubAccountInput[] | AccountRelationshipUncheckedCreateWithoutSubAccountInput[]
+    connectOrCreate?: AccountRelationshipCreateOrConnectWithoutSubAccountInput | AccountRelationshipCreateOrConnectWithoutSubAccountInput[]
+    createMany?: AccountRelationshipCreateManySubAccountInputEnvelope
+    connect?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+  }
+
   export type AccountReceiptUncheckedCreateNestedManyWithoutAccountInput = {
     create?: XOR<AccountReceiptCreateWithoutAccountInput, AccountReceiptUncheckedCreateWithoutAccountInput> | AccountReceiptCreateWithoutAccountInput[] | AccountReceiptUncheckedCreateWithoutAccountInput[]
     connectOrCreate?: AccountReceiptCreateOrConnectWithoutAccountInput | AccountReceiptCreateOrConnectWithoutAccountInput[]
@@ -51273,8 +52724,33 @@ export namespace Prisma {
     connect?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
   }
 
+  export type AccountDepositUncheckedCreateNestedManyWithoutSubAccountInput = {
+    create?: XOR<AccountDepositCreateWithoutSubAccountInput, AccountDepositUncheckedCreateWithoutSubAccountInput> | AccountDepositCreateWithoutSubAccountInput[] | AccountDepositUncheckedCreateWithoutSubAccountInput[]
+    connectOrCreate?: AccountDepositCreateOrConnectWithoutSubAccountInput | AccountDepositCreateOrConnectWithoutSubAccountInput[]
+    createMany?: AccountDepositCreateManySubAccountInputEnvelope
+    connect?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+  }
+
+  export type AccountRelationshipUncheckedCreateNestedManyWithoutMainAccountInput = {
+    create?: XOR<AccountRelationshipCreateWithoutMainAccountInput, AccountRelationshipUncheckedCreateWithoutMainAccountInput> | AccountRelationshipCreateWithoutMainAccountInput[] | AccountRelationshipUncheckedCreateWithoutMainAccountInput[]
+    connectOrCreate?: AccountRelationshipCreateOrConnectWithoutMainAccountInput | AccountRelationshipCreateOrConnectWithoutMainAccountInput[]
+    createMany?: AccountRelationshipCreateManyMainAccountInputEnvelope
+    connect?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+  }
+
+  export type AccountRelationshipUncheckedCreateNestedManyWithoutSubAccountInput = {
+    create?: XOR<AccountRelationshipCreateWithoutSubAccountInput, AccountRelationshipUncheckedCreateWithoutSubAccountInput> | AccountRelationshipCreateWithoutSubAccountInput[] | AccountRelationshipUncheckedCreateWithoutSubAccountInput[]
+    connectOrCreate?: AccountRelationshipCreateOrConnectWithoutSubAccountInput | AccountRelationshipCreateOrConnectWithoutSubAccountInput[]
+    createMany?: AccountRelationshipCreateManySubAccountInputEnvelope
+    connect?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+  }
+
   export type EnumAccountTypeFieldUpdateOperationsInput = {
     set?: $Enums.AccountType
+  }
+
+  export type EnumAccountLevelFieldUpdateOperationsInput = {
+    set?: $Enums.AccountLevel
   }
 
   export type AccountReceiptUpdateManyWithoutAccountNestedInput = {
@@ -51347,6 +52823,48 @@ export namespace Prisma {
     deleteMany?: AccountDepositScalarWhereInput | AccountDepositScalarWhereInput[]
   }
 
+  export type AccountDepositUpdateManyWithoutSubAccountNestedInput = {
+    create?: XOR<AccountDepositCreateWithoutSubAccountInput, AccountDepositUncheckedCreateWithoutSubAccountInput> | AccountDepositCreateWithoutSubAccountInput[] | AccountDepositUncheckedCreateWithoutSubAccountInput[]
+    connectOrCreate?: AccountDepositCreateOrConnectWithoutSubAccountInput | AccountDepositCreateOrConnectWithoutSubAccountInput[]
+    upsert?: AccountDepositUpsertWithWhereUniqueWithoutSubAccountInput | AccountDepositUpsertWithWhereUniqueWithoutSubAccountInput[]
+    createMany?: AccountDepositCreateManySubAccountInputEnvelope
+    set?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    disconnect?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    delete?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    connect?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    update?: AccountDepositUpdateWithWhereUniqueWithoutSubAccountInput | AccountDepositUpdateWithWhereUniqueWithoutSubAccountInput[]
+    updateMany?: AccountDepositUpdateManyWithWhereWithoutSubAccountInput | AccountDepositUpdateManyWithWhereWithoutSubAccountInput[]
+    deleteMany?: AccountDepositScalarWhereInput | AccountDepositScalarWhereInput[]
+  }
+
+  export type AccountRelationshipUpdateManyWithoutMainAccountNestedInput = {
+    create?: XOR<AccountRelationshipCreateWithoutMainAccountInput, AccountRelationshipUncheckedCreateWithoutMainAccountInput> | AccountRelationshipCreateWithoutMainAccountInput[] | AccountRelationshipUncheckedCreateWithoutMainAccountInput[]
+    connectOrCreate?: AccountRelationshipCreateOrConnectWithoutMainAccountInput | AccountRelationshipCreateOrConnectWithoutMainAccountInput[]
+    upsert?: AccountRelationshipUpsertWithWhereUniqueWithoutMainAccountInput | AccountRelationshipUpsertWithWhereUniqueWithoutMainAccountInput[]
+    createMany?: AccountRelationshipCreateManyMainAccountInputEnvelope
+    set?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    disconnect?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    delete?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    connect?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    update?: AccountRelationshipUpdateWithWhereUniqueWithoutMainAccountInput | AccountRelationshipUpdateWithWhereUniqueWithoutMainAccountInput[]
+    updateMany?: AccountRelationshipUpdateManyWithWhereWithoutMainAccountInput | AccountRelationshipUpdateManyWithWhereWithoutMainAccountInput[]
+    deleteMany?: AccountRelationshipScalarWhereInput | AccountRelationshipScalarWhereInput[]
+  }
+
+  export type AccountRelationshipUpdateManyWithoutSubAccountNestedInput = {
+    create?: XOR<AccountRelationshipCreateWithoutSubAccountInput, AccountRelationshipUncheckedCreateWithoutSubAccountInput> | AccountRelationshipCreateWithoutSubAccountInput[] | AccountRelationshipUncheckedCreateWithoutSubAccountInput[]
+    connectOrCreate?: AccountRelationshipCreateOrConnectWithoutSubAccountInput | AccountRelationshipCreateOrConnectWithoutSubAccountInput[]
+    upsert?: AccountRelationshipUpsertWithWhereUniqueWithoutSubAccountInput | AccountRelationshipUpsertWithWhereUniqueWithoutSubAccountInput[]
+    createMany?: AccountRelationshipCreateManySubAccountInputEnvelope
+    set?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    disconnect?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    delete?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    connect?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    update?: AccountRelationshipUpdateWithWhereUniqueWithoutSubAccountInput | AccountRelationshipUpdateWithWhereUniqueWithoutSubAccountInput[]
+    updateMany?: AccountRelationshipUpdateManyWithWhereWithoutSubAccountInput | AccountRelationshipUpdateManyWithWhereWithoutSubAccountInput[]
+    deleteMany?: AccountRelationshipScalarWhereInput | AccountRelationshipScalarWhereInput[]
+  }
+
   export type AccountReceiptUncheckedUpdateManyWithoutAccountNestedInput = {
     create?: XOR<AccountReceiptCreateWithoutAccountInput, AccountReceiptUncheckedCreateWithoutAccountInput> | AccountReceiptCreateWithoutAccountInput[] | AccountReceiptUncheckedCreateWithoutAccountInput[]
     connectOrCreate?: AccountReceiptCreateOrConnectWithoutAccountInput | AccountReceiptCreateOrConnectWithoutAccountInput[]
@@ -51415,6 +52933,76 @@ export namespace Prisma {
     update?: AccountDepositUpdateWithWhereUniqueWithoutAccountInput | AccountDepositUpdateWithWhereUniqueWithoutAccountInput[]
     updateMany?: AccountDepositUpdateManyWithWhereWithoutAccountInput | AccountDepositUpdateManyWithWhereWithoutAccountInput[]
     deleteMany?: AccountDepositScalarWhereInput | AccountDepositScalarWhereInput[]
+  }
+
+  export type AccountDepositUncheckedUpdateManyWithoutSubAccountNestedInput = {
+    create?: XOR<AccountDepositCreateWithoutSubAccountInput, AccountDepositUncheckedCreateWithoutSubAccountInput> | AccountDepositCreateWithoutSubAccountInput[] | AccountDepositUncheckedCreateWithoutSubAccountInput[]
+    connectOrCreate?: AccountDepositCreateOrConnectWithoutSubAccountInput | AccountDepositCreateOrConnectWithoutSubAccountInput[]
+    upsert?: AccountDepositUpsertWithWhereUniqueWithoutSubAccountInput | AccountDepositUpsertWithWhereUniqueWithoutSubAccountInput[]
+    createMany?: AccountDepositCreateManySubAccountInputEnvelope
+    set?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    disconnect?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    delete?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    connect?: AccountDepositWhereUniqueInput | AccountDepositWhereUniqueInput[]
+    update?: AccountDepositUpdateWithWhereUniqueWithoutSubAccountInput | AccountDepositUpdateWithWhereUniqueWithoutSubAccountInput[]
+    updateMany?: AccountDepositUpdateManyWithWhereWithoutSubAccountInput | AccountDepositUpdateManyWithWhereWithoutSubAccountInput[]
+    deleteMany?: AccountDepositScalarWhereInput | AccountDepositScalarWhereInput[]
+  }
+
+  export type AccountRelationshipUncheckedUpdateManyWithoutMainAccountNestedInput = {
+    create?: XOR<AccountRelationshipCreateWithoutMainAccountInput, AccountRelationshipUncheckedCreateWithoutMainAccountInput> | AccountRelationshipCreateWithoutMainAccountInput[] | AccountRelationshipUncheckedCreateWithoutMainAccountInput[]
+    connectOrCreate?: AccountRelationshipCreateOrConnectWithoutMainAccountInput | AccountRelationshipCreateOrConnectWithoutMainAccountInput[]
+    upsert?: AccountRelationshipUpsertWithWhereUniqueWithoutMainAccountInput | AccountRelationshipUpsertWithWhereUniqueWithoutMainAccountInput[]
+    createMany?: AccountRelationshipCreateManyMainAccountInputEnvelope
+    set?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    disconnect?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    delete?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    connect?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    update?: AccountRelationshipUpdateWithWhereUniqueWithoutMainAccountInput | AccountRelationshipUpdateWithWhereUniqueWithoutMainAccountInput[]
+    updateMany?: AccountRelationshipUpdateManyWithWhereWithoutMainAccountInput | AccountRelationshipUpdateManyWithWhereWithoutMainAccountInput[]
+    deleteMany?: AccountRelationshipScalarWhereInput | AccountRelationshipScalarWhereInput[]
+  }
+
+  export type AccountRelationshipUncheckedUpdateManyWithoutSubAccountNestedInput = {
+    create?: XOR<AccountRelationshipCreateWithoutSubAccountInput, AccountRelationshipUncheckedCreateWithoutSubAccountInput> | AccountRelationshipCreateWithoutSubAccountInput[] | AccountRelationshipUncheckedCreateWithoutSubAccountInput[]
+    connectOrCreate?: AccountRelationshipCreateOrConnectWithoutSubAccountInput | AccountRelationshipCreateOrConnectWithoutSubAccountInput[]
+    upsert?: AccountRelationshipUpsertWithWhereUniqueWithoutSubAccountInput | AccountRelationshipUpsertWithWhereUniqueWithoutSubAccountInput[]
+    createMany?: AccountRelationshipCreateManySubAccountInputEnvelope
+    set?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    disconnect?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    delete?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    connect?: AccountRelationshipWhereUniqueInput | AccountRelationshipWhereUniqueInput[]
+    update?: AccountRelationshipUpdateWithWhereUniqueWithoutSubAccountInput | AccountRelationshipUpdateWithWhereUniqueWithoutSubAccountInput[]
+    updateMany?: AccountRelationshipUpdateManyWithWhereWithoutSubAccountInput | AccountRelationshipUpdateManyWithWhereWithoutSubAccountInput[]
+    deleteMany?: AccountRelationshipScalarWhereInput | AccountRelationshipScalarWhereInput[]
+  }
+
+  export type AccountCreateNestedOneWithoutMainLinksInput = {
+    create?: XOR<AccountCreateWithoutMainLinksInput, AccountUncheckedCreateWithoutMainLinksInput>
+    connectOrCreate?: AccountCreateOrConnectWithoutMainLinksInput
+    connect?: AccountWhereUniqueInput
+  }
+
+  export type AccountCreateNestedOneWithoutSubLinksInput = {
+    create?: XOR<AccountCreateWithoutSubLinksInput, AccountUncheckedCreateWithoutSubLinksInput>
+    connectOrCreate?: AccountCreateOrConnectWithoutSubLinksInput
+    connect?: AccountWhereUniqueInput
+  }
+
+  export type AccountUpdateOneRequiredWithoutMainLinksNestedInput = {
+    create?: XOR<AccountCreateWithoutMainLinksInput, AccountUncheckedCreateWithoutMainLinksInput>
+    connectOrCreate?: AccountCreateOrConnectWithoutMainLinksInput
+    upsert?: AccountUpsertWithoutMainLinksInput
+    connect?: AccountWhereUniqueInput
+    update?: XOR<XOR<AccountUpdateToOneWithWhereWithoutMainLinksInput, AccountUpdateWithoutMainLinksInput>, AccountUncheckedUpdateWithoutMainLinksInput>
+  }
+
+  export type AccountUpdateOneRequiredWithoutSubLinksNestedInput = {
+    create?: XOR<AccountCreateWithoutSubLinksInput, AccountUncheckedCreateWithoutSubLinksInput>
+    connectOrCreate?: AccountCreateOrConnectWithoutSubLinksInput
+    upsert?: AccountUpsertWithoutSubLinksInput
+    connect?: AccountWhereUniqueInput
+    update?: XOR<XOR<AccountUpdateToOneWithWhereWithoutSubLinksInput, AccountUpdateWithoutSubLinksInput>, AccountUncheckedUpdateWithoutSubLinksInput>
   }
 
   export type AccountCreateNestedOneWithoutReceiptsInput = {
@@ -51743,6 +53331,12 @@ export namespace Prisma {
     connect?: AccountWhereUniqueInput
   }
 
+  export type AccountCreateNestedOneWithoutSubDepositsInput = {
+    create?: XOR<AccountCreateWithoutSubDepositsInput, AccountUncheckedCreateWithoutSubDepositsInput>
+    connectOrCreate?: AccountCreateOrConnectWithoutSubDepositsInput
+    connect?: AccountWhereUniqueInput
+  }
+
   export type AccountDepositItemCreateNestedManyWithoutDepositInput = {
     create?: XOR<AccountDepositItemCreateWithoutDepositInput, AccountDepositItemUncheckedCreateWithoutDepositInput> | AccountDepositItemCreateWithoutDepositInput[] | AccountDepositItemUncheckedCreateWithoutDepositInput[]
     connectOrCreate?: AccountDepositItemCreateOrConnectWithoutDepositInput | AccountDepositItemCreateOrConnectWithoutDepositInput[]
@@ -51777,6 +53371,16 @@ export namespace Prisma {
     upsert?: AccountUpsertWithoutDepositsInput
     connect?: AccountWhereUniqueInput
     update?: XOR<XOR<AccountUpdateToOneWithWhereWithoutDepositsInput, AccountUpdateWithoutDepositsInput>, AccountUncheckedUpdateWithoutDepositsInput>
+  }
+
+  export type AccountUpdateOneWithoutSubDepositsNestedInput = {
+    create?: XOR<AccountCreateWithoutSubDepositsInput, AccountUncheckedCreateWithoutSubDepositsInput>
+    connectOrCreate?: AccountCreateOrConnectWithoutSubDepositsInput
+    upsert?: AccountUpsertWithoutSubDepositsInput
+    disconnect?: AccountWhereInput | boolean
+    delete?: AccountWhereInput | boolean
+    connect?: AccountWhereUniqueInput
+    update?: XOR<XOR<AccountUpdateToOneWithWhereWithoutSubDepositsInput, AccountUpdateWithoutSubDepositsInput>, AccountUncheckedUpdateWithoutSubDepositsInput>
   }
 
   export type AccountDepositItemUpdateManyWithoutDepositNestedInput = {
@@ -52278,6 +53882,13 @@ export namespace Prisma {
     not?: NestedEnumAccountTypeFilter<$PrismaModel> | $Enums.AccountType
   }
 
+  export type NestedEnumAccountLevelFilter<$PrismaModel = never> = {
+    equals?: $Enums.AccountLevel | EnumAccountLevelFieldRefInput<$PrismaModel>
+    in?: $Enums.AccountLevel[] | ListEnumAccountLevelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AccountLevel[] | ListEnumAccountLevelFieldRefInput<$PrismaModel>
+    not?: NestedEnumAccountLevelFilter<$PrismaModel> | $Enums.AccountLevel
+  }
+
   export type NestedEnumAccountTypeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: $Enums.AccountType | EnumAccountTypeFieldRefInput<$PrismaModel>
     in?: $Enums.AccountType[] | ListEnumAccountTypeFieldRefInput<$PrismaModel>
@@ -52286,6 +53897,16 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumAccountTypeFilter<$PrismaModel>
     _max?: NestedEnumAccountTypeFilter<$PrismaModel>
+  }
+
+  export type NestedEnumAccountLevelWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.AccountLevel | EnumAccountLevelFieldRefInput<$PrismaModel>
+    in?: $Enums.AccountLevel[] | ListEnumAccountLevelFieldRefInput<$PrismaModel>
+    notIn?: $Enums.AccountLevel[] | ListEnumAccountLevelFieldRefInput<$PrismaModel>
+    not?: NestedEnumAccountLevelWithAggregatesFilter<$PrismaModel> | $Enums.AccountLevel
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumAccountLevelFilter<$PrismaModel>
+    _max?: NestedEnumAccountLevelFilter<$PrismaModel>
   }
 
   export type NestedEnumPaymentMethodFilter<$PrismaModel = never> = {
@@ -56269,6 +57890,7 @@ export namespace Prisma {
     reversedAt?: Date | string | null
     createdById: number
     createdAt?: Date | string
+    subAccount?: AccountCreateNestedOneWithoutSubDepositsInput
     items?: AccountDepositItemCreateNestedManyWithoutDepositInput
     transactions?: AccountTransactionCreateNestedManyWithoutDepositInput
   }
@@ -56276,6 +57898,7 @@ export namespace Prisma {
   export type AccountDepositUncheckedCreateWithoutAccountInput = {
     id?: number
     depositNo: string
+    subAccountId?: number | null
     totalAmount: number
     notes?: string | null
     isReversed?: boolean
@@ -56293,6 +57916,83 @@ export namespace Prisma {
 
   export type AccountDepositCreateManyAccountInputEnvelope = {
     data: AccountDepositCreateManyAccountInput | AccountDepositCreateManyAccountInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AccountDepositCreateWithoutSubAccountInput = {
+    depositNo: string
+    totalAmount: number
+    notes?: string | null
+    isReversed?: boolean
+    reversedAt?: Date | string | null
+    createdById: number
+    createdAt?: Date | string
+    account: AccountCreateNestedOneWithoutDepositsInput
+    items?: AccountDepositItemCreateNestedManyWithoutDepositInput
+    transactions?: AccountTransactionCreateNestedManyWithoutDepositInput
+  }
+
+  export type AccountDepositUncheckedCreateWithoutSubAccountInput = {
+    id?: number
+    depositNo: string
+    accountId: number
+    totalAmount: number
+    notes?: string | null
+    isReversed?: boolean
+    reversedAt?: Date | string | null
+    createdById: number
+    createdAt?: Date | string
+    items?: AccountDepositItemUncheckedCreateNestedManyWithoutDepositInput
+    transactions?: AccountTransactionUncheckedCreateNestedManyWithoutDepositInput
+  }
+
+  export type AccountDepositCreateOrConnectWithoutSubAccountInput = {
+    where: AccountDepositWhereUniqueInput
+    create: XOR<AccountDepositCreateWithoutSubAccountInput, AccountDepositUncheckedCreateWithoutSubAccountInput>
+  }
+
+  export type AccountDepositCreateManySubAccountInputEnvelope = {
+    data: AccountDepositCreateManySubAccountInput | AccountDepositCreateManySubAccountInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AccountRelationshipCreateWithoutMainAccountInput = {
+    createdAt?: Date | string
+    subAccount: AccountCreateNestedOneWithoutSubLinksInput
+  }
+
+  export type AccountRelationshipUncheckedCreateWithoutMainAccountInput = {
+    subAccountId: number
+    createdAt?: Date | string
+  }
+
+  export type AccountRelationshipCreateOrConnectWithoutMainAccountInput = {
+    where: AccountRelationshipWhereUniqueInput
+    create: XOR<AccountRelationshipCreateWithoutMainAccountInput, AccountRelationshipUncheckedCreateWithoutMainAccountInput>
+  }
+
+  export type AccountRelationshipCreateManyMainAccountInputEnvelope = {
+    data: AccountRelationshipCreateManyMainAccountInput | AccountRelationshipCreateManyMainAccountInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type AccountRelationshipCreateWithoutSubAccountInput = {
+    createdAt?: Date | string
+    mainAccount: AccountCreateNestedOneWithoutMainLinksInput
+  }
+
+  export type AccountRelationshipUncheckedCreateWithoutSubAccountInput = {
+    mainAccountId: number
+    createdAt?: Date | string
+  }
+
+  export type AccountRelationshipCreateOrConnectWithoutSubAccountInput = {
+    where: AccountRelationshipWhereUniqueInput
+    create: XOR<AccountRelationshipCreateWithoutSubAccountInput, AccountRelationshipUncheckedCreateWithoutSubAccountInput>
+  }
+
+  export type AccountRelationshipCreateManySubAccountInputEnvelope = {
+    data: AccountRelationshipCreateManySubAccountInput | AccountRelationshipCreateManySubAccountInput[]
     skipDuplicates?: boolean
   }
 
@@ -56423,6 +58123,7 @@ export namespace Prisma {
     id?: IntFilter<"AccountDeposit"> | number
     depositNo?: StringFilter<"AccountDeposit"> | string
     accountId?: IntFilter<"AccountDeposit"> | number
+    subAccountId?: IntNullableFilter<"AccountDeposit"> | number | null
     totalAmount?: FloatFilter<"AccountDeposit"> | number
     notes?: StringNullableFilter<"AccountDeposit"> | string | null
     isReversed?: BoolFilter<"AccountDeposit"> | boolean
@@ -56431,10 +58132,248 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"AccountDeposit"> | Date | string
   }
 
+  export type AccountDepositUpsertWithWhereUniqueWithoutSubAccountInput = {
+    where: AccountDepositWhereUniqueInput
+    update: XOR<AccountDepositUpdateWithoutSubAccountInput, AccountDepositUncheckedUpdateWithoutSubAccountInput>
+    create: XOR<AccountDepositCreateWithoutSubAccountInput, AccountDepositUncheckedCreateWithoutSubAccountInput>
+  }
+
+  export type AccountDepositUpdateWithWhereUniqueWithoutSubAccountInput = {
+    where: AccountDepositWhereUniqueInput
+    data: XOR<AccountDepositUpdateWithoutSubAccountInput, AccountDepositUncheckedUpdateWithoutSubAccountInput>
+  }
+
+  export type AccountDepositUpdateManyWithWhereWithoutSubAccountInput = {
+    where: AccountDepositScalarWhereInput
+    data: XOR<AccountDepositUpdateManyMutationInput, AccountDepositUncheckedUpdateManyWithoutSubAccountInput>
+  }
+
+  export type AccountRelationshipUpsertWithWhereUniqueWithoutMainAccountInput = {
+    where: AccountRelationshipWhereUniqueInput
+    update: XOR<AccountRelationshipUpdateWithoutMainAccountInput, AccountRelationshipUncheckedUpdateWithoutMainAccountInput>
+    create: XOR<AccountRelationshipCreateWithoutMainAccountInput, AccountRelationshipUncheckedCreateWithoutMainAccountInput>
+  }
+
+  export type AccountRelationshipUpdateWithWhereUniqueWithoutMainAccountInput = {
+    where: AccountRelationshipWhereUniqueInput
+    data: XOR<AccountRelationshipUpdateWithoutMainAccountInput, AccountRelationshipUncheckedUpdateWithoutMainAccountInput>
+  }
+
+  export type AccountRelationshipUpdateManyWithWhereWithoutMainAccountInput = {
+    where: AccountRelationshipScalarWhereInput
+    data: XOR<AccountRelationshipUpdateManyMutationInput, AccountRelationshipUncheckedUpdateManyWithoutMainAccountInput>
+  }
+
+  export type AccountRelationshipScalarWhereInput = {
+    AND?: AccountRelationshipScalarWhereInput | AccountRelationshipScalarWhereInput[]
+    OR?: AccountRelationshipScalarWhereInput[]
+    NOT?: AccountRelationshipScalarWhereInput | AccountRelationshipScalarWhereInput[]
+    mainAccountId?: IntFilter<"AccountRelationship"> | number
+    subAccountId?: IntFilter<"AccountRelationship"> | number
+    createdAt?: DateTimeFilter<"AccountRelationship"> | Date | string
+  }
+
+  export type AccountRelationshipUpsertWithWhereUniqueWithoutSubAccountInput = {
+    where: AccountRelationshipWhereUniqueInput
+    update: XOR<AccountRelationshipUpdateWithoutSubAccountInput, AccountRelationshipUncheckedUpdateWithoutSubAccountInput>
+    create: XOR<AccountRelationshipCreateWithoutSubAccountInput, AccountRelationshipUncheckedCreateWithoutSubAccountInput>
+  }
+
+  export type AccountRelationshipUpdateWithWhereUniqueWithoutSubAccountInput = {
+    where: AccountRelationshipWhereUniqueInput
+    data: XOR<AccountRelationshipUpdateWithoutSubAccountInput, AccountRelationshipUncheckedUpdateWithoutSubAccountInput>
+  }
+
+  export type AccountRelationshipUpdateManyWithWhereWithoutSubAccountInput = {
+    where: AccountRelationshipScalarWhereInput
+    data: XOR<AccountRelationshipUpdateManyMutationInput, AccountRelationshipUncheckedUpdateManyWithoutSubAccountInput>
+  }
+
+  export type AccountCreateWithoutMainLinksInput = {
+    name: string
+    code: string
+    type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
+    openingBalance?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    receipts?: AccountReceiptCreateNestedManyWithoutAccountInput
+    vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherCreateNestedManyWithoutToAccountInput
+    transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositCreateNestedManyWithoutSubAccountInput
+    subLinks?: AccountRelationshipCreateNestedManyWithoutSubAccountInput
+  }
+
+  export type AccountUncheckedCreateWithoutMainLinksInput = {
+    id?: number
+    name: string
+    code: string
+    type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
+    openingBalance?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    receipts?: AccountReceiptUncheckedCreateNestedManyWithoutAccountInput
+    vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherUncheckedCreateNestedManyWithoutToAccountInput
+    transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositUncheckedCreateNestedManyWithoutSubAccountInput
+    subLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutSubAccountInput
+  }
+
+  export type AccountCreateOrConnectWithoutMainLinksInput = {
+    where: AccountWhereUniqueInput
+    create: XOR<AccountCreateWithoutMainLinksInput, AccountUncheckedCreateWithoutMainLinksInput>
+  }
+
+  export type AccountCreateWithoutSubLinksInput = {
+    name: string
+    code: string
+    type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
+    openingBalance?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    receipts?: AccountReceiptCreateNestedManyWithoutAccountInput
+    vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherCreateNestedManyWithoutToAccountInput
+    transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositCreateNestedManyWithoutSubAccountInput
+    mainLinks?: AccountRelationshipCreateNestedManyWithoutMainAccountInput
+  }
+
+  export type AccountUncheckedCreateWithoutSubLinksInput = {
+    id?: number
+    name: string
+    code: string
+    type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
+    openingBalance?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    receipts?: AccountReceiptUncheckedCreateNestedManyWithoutAccountInput
+    vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherUncheckedCreateNestedManyWithoutToAccountInput
+    transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositUncheckedCreateNestedManyWithoutSubAccountInput
+    mainLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutMainAccountInput
+  }
+
+  export type AccountCreateOrConnectWithoutSubLinksInput = {
+    where: AccountWhereUniqueInput
+    create: XOR<AccountCreateWithoutSubLinksInput, AccountUncheckedCreateWithoutSubLinksInput>
+  }
+
+  export type AccountUpsertWithoutMainLinksInput = {
+    update: XOR<AccountUpdateWithoutMainLinksInput, AccountUncheckedUpdateWithoutMainLinksInput>
+    create: XOR<AccountCreateWithoutMainLinksInput, AccountUncheckedCreateWithoutMainLinksInput>
+    where?: AccountWhereInput
+  }
+
+  export type AccountUpdateToOneWithWhereWithoutMainLinksInput = {
+    where?: AccountWhereInput
+    data: XOR<AccountUpdateWithoutMainLinksInput, AccountUncheckedUpdateWithoutMainLinksInput>
+  }
+
+  export type AccountUpdateWithoutMainLinksInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
+    openingBalance?: FloatFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receipts?: AccountReceiptUpdateManyWithoutAccountNestedInput
+    vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUpdateManyWithoutToAccountNestedInput
+    transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUpdateManyWithoutSubAccountNestedInput
+    subLinks?: AccountRelationshipUpdateManyWithoutSubAccountNestedInput
+  }
+
+  export type AccountUncheckedUpdateWithoutMainLinksInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
+    openingBalance?: FloatFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receipts?: AccountReceiptUncheckedUpdateManyWithoutAccountNestedInput
+    vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUncheckedUpdateManyWithoutToAccountNestedInput
+    transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUncheckedUpdateManyWithoutSubAccountNestedInput
+    subLinks?: AccountRelationshipUncheckedUpdateManyWithoutSubAccountNestedInput
+  }
+
+  export type AccountUpsertWithoutSubLinksInput = {
+    update: XOR<AccountUpdateWithoutSubLinksInput, AccountUncheckedUpdateWithoutSubLinksInput>
+    create: XOR<AccountCreateWithoutSubLinksInput, AccountUncheckedCreateWithoutSubLinksInput>
+    where?: AccountWhereInput
+  }
+
+  export type AccountUpdateToOneWithWhereWithoutSubLinksInput = {
+    where?: AccountWhereInput
+    data: XOR<AccountUpdateWithoutSubLinksInput, AccountUncheckedUpdateWithoutSubLinksInput>
+  }
+
+  export type AccountUpdateWithoutSubLinksInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
+    openingBalance?: FloatFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receipts?: AccountReceiptUpdateManyWithoutAccountNestedInput
+    vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUpdateManyWithoutToAccountNestedInput
+    transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUpdateManyWithoutSubAccountNestedInput
+    mainLinks?: AccountRelationshipUpdateManyWithoutMainAccountNestedInput
+  }
+
+  export type AccountUncheckedUpdateWithoutSubLinksInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
+    openingBalance?: FloatFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receipts?: AccountReceiptUncheckedUpdateManyWithoutAccountNestedInput
+    vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUncheckedUpdateManyWithoutToAccountNestedInput
+    transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUncheckedUpdateManyWithoutSubAccountNestedInput
+    mainLinks?: AccountRelationshipUncheckedUpdateManyWithoutMainAccountNestedInput
+  }
+
   export type AccountCreateWithoutReceiptsInput = {
     name: string
     code: string
     type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
     openingBalance?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -56443,6 +58382,9 @@ export namespace Prisma {
     toVouchers?: AccountVoucherCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
     deposits?: AccountDepositCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositCreateNestedManyWithoutSubAccountInput
+    mainLinks?: AccountRelationshipCreateNestedManyWithoutMainAccountInput
+    subLinks?: AccountRelationshipCreateNestedManyWithoutSubAccountInput
   }
 
   export type AccountUncheckedCreateWithoutReceiptsInput = {
@@ -56450,6 +58392,7 @@ export namespace Prisma {
     name: string
     code: string
     type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
     openingBalance?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -56458,6 +58401,9 @@ export namespace Prisma {
     toVouchers?: AccountVoucherUncheckedCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
     deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositUncheckedCreateNestedManyWithoutSubAccountInput
+    mainLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutMainAccountInput
+    subLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutSubAccountInput
   }
 
   export type AccountCreateOrConnectWithoutReceiptsInput = {
@@ -56637,6 +58583,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
     openingBalance?: FloatFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -56645,6 +58592,9 @@ export namespace Prisma {
     toVouchers?: AccountVoucherUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
     deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUpdateManyWithoutSubAccountNestedInput
+    mainLinks?: AccountRelationshipUpdateManyWithoutMainAccountNestedInput
+    subLinks?: AccountRelationshipUpdateManyWithoutSubAccountNestedInput
   }
 
   export type AccountUncheckedUpdateWithoutReceiptsInput = {
@@ -56652,6 +58602,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
     openingBalance?: FloatFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -56660,6 +58611,9 @@ export namespace Prisma {
     toVouchers?: AccountVoucherUncheckedUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
     deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUncheckedUpdateManyWithoutSubAccountNestedInput
+    mainLinks?: AccountRelationshipUncheckedUpdateManyWithoutMainAccountNestedInput
+    subLinks?: AccountRelationshipUncheckedUpdateManyWithoutSubAccountNestedInput
   }
 
   export type PosCustomerPurchaseUpsertWithoutReceiptsInput = {
@@ -56816,6 +58770,7 @@ export namespace Prisma {
     name: string
     code: string
     type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
     openingBalance?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -56824,6 +58779,9 @@ export namespace Prisma {
     toVouchers?: AccountVoucherCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
     deposits?: AccountDepositCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositCreateNestedManyWithoutSubAccountInput
+    mainLinks?: AccountRelationshipCreateNestedManyWithoutMainAccountInput
+    subLinks?: AccountRelationshipCreateNestedManyWithoutSubAccountInput
   }
 
   export type AccountUncheckedCreateWithoutVouchersInput = {
@@ -56831,6 +58789,7 @@ export namespace Prisma {
     name: string
     code: string
     type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
     openingBalance?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -56839,6 +58798,9 @@ export namespace Prisma {
     toVouchers?: AccountVoucherUncheckedCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
     deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositUncheckedCreateNestedManyWithoutSubAccountInput
+    mainLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutMainAccountInput
+    subLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutSubAccountInput
   }
 
   export type AccountCreateOrConnectWithoutVouchersInput = {
@@ -56850,6 +58812,7 @@ export namespace Prisma {
     name: string
     code: string
     type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
     openingBalance?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -56858,6 +58821,9 @@ export namespace Prisma {
     vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
     transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
     deposits?: AccountDepositCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositCreateNestedManyWithoutSubAccountInput
+    mainLinks?: AccountRelationshipCreateNestedManyWithoutMainAccountInput
+    subLinks?: AccountRelationshipCreateNestedManyWithoutSubAccountInput
   }
 
   export type AccountUncheckedCreateWithoutToVouchersInput = {
@@ -56865,6 +58831,7 @@ export namespace Prisma {
     name: string
     code: string
     type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
     openingBalance?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -56873,6 +58840,9 @@ export namespace Prisma {
     vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
     deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositUncheckedCreateNestedManyWithoutSubAccountInput
+    mainLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutMainAccountInput
+    subLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutSubAccountInput
   }
 
   export type AccountCreateOrConnectWithoutToVouchersInput = {
@@ -56936,6 +58906,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
     openingBalance?: FloatFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -56944,6 +58915,9 @@ export namespace Prisma {
     toVouchers?: AccountVoucherUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
     deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUpdateManyWithoutSubAccountNestedInput
+    mainLinks?: AccountRelationshipUpdateManyWithoutMainAccountNestedInput
+    subLinks?: AccountRelationshipUpdateManyWithoutSubAccountNestedInput
   }
 
   export type AccountUncheckedUpdateWithoutVouchersInput = {
@@ -56951,6 +58925,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
     openingBalance?: FloatFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -56959,6 +58934,9 @@ export namespace Prisma {
     toVouchers?: AccountVoucherUncheckedUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
     deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUncheckedUpdateManyWithoutSubAccountNestedInput
+    mainLinks?: AccountRelationshipUncheckedUpdateManyWithoutMainAccountNestedInput
+    subLinks?: AccountRelationshipUncheckedUpdateManyWithoutSubAccountNestedInput
   }
 
   export type AccountUpsertWithoutToVouchersInput = {
@@ -56976,6 +58954,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
     openingBalance?: FloatFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -56984,6 +58963,9 @@ export namespace Prisma {
     vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
     transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
     deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUpdateManyWithoutSubAccountNestedInput
+    mainLinks?: AccountRelationshipUpdateManyWithoutMainAccountNestedInput
+    subLinks?: AccountRelationshipUpdateManyWithoutSubAccountNestedInput
   }
 
   export type AccountUncheckedUpdateWithoutToVouchersInput = {
@@ -56991,6 +58973,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
     openingBalance?: FloatFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -56999,6 +58982,9 @@ export namespace Prisma {
     vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
     transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
     deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUncheckedUpdateManyWithoutSubAccountNestedInput
+    mainLinks?: AccountRelationshipUncheckedUpdateManyWithoutMainAccountNestedInput
+    subLinks?: AccountRelationshipUncheckedUpdateManyWithoutSubAccountNestedInput
   }
 
   export type AccountTransactionUpsertWithWhereUniqueWithoutVoucherInput = {
@@ -57021,6 +59007,7 @@ export namespace Prisma {
     name: string
     code: string
     type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
     openingBalance?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -57029,6 +59016,9 @@ export namespace Prisma {
     vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
     toVouchers?: AccountVoucherCreateNestedManyWithoutToAccountInput
     deposits?: AccountDepositCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositCreateNestedManyWithoutSubAccountInput
+    mainLinks?: AccountRelationshipCreateNestedManyWithoutMainAccountInput
+    subLinks?: AccountRelationshipCreateNestedManyWithoutSubAccountInput
   }
 
   export type AccountUncheckedCreateWithoutTransactionsInput = {
@@ -57036,6 +59026,7 @@ export namespace Prisma {
     name: string
     code: string
     type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
     openingBalance?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -57044,6 +59035,9 @@ export namespace Prisma {
     vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
     toVouchers?: AccountVoucherUncheckedCreateNestedManyWithoutToAccountInput
     deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositUncheckedCreateNestedManyWithoutSubAccountInput
+    mainLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutMainAccountInput
+    subLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutSubAccountInput
   }
 
   export type AccountCreateOrConnectWithoutTransactionsInput = {
@@ -57144,6 +59138,7 @@ export namespace Prisma {
     createdById: number
     createdAt?: Date | string
     account: AccountCreateNestedOneWithoutDepositsInput
+    subAccount?: AccountCreateNestedOneWithoutSubDepositsInput
     items?: AccountDepositItemCreateNestedManyWithoutDepositInput
   }
 
@@ -57151,6 +59146,7 @@ export namespace Prisma {
     id?: number
     depositNo: string
     accountId: number
+    subAccountId?: number | null
     totalAmount: number
     notes?: string | null
     isReversed?: boolean
@@ -57180,6 +59176,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
     openingBalance?: FloatFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -57188,6 +59185,9 @@ export namespace Prisma {
     vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
     toVouchers?: AccountVoucherUpdateManyWithoutToAccountNestedInput
     deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUpdateManyWithoutSubAccountNestedInput
+    mainLinks?: AccountRelationshipUpdateManyWithoutMainAccountNestedInput
+    subLinks?: AccountRelationshipUpdateManyWithoutSubAccountNestedInput
   }
 
   export type AccountUncheckedUpdateWithoutTransactionsInput = {
@@ -57195,6 +59195,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
     openingBalance?: FloatFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -57203,6 +59204,9 @@ export namespace Prisma {
     vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
     toVouchers?: AccountVoucherUncheckedUpdateManyWithoutToAccountNestedInput
     deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUncheckedUpdateManyWithoutSubAccountNestedInput
+    mainLinks?: AccountRelationshipUncheckedUpdateManyWithoutMainAccountNestedInput
+    subLinks?: AccountRelationshipUncheckedUpdateManyWithoutSubAccountNestedInput
   }
 
   export type AccountReceiptUpsertWithoutTransactionsInput = {
@@ -57321,6 +59325,7 @@ export namespace Prisma {
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     account?: AccountUpdateOneRequiredWithoutDepositsNestedInput
+    subAccount?: AccountUpdateOneWithoutSubDepositsNestedInput
     items?: AccountDepositItemUpdateManyWithoutDepositNestedInput
   }
 
@@ -57328,6 +59333,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     depositNo?: StringFieldUpdateOperationsInput | string
     accountId?: IntFieldUpdateOperationsInput | number
+    subAccountId?: NullableIntFieldUpdateOperationsInput | number | null
     totalAmount?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     isReversed?: BoolFieldUpdateOperationsInput | boolean
@@ -57589,6 +59595,7 @@ export namespace Prisma {
     name: string
     code: string
     type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
     openingBalance?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -57597,6 +59604,9 @@ export namespace Prisma {
     vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
     toVouchers?: AccountVoucherCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositCreateNestedManyWithoutSubAccountInput
+    mainLinks?: AccountRelationshipCreateNestedManyWithoutMainAccountInput
+    subLinks?: AccountRelationshipCreateNestedManyWithoutSubAccountInput
   }
 
   export type AccountUncheckedCreateWithoutDepositsInput = {
@@ -57604,6 +59614,7 @@ export namespace Prisma {
     name: string
     code: string
     type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
     openingBalance?: number
     isActive?: boolean
     createdAt?: Date | string
@@ -57612,11 +59623,56 @@ export namespace Prisma {
     vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
     toVouchers?: AccountVoucherUncheckedCreateNestedManyWithoutToAccountInput
     transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
+    subDeposits?: AccountDepositUncheckedCreateNestedManyWithoutSubAccountInput
+    mainLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutMainAccountInput
+    subLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutSubAccountInput
   }
 
   export type AccountCreateOrConnectWithoutDepositsInput = {
     where: AccountWhereUniqueInput
     create: XOR<AccountCreateWithoutDepositsInput, AccountUncheckedCreateWithoutDepositsInput>
+  }
+
+  export type AccountCreateWithoutSubDepositsInput = {
+    name: string
+    code: string
+    type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
+    openingBalance?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    receipts?: AccountReceiptCreateNestedManyWithoutAccountInput
+    vouchers?: AccountVoucherCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherCreateNestedManyWithoutToAccountInput
+    transactions?: AccountTransactionCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositCreateNestedManyWithoutAccountInput
+    mainLinks?: AccountRelationshipCreateNestedManyWithoutMainAccountInput
+    subLinks?: AccountRelationshipCreateNestedManyWithoutSubAccountInput
+  }
+
+  export type AccountUncheckedCreateWithoutSubDepositsInput = {
+    id?: number
+    name: string
+    code: string
+    type?: $Enums.AccountType
+    level?: $Enums.AccountLevel
+    openingBalance?: number
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    receipts?: AccountReceiptUncheckedCreateNestedManyWithoutAccountInput
+    vouchers?: AccountVoucherUncheckedCreateNestedManyWithoutAccountInput
+    toVouchers?: AccountVoucherUncheckedCreateNestedManyWithoutToAccountInput
+    transactions?: AccountTransactionUncheckedCreateNestedManyWithoutAccountInput
+    deposits?: AccountDepositUncheckedCreateNestedManyWithoutAccountInput
+    mainLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutMainAccountInput
+    subLinks?: AccountRelationshipUncheckedCreateNestedManyWithoutSubAccountInput
+  }
+
+  export type AccountCreateOrConnectWithoutSubDepositsInput = {
+    where: AccountWhereUniqueInput
+    create: XOR<AccountCreateWithoutSubDepositsInput, AccountUncheckedCreateWithoutSubDepositsInput>
   }
 
   export type AccountDepositItemCreateWithoutDepositInput = {
@@ -57696,6 +59752,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
     openingBalance?: FloatFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -57704,6 +59761,9 @@ export namespace Prisma {
     vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
     toVouchers?: AccountVoucherUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUpdateManyWithoutSubAccountNestedInput
+    mainLinks?: AccountRelationshipUpdateManyWithoutMainAccountNestedInput
+    subLinks?: AccountRelationshipUpdateManyWithoutSubAccountNestedInput
   }
 
   export type AccountUncheckedUpdateWithoutDepositsInput = {
@@ -57711,6 +59771,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
     openingBalance?: FloatFieldUpdateOperationsInput | number
     isActive?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -57719,6 +59780,57 @@ export namespace Prisma {
     vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
     toVouchers?: AccountVoucherUncheckedUpdateManyWithoutToAccountNestedInput
     transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
+    subDeposits?: AccountDepositUncheckedUpdateManyWithoutSubAccountNestedInput
+    mainLinks?: AccountRelationshipUncheckedUpdateManyWithoutMainAccountNestedInput
+    subLinks?: AccountRelationshipUncheckedUpdateManyWithoutSubAccountNestedInput
+  }
+
+  export type AccountUpsertWithoutSubDepositsInput = {
+    update: XOR<AccountUpdateWithoutSubDepositsInput, AccountUncheckedUpdateWithoutSubDepositsInput>
+    create: XOR<AccountCreateWithoutSubDepositsInput, AccountUncheckedCreateWithoutSubDepositsInput>
+    where?: AccountWhereInput
+  }
+
+  export type AccountUpdateToOneWithWhereWithoutSubDepositsInput = {
+    where?: AccountWhereInput
+    data: XOR<AccountUpdateWithoutSubDepositsInput, AccountUncheckedUpdateWithoutSubDepositsInput>
+  }
+
+  export type AccountUpdateWithoutSubDepositsInput = {
+    name?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
+    openingBalance?: FloatFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receipts?: AccountReceiptUpdateManyWithoutAccountNestedInput
+    vouchers?: AccountVoucherUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUpdateManyWithoutToAccountNestedInput
+    transactions?: AccountTransactionUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUpdateManyWithoutAccountNestedInput
+    mainLinks?: AccountRelationshipUpdateManyWithoutMainAccountNestedInput
+    subLinks?: AccountRelationshipUpdateManyWithoutSubAccountNestedInput
+  }
+
+  export type AccountUncheckedUpdateWithoutSubDepositsInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    name?: StringFieldUpdateOperationsInput | string
+    code?: StringFieldUpdateOperationsInput | string
+    type?: EnumAccountTypeFieldUpdateOperationsInput | $Enums.AccountType
+    level?: EnumAccountLevelFieldUpdateOperationsInput | $Enums.AccountLevel
+    openingBalance?: FloatFieldUpdateOperationsInput | number
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    receipts?: AccountReceiptUncheckedUpdateManyWithoutAccountNestedInput
+    vouchers?: AccountVoucherUncheckedUpdateManyWithoutAccountNestedInput
+    toVouchers?: AccountVoucherUncheckedUpdateManyWithoutToAccountNestedInput
+    transactions?: AccountTransactionUncheckedUpdateManyWithoutAccountNestedInput
+    deposits?: AccountDepositUncheckedUpdateManyWithoutAccountNestedInput
+    mainLinks?: AccountRelationshipUncheckedUpdateManyWithoutMainAccountNestedInput
+    subLinks?: AccountRelationshipUncheckedUpdateManyWithoutSubAccountNestedInput
   }
 
   export type AccountDepositItemUpsertWithWhereUniqueWithoutDepositInput = {
@@ -57772,6 +59884,7 @@ export namespace Prisma {
     createdById: number
     createdAt?: Date | string
     account: AccountCreateNestedOneWithoutDepositsInput
+    subAccount?: AccountCreateNestedOneWithoutSubDepositsInput
     transactions?: AccountTransactionCreateNestedManyWithoutDepositInput
   }
 
@@ -57779,6 +59892,7 @@ export namespace Prisma {
     id?: number
     depositNo: string
     accountId: number
+    subAccountId?: number | null
     totalAmount: number
     notes?: string | null
     isReversed?: boolean
@@ -57859,6 +59973,7 @@ export namespace Prisma {
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     account?: AccountUpdateOneRequiredWithoutDepositsNestedInput
+    subAccount?: AccountUpdateOneWithoutSubDepositsNestedInput
     transactions?: AccountTransactionUpdateManyWithoutDepositNestedInput
   }
 
@@ -57866,6 +59981,7 @@ export namespace Prisma {
     id?: IntFieldUpdateOperationsInput | number
     depositNo?: StringFieldUpdateOperationsInput | string
     accountId?: IntFieldUpdateOperationsInput | number
+    subAccountId?: NullableIntFieldUpdateOperationsInput | number | null
     totalAmount?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     isReversed?: BoolFieldUpdateOperationsInput | boolean
@@ -59718,11 +61834,34 @@ export namespace Prisma {
   export type AccountDepositCreateManyAccountInput = {
     id?: number
     depositNo: string
+    subAccountId?: number | null
     totalAmount: number
     notes?: string | null
     isReversed?: boolean
     reversedAt?: Date | string | null
     createdById: number
+    createdAt?: Date | string
+  }
+
+  export type AccountDepositCreateManySubAccountInput = {
+    id?: number
+    depositNo: string
+    accountId: number
+    totalAmount: number
+    notes?: string | null
+    isReversed?: boolean
+    reversedAt?: Date | string | null
+    createdById: number
+    createdAt?: Date | string
+  }
+
+  export type AccountRelationshipCreateManyMainAccountInput = {
+    subAccountId: number
+    createdAt?: Date | string
+  }
+
+  export type AccountRelationshipCreateManySubAccountInput = {
+    mainAccountId: number
     createdAt?: Date | string
   }
 
@@ -59938,6 +62077,7 @@ export namespace Prisma {
     reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdById?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    subAccount?: AccountUpdateOneWithoutSubDepositsNestedInput
     items?: AccountDepositItemUpdateManyWithoutDepositNestedInput
     transactions?: AccountTransactionUpdateManyWithoutDepositNestedInput
   }
@@ -59945,6 +62085,7 @@ export namespace Prisma {
   export type AccountDepositUncheckedUpdateWithoutAccountInput = {
     id?: IntFieldUpdateOperationsInput | number
     depositNo?: StringFieldUpdateOperationsInput | string
+    subAccountId?: NullableIntFieldUpdateOperationsInput | number | null
     totalAmount?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     isReversed?: BoolFieldUpdateOperationsInput | boolean
@@ -59958,11 +62099,81 @@ export namespace Prisma {
   export type AccountDepositUncheckedUpdateManyWithoutAccountInput = {
     id?: IntFieldUpdateOperationsInput | number
     depositNo?: StringFieldUpdateOperationsInput | string
+    subAccountId?: NullableIntFieldUpdateOperationsInput | number | null
     totalAmount?: FloatFieldUpdateOperationsInput | number
     notes?: NullableStringFieldUpdateOperationsInput | string | null
     isReversed?: BoolFieldUpdateOperationsInput | boolean
     reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
     createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountDepositUpdateWithoutSubAccountInput = {
+    depositNo?: StringFieldUpdateOperationsInput | string
+    totalAmount?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversed?: BoolFieldUpdateOperationsInput | boolean
+    reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    account?: AccountUpdateOneRequiredWithoutDepositsNestedInput
+    items?: AccountDepositItemUpdateManyWithoutDepositNestedInput
+    transactions?: AccountTransactionUpdateManyWithoutDepositNestedInput
+  }
+
+  export type AccountDepositUncheckedUpdateWithoutSubAccountInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    depositNo?: StringFieldUpdateOperationsInput | string
+    accountId?: IntFieldUpdateOperationsInput | number
+    totalAmount?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversed?: BoolFieldUpdateOperationsInput | boolean
+    reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    items?: AccountDepositItemUncheckedUpdateManyWithoutDepositNestedInput
+    transactions?: AccountTransactionUncheckedUpdateManyWithoutDepositNestedInput
+  }
+
+  export type AccountDepositUncheckedUpdateManyWithoutSubAccountInput = {
+    id?: IntFieldUpdateOperationsInput | number
+    depositNo?: StringFieldUpdateOperationsInput | string
+    accountId?: IntFieldUpdateOperationsInput | number
+    totalAmount?: FloatFieldUpdateOperationsInput | number
+    notes?: NullableStringFieldUpdateOperationsInput | string | null
+    isReversed?: BoolFieldUpdateOperationsInput | boolean
+    reversedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdById?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountRelationshipUpdateWithoutMainAccountInput = {
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    subAccount?: AccountUpdateOneRequiredWithoutSubLinksNestedInput
+  }
+
+  export type AccountRelationshipUncheckedUpdateWithoutMainAccountInput = {
+    subAccountId?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountRelationshipUncheckedUpdateManyWithoutMainAccountInput = {
+    subAccountId?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountRelationshipUpdateWithoutSubAccountInput = {
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    mainAccount?: AccountUpdateOneRequiredWithoutMainLinksNestedInput
+  }
+
+  export type AccountRelationshipUncheckedUpdateWithoutSubAccountInput = {
+    mainAccountId?: IntFieldUpdateOperationsInput | number
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AccountRelationshipUncheckedUpdateManyWithoutSubAccountInput = {
+    mainAccountId?: IntFieldUpdateOperationsInput | number
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -60363,6 +62574,10 @@ export namespace Prisma {
      * @deprecated Use AccountDefaultArgs instead
      */
     export type AccountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AccountDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use AccountRelationshipDefaultArgs instead
+     */
+    export type AccountRelationshipArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AccountRelationshipDefaultArgs<ExtArgs>
     /**
      * @deprecated Use AccountReceiptDefaultArgs instead
      */

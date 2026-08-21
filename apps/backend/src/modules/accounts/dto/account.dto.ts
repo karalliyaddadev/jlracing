@@ -22,6 +22,7 @@ const optionalDate = z.preprocess(
 );
 
 const accountTypeValues = ["BANK", "CASH"] as const;
+const accountLevelValues = ["MAIN", "SUB"] as const;
 const paymentMethodValues = ["CASH", "CHEQUE", "BANK_TRANSFER"] as const;
 const accountTransferType = "ACCOUNT_TRANSFER";
 const voucherTypeValues = [
@@ -41,10 +42,26 @@ const voucherTypeValues = [
 export const createAccountSchema = z.object({
   name: z.string().trim().min(1, "Name is required").max(120, "Name is too long"),
   type: z.enum(accountTypeValues).default("BANK"),
+  level: z.enum(accountLevelValues).default("MAIN"),
+  mainAccountIds: z.array(z.number().int().positive()).default([]),
   openingBalance: z.number().default(0),
+}).superRefine((data, ctx) => {
+  if (data.level === "MAIN" && data.mainAccountIds.length > 0) {
+    ctx.addIssue({
+      code: "custom",
+      path: ["mainAccountIds"],
+      message: "Main accounts cannot be linked beneath other main accounts",
+    });
+  }
 });
 
-export const updateAccountSchema = createAccountSchema.partial();
+export const updateAccountSchema = z.object({
+  name: z.string().trim().min(1, "Name is required").max(120, "Name is too long").optional(),
+  type: z.enum(accountTypeValues).optional(),
+  level: z.enum(accountLevelValues).optional(),
+  mainAccountIds: z.array(z.number().int().positive()).optional(),
+  openingBalance: z.number().optional(),
+});
 
 export const createReceiptSchema = z.object({
   purchaseId: z.number().int().positive("Purchase is required"),
@@ -130,6 +147,7 @@ export const generateReceiptFromPaymentSchema = z.object({
 
 export const createDepositSchema = z.object({
   accountId: z.number().int().positive("Account is required"),
+  subAccountId: z.number().int().positive().optional(),
   receiptIds: z.array(z.number().int().positive()).min(1, "Select at least one receipt"),
   notes: z.string().trim().max(500).optional(),
 });

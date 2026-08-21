@@ -6,7 +6,15 @@ import { API_URL } from "../../../lib/constants";
 import { IconAccounts, IconEdit } from "../../../lib/icons";
 import TablePagination, { paginateRows } from "../../../components/TablePagination";
 
-type Account = { id: number; name: string; code: string; type: string; isActive: boolean };
+type Account = {
+  id: number;
+  name: string;
+  code: string;
+  type: string;
+  level: "MAIN" | "SUB";
+  isActive: boolean;
+  mainAccounts: Array<{ id: number; name: string; code: string }>;
+};
 
 type InvoicePaymentRow = {
   id: number;
@@ -51,6 +59,7 @@ type DepositRow = {
   isReversed: boolean;
   receiptCount: number;
   account: { id: number; name: string; code: string };
+  subAccount?: { id: number; name: string; code: string } | null;
   notes?: string | null;
 };
 
@@ -106,6 +115,7 @@ export default function ReceiptsPage() {
 
   const [deposits, setDeposits] = useState<DepositRow[]>([]);
   const [depositAccountId, setDepositAccountId] = useState(0);
+  const [depositSubAccountId, setDepositSubAccountId] = useState(0);
   const [depositNotes, setDepositNotes] = useState("");
   const [depositError, setDepositError] = useState("");
   const [depositSaving, setDepositSaving] = useState(false);
@@ -117,6 +127,17 @@ export default function ReceiptsPage() {
   const pagedPayments = useMemo(() => paginateRows(payments, paymentsPage, pageSize), [payments, paymentsPage, pageSize]);
   const pagedReceipts = useMemo(() => paginateRows(receipts, receiptsPage, pageSize), [receipts, receiptsPage, pageSize]);
   const pagedDeposits = useMemo(() => paginateRows(deposits, depositsPage, pageSize), [deposits, depositsPage, pageSize]);
+  const mainAccounts = useMemo(
+    () => accounts.filter((account) => account.level === "MAIN"),
+    [accounts],
+  );
+  const availableSubAccounts = useMemo(
+    () => accounts.filter(
+      (account) => account.level === "SUB"
+        && account.mainAccounts.some((main) => main.id === depositAccountId),
+    ),
+    [accounts, depositAccountId],
+  );
   useEffect(() => { setPaymentsPage(1); }, [paymentSearch, pageSize]);
   useEffect(() => { setReceiptsPage(1); }, [search, fromDate, toDate, pageSize]);
   useEffect(() => { setDepositsPage(1); }, [pageSize]);
@@ -329,13 +350,19 @@ export default function ReceiptsPage() {
       const res = await fetch(`${API_URL}/api/pos/accounts/deposits`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ accountId: depositAccountId, receiptIds: [...selectedReceiptIds], notes: depositNotes || undefined }),
+        body: JSON.stringify({
+          accountId: depositAccountId,
+          subAccountId: depositSubAccountId || undefined,
+          receiptIds: [...selectedReceiptIds],
+          notes: depositNotes || undefined,
+        }),
       });
       const d = await res.json();
       if (!res.ok) { setDepositError(d.message ?? "Failed to create deposit"); setDepositSaving(false); return; }
       setSelectedReceiptIds(new Set());
       setDepositNotes("");
       setDepositAccountId(0);
+      setDepositSubAccountId(0);
       await Promise.all([fetchReceipts(), fetchDeposits()]);
     } catch {
       setDepositError("Network error");
@@ -643,12 +670,27 @@ export default function ReceiptsPage() {
           </div>
           <div style={{ padding: "1rem 1.25rem" }}>
             {depositError && <div className="bm-alert bm-alert-error" style={{ marginBottom: 12 }}>{depositError}</div>}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr auto", gap: "1rem", alignItems: "end" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr auto", gap: "1rem", alignItems: "end" }}>
               <div className="bm-field-group" style={{ marginBottom: 0 }}>
-                <label className="users-label">Deposit to Account *</label>
-                <select className="bm-select" value={depositAccountId} onChange={(e) => setDepositAccountId(Number(e.target.value))}>
-                  <option value={0}>— Select Account —</option>
-                  {accounts.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
+                <label className="users-label">Main Account *</label>
+                <select className="bm-select" value={depositAccountId} onChange={(e) => {
+                  setDepositAccountId(Number(e.target.value));
+                  setDepositSubAccountId(0);
+                }}>
+                  <option value={0}>— Select Main Account —</option>
+                  {mainAccounts.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
+                </select>
+              </div>
+              <div className="bm-field-group" style={{ marginBottom: 0 }}>
+                <label className="users-label">Sub Account (optional)</label>
+                <select
+                  className="bm-select"
+                  value={depositSubAccountId}
+                  disabled={!depositAccountId || availableSubAccounts.length === 0}
+                  onChange={(e) => setDepositSubAccountId(Number(e.target.value))}
+                >
+                  <option value={0}>— No Sub Account —</option>
+                  {availableSubAccounts.map((a) => <option key={a.id} value={a.id}>{a.name} ({a.code})</option>)}
                 </select>
               </div>
               <div className="bm-field-group" style={{ marginBottom: 0 }}>
@@ -683,7 +725,8 @@ export default function ReceiptsPage() {
                   <tr>
                     <th>Deposit No</th>
                     <th>Date</th>
-                    <th>Account</th>
+                    <th>Main Account</th>
+                    <th>Sub Account</th>
                     <th>Receipts</th>
                     <th style={{ textAlign: "right" }}>Total</th>
                     <th>Status</th>
@@ -701,6 +744,7 @@ export default function ReceiptsPage() {
                       </td>
                       <td className="td-muted">{formatDate(d.createdAt)}</td>
                       <td className="td-muted">{d.account.name}</td>
+                      <td className="td-muted">{d.subAccount?.name ?? "—"}</td>
                       <td className="td-muted">{d.receiptCount} receipt{d.receiptCount !== 1 ? "s" : ""}</td>
                       <td style={{ textAlign: "right", fontWeight: 600 }}>{formatRs(d.totalAmount)}</td>
                       <td>

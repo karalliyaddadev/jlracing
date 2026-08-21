@@ -8,7 +8,13 @@ import { exportTableToPdf } from "../../../lib/pdf-export";
 import { exportLedgerToExcel } from "../../../lib/excel-export";
 import TablePagination, { paginateRows } from "../../../components/TablePagination";
 
-type Account = { id: number; name: string; code: string; type: string };
+type Account = {
+  id: number;
+  name: string;
+  code: string;
+  type: string;
+  level: "MAIN" | "SUB";
+};
 
 type LedgerRow = {
   id: number;
@@ -185,7 +191,9 @@ export default function LedgerPage() {
             >
               <option value={0}>— Select account —</option>
               {accounts.map((a) => (
-                <option key={a.id} value={a.id}>{a.name} ({a.code})</option>
+                <option key={a.id} value={a.id}>
+                  {a.name} ({a.code}) — {a.level === "MAIN" ? "Main" : "Sub"} · {a.type}
+                </option>
               ))}
             </select>
           </div>
@@ -199,7 +207,7 @@ export default function LedgerPage() {
           </div>
           <div className="bm-field-group" style={{ display: "flex", alignItems: "flex-end" }}>
             <button className="btn-accent" onClick={search} disabled={loading} style={{ width: "100%" }}>
-              {loading ? "Searching..." : "Search"}
+              {loading ? "Loading..." : "View Transactions"}
             </button>
           </div>
         </div>
@@ -216,7 +224,7 @@ export default function LedgerPage() {
                 <h3>{result.account.name}</h3>
               </div>
               <div className="td-muted" style={{ marginTop: 2, marginLeft: 28, fontSize: "0.8rem" }}>
-                {result.account.code} · {result.account.type}
+                {result.account.code} · {result.account.level === "MAIN" ? "Main" : "Sub"} · {result.account.type}
               </div>
             </div>
           </div>

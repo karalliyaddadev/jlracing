@@ -462,10 +462,17 @@ exports.Prisma.AccountScalarFieldEnum = {
   name: 'name',
   code: 'code',
   type: 'type',
+  level: 'level',
   openingBalance: 'openingBalance',
   isActive: 'isActive',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
+};
+
+exports.Prisma.AccountRelationshipScalarFieldEnum = {
+  mainAccountId: 'mainAccountId',
+  subAccountId: 'subAccountId',
+  createdAt: 'createdAt'
 };
 
 exports.Prisma.AccountReceiptScalarFieldEnum = {
@@ -538,6 +545,7 @@ exports.Prisma.AccountDepositScalarFieldEnum = {
   id: 'id',
   depositNo: 'depositNo',
   accountId: 'accountId',
+  subAccountId: 'subAccountId',
   totalAmount: 'totalAmount',
   notes: 'notes',
   isReversed: 'isReversed',
@@ -631,6 +639,11 @@ exports.AccountType = exports.$Enums.AccountType = {
   CASH: 'CASH'
 };
 
+exports.AccountLevel = exports.$Enums.AccountLevel = {
+  MAIN: 'MAIN',
+  SUB: 'SUB'
+};
+
 exports.PaymentMethod = exports.$Enums.PaymentMethod = {
   CASH: 'CASH',
   CHEQUE: 'CHEQUE',
@@ -699,6 +712,7 @@ exports.Prisma.ModelName = {
   ExportVehicle: 'ExportVehicle',
   ExportVehicleImage: 'ExportVehicleImage',
   Account: 'Account',
+  AccountRelationship: 'AccountRelationship',
   AccountReceipt: 'AccountReceipt',
   AccountVoucher: 'AccountVoucher',
   AccountTransaction: 'AccountTransaction',

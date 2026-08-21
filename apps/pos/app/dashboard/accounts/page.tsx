@@ -11,12 +11,21 @@ type Account = {
   name: string;
   code: string;
   type: "BANK" | "CASH";
+  level: "MAIN" | "SUB";
   openingBalance: number;
   isActive: boolean;
   createdAt: string;
+  mainAccounts: Array<{ id: number; name: string; code: string }>;
+  subAccounts: Array<{ id: number; name: string; code: string }>;
 };
 
-const EMPTY_FORM = { name: "", type: "BANK" as "BANK" | "CASH", openingBalance: 0 };
+const EMPTY_FORM = {
+  name: "",
+  type: "BANK" as "BANK" | "CASH",
+  level: "MAIN" as "MAIN" | "SUB",
+  openingBalance: 0,
+  mainAccountIds: [] as number[],
+};
 
 export default function ManageAccountsPage() {
   const { token } = useAdmin();
@@ -32,8 +41,19 @@ export default function ManageAccountsPage() {
   const [pageSize, setPageSize] = useState(20);
   const filteredAccounts = useMemo(() => {
     const needle = search.trim().toLowerCase();
-    return needle ? accounts.filter((account) => [account.code, account.name, account.type].some((value) => value.toLowerCase().includes(needle))) : accounts;
+    return needle ? accounts.filter((account) => [
+      account.code,
+      account.name,
+      account.type,
+      account.level,
+      ...account.mainAccounts.map((main) => main.name),
+      ...account.subAccounts.map((sub) => sub.name),
+    ].some((value) => value.toLowerCase().includes(needle))) : accounts;
   }, [accounts, search]);
+  const mainAccounts = useMemo(
+    () => accounts.filter((account) => account.level === "MAIN" && account.isActive),
+    [accounts],
+  );
   const pagedAccounts = useMemo(() => paginateRows(filteredAccounts, page, pageSize), [filteredAccounts, page, pageSize]);
   useEffect(() => { setPage(1); }, [search, pageSize]);
 
@@ -65,7 +85,13 @@ export default function ManageAccountsPage() {
 
   function openEdit(acc: Account) {
     setEditing(acc);
-    setForm({ name: acc.name, type: acc.type, openingBalance: acc.openingBalance });
+    setForm({
+      name: acc.name,
+      type: acc.type,
+      level: acc.level,
+      openingBalance: acc.openingBalance,
+      mainAccountIds: acc.mainAccounts.map((main) => main.id),
+    });
     setError("");
     setModalOpen(true);
   }
@@ -112,7 +138,7 @@ export default function ManageAccountsPage() {
           <span className="page-title-icon"><IconAccounts /></span>
           <div>
             <h1 className="page-title">Manage Accounts</h1>
-            <p className="page-subtitle">Bank and cash accounts for the general ledger</p>
+            <p className="page-subtitle">Main financial accounts and linked customer sub accounts</p>
           </div>
         </div>
         <button className="btn-accent" style={{ display: "flex", alignItems: "center", gap: 6 }} onClick={openAdd}>
@@ -131,7 +157,9 @@ export default function ManageAccountsPage() {
                 <tr>
                   <th>Code</th>
                   <th>Name</th>
+                  <th>Level</th>
                   <th>Type</th>
+                  <th>Linked Accounts</th>
                   <th>Opening Balance</th>
                   <th>Status</th>
                   <th>Actions</th>
@@ -139,7 +167,7 @@ export default function ManageAccountsPage() {
               </thead>
               <tbody>
                 {accounts.length === 0 ? (
-                  <tr><td colSpan={6} className="bm-table-empty">No accounts yet. Add your first account.</td></tr>
+                  <tr><td colSpan={8} className="bm-table-empty">No accounts yet. Add your first account.</td></tr>
                 ) : pagedAccounts.map((acc) => (
                   <tr key={acc.id} style={{ opacity: acc.isActive ? 1 : 0.55 }}>
                     <td>
@@ -149,9 +177,19 @@ export default function ManageAccountsPage() {
                     </td>
                     <td style={{ fontWeight: 600 }}>{acc.name}</td>
                     <td>
+                      <span className={`badge ${acc.level === "MAIN" ? "badge-review" : "badge-active"}`}>
+                        {acc.level === "MAIN" ? "Main" : "Sub"}
+                      </span>
+                    </td>
+                    <td>
                       <span className={`badge ${acc.type === "BANK" ? "badge-review" : "badge-active"}`}>
                         {acc.type}
                       </span>
+                    </td>
+                    <td className="td-muted" style={{ fontSize: "0.8rem" }}>
+                      {acc.level === "SUB"
+                        ? acc.mainAccounts.map((main) => main.name).join(", ") || "—"
+                        : `${acc.subAccounts.length} sub account${acc.subAccounts.length === 1 ? "" : "s"}`}
                     </td>
                     <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
                       Rs. {acc.openingBalance.toLocaleString()}
@@ -202,6 +240,23 @@ export default function ManageAccountsPage() {
                   />
                 </div>
                 <div className="bm-field-group">
+                  <label className="users-label">Account Level *</label>
+                  <select
+                    className="bm-select"
+                    value={form.level}
+                    disabled={Boolean(editing)}
+                    onChange={(e) => setForm({
+                      ...form,
+                      level: e.target.value as "MAIN" | "SUB",
+                      mainAccountIds: [],
+                    })}
+                  >
+                    <option value="MAIN">Main Account</option>
+                    <option value="SUB">Sub Account</option>
+                  </select>
+                  {editing && <small className="td-muted">Account level cannot be changed after creation.</small>}
+                </div>
+                <div className="bm-field-group">
                   <label className="users-label">Account Type *</label>
                   <select
                     className="bm-select"
@@ -212,6 +267,30 @@ export default function ManageAccountsPage() {
                     <option value="CASH">Cash Account</option>
                   </select>
                 </div>
+                {form.level === "SUB" && (
+                  <div className="bm-field-group">
+                    <label className="users-label">Linked Main Accounts</label>
+                    <div style={{ display: "grid", gap: 8, padding: "0.75rem", border: "1px solid var(--panel-border)", borderRadius: 8 }}>
+                      {mainAccounts.length === 0 ? (
+                        <span className="td-muted">Create a main account first.</span>
+                      ) : mainAccounts.map((main) => (
+                        <label key={main.id} style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}>
+                          <input
+                            type="checkbox"
+                            checked={form.mainAccountIds.includes(main.id)}
+                            onChange={(e) => setForm({
+                              ...form,
+                              mainAccountIds: e.target.checked
+                                ? [...form.mainAccountIds, main.id]
+                                : form.mainAccountIds.filter((id) => id !== main.id),
+                            })}
+                          />
+                          <span>{main.name} ({main.code})</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
                 <div className="bm-field-group">
                   <label className="users-label">Opening Balance (Rs.)</label>
                   <input

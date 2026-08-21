@@ -52,6 +52,11 @@ enum AccountType {
   CASH
 }
 
+enum AccountLevel {
+  MAIN
+  SUB
+}
+
 enum PaymentMethod {
   CASH
   CHEQUE
@@ -578,6 +583,7 @@ model Account {
   name           String
   code           String               @unique
   type           AccountType          @default(BANK)
+  level          AccountLevel         @default(MAIN)
   openingBalance Float                @default(0)
   isActive       Boolean              @default(true)
   createdAt      DateTime             @default(now())
@@ -586,9 +592,24 @@ model Account {
   vouchers       AccountVoucher[]     @relation("VoucherFromAccount")
   toVouchers     AccountVoucher[]     @relation("VoucherToAccount")
   transactions   AccountTransaction[]
-  deposits       AccountDeposit[]
+  deposits       AccountDeposit[]     @relation("MainAccountDeposits")
+  subDeposits    AccountDeposit[]     @relation("SubAccountDeposits")
+  mainLinks      AccountRelationship[] @relation("MainAccountLinks")
+  subLinks       AccountRelationship[] @relation("SubAccountLinks")
 
   @@map("accounts")
+}
+
+model AccountRelationship {
+  mainAccountId Int
+  subAccountId  Int
+  createdAt     DateTime @default(now())
+  mainAccount   Account  @relation("MainAccountLinks", fields: [mainAccountId], references: [id], onDelete: Cascade)
+  subAccount    Account  @relation("SubAccountLinks", fields: [subAccountId], references: [id], onDelete: Cascade)
+
+  @@id([mainAccountId, subAccountId])
+  @@index([subAccountId])
+  @@map("account_relationships")
 }
 
 model AccountReceipt {
@@ -692,17 +713,20 @@ model AccountDeposit {
   id          Int                  @id @default(autoincrement())
   depositNo   String               @unique
   accountId   Int
+  subAccountId Int?
   totalAmount Float
   notes       String?
   isReversed  Boolean              @default(false)
   reversedAt  DateTime?
   createdById Int
   createdAt   DateTime             @default(now())
-  account     Account              @relation(fields: [accountId], references: [id])
+  account     Account              @relation("MainAccountDeposits", fields: [accountId], references: [id])
+  subAccount  Account?             @relation("SubAccountDeposits", fields: [subAccountId], references: [id])
   items       AccountDepositItem[]
   transactions AccountTransaction[]
 
   @@index([accountId])
+  @@index([subAccountId])
   @@map("account_deposits")
 }
 

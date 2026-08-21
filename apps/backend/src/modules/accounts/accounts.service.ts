@@ -3,6 +3,7 @@ import { prisma } from "../../database/prisma.client";
 import { AppError } from "../../common/utils/errors";
 import { prismaModelHasObjectField } from "../../common/utils/prisma-model";
 import {
+  AccountLevel,
   ChequeStatus,
   PaymentMethod,
   TransactionDirection,
@@ -314,33 +315,105 @@ function mapVoucherRow(row: VoucherRow, toAccount: AccountSummary | null) {
 // ─── Chart of Accounts ────────────────────────────────────────────────────────
 
 export async function listAccounts() {
-  return prisma.account.findMany({
+  const accounts = await prisma.account.findMany({
     orderBy: { code: "asc" },
+    include: {
+      mainLinks: {
+        include: { subAccount: { select: { id: true, name: true, code: true } } },
+      },
+      subLinks: {
+        include: { mainAccount: { select: { id: true, name: true, code: true } } },
+      },
+    },
   });
+  return accounts.map(({ mainLinks, subLinks, ...account }) => ({
+    ...account,
+    subAccounts: mainLinks.map((link) => link.subAccount),
+    mainAccounts: subLinks.map((link) => link.mainAccount),
+  }));
 }
 
 export async function createAccount(dto: CreateAccountDto) {
   const code = await generateAccountCode();
+  const mainAccountIds = [...new Set(dto.mainAccountIds)];
+  if (dto.level === AccountLevel.SUB && mainAccountIds.length > 0) {
+    const validMainCount = await prisma.account.count({
+      where: { id: { in: mainAccountIds }, level: AccountLevel.MAIN, isActive: true },
+    });
+    if (validMainCount !== mainAccountIds.length) {
+      throw new AppError("One or more selected main accounts are invalid or inactive", 400);
+    }
+  }
+
   return prisma.account.create({
     data: {
       name: dto.name,
       type: dto.type,
+      level: dto.level,
       openingBalance: dto.openingBalance ?? 0,
       code,
+      ...(dto.level === AccountLevel.SUB && mainAccountIds.length > 0
+        ? { subLinks: { create: mainAccountIds.map((mainAccountId) => ({ mainAccountId })) } }
+        : {}),
+    },
+    include: {
+      subLinks: {
+        include: { mainAccount: { select: { id: true, name: true, code: true } } },
+      },
     },
   });
 }
 
 export async function updateAccount(id: number, dto: UpdateAccountDto) {
-  const account = await prisma.account.findUnique({ where: { id } });
-  if (!account) throw AppError.notFound("Account not found");
-  return prisma.account.update({
+  const account = await prisma.account.findUnique({
     where: { id },
-    data: {
-      ...(dto.name !== undefined && { name: dto.name }),
-      ...(dto.type !== undefined && { type: dto.type }),
-      ...(dto.openingBalance !== undefined && { openingBalance: dto.openingBalance }),
-    },
+    include: { subLinks: true, mainLinks: true },
+  });
+  if (!account) throw AppError.notFound("Account not found");
+  const level = dto.level ?? account.level;
+  const mainAccountIds = [...new Set(
+    dto.mainAccountIds ?? account.subLinks.map((link) => link.mainAccountId),
+  )];
+
+  if (level === AccountLevel.MAIN && mainAccountIds.length > 0) {
+    throw new AppError("Main accounts cannot be linked beneath other main accounts", 400);
+  }
+  if (level === AccountLevel.SUB && mainAccountIds.length > 0) {
+    const validMainCount = await prisma.account.count({
+      where: {
+        id: { in: mainAccountIds, not: id },
+        level: AccountLevel.MAIN,
+        isActive: true,
+      },
+    });
+    if (validMainCount !== mainAccountIds.length) {
+      throw new AppError("One or more selected main accounts are invalid or inactive", 400);
+    }
+  }
+
+  if (level !== account.level) {
+    const usageCount = await prisma.accountTransaction.count({ where: { accountId: id } });
+    if (usageCount > 0 || account.mainLinks.length > 0 || account.subLinks.length > 0) {
+      throw new AppError("An account with transactions or relationships cannot change level", 400);
+    }
+  }
+
+  return prisma.$transaction(async (tx) => {
+    await tx.accountRelationship.deleteMany({ where: { subAccountId: id } });
+    if (level === AccountLevel.SUB && mainAccountIds.length > 0) {
+      await tx.accountRelationship.createMany({
+        data: mainAccountIds.map((mainAccountId) => ({ mainAccountId, subAccountId: id })),
+      });
+    }
+    return tx.account.update({
+      where: { id },
+      data: {
+        ...(dto.name !== undefined && { name: dto.name }),
+        ...(dto.type !== undefined && { type: dto.type }),
+        level,
+        ...(dto.openingBalance !== undefined && { openingBalance: dto.openingBalance }),
+      },
+    });
   });
 }
 
@@ -1389,6 +1462,7 @@ export async function listDeposits(dto: DepositQueryDto) {
       where,
       include: {
         account: { select: { id: true, name: true, code: true } },
+        subAccount: { select: { id: true, name: true, code: true } },
         items: { select: { id: true, receiptId: true, amount: true } },
       },
       orderBy: { createdAt: "desc" },
@@ -1408,6 +1482,7 @@ export async function getDeposit(id: number) {
     where: { id },
     include: {
       account: { select: { id: true, name: true, code: true } },
+      subAccount: { select: { id: true, name: true, code: true } },
       items: {
         include: {
           receipt: {
@@ -1430,11 +1505,37 @@ export async function getDeposit(id: number) {
 }
 
 export async function createDeposit(dto: CreateDepositDto, adminId: number) {
-  const account = await prisma.account.findUnique({ where: { id: dto.accountId } });
-  if (!account || !account.isActive) throw AppError.notFound("Account not found or inactive");
+  const [account, subAccount] = await Promise.all([
+    prisma.account.findUnique({ where: { id: dto.accountId } }),
+    dto.subAccountId
+      ? prisma.account.findUnique({ where: { id: dto.subAccountId } })
+      : Promise.resolve(null),
+  ]);
+  if (!account || !account.isActive || account.level !== AccountLevel.MAIN) {
+    throw AppError.notFound("Main account not found or inactive");
+  }
+  if (dto.subAccountId) {
+    if (!subAccount || !subAccount.isActive || subAccount.level !== AccountLevel.SUB) {
+      throw AppError.notFound("Sub account not found or inactive");
+    }
+    const relationship = await prisma.accountRelationship.findUnique({
+      where: {
+        mainAccountId_subAccountId: {
+          mainAccountId: dto.accountId,
+          subAccountId: dto.subAccountId,
+        },
+      },
+    });
+    if (!relationship) throw new AppError("Sub account is not linked to the selected main account", 400);
+  }
 
   const receipts = await prisma.accountReceipt.findMany({
     where: { id: { in: dto.receiptIds }, isVoided: false, isDeposited: false },
+    include: {
+      purchase: {
+        select: { customer: { select: { firstName: true, lastName: true } } },
+      },
+    },
   });
 
   if (receipts.length !== dto.receiptIds.length) {
@@ -1458,6 +1559,7 @@ export async function createDeposit(dto: CreateDepositDto, adminId: number) {
       data: {
         depositNo: "TEMP",
         accountId: dto.accountId,
+        subAccountId: dto.subAccountId,
         totalAmount,
         notes: dto.notes,
         createdById: adminId,
@@ -1487,21 +1589,48 @@ export async function createDeposit(dto: CreateDepositDto, adminId: number) {
           amount: totalAmount,
           depositId: deposit.id,
           refNo: depositNo,
-          description: dto.notes ?? `Deposit batch ${depositNo}`,
+          description: subAccount
+            ? `${subAccount.name}${dto.notes ? ` — ${dto.notes}` : ""}`
+            : dto.notes ?? `Deposit batch ${depositNo}`,
           chequeNo: depositChequeNo,
           createdById: adminId,
         },
       }),
     ]);
 
-    return { ...deposit, depositNo, receiptCount: receipts.length };
+    if (subAccount) {
+      await tx.accountTransaction.createMany({
+        data: receipts.map((receipt) => {
+          const customerName = [
+            receipt.purchase.customer.firstName,
+            receipt.purchase.customer.lastName,
+          ].filter(Boolean).join(" ");
+          return {
+            accountId: subAccount.id,
+            type: TransactionType.DEPOSIT,
+            direction: TransactionDirection.DR,
+            amount: receipt.amount,
+            depositId: deposit.id,
+            refNo: receipt.receiptNo,
+            description: customerName || `Receipt ${receipt.receiptNo}`,
+            chequeNo: receipt.chequeNo,
+            createdById: adminId,
+          };
+        }),
+      });
+    }
+
+    return { ...deposit, depositNo, receiptCount: receipts.length, account, subAccount };
   });
 }
 
 export async function reverseDeposit(depositId: number, adminId: number) {
   const deposit = await prisma.accountDeposit.findUnique({
     where: { id: depositId },
-    include: { items: true },
+    include: {
+      items: true,
+      transactions: { where: { isReversal: false } },
+    },
   });
   if (!deposit) throw AppError.notFound("Deposit not found");
   if (deposit.isReversed) throw new AppError("Deposit is already reversed", 400);
@@ -1521,18 +1650,22 @@ export async function reverseDeposit(depositId: number, adminId: number) {
       data: { isDeposited: false },
     });
 
-    await tx.accountTransaction.create({
-      data: {
-        accountId: deposit.accountId,
+    await tx.accountTransaction.createMany({
+      data: deposit.transactions.map((transaction) => ({
+        accountId: transaction.accountId,
         type: TransactionType.REVERSAL,
-        direction: TransactionDirection.CR,
-        amount: deposit.totalAmount,
+        direction:
+          transaction.direction === TransactionDirection.DR
+            ? TransactionDirection.CR
+            : TransactionDirection.DR,
+        amount: transaction.amount,
         depositId,
-        refNo: deposit.depositNo,
-        description: `Reversal of deposit ${deposit.depositNo}`,
+        refNo: transaction.refNo ?? deposit.depositNo,
+        description: `Reversal of ${transaction.description ?? `deposit ${deposit.depositNo}`}`,
+        chequeNo: transaction.chequeNo,
         isReversal: true,
         createdById: adminId,
-      },
+      })),
     });
 
     return { message: "Deposit reversed successfully" };
@@ -1615,7 +1748,13 @@ export async function getLedger(dto: LedgerQueryDto) {
   const totalCr = rows.reduce((s, r) => s + r.crAmount, 0);
 
   return {
-    account: { id: account.id, name: account.name, code: account.code, type: account.type },
+    account: {
+      id: account.id,
+      name: account.name,
+      code: account.code,
+      type: account.type,
+      level: account.level,
+    },
     openingBalance,
     rows,
     totalDr,
