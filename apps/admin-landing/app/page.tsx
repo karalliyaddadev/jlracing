@@ -33,7 +33,7 @@ const cards: PortalCard[] = [
   },
   {
     key: "local",
-    title: "Local Website",
+    title: "Sri Lanka Website",
     features: [
       "Home Page- Hero Banner",
       "Home Page- Video (16:9)",

@@ -147,7 +147,7 @@ export default function AboutPage() {
                 <strong>JL Racing Sri Lanka</strong>, a hub for motorsport
                 enthusiasts and performance vehicles.{" "}
                 <Link
-                  href="https://local.jlracingshop.com/"
+                  href="https://sl.jlracingshop.com/"
                   className="abt-company__caption-link"
                 >
                   <strong>Visit their website</strong>
