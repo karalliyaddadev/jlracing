@@ -134,26 +134,28 @@ export default function AboutPage() {
               direction="right"
               delay={0.2}
             >
-              <Image
-                src="/about/group-img.jpg"
-                alt="JLR International team"
-                fill
-                sizes="(max-width: 900px) 100vw, 50vw"
-                className="abt-company__img"
-                style={{ objectFit: "cover" }}
-              />
-              <div className="abt-company__img-caption">
-                The same team behind JLR International also operates{" "}
-                <strong>JL Racing Sri Lanka</strong>, a hub for motorsport
-                enthusiasts and performance vehicles.{" "}
-                <Link
-                  href="https://sl.jlracingshop.com/"
-                  className="abt-company__caption-link"
-                >
-                  <strong>Visit their website</strong>
-                </Link>
-                .
-              </div>
+              <a
+                href="https://sl.jlracingshop.com/"
+                className="abt-company__card-link"
+              >
+                <Image
+                  src="/about/group-img.jpg"
+                  alt="JLR International team"
+                  fill
+                  sizes="(max-width: 900px) 100vw, 50vw"
+                  className="abt-company__img"
+                  style={{ objectFit: "cover" }}
+                />
+                <div className="abt-company__img-caption">
+                  The same team behind JLR International also operates{" "}
+                  <strong>JL Racing Sri Lanka</strong>, a hub for motorsport
+                  enthusiasts and performance vehicles.{" "}
+                  <strong className="abt-company__caption-link">
+                    Visit their website
+                  </strong>
+                  .
+                </div>
+              </a>
             </FadeIn>
           </div>
         </div>

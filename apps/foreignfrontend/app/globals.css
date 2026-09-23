@@ -1591,6 +1591,12 @@ button {
   min-height: 420px;
 }
 
+.abt-company__card-link {
+  position: absolute;
+  inset: 0;
+  display: block;
+}
+
 .abt-company__img {
   width: 100%;
   height: 100%;
@@ -1619,7 +1625,7 @@ button {
   transition: color 0.2s;
 }
 
-.abt-company__caption-link:hover {
+.abt-company__card-link:hover .abt-company__caption-link {
   color: var(--accent-light);
 }
 
