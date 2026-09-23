@@ -1,6 +1,13 @@
 import Image from "next/image";
 
-const BRANDS = [
+type Brand = {
+  name: string;
+  src: string;
+  scale: number;
+  offsetY?: number;
+};
+
+const BRANDS: Brand[] = [
   { name: "Audi", src: "/trusted/audi.png", scale: 0.9 },
   { name: "BMW", src: "/trusted/bmw.webp", scale: 1.25 },
   { name: "Ducati", src: "/trusted/ducati.png", scale: 0.8 },
@@ -11,7 +18,7 @@ const BRANDS = [
   { name: "Mazda", src: "/trusted/mazda.png", scale: 1.1 },
   { name: "Nissan", src: "/trusted/nissan.png", scale: 0.82 },
   { name: "Suzuki", src: "/trusted/suzuki.png", scale: 1.15 },
-  { name: "Toyota", src: "/trusted/toyota.png", scale: 0.95 },
+  { name: "Toyota", src: "/trusted/toyota.png", scale: 0.95, offsetY: 16 },
   { name: "Triumph", src: "/trusted/triumph.png", scale: 1 },
   { name: "Yamaha", src: "/trusted/yamaha.png", scale: 1 },
 ];
@@ -48,7 +55,9 @@ export default function TrustedBrands() {
                     height={260}
                     quality={100}
                     className="int-brands__logo"
-                    style={{ transform: `scale(${brand.scale})` }}
+                    style={{
+                      transform: `translateY(${brand.offsetY ?? 0}px) scale(${brand.scale})`,
+                    }}
                   />
                 </div>
               </div>
