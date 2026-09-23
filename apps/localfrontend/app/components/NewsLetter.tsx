@@ -67,7 +67,7 @@ export default function NewsLetter() {
     <section className="nl">
       {/* Desktop layout */}
       <div className="nl__desktop">
-        <img src="/news-letter/left-girl.jpg" alt="" className="nl__left-img" />
+        <img src="/news-letter/news_small.webp" alt="" className="nl__left-img" />
         <div className="nl__content">
           <div className="nl__logos">
             {LOGOS.map((l) => (
