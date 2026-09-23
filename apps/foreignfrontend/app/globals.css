@@ -692,6 +692,7 @@ button {
   width: 140px;
   height: 130px;
   padding: 0;
+  overflow: hidden;
 }
 
 .int-brands__logo-wrap {

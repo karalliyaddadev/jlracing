@@ -1,19 +1,19 @@
 import Image from "next/image";
 
 const BRANDS = [
-  { name: "Audi", src: "/trusted/audi.png" },
-  { name: "BMW", src: "/trusted/bmw.webp" },
-  { name: "Ducati", src: "/trusted/ducati.png" },
-  { name: "Harley-Davidson", src: "/trusted/harley-davidson.png" },
-  { name: "Honda", src: "/trusted/honda.png" },
-  { name: "Kawasaki", src: "/trusted/kawasaki.png" },
-  { name: "KTM", src: "/trusted/ktm.png" },
-  { name: "Mazda", src: "/trusted/mazda.png" },
-  { name: "Nissan", src: "/trusted/nissan.png" },
-  { name: "Suzuki", src: "/trusted/suzuki.png" },
-  { name: "Toyota", src: "/trusted/toyota.png" },
-  { name: "Triumph", src: "/trusted/triumph.png" },
-  { name: "Yamaha", src: "/trusted/yamaha.png" },
+  { name: "Audi", src: "/trusted/audi.png", scale: 0.9 },
+  { name: "BMW", src: "/trusted/bmw.webp", scale: 1.25 },
+  { name: "Ducati", src: "/trusted/ducati.png", scale: 0.8 },
+  { name: "Harley-Davidson", src: "/trusted/harley-davidson.png", scale: 1.5 },
+  { name: "Honda", src: "/trusted/honda.png", scale: 0.95 },
+  { name: "Kawasaki", src: "/trusted/kawasaki.png", scale: 1 },
+  { name: "KTM", src: "/trusted/ktm.png", scale: 0.95 },
+  { name: "Mazda", src: "/trusted/mazda.png", scale: 1.1 },
+  { name: "Nissan", src: "/trusted/nissan.png", scale: 0.82 },
+  { name: "Suzuki", src: "/trusted/suzuki.png", scale: 1.15 },
+  { name: "Toyota", src: "/trusted/toyota.png", scale: 0.95 },
+  { name: "Triumph", src: "/trusted/triumph.png", scale: 1 },
+  { name: "Yamaha", src: "/trusted/yamaha.png", scale: 1 },
 ];
 
 export default function TrustedBrands() {
@@ -48,6 +48,7 @@ export default function TrustedBrands() {
                     height={260}
                     quality={100}
                     className="int-brands__logo"
+                    style={{ transform: `scale(${brand.scale})` }}
                   />
                 </div>
               </div>
