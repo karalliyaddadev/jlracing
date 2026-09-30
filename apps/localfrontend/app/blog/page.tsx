@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import Pagination from "../components/Pagination";
 import FadeIn from "../components/FadeIn";
+import { toCssAspectRatio } from "../lib/aspect-ratio";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
@@ -92,7 +93,10 @@ export default function BlogPage() {
                 {posts.map((post, i) => (
                   <FadeIn key={`${currentPage}-${post.id}`} delay={i * 0.07}>
                   <article className="blog-card">
-                    <div className="blog-card__image">
+                    <div
+                      className="blog-card__image"
+                      style={{ aspectRatio: toCssAspectRatio(post.imageRatio) }}
+                    >
                       {post.imageUrl ? (
                         <img
                           src={
@@ -101,11 +105,6 @@ export default function BlogPage() {
                               : `${CMS_API_URL}${post.imageUrl}`
                           }
                           alt={post.title}
-                          style={{
-                            width: "100%",
-                            height: "100%",
-                            objectFit: "cover",
-                          }}
                         />
                       ) : (
                         <div className="blog-card__image-placeholder">

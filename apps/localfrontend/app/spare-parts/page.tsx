@@ -20,6 +20,8 @@ interface PublicProduct {
   id: number;
   displayId: string;
   name: string;
+  partNumber: string | null;
+  compatibleWith: string | null;
   brand: { id: number; name: string } | null;
   category: { id: number; name: string } | null;
   quantity: number;
@@ -213,7 +215,7 @@ export default function SparePartsPage() {
     if (statuses.length && !statuses.includes(status)) return false;
     if (
       q &&
-      !`${p.name} ${p.brand?.name ?? ""} ${p.category?.name ?? ""} ${p.description ?? ""}`
+      !`${p.name} ${p.brand?.name ?? ""} ${p.category?.name ?? ""} ${p.partNumber ?? ""} ${p.compatibleWith ?? ""} ${p.description ?? ""}`
         .toLowerCase()
         .includes(q)
     )

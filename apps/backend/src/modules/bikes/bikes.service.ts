@@ -79,6 +79,8 @@ export async function listPublicProducts(query: {
     where["OR"] = [
       { name: { contains: search, mode: "insensitive" } },
       { description: { contains: search, mode: "insensitive" } },
+      { partNumber: { contains: search, mode: "insensitive" } },
+      { compatibleWith: { contains: search, mode: "insensitive" } },
       { brand: { name: { contains: search, mode: "insensitive" } } },
       { category: { name: { contains: search, mode: "insensitive" } } },
     ];

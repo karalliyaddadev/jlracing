@@ -21,6 +21,8 @@ interface PublicProduct {
   id: number;
   displayId: string;
   name: string;
+  partNumber: string | null;
+  compatibleWith: string | null;
   brand: { id: number; name: string } | null;
   category: { id: number; name: string } | null;
   quantity: number;
@@ -101,8 +103,14 @@ export default function SparePartDetailPage() {
 
   const specs = [
     { label: "Part No.", value: part.displayId },
+    ...(part.partNumber?.trim()
+      ? [{ label: "OEM Code", value: part.partNumber.trim() }]
+      : []),
     { label: "Brand", value: part.brand?.name ?? "—" },
     { label: "Category", value: part.category?.name ?? "—" },
+    ...(part.compatibleWith?.trim()
+      ? [{ label: "Compatible With", value: part.compatibleWith.trim() }]
+      : []),
     { label: "Availability", value: status },
     ...(part.quantity > 0
       ? [{ label: "In Stock", value: `${part.quantity} units` }]

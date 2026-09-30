@@ -678,7 +678,8 @@ export async function updateProduct(id: number, dto: UpdateProductDto) {
       : undefined;
   const description =
     dto.description !== undefined || dto.descriptionPoints !== undefined
-      ? normalizeProductDescription(dto.description, dto.descriptionPoints)
+      ? (normalizeProductDescription(dto.description, dto.descriptionPoints) ??
+        null)
       : undefined;
 
   return prisma.inventoryProduct.update({
@@ -711,9 +712,7 @@ export async function updateProduct(id: number, dto: UpdateProductDto) {
       ...(dto.sellingPrice !== undefined
         ? { sellingPrice: dto.sellingPrice }
         : {}),
-      ...(description !== undefined
-        ? { description: description || null }
-        : {}),
+      ...(description !== undefined ? { description } : {}),
       ...(dto.supplierId === null
         ? { supplierId: null }
         : dto.supplierId !== undefined

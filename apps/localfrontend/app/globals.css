@@ -3213,7 +3213,7 @@ button {
 }
 
 .blog-card__image {
-  height: 220px;
+  aspect-ratio: 16 / 9;
   background: #ccc;
   overflow: hidden;
   position: relative;
@@ -3223,6 +3223,8 @@ button {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
+  display: block;
 }
 
 .blog-card__image-placeholder {
@@ -3345,15 +3347,17 @@ button {
 
 .blogpost-image {
   width: 100%;
-  max-width: 600px;
   margin: 0 auto 2.5rem;
   border-radius: var(--radius-lg);
   overflow: hidden;
+  background: #111;
 }
 
 .blogpost-image img {
   width: 100%;
-  height: auto;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
   display: block;
 }
 
@@ -4397,7 +4401,7 @@ button {
   border-radius: 12px;
   overflow: hidden;
   background: #111;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 9 / 16;
 }
 
 .video-card__video {

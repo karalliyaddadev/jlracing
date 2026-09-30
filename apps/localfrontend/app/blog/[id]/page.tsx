@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
+import { toCssAspectRatio } from "../../lib/aspect-ratio";
 
 const CMS_API_URL =
   process.env.NEXT_PUBLIC_CMS_API_URL || "http://localhost:5001";
@@ -75,7 +76,14 @@ export default function BlogPostPage() {
 
         <h1 className="blogpost-title">{post.title}</h1>
 
-        <div className="blogpost-image">
+        <div
+          className="blogpost-image"
+          style={
+            post.imageUrl
+              ? { aspectRatio: toCssAspectRatio(post.imageRatio) }
+              : undefined
+          }
+        >
           {post.imageUrl ? (
             <img
               src={
@@ -84,12 +92,6 @@ export default function BlogPostPage() {
                   : `${CMS_API_URL}${post.imageUrl}`
               }
               alt={post.title}
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "cover",
-                borderRadius: "inherit",
-              }}
             />
           ) : (
             <div className="blogpost-image__placeholder">

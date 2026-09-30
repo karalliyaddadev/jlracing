@@ -616,8 +616,10 @@ function ProductModal({
             categoryId: Number(form.categoryId),
             supplierId: form.supplierId ? Number(form.supplierId) : undefined,
             name: form.name.trim(),
-            partNumber: form.partNumber.trim() || undefined,
-            compatibleWith: form.compatibleWith.trim() || undefined,
+            // On edit, send empty strings so cleared fields are saved as cleared
+            partNumber: form.partNumber.trim() || (isEdit ? "" : undefined),
+            compatibleWith:
+              form.compatibleWith.trim() || (isEdit ? "" : undefined),
             quantity: Number(form.quantity || 0),
             lowStockThreshold:
               lowStockEnabled && form.lowStockThreshold.trim() !== ""
@@ -640,11 +642,15 @@ function ProductModal({
             description:
               validDescriptionPoints.length > 0
                 ? validDescriptionPoints.map((point) => `• ${point}`).join("\n")
-                : undefined,
+                : isEdit
+                  ? ""
+                  : undefined,
             descriptionPoints:
               validDescriptionPoints.length > 0
                 ? validDescriptionPoints
-                : undefined,
+                : isEdit
+                  ? []
+                  : undefined,
             expenses: validExpenses.length > 0 ? validExpenses : undefined,
           }),
         },

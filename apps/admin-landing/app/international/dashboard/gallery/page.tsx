@@ -30,7 +30,7 @@ interface FormData {
 const EMPTY_FORM: FormData = {
   title: "",
   mediaType: "video",
-  aspectRatio: "16:9",
+  aspectRatio: "9:16",
   order: 0,
   isActive: true,
 };
@@ -406,10 +406,10 @@ export default function InternationalGalleryAdminPage() {
                       setForm({ ...form, aspectRatio: e.target.value })
                     }
                   >
+                    <option value="9:16">9:16 (Reel)</option>
                     <option value="16:9">16:9</option>
                     <option value="4:3">4:3</option>
                     <option value="1:1">1:1</option>
-                    <option value="9:16">9:16</option>
                   </select>
                 </div>
               </div>

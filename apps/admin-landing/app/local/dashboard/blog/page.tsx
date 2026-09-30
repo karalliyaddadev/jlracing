@@ -347,7 +347,13 @@ export default function BlogAdminPage() {
                   <div className="blog-admin__image-picker">
                     {imagePreview ? (
                       <div className="blog-admin__image-preview">
-                        <img src={imagePreview} alt="Preview" />
+                        <img
+                          src={imagePreview}
+                          alt="Preview"
+                          style={{
+                            aspectRatio: form.imageRatio.replace(":", " / "),
+                          }}
+                        />
                         <button
                           type="button"
                           className="blog-admin__image-remove"
